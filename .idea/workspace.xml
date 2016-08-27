@@ -2,208 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5c6ca77f-3d46-4d7a-8227-d1559bc5c65e" name="Default" comment="Initial commit of Choice Marketing Partners">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/FontAwesome.otf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/fontawesome-webfont.eot" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/fontawesome-webfont.ttf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/fontawesome-webfont.woff" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/fontawesome-webfont.woff2" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/glyphicons-halflings-regular.eot" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/glyphicons-halflings-regular.ttf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/glyphicons-halflings-regular.woff" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/glyphicons-halflings-regular.woff2" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/slick.eot" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/slick.ttf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/slick.woff" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/ionicons/ionicons.eot" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/ionicons/ionicons.ttf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/ionicons/ionicons.woff" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/favicon.ico" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/camera/IMG_2409.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/camera/screen-content-iphone-6 copy.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/city_bg.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/coffee_laptop_banner.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/houses_banner.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/logo_brand_icon.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/logo_unedited.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/people_suits_banner.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/screen-content-iphone-6.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/tie-minimalism.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/ajax-loader.gif" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.video.play.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.env.example" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitattributes" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/blade.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/choicemarketing.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/deployment.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/laravel-plugin.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/typescript-compiler.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Console/Commands/Inspire.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Console/Kernel.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Document.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Events/Event.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Exceptions/Handler.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/Auth/AuthController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/Auth/PasswordController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/Controller.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/DocumentController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/LoginController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Kernel.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/Authenticate.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/EncryptCookies.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/RedirectIfAuthenticated.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/VerifyCsrfToken.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Requests/Request.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Requests/UploadFileRequest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Requests/UploadNewFolderRequest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/routes.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Jobs/Job.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Listeners/.gitkeep" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Policies/.gitkeep" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Providers/AppServiceProvider.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Providers/AuthServiceProvider.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Providers/EventServiceProvider.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Providers/RouteServiceProvider.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/UploadsManager.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/User.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/artisan" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bootstrap/app.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bootstrap/autoload.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bootstrap/cache/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer.lock" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/app.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/auth.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/broadcasting.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/cache.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/compile.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/database.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/debugbar.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/filesystems.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/mail.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/queue.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/services.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/session.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/view.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/factories/ModelFactory.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/.gitkeep" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2014_10_12_000000_create_users_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2014_10_12_100000_create_password_resets_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_07_24_192508_create_documents_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/.gitkeep" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/DatabaseSeeder.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gulpfile.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/package.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/phpunit.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/.htaccess" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/animate.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/app.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/app.css.map" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/bootstrap-theme.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/bootstrap.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/bootstrap.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/.npmignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/HELP-US-OUT.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/README.md" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/css/font-awesome.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/css/font-awesome.css.map" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/css/font-awesome.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/fonts/fontawesome-webfont.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/animated.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/bordered-pulled.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/core.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/fixed-width.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/font-awesome.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/icons.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/larger.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/list.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/mixins.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/path.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/rotated-flipped.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/screen-reader.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/stacked.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/less/variables.less" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/package.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_animated.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_bordered-pulled.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_core.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_fixed-width.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_icons.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_larger.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_list.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_mixins.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_path.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_rotated-flipped.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_screen-reader.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_stacked.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/_variables.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/font-awesome/scss/font-awesome.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/glyphicons-halflings-regular.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/fonts/slick.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/ionicons/ionicons.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/ionicons/ionicons.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/normalize.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/skeleton.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/user.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/images/iphone.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/index.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/bootstrap.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/bootstrap.min.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/jquery.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/jquery.min.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/LICENSE" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/README.md" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.carousel.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.carousel.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.theme.default.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.theme.default.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.theme.green.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/assets/owl.theme.green.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/owl.carousel.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/js/owl_carousel/owl.carousel.min.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/robots.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/web.config" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/readme.md" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/assets/sass/app.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/assets/sass/style.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/lang/en/auth.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/lang/en/pagination.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/lang/en/passwords.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/lang/en/validation.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/auth/emails/password.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/auth/login.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/auth/passwords/email.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/auth/passwords/reset.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/auth/register.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/doc_manager/_doc.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/doc_manager/index.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/errors/503.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/home.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/home/index.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/index.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/modal_partials/modal.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/modal_partials/partner.blade.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resources/views/vendor/.gitkeep" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/server.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/app/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/app/public/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/debugbar/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/framework/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/framework/cache/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/framework/sessions/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/framework/views/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/storage/logs/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tests/ExampleTest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tests/TestCase.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" afterPath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" />
     </list>
     <ignored path="choicemarketing.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -227,10 +26,10 @@
       <file leaf-file-name="app.blade.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/resources/views/layouts/app.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="387">
-              <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
+            <state relative-caret-position="410">
+              <caret line="106" column="35" selection-start-line="105" selection-start-column="0" selection-end-line="106" selection-end-column="35" />
               <folding>
-                <element signature="e#3240#3247#0#HTML" expanded="true" />
+                <element signature="e#3270#3277#0#HTML" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -260,7 +59,6 @@
         <option value="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" />
         <option value="$PROJECT_DIR$/resources/views/home/index.blade.php" />
         <option value="$PROJECT_DIR$/config/database.php" />
-        <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/resources/views/layouts/master.blade.php" />
         <option value="$PROJECT_DIR$/app/Http/Middleware/RedirectIfAuthenticated.php" />
         <option value="$PROJECT_DIR$/app/Http/filters.php" />
@@ -288,6 +86,8 @@
         <option value="$PROJECT_DIR$/resources/views/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/auth/login.blade.php" />
         <option value="$PROJECT_DIR$/public/css/user.css" />
+        <option value="$PROJECT_DIR$/.env" />
+        <option value="&lt;a748c624-0b34-48de-9b2c-e6705a090030&gt;/var/www/.env" />
         <option value="$PROJECT_DIR$/resources/views/layouts/app.blade.php" />
       </list>
     </option>
@@ -863,16 +663,16 @@
       <workItem from="1471310335148" duration="4265000" />
       <workItem from="1471394955349" duration="7572000" />
       <workItem from="1472243589123" duration="27000" />
-      <workItem from="1472243638839" duration="8273000" />
+      <workItem from="1472243638839" duration="9666000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="135186000" />
+    <option name="totallyTimeSpent" value="136579000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="23" width="1600" height="873" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32891566" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -882,7 +682,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Gulp" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
-      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3296875" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.329375" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.170625" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -951,13 +751,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/vendor/laravel/framework/src/Illuminate/Support/Facades/Storage.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1845">
@@ -3862,12 +3655,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.env">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/resources/views/layouts/app.blade.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
+        <state relative-caret-position="410">
+          <caret line="106" column="35" selection-start-line="105" selection-start-column="0" selection-end-line="106" selection-end-column="35" />
           <folding>
-            <element signature="e#3240#3247#0#HTML" expanded="true" />
+            <element signature="e#3270#3277#0#HTML" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -37,9 +37,9 @@
             </div>
             <div class="collapse navbar-collapse" id="navcol-1">
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="active" role="presentation"><a href="{{url('/')}}">Home </a></li>
-                    @if(!Auth::user())<li role="presentation"><a href="{{url('/login')}}"><i class="icon ion-log-in"></i> Login </a></li>@endif
-                    @if(Auth::user())<li role="presentation"><a href="{{action('LoginController@index')}}"><i class="fa icon ion-log-out"></i> Logout </a></li>@endif
+                    <li role="presentation" id="homeLink"><a href="{{url('/')}}">Home </a></li>
+                    @if(!Auth::user())<li role="presentation" id="loginLink"><a href="{{url('/login')}}"><i class="icon ion-log-in"></i> Login </a></li>@endif
+                    @if(Auth::user())<li role="presentation" id="logoutLink"><a href="{{action('LoginController@index')}}"><i class="fa icon ion-log-out"></i> Logout </a></li>@endif
                 </ul>
             </div>
         </div>
@@ -103,6 +103,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     {{-- <script src="{{ elixir('js/app.js') }}"></script> --}}
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+           $('ul.nav li').on('click', function(){
+               $('li').removeClass('active');
+               $(this).addClass('active');
+           });
+        });
+
+        (function(){
+            var currentPage = window.location.pathname;
+
+            switch(currentPage){
+                case "/":
+                    $('#homeLink').addClass('active');
+                    break;
+                case "/login":
+                    $('#loginLink').addClass('active');
+                    break;
+                default:
+                    break;
+            }
+        })();
+    </script>
+
     @yield('scripts')
 
 </body>
