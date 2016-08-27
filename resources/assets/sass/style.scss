@@ -1,0 +1,213 @@
+/****** Table of Contents ******/
+
+// 1. Application Variables
+// 2. Site Utilities
+
+
+
+
+/****** Application Variables ******/
+
+  $darkPrimary: #1976D2;
+  $primary: #2196F3;
+  $lightPrimary: #BBDEFB;
+  $icons: #FFFFFF;
+  $accent: #607D8B;
+  $primaryText: #212121;
+  $secondaryText: #727272;
+  $dividerColor: #B6B6B6;
+
+
+/****** Site Utilities ******/
+
+  .pt-10 {
+    padding-top: 10px;
+  }
+
+  .pt-20 {
+    padding-top: 20px;
+  }
+
+  .pt-30 {
+    padding-top: 30px;
+  }
+
+  .pt-40 {
+    padding-top: 40px;
+  }
+
+  .pt-50 {
+    padding-top: 50px;
+  }
+
+  .pl-30 {
+    padding-left: 30px;
+  }
+
+  a {
+    letter-spacing: .1em;
+    &.unstyled {
+      color: $primaryText;
+      text-decoration: none;
+      font-weight: normal;
+      &:hover {
+        color: $primaryText;
+        text-shadow: 0 1px 1px $secondaryText;
+      }
+    }
+  }
+
+
+body, html, main {
+  height: 100%;
+}
+
+.loginLink {
+  //outline-style: double;
+  //outline-width: thick;
+  //position: relative;
+  //max-width: 12vw;
+  //background-color: $accent;
+}
+
+.main-content {
+  height: 100%;
+}
+
+.bg-fixed {
+  min-height: 100%;
+  background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.bg-fixed-1 {
+  background-image: url("../images/tie-minimalism.jpg");
+}
+
+#loginContainer {
+  position: relative;
+  height: 100%;
+  top: 35vh;
+  bottom: auto;
+  left: 5vw;
+  right: auto;
+}
+
+.cmp-intro {
+  position: absolute;
+  left: 50%;
+  top: 80%;
+  bottom: auto;
+  right: auto;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -ms-transform: translateX(-50%) translateY(-50%);
+  -o-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+  text-align: center;
+  width: 90%;
+  max-width: 1280px;
+  color: #f2f5f0;
+  font-size: 2vw;
+  text-shadow: 0 1px 1px #000;
+}
+
+.bg-scrolling {
+  min-height: 100%;
+}
+
+.cmp-color-1 {
+  height: 100%;
+  background-color: $lightPrimary;
+}
+
+.loginWelcome {
+  text-shadow: 0 1px 3px $secondaryText;
+  letter-spacing: .5em;
+  opacity: 0;
+  -moz-transition: all 500ms linear;
+  -webkit-transition: all 500ms linear;
+  -o-transition: all 500ms linear;
+  transition: all 500ms linear;
+  -moz-transform: translate3d(-100px, 0px, 0px);
+  -webkit-transform: translate3d(-100px, 0px, 0px);
+  -o-transform: translate(-100px, 0px);
+  -ms-transform: translate(-100px, 0px);
+  transform: translate3d(-100px, 0px, 0px);
+
+  &.unstyled {
+
+    &.in-view {
+      opacity: 1;
+      -moz-transform: translate3d(0px, 0px, 0px);
+      -webkit-transform: translate3d(0px, 0px, 0px);
+      -o-transform: translate(0px, 0px);
+      -ms-transform: translate(0px, 0px);
+      transform: translate3d(0px, 0px, 0px);
+
+      &:hover {
+        text-shadow: 0 2px 4px $primaryText;
+      }
+    }
+  }
+
+
+}
+
+.documentUploader {
+  display: none;
+}
+
+#document-id {
+  display: none;
+}
+
+/****** Form Helpers ******/
+
+.help-block {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  color: #737373;
+}
+
+//.carousel-container {
+//  background-size: cover;
+//  background-attachment: fixed;
+//  background: url("../images/tie-minimalism.jpg") no-repeat;
+//  -webkit-background-size: 100%;
+//  -moz-background-size: 100%;
+//  -o-background-size: 100%;
+//  background-size: 100%;
+//  width: 100vw;
+//  position: relative;
+//  height: 95vh;
+//  left: -1.19%;
+//}
+
+//.carousel-overlay {
+//  background: linear-gradient(transparent, #535451);
+//  position: absolute;
+//  width: 100%;
+//  bottom: 0;
+//  height: 25%;
+//  z-index: 1;
+//
+//  .carousel-textbox {
+//
+//    h1 {
+
+//    }
+//  }
+//}
+//
+//.welcome-message {
+//  background-color: #74AFAD;
+//  height: 60vh;
+//}
+
+
+
+
