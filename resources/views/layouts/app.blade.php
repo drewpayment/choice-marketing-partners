@@ -87,6 +87,7 @@
                             <label for="sender-msg" class="control-label">Tell us a bit about yourself: </label>
                             <textarea class="form-control" id="sender-msg"></textarea>
                         </div>
+                        {{csrf_field()}}
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -127,17 +128,29 @@
             }
         })();
 
-        $('#sender-btn').on('click', function(){
-            var form = $('form').bind(document);
-            var formData = new FormData();
-            formData.append('Name', form.find('#sender-name').val());
-            formData.append('PhoneNo', form.find('#sender-phone').val());
-            formData.append('Email', form.find('#sender-email').val());
-            formData.append('Message', form.find('#sender-msg').val());
+        function getModalForm(){
+            var form = $('form');
+
+            return {
+                'name': form.find('sender-name').val(),
+                'phone': form.find('sender-phone').val(),
+                'email': form.find('sender-email').val(),
+                'message': form.find('sender-msg').val()
+            }
+        }
+
+        $(document).on('click', '#sender-btn', function(e){
+            e.stopPropagation();
+            var modalForm = getModalForm();
 
             $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('#_token').val()
+                },
                 url: '/sendmodal',
-                data: formData,
+                data: {
+                    'form': modalForm
+                },
                 method: 'POST',
                 dataType: 'html'
             }).done(function(data){
