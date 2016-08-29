@@ -7,6 +7,7 @@ use App\Http\Requests\UploadFileRequest;
 use App\Services\UploadsManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\View;
 
@@ -69,6 +70,22 @@ class DocumentController extends Controller
 		$html = View::make('doc_manager._doc', ['documents' => $documents])->render();
 
 		return Response::json(['html' => $html]);
+	}
+
+
+	public function sendMessage($formData)
+	{
+		$sent = Mail::send('emails.modal', ['sender' => $formData], function ($m) use ($formData){
+			$m->from('messages@choice-marketing-partners.com', 'Choice Messages');
+
+			$m->to('drew@verostack.io', 'Drew Payment')->subject('Message from Choice!');
+		});
+
+		if($sent > 0){
+			return view('emails.confirmation')->with()->compact('sent');
+		} else {
+			return redirect()->back()->withErrors($sent);
+		}
 	}
 
 }

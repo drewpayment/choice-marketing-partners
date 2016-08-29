@@ -76,8 +76,8 @@
                             <input type="text" class="form-control" id="sender-name">
                         </div>
                         <div class="form-group">
-                            <label for="phone-number" class="control-label">Phone Number: </label>
-                            <input type="tel" class="form-control" id="phone-number">
+                            <label for="sender-phone" class="control-label">Phone Number: </label>
+                            <input type="tel" class="form-control" id="sender-phone">
                         </div>
                         <div class="form-group">
                             <label for="sender-email" class="control-label">Email: </label>
@@ -91,7 +91,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-primary" id="sender-btn">Submit</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
@@ -126,6 +126,25 @@
                     break;
             }
         })();
+
+        $('#sender-btn').on('click', function(){
+            var formData = new FormData();
+            formData.append('Name', $('#sender-name'));
+            formData.append('PhoneNo', $('#sender-phone'));
+            formData.append('Email', $('#sender-email'));
+            formData.append('Message', $('#sender-msg'));
+
+            $.ajax({
+                url: '/sendmodal',
+                data: formData,
+                method: 'POST',
+                dataType: 'html'
+            }).done(function(data){
+                if(data){
+                    $('#modal-body').html(data.data);
+                }
+            });
+        })
     </script>
 
     @yield('scripts')

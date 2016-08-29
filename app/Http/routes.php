@@ -26,6 +26,7 @@ Route::auth();
 Route::get('/home', 'HomeController@index');
 
 Route::get('/documents', 'DocumentController@index');
+Route::post('/sendmodal', 'DocumentController@sendMessage');
 Route::get('/getDocuments', 'DocumentController@getDocumentsViaAjax');
 Route::post('/postNewDocument', 'DocumentController@postNewDocument');
 
