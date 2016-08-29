@@ -128,11 +128,12 @@
         })();
 
         $('#sender-btn').on('click', function(){
+            var form = $('form').bind(document);
             var formData = new FormData();
-            formData.append('Name', $('#sender-name'));
-            formData.append('PhoneNo', $('#sender-phone'));
-            formData.append('Email', $('#sender-email'));
-            formData.append('Message', $('#sender-msg'));
+            formData.append('Name', form.find('#sender-name').val());
+            formData.append('PhoneNo', form.find('#sender-phone').val());
+            formData.append('Email', form.find('#sender-email').val());
+            formData.append('Message', form.find('#sender-msg').val());
 
             $.ajax({
                 url: '/sendmodal',
