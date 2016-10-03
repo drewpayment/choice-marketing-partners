@@ -7,8 +7,8 @@
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url("font-awesome/fonts/fontawesome-webfont.eot?v=4.6.3");
-  src: url("font-awesome/fonts/fontawesome-webfont.eot?#iefix&v=4.6.3") format("embedded-opentype"), url("font-awesome/fonts/fontawesome-webfont.woff2?v=4.6.3") format("woff2"), url("font-awesome/fonts/fontawesome-webfont.woff?v=4.6.3") format("woff"), url("font-awesome/fonts/fontawesome-webfont.ttf?v=4.6.3") format("truetype"), url("font-awesome/fonts/fontawesome-webfont.svg?v=4.6.3#fontawesomeregular") format("svg");
+  src: url("../fonts/fontawesome-webfont.eot?v=4.6.3");
+  src: url("../fonts/fontawesome-webfont.eot?#iefix&v=4.6.3") format("embedded-opentype"), url("../fonts/fontawesome-webfont.woff2?v=4.6.3") format("woff2"), url("../fonts/fontawesome-webfont.woff?v=4.6.3") format("woff"), url("../fonts/fontawesome-webfont.ttf?v=4.6.3") format("truetype"), url("../fonts/fontawesome-webfont.svg?v=4.6.3#fontawesomeregular") format("svg");
   font-weight: normal;
   font-style: normal; }
 
@@ -89,35 +89,52 @@
   margin-left: .3em; }
 
 .fa-spin {
+  -webkit-animation: fa-spin 2s infinite linear;
   animation: fa-spin 2s infinite linear; }
 
 .fa-pulse {
+  -webkit-animation: fa-spin 1s infinite steps(8);
   animation: fa-spin 1s infinite steps(8); }
+
+@-webkit-keyframes fa-spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg); }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg); } }
 
 @keyframes fa-spin {
   0% {
+    -webkit-transform: rotate(0deg);
     transform: rotate(0deg); }
   100% {
+    -webkit-transform: rotate(359deg);
     transform: rotate(359deg); } }
 
 .fa-rotate-90 {
   -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=1)";
+  -webkit-transform: rotate(90deg);
   transform: rotate(90deg); }
 
 .fa-rotate-180 {
   -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2)";
+  -webkit-transform: rotate(180deg);
   transform: rotate(180deg); }
 
 .fa-rotate-270 {
   -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=3)";
+  -webkit-transform: rotate(270deg);
   transform: rotate(270deg); }
 
 .fa-flip-horizontal {
   -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
+  -webkit-transform: scale(-1, 1);
   transform: scale(-1, 1); }
 
 .fa-flip-vertical {
   -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)";
+  -webkit-transform: scale(1, -1);
   transform: scale(1, -1); }
 
 :root .fa-rotate-90,
@@ -2230,6 +2247,7 @@ body, html, main {
   top: 80%;
   bottom: auto;
   right: auto;
+  -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
   text-align: center;
   width: 90%;
@@ -2249,17 +2267,19 @@ body, html, main {
   text-shadow: 0 1px 3px #727272;
   letter-spacing: .5em;
   opacity: 0;
+  -webkit-transition: all 500ms linear;
   transition: all 500ms linear;
+  -webkit-transform: translate3d(-100px, 0px, 0px);
   transform: translate3d(-100px, 0px, 0px); }
   .loginWelcome.unstyled.in-view {
     opacity: 1;
+    -webkit-transform: translate3d(0px, 0px, 0px);
     transform: translate3d(0px, 0px, 0px); }
     .loginWelcome.unstyled.in-view:hover {
       text-shadow: 0 2px 4px #212121; }
 
 .documentUploader {
-  display: none;
-}
+  display: none; }
 
 #document-id {
   display: none; }

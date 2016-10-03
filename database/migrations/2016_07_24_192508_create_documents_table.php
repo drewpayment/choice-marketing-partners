@@ -14,9 +14,10 @@ class CreateDocumentsTable extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->increments('id');
-	        $table->integer('doc_id')->unique();
 	        $table->string('name');
 	        $table->string('description');
+            $table->string('file_path');
+	        $table->string('mime_type');
 	        $table->string('uploaded_by');
             $table->timestamps();
         });

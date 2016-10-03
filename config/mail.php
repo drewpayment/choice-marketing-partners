@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+    'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
 
     /*
     |--------------------------------------------------------------------------
@@ -55,7 +55,10 @@ return [
     |
     */
 
-    'from' => ['address' => null, 'name' => null],
+    'from' => [
+        'address' => 'hello@example.com',
+        'name' => 'Example',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -81,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('drew@verostack.io'),
+    'username' => env('MAIL_USERNAME'),
 
     /*
     |--------------------------------------------------------------------------
@@ -94,7 +97,7 @@ return [
     |
     */
 
-    'password' => env('Heinzcatsup1'),
+    'password' => env('MAIL_PASSWORD'),
 
     /*
     |--------------------------------------------------------------------------

@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\Request;
+use Illuminate\Foundation\Http\FormRequest;
 
-class UploadFileRequest extends Request
+class UploadFileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,8 @@ class UploadFileRequest extends Request
     public function rules()
     {
         return [
-        	'name' => 'required',
-	        'file_upload' => 'required',
+	        'name' => 'required',
+	        'file' => 'required',
 	        'description' => 'required'
         ];
     }

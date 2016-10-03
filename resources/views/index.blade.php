@@ -12,7 +12,7 @@
             <div class="col-md-6 col-md-pull-3 get-it">
                 <h2>Highly Motivated Marketing Strategists</h2>
                 <p>We are here to be your partners, or your guides. We work hard as a team to deliver undisputed sales performance while maintaining integrity and loyalty to our clients and associates.</p>
-                <p><a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner"><i class="fa fa-users"></i> Become a Partner</a><a class="btn btn-success btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Associate"><i class="fa fa-compass"></i> Start Your Career</a></p>
+                <p><a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner"><i class="fa fa-users"></i> Become a Partner</a></p>
             </div>
         </div>
     </div>

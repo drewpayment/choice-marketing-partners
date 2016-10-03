@@ -20,9 +20,9 @@ class Document extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-		'doc_id',
 		'name',
 		'description',
+		'mime_type',
 		'uploaded_by'
 	];
 
