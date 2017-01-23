@@ -128,4 +128,19 @@ class EmpManagerController extends Controller
 
         return response()->json($html);
     }
+
+    /*
+    * return edit employee modal 
+    *
+    */
+    public function getEmployeeEditModal()
+    {
+        if(request()->ajax())
+        {
+            $data = request()->all();
+        }
+        $emp = Employee::where('id', '=', $data['id'])->get();
+
+        return view('emp_manager._emp_modal', ['emp' => $emp])->render();
+    }
 }

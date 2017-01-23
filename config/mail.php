@@ -56,8 +56,8 @@ return [
     */
 
     'from' => [
-        'address' => 'hello@example.com',
-        'name' => 'Example',
+        'address' => 'postmaster@mg.verostack.io',
+        'name' => 'Verostack Post',
     ],
 
     /*

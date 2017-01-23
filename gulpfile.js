@@ -23,4 +23,10 @@ elixir(function(mix) {
         '../../../public/css/app.css',
         '../../../public/css/custom.css'
     ]);
+
+    mix.scripts([
+    	'custom.js',
+    	'employees.js',
+        'upload.js'
+	])
 });

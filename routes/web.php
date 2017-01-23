@@ -16,6 +16,18 @@ Route::get('/', function() {
 	return view('index');
 });
 
+Route::get('/payroll-dispute', function(){
+	return view('emails.dispute');
+});
+
+Route::get('/upload-invoice', 'InvoiceController@index');
+Route::post('/upload/invoice', 'InvoiceController@UploadInvoice');
+Route::get('/upload/overrides-modal', 'InvoiceController@OverridesModal');
+
+Route::get('/historical-invoice-data', 'InvoiceController@historical');
+Route::get('/getissuedates', 'InvoiceController@returnIssueDates');
+Route::post('/getpaystub', 'InvoiceController@returnPaystub');
+
 Auth::routes();
 Route::get('logout', 'LoginController@logout');
 
@@ -34,5 +46,6 @@ Route::post('/uploadFile', 'DocumentController@uploadFile');
 Route::post('/upload', 'DocumentController@upload');
 
 Route::resource('employees', 'EmpManagerController');
+Route::post('/editemployee', 'EmpManagerController@getEmployeeEditModal');
 
 Route::get('/home', 'HomeController@index');

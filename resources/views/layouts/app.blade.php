@@ -13,11 +13,18 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Latest compiled and minified Bootstrap select/option module -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
     {{-- <link href="{{ elixir('css/app.css') }}" rel="stylesheet"> --}}
     <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
 
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
     <link rel="stylesheet" href="{{url('css/user.css')}}">
+    <link rel="stylesheet" href="{{url('css/all.css')}}">
+    {{-- Sandy Walker/WebUI-Popover --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">
+
+    @yield('topCSS')
 
     <style>
         body {
@@ -28,36 +35,44 @@
             margin-right: 6px;
         }
     </style>
+
+    <!-- jsPDF -->
+    <script src="{{url('js/jspdf.js')}}"></script>
+    <!-- jsPDF plugin Autotable: https://github.com/simonbengtsson/jsPDF-AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.0/jspdf.plugin.autotable.js"></script>
+
+    @yield('topJS')
 </head>
 <body id="app-layout">
-<nav class="navbar navbar-default">
+<div class="wrapper">
+<nav class="navbar navbar-default bg-blue">
     <div class="container">
-        <div class="navbar-header"><a class="navbar-brand navbar-link" href="{{url('/')}}"><i class="glyphicon glyphicon-globe"></i>Choice Marketing Partners</a>
+        <div class="navbar-header"><a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}"><i class="glyphicon glyphicon-globe"></i>Choice Marketing Partners</a>
             <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
         </div>
         <div class="collapse navbar-collapse" id="navcol-1">
             <ul class="nav navbar-nav navbar-right">
-                <li role="presentation" id="homeLink">
-                    <a href="{{url('/')}}">
-                        <i class="icon ion-home"></i> Home
-                    </a>
-                </li>
                 @if(!Auth::user())
+                    <li role="presentation" id="homeLink">
+                        <a href="{{url('/')}}" class="navbar-title-text">
+                            <i class="icon ion-home"></i> Home
+                        </a>
+                    </li>
                     <li role="presentation" id="loginLink">
-                        <a href="{{url('/login')}}">
+                        <a href="{{url('/login')}}" class="navbar-title-text">
                             <i class="icon ion-log-in"></i> Login
                         </a>
                     </li>
                 @endif
                 @if(Auth::user())
                     <li role="presentation" id="dashboardLink">
-                        <a href="{{url('/dashboard')}}">
-                            <i class="icon ion-grid"></i> Dash
+                        <a href="#">
+                            <i class="icon ion-grid navbar-title-text"></i>
                         </a>
                     </li>
                     <li role="presentation" id="logoutLink">
                         <a href="{{url('/logout')}}">
-                            <i class="fa icon ion-log-out"></i> Logout
+                            <i class="fa icon ion-log-out navbar-title-text"></i>
                         </a>
                     </li>
                 @endif
@@ -68,24 +83,28 @@
 
 <div class="container">
 
+    <div class="pt-10">&nbsp;</div>
+
     @if(Session::has('alert'))
-        <div class="alert alert-danger pt-10">
+        <div class="alert alert-danger pt-10" id="display_msgs">
             {{ Session::get('alert') }}
         </div>
     @endif
 
     @if(Session::has('message'))
-        <div class="alert alert-info pt-10">
+        <div class="alert alert-info pt-10" id="display_msgs">
             {{ Session::get('message') }}
         </div>
     @endif
 
+    <div class="alert alert-info pt-10 hidden" id="js_msgs"></div>
+
     @yield('content')
 
 </div>
+</div>
 
-
-<footer class="site-footer">
+{{-- <footer class="site-footer">
     <div class="container">
         <div class="row">
             <div class="col-sm-6">
@@ -93,22 +112,32 @@
             <div class="col-sm-6 social-icons"><a href="https://www.facebook.com/pages/Choice-Marketing-Partners-LLC/221793854688554" target="_blank"><i class="fa fa-facebook"></i></a></div>
         </div>
     </div>
-</footer>
+</footer> --}}
 
 @include('layouts.modal')
-
-
+@include('layouts.modal_layout')
 
 <!-- JavaScripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-{{-- <script src="{{ elixir('js/app.js') }}"></script> --}}
+<script src="{{ url('js/all.js') }}"></script>
+<!-- Latest compiled and minified Bootstrap select/option js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
+{{-- Sandy Walker WebUI Popover --}}
+{{-- https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/loading.gif => loading gif --}}
+<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function(){
         $('ul.nav li').on('click', function(){
             $('li').removeClass('active');
             $(this).addClass('active');
+            $(this).find('navbar-title-text').removeClass('navbar-title-text');
+        }).on('focusout', function(){
+            if($(this).attr('id') !== 'Home'){
+                $('li').removeClass('active');
+                $(this).find('a').addClass('navbar-title-text');
+            }
         });
     });
 
@@ -118,9 +147,11 @@
         switch(currentPage){
             case "/":
                 $('#homeLink').addClass('active');
+                $('#homeLink').find('.navbar-title-text').removeClass('navbar-title-text');
                 break;
             case "/login":
                 $('#loginLink').addClass('active');
+                $('#loginLink').find('.navbar-title-text').removeClass('navbar-title-text');
                 break;
             case "/dashboard":
                 $('#dashboardLink').addClass('active');
@@ -160,14 +191,39 @@
                 $('#modal-body').html(data.data);
             }
         });
+    });
+
+    $('#dashboardLink').webuiPopover({
+        type: 'async',
+        url: '{{url('/dashboard')}}',
+        backdrop: true,
+        animation: 'pop'
     })
 
 </script>
 <script type="text/javascript">
     $('#display_msgs').fadeOut(3000);
+
+    $(function(){
+        var h = $('.wrapper').height()+20;
+        var footer = $(window).height();
+
+        if(h + 100 <= footer){
+            $('.site-footer').css({
+                'top': footer - 100+'px',
+                'display': 'block'
+            });
+        } else {
+            $('.site-footer').css({
+                'top': h+'px',
+                'display': 'block'
+            })
+        }
+    })
 </script>
 
 @yield('scripts')
+
 
 </body>
 </html>

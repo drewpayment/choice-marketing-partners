@@ -5,14 +5,8 @@
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <div class="page-header">
-                <h1>Choice Marketing Partners</h1>
+                <h2>Current Associates</h2>
             </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-10 col-md-offset-1">
-            <h2>Current Associates</h2>
         </div>
     </div>
 
@@ -38,10 +32,11 @@
         <div class="col-md-11 col-md-offset-1">
             <table class="table table-condensed">
                 <thead>
+                <th></th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone No</th>
-                <th>Active</th>
+                <th class="text-center">Active</th>
                 <th>Address</th>
                 </thead>
                 <tbody>

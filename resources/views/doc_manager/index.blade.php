@@ -47,7 +47,7 @@
                             <br><br>
 
                             <div class="form-group">
-                                <button type="submit" class="btn btn-default">Upload Document</button>
+                                <button type="submit" class="btn btn-primary">Upload Document</button>
                             </div>
                         </form>
                     </div>
