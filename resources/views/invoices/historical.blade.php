@@ -18,7 +18,9 @@
 			<li>
 				<select class="selectpicker" id="employee" data-mobile="true">
 					<option value="-1" selected>Select Agent</option>
-					<option value="{{$self->id}}">{{$self->name}}</option>
+					@if(!$emps->contains('id', $self->id))
+						<option value="{{$self->id}}">{{$self->name}}</option>
+					@endif
 					@foreach($emps as $emp)
 						<option value="{{$emp->id}}">{{$emp->name}}</option>
 					@endforeach

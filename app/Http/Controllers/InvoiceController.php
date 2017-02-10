@@ -160,14 +160,14 @@ class InvoiceController extends Controller
 
 	public function historical()
 	{
-		$admin = Auth::user()->is_admin;
-		if($admin)
+		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$admin = $thisUser->is_admin;
+		if($admin == 1)
 		{
 			$result = DB::table('employees')->get();
 		}
 		else
 		{
-			$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
 			$list = DB::table('permissions')->where('id', $thisUser->id)->first();
 			$list = explode('|', $list->roll_up);
 			$emps = DB::table('employees')->get();

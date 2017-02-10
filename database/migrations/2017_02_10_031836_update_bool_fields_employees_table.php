@@ -29,7 +29,7 @@ class UpdateBoolFieldsEmployeesTable extends Migration
     public function down()
     {
 
-    	
+
 
     }
 }
