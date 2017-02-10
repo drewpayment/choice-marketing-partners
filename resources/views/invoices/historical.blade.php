@@ -18,6 +18,7 @@
 			<li>
 				<select class="selectpicker" id="employee" data-mobile="true">
 					<option value="-1" selected>Select Agent</option>
+					<option value="{{$self->id}}">{{$self->name}}</option>
 					@foreach($emps as $emp)
 						<option value="{{$emp->id}}">{{$emp->name}}</option>
 					@endforeach
@@ -56,13 +57,17 @@
 			},
 			dataType: 'html'
 		}).done(function(data){
-			$('#issueDate').html(data);
-			$('#issueDate').selectpicker('refresh');
+		    if(data){
+		        $('#paystub').html('');
+                $('#issueDate').html(data);
+                $('#issueDate').selectpicker('refresh');
+			}
 		});
 	});
 
 	$('#issueDate').on('change', function(){
-		var token = $('meta[name="csrf-token"]').attr('content'),
+		var agentId = $('#employee').val(),
+			token = $('meta[name="csrf-token"]').attr('content'),
 			date = $(this).val();
 			date = date.match(/\d+/g);
 
@@ -74,7 +79,8 @@
 			type: 'POST',
 			data: {
 				_token: token,
-				date: date
+				date: date,
+				id: agentId
 			},
 			dataType: 'html'
 		}).done(function(data){

@@ -29,7 +29,7 @@ $('#editEmployeeBtn').on('click', function(){
 */
 
 $(function(){
-	$modal = $('#modal_layout');
+	var $modal = $('#modal_layout');
 	$modal.on('hidden.bs.modal', function(){
 		$modal.removeData();
 		$modal.html('');
@@ -51,8 +51,7 @@ function editEmployee(e){
 				_token: token
 			}
 		}).done(function(data){
-			var result = data;
-			$modal.html(result);
+			$modal.html(data);
 
 		}).fail(function(event){
 			var result = event.responseText;

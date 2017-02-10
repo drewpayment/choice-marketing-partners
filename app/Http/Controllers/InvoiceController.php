@@ -6,9 +6,10 @@ use App\Http\Requests;
 use App\Invoice;
 use DateTime;
 use DateInterval;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Exception;
+use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -52,42 +53,106 @@ class InvoiceController extends Controller
 	 */
 	public function UploadInvoice(Request $request)
 	{
-		$invoice = new Invoice;
-		$input = $request->sales;
-		$array = [];
+		$salesInput = $request->sales;
+		$overrideInput = $request->overrides;
+		$expenseInput = $request->expenses;
+		$salesArr = [];
+		$overArr = [];
+		$expArr = [];
+		$exception = null;
 
-		foreach($input as $sale)
+		if(!is_null($salesInput))
 		{
-			if(!empty($sale['date']))
+			foreach($salesInput as $invoice)
 			{
-				$array[] = [
-					'id' => $sale['id'],
-					'vendor' => $sale['vendor'],
-					'sale_date' => new DateTime($sale['date']),
-					'first_name' => $sale['name']['first'],
-					'last_name' => $sale['name']['last'],
-					'address' => $sale['address'],
-					'city' => $sale['city'],
-					'status' => $sale['status'],
-					'amount' => $sale['amount'],
-					'agentid' => $sale['agentid'],
-					'issue_date' => new DateTime($sale['issueDate']),
-					'wkending' => new DateTime($sale['wkending']),
-					'created_at' => new DateTime(),
-					'updated_at' => new DateTime()
-				];
+				if(!empty($invoice['issueDate']))
+				{
+					$salesArr[] = [
+						'id' => $invoice['id'],
+						'vendor' => $invoice['vendor'],
+						'sale_date' => new DateTime($invoice['date']),
+						'first_name' => $invoice['name']['first'],
+						'last_name' => $invoice['name']['last'],
+						'address' => $invoice['address'],
+						'city' => $invoice['city'],
+						'status' => $invoice['status'],
+						'amount' => $invoice['amount'],
+						'agentid' => $invoice['agentid'],
+						'issue_date' => new DateTime($invoice['issueDate']),
+						'wkending' => new DateTime($invoice['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
 			}
 		}
 
-		if(DB::table('invoices')->insert($array))
+
+		if(!is_null($overrideInput))
 		{
-			$result = "Your invoice was uploaded!";
-		}
-		else 
-		{
-			$result = "Utoh! Something went wrong. You might have sent some empty fields?";
+			foreach($overrideInput as $ovr)
+			{
+				if(!empty($ovr['issueDate']))
+				{
+					$overArr[] = [
+						'id' => $ovr['id'],
+						'name' => $ovr['name'],
+						'sales' => $ovr['numOfSales'],
+						'commission' => $ovr['commission'],
+						'total' => $ovr['total'],
+						'agentid' => $ovr['agentid'],
+						'issue_date' => new DateTime($ovr['issueDate']),
+						'wkending' => new DateTime($ovr['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
+			}
 		}
 
+
+		if(!is_null($expenseInput))
+		{
+			foreach($expenseInput as $exp)
+			{
+				if(!empty($exp['issueDate']))
+				{
+					$expArr[] = [
+						'type' => $exp['type'],
+						'amount' => $exp['amount'],
+						'notes' => $exp['notes'],
+						'agentid' => $exp['agentid'],
+						'issue_date' => new DateTime($exp['issueDate']),
+						'wkending' => new DateTime($exp['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
+			}
+		}
+
+
+		try{
+			if(!is_null($salesArr))
+			{
+				DB::table('invoices')->insert($salesArr);
+			}
+			if(!is_null($overArr))
+			{
+				DB::table('overrides')->insert($overArr);
+			}
+			if(!is_null($expArr))
+			{
+				DB::table('expenses')->insert($expArr);
+			}
+		}
+		catch(Exception $e)
+		{
+			return response()->json('false');
+		}
+
+
+		$result = is_null($exception) ? true : $exception;
 
 		return response()->json($result);
 	}
@@ -95,10 +160,41 @@ class InvoiceController extends Controller
 
 	public function historical()
 	{
-		$emps = DB::table('employees')->get();
-		$weds = [];
+		$admin = Auth::user()->is_admin;
+		if($admin)
+		{
+			$result = DB::table('employees')->get();
+		}
+		else
+		{
+			$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+			$list = DB::table('permissions')->where('id', $thisUser->id)->first();
+			$list = explode('|', $list->roll_up);
+			$emps = DB::table('employees')->get();
+			$result = [];
+			foreach($list as $val)
+			{
+				array_push($result, $this->findObjectById($val, $emps));
+			}
+			$result = collect($result);
+		}
 
-		return view('invoices.historical', ['emps' => $emps]);
+
+		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser]);
+	}
+
+
+	private function findObjectById($id, $array)
+	{
+		foreach($array as $a)
+		{
+			if($id == $a->id)
+			{
+				return $a;
+			}
+		}
+
+		return false;
 	}
 
 
@@ -123,19 +219,18 @@ class InvoiceController extends Controller
 
 	public function returnPaystub(Request $request)
 	{
+		$agentId = $request->id;
 		$gross = 0;
-		// $deductions => need to support this in db and admin
 		$invoiceDt = strtotime($request->date);
 		$invoiceDt = date('m-d-Y', $invoiceDt);
 		$stubs = DB::table('invoices')
 						->where('issue_date', '=', $request->date)
+						->where('agentid', '=', $agentId)
 						->get();
-
-		$agentid = $stubs->first()->agentid;
 
 		$emp = DB::table('employees')
 						->select('*')
-						->where('id', '=', $agentid)
+						->where('id', '=', $agentId)
 						->first();
 
 		$vendorId = $stubs->first()->vendor;
@@ -156,8 +251,32 @@ class InvoiceController extends Controller
 			$s->sale_date = date('m-d-Y', $s->sale_date);
 		}
 
+		$overrides = DB::table('overrides')
+							->select('*')
+							->where('agentid', '=', $agentId)
+							->where('issue_date', '=', $request->date)
+							->get();
 
-		return view('invoices.paystub', ['stubs' => $stubs, 'emp' => $emp, 'gross' => $gross, 'invoiceDt' => $invoiceDt, 'vendor' => $vendorName]);
+		$expenses = DB::table('expenses')
+							->select('*')
+							->where('agentid', '=', $agentId)
+							->where('issue_date', '=', $request->date)
+							->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + $ovr->total;
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + $exp->amount;
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+
+		return view('invoices.paystub', ['stubs' => $stubs, 'emp' => $emp, 'gross' => $gross, 'invoiceDt' => $invoiceDt, 'vendor' => $vendorName, 'overrides' => $overrides, 'expenses' => $expenses, 'ovrgross' => $ovrGross, 'expgross' => $expGross]);
 	}
 
 

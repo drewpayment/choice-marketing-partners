@@ -12,9 +12,17 @@
 */
 
 
-Route::get('/', function() {
-	return view('index');
-});
+
+//Route::get('/', function() {
+//	$user = session('user');
+//	if($user == null){
+//		$user = "didn't get anything from the db.";
+//	}
+//
+//	return view('index', ['user' => $user]);
+//});
+
+Route::get('/', 'HomeController@authenticated');
 
 Route::get('/payroll-dispute', function(){
 	return view('emails.dispute');
@@ -22,7 +30,10 @@ Route::get('/payroll-dispute', function(){
 
 Route::get('/upload-invoice', 'InvoiceController@index');
 Route::post('/upload/invoice', 'InvoiceController@UploadInvoice');
+Route::post('/upload/store-override', 'OverrideController@StoreOverride');
 Route::get('/upload/overrides-modal', 'InvoiceController@OverridesModal');
+Route::get('/upload/invoice-add-overrides', function(){ return view('invoices.addoverrides'); });
+Route::get('/upload/invoice-add-expenses', function(){return view('invoices.addexpenses');});
 
 Route::get('/historical-invoice-data', 'InvoiceController@historical');
 Route::get('/getissuedates', 'InvoiceController@returnIssueDates');

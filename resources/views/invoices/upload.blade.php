@@ -69,11 +69,35 @@
 </div>
 
 <div class="row">
-	<div class="col-xs-8">
+	<div class="col-xs-12">
 		<meta name="csrf-token" content="{{ csrf_token() }}" />
 		<div id="invoiceTable"></div>
-		<div class="pt-10">&nbsp;</div>
-		<button class="btn btn-primary" id="submitTblBtn" data-toggle="modal" data-target="#modal_layout">Submit Invoice</button>
+	</div>
+</div>
+<div class="row pt-10">
+	<div class="col-xs-12">
+		<ul class="list-inline">
+			<li>
+				<h2>Overrides <small>Enter any applicable overrides.</small></h2>
+				<br>
+				<div id="overridesTable" class="overridesTable" data-parent="true"></div>
+			</li>
+			<li>
+				<h2>Expenses <small>Enter any applicable expenses.</small></h2>
+				<br>
+				<div id="expensesTable" class="overridesTable" data-parent="true"></div>
+			</li>
+		</ul>
+		<div class="pull-right pr-60">
+			<ul class="list-inline">
+				<li>
+					<button class="btn btn-primary" data-tag="1">Submit</button>
+				</li>
+				<li>
+					<button class="btn btn-default">Cancel</button>
+				</li>
+			</ul>
+		</div>
 	</div>
 </div>
 
@@ -85,31 +109,12 @@
 <script type="text/javascript">
 $(function(){
 	$('#wkendDate').datepicker();
+	wireButtonEvents(true, null);
 });
 
 
-var salesList = [];
-var setNewSale = function (s){
-	return {
-		id: s[0],
-		date: s[1],
-		name: {
-			first: s[2],
-			last: s[3]
-		},
-		address: s[4],
-		city: s[5],
-		status: s[6],
-		amount: s[7],
-		agentid: null,
-		issueDate: null,
-		wkending: null,
-		vendor: null
-	};
-}
-
-var container = document.getElementById('invoiceTable');
-var hot = new Handsontable(container, {
+var paystubContainer = document.getElementById('invoiceTable');
+var paystubHot = new Handsontable(paystubContainer, {
 	minRows: 10,
 	minCols: 6,
 	rowHeaders: true,
@@ -144,6 +149,58 @@ var hot = new Handsontable(container, {
 		{data: 'amount'}
 	]
 });
+
+var overrideContainer = document.getElementById('overridesTable');
+var overHot = new Handsontable(overrideContainer, {
+    minRows: 3,
+    maxRows: 15,
+    rowHeaders: true,
+    colHeaders: ['ID', 'Name', '# of Sales', 'Commission', 'Total'],
+    colWidths: ['40', '140', '100', '120', '100'],
+    contextMenu: true,
+    allowInsertColumn: false,
+    allowRemoveColumn: false,
+    minSpareRows: 1,
+    data: [],
+    dataSchema: {
+        id: null,
+        name: null,
+        sales: null,
+        commission: null,
+        total: null
+    },
+    columns: [
+        {data: 'id', editor: false},
+        {data: 'name'},
+        {data: 'sales'},
+        {data: 'commission'},
+        {data: 'total'}
+    ]
+});
+
+var expenseContainer = document.getElementById('expensesTable');
+var expHot = new Handsontable(expenseContainer, {
+    minRows: 3,
+    maxRows: 10,
+    rowHeaders: true,
+    colHeaders: ['Type', 'Amount', 'Notes'],
+    colWidths: ['140', '100', '275'],
+    contextMenu: true,
+    allowInsertColumn: false,
+    allowRemoveColumn: false,
+    minSpareRows: 1,
+    data: [],
+    dataSchema: {
+        type: null,
+        amount: null,
+        notes: null
+    },
+    columns: [
+        {data: 'type'},
+        {data: 'amount'},
+        {data: 'notes'}
+    ]
+})
 
 
 

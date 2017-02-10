@@ -48,6 +48,51 @@
 							</td>
 						</tr>
 						@endforeach
+						@if(count($overrides) > 0)
+							<tr>
+								<td colspan="5">
+									<h4>
+										<strong>Overrides</strong>
+									</h4>
+								</td>
+							</tr>
+							<tr class="strong">
+								<td>Agent Name</td>
+								<td>&nbsp;</td>
+								<td>Sales</td>
+								<td>Commission</td>
+								<td>&nbsp;</td>
+							</tr>
+						@endif
+						@foreach($overrides as $over)
+							<tr>
+								<td>{{$over->name}}</td>
+								<td>&nbsp;</td>
+								<td>{{$over->sales}}</td>
+								<td>{{$over->commission}}</td>
+								<td class="text-right">$ {{number_format($over->total, 2)}}</td>
+							</tr>
+						@endforeach
+						@if(count($expenses) > 0)
+							<tr class="b-b">
+								<td colspan="5">
+									<h4>
+										<strong>Expenses</strong>
+									</h4>
+								</td>
+							</tr>
+							<tr class="strong">
+								<td>Type</td>
+								<td colspan="4">Notes</td>
+							</tr>
+						@endif
+						@foreach($expenses as $exp)
+							<tr>
+								<td>{{$exp->type}}</td>
+								<td colspan="3">{{$exp->notes}}</td>
+								<td class="text-right">$ {{number_format($exp->amount, 2)}}</td>
+							</tr>
+						@endforeach
 						{{-- paystub footer --}}
 						<tr>
 							<td colspan="5">{{-- spacer --}}</td>
@@ -59,20 +104,20 @@
 							<td><strong>Gross Pay</strong></td>
 							<td class="text-right"><strong>$ {{number_format($gross, 2)}}</strong></td>
 						</tr>
-						<tr>
-							<td>&nbsp;</td>
-							<td>&nbsp;</td>
-							<td>&nbsp;</td>
-							<td><strong>Other Pay</strong></td>
-							<td class="text-right">{{-- sum of rows --}}</td>
-						</tr>
-						<tr>
-							<td>&nbsp;</td>
-							<td>&nbsp;</td>
-							<td>&nbsp;</td>
-							<td><strong>Loan</strong></td>
-							<td class="text-right">{{-- sum of rows --}}</td>
-						</tr>
+						{{--<tr>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td><strong>Other Pay</strong></td>--}}
+							{{--<td class="text-right">--}}{{-- sum of rows --}}{{--</td>--}}
+						{{--</tr>--}}
+						{{--<tr>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td>&nbsp;</td>--}}
+							{{--<td><strong>Loan</strong></td>--}}
+							{{--<td class="text-right">--}}{{-- sum of rows --}}{{--</td>--}}
+						{{--</tr>--}}
 						<tr>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>

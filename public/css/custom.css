@@ -43,6 +43,18 @@
 .pt-100 {
   padding-top: 100px !important;
 }
+.pr-10 {
+  padding-right: 10px !important;
+}
+.pr-25 {
+  padding-right: 25px !important;
+}
+.pr-50 {
+  padding-right: 50px !important;
+}
+.pr-60 {
+  padding-right: 60px !important;
+}
 .w-10 {
   width: 10px !important;
 }
@@ -94,6 +106,9 @@
 .w-700 {
   width: 700px !important;
 }
+.h-700 {
+  height: 700px !important;
+}
 .line-break-50 {
   padding-top: 25px;
   padding-bottom: 25px;
@@ -103,6 +118,9 @@ hr.paystub-title-break {
   border: 0;
   box-shadow: 0 10px 10px -10px #8c8b8b inset;
   border-radius: 10px;
+}
+.strong {
+  font-weight: bold;
 }
 .bg-blue {
   background: #336699 !important;
@@ -168,6 +186,10 @@ hr.paystub-title-break {
 }
 .navbar-title-text {
   color: #FFF !important;
+}
+.overridesTable {
+  max-width: 900px;
+  max-height: 500px;
 }
 html,
 body {

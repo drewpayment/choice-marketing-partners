@@ -25,8 +25,8 @@ elixir(function(mix) {
     ]);
 
     mix.scripts([
-    	'custom.js',
     	'employees.js',
-        'upload.js'
+        'upload.js',
+        'custom.js'
 	])
 });
