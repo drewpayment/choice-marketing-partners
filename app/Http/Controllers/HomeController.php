@@ -33,6 +33,8 @@ class HomeController extends Controller
 	 */
     public function index()
     {
-    	return view('home');
+    	$admin = DB::table('employees')->where('is_admin', 1)->get();
+
+    	return view('home', ['admin' => $admin, 'currentUser' => Auth::user()]);
     }
 }
