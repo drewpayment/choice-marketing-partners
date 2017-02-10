@@ -33,11 +33,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="historical.blade.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/resources/views/invoices/historical.blade.php">
+      <file leaf-file-name="2017_02_10_031836_update_bool_fields_employees_table.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/database/migrations/2017_02_10_031836_update_bool_fields_employees_table.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="20" column="63" lean-forward="false" selection-start-line="20" selection-start-column="63" selection-end-line="20" selection-end-column="63" />
+            <state relative-caret-position="435">
+              <caret line="31" column="8" lean-forward="false" selection-start-line="31" selection-start-column="8" selection-end-line="31" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -63,7 +63,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/public/css/user.css" />
         <option value="&lt;a748c624-0b34-48de-9b2c-e6705a090030&gt;/var/www/.env" />
         <option value="&lt;a748c624-0b34-48de-9b2c-e6705a090030&gt;/var/www/cmp/resources/views/layouts/app.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/emails/modal.blade.php" />
@@ -114,6 +113,7 @@
         <option value="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php" />
         <option value="$PROJECT_DIR$/resources/views/invoices/historical.blade.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2017_02_10_031836_update_bool_fields_employees_table.php" />
       </list>
     </option>
   </component>
@@ -840,12 +840,12 @@
       <workItem from="1475024491116" duration="5870000" />
       <workItem from="1476405326107" duration="316000" />
       <workItem from="1485575482766" duration="18400000" />
-      <workItem from="1486219779653" duration="47641000" />
+      <workItem from="1486219779653" duration="47945000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="257645000" />
+    <option name="totallyTimeSpent" value="257949000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -935,7 +935,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Auth/RegisterController.php" />
     <entry file="file://$PROJECT_DIR$/config/services.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
@@ -1915,6 +1914,39 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="300">
           <caret line="20" column="63" lean-forward="false" selection-start-line="20" selection-start-column="63" selection-end-line="20" selection-end-column="63" />
+          <folding>
+            <marker date="1486695894000" expanded="true" signature="44:954" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="68:181" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="92:174" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="206:860" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="231:853" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="258:845" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="266:369" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="377:687" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="444:678" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="695:743" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="751:837" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="884:951" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="909:944" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="986:2036" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="995:2033" ph="..." />
+            <marker date="1486695894000" expanded="true" signature="1073:1460" ph="{...}" />
+            <marker date="1486695894000" expanded="true" signature="1173:1273" ph="{&quot;url&quot;: '/getissuedates'...}" />
+            <marker date="1486695894000" expanded="true" signature="1226:1248" ph="{&quot;id&quot;: agentid...}" />
+            <marker date="1486695894000" expanded="true" signature="1294:1455" ph="{...}" />
+            <marker date="1486695894000" expanded="true" signature="1310:1451" ph="{...}" />
+            <marker date="1486695894000" expanded="true" signature="1504:2022" ph="{...}" />
+            <marker date="1486695894000" expanded="true" signature="1829:1962" ph="{&quot;url&quot;: '/getpaystub'...}" />
+            <marker date="1486695894000" expanded="true" signature="1880:1937" ph="{&quot;id&quot;: agentId...}" />
+            <marker date="1486695894000" expanded="true" signature="1983:2017" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2017_02_10_031836_update_bool_fields_employees_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="31" column="8" lean-forward="false" selection-start-line="31" selection-start-column="8" selection-end-line="31" selection-end-column="8" />
           <folding />
         </state>
       </provider>
