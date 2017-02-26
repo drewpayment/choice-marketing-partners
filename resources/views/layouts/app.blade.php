@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta id="global-token" name="token" content="{{csrf_token()}}">
 
     <title>Choice Marketing Partners</title>
 
@@ -12,7 +13,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    {{--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">--}}
+    <link rel="stylesheet" href="{{url('css/bootstrap/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url('css/bootstrap/bootstrap-theme.min.css')}}">
     <!-- Latest compiled and minified Bootstrap select/option module -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
     {{-- <link href="{{ elixir('css/app.css') }}" rel="stylesheet"> --}}
@@ -22,7 +25,9 @@
     <link rel="stylesheet" href="{{url('css/user.css')}}">
     <link rel="stylesheet" href="{{url('css/all.css')}}">
     {{-- Sandy Walker/WebUI-Popover --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">
+    {{-- How do I only use local as backup? --}}
+    {{--<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">--}}
+    <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
 
     @yield('topCSS')
 
@@ -118,14 +123,18 @@
 @include('layouts.modal_layout')
 
 <!-- JavaScripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+{{--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>--}}
+<script src="{{url('js/jquery-3.1.1.min.js')}}"></script>
+{{--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>--}}
+<script src="{{url('js/bootstrap.min.js')}}"></script>
+<script src="{{url('js/config.js')}}"></script>
 <script src="{{ url('js/all.js') }}"></script>
 <!-- Latest compiled and minified Bootstrap select/option js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
 {{-- Sandy Walker WebUI Popover --}}
-{{-- https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/loading.gif => loading gif --}}
-<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.js"></script>
+{{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/loading.gif"></script>--}}
+{{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.js"></script>--}}
+<script src="{{url('js/jquery.webui-popover.js')}}"></script>
 
 <script type="text/javascript">
     $(document).ready(function(){

@@ -212,8 +212,7 @@ body {
 .icon-link {
   color: inherit;
   text-decoration: none;
-  border: 1px solid white;
-  border-radius: 5px;
+  border: 0;
   padding: 2px;
 }
 .icon-link:hover {

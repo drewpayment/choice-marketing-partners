@@ -1,7 +1,7 @@
 @foreach($employees as $emp)
     <tr data-token="true" data-value="{{ csrf_token() }}">
         <td>
-            <a href="#" id="editEmployeeBtn" class="icon-link" onclick="editEmployee(this)" data-value="{{$emp->id}}">
+            <a href="#" class="icon-link" data-tag="2" data-value="{{$emp->id}}">
                 <i class="icon ion-edit"></i>
             </a>
         </td>
@@ -22,7 +22,7 @@
         </td>
         <td>
             <div class="form-group text-center">
-                <input type="checkbox" @if($emp->is_active == 1) checked @endif">
+                <input type="checkbox" @if($emp->is_active == 1) checked @endif disabled>
             </div>
         </td>
         <td>

@@ -25,6 +25,7 @@ elixir(function(mix) {
     ]);
 
     mix.scripts([
+        'paystubs.js',
     	'employees.js',
         'upload.js',
         'custom.js'

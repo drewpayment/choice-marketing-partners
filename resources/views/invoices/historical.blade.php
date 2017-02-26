@@ -9,7 +9,7 @@
 </div>
 
 <div class="row pt-20">
-	<div class="col-xs-10">
+	<div class="col-xs-10" id="control-bar">
 		<ul class="list-inline">
 			<li>
 				<span><h4>Agent: </h4></span>
@@ -31,6 +31,9 @@
 			</li>
 			<li>
 				<select class="selectpicker" id="issueDate" data-mobile="true"></select>
+			</li>
+			<li>
+				<div id="deletePaystubBtn"></div>
 			</li>
 		</ul>
 	</div>
@@ -87,8 +90,17 @@
 			dataType: 'html'
 		}).done(function(data){
 			$('#paystub').html(data);
+
+			// finish this, need to create functionality with delete button to remove invoice, verify action with modal and then delete
+			$('#deletePaystubBtn').html("<button type='button' class='btn btn-primary' data-tag='7'>Delete</button>");
+			var el = document.getElementById("deletePaystubBtn");
+			el.addEventListener("click", handleClick, false);
 		});
 	});
+
+
+    $('#modal_layout').on('click', '[data-tag="8"]', handleClick);
+
 </script>
 
 @endsection

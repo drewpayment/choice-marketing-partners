@@ -12,16 +12,17 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
+            <div class="hidden" data-token="true" data-value="{{csrf_token()}}"></div>
             <ul class="list-unstyled list-inline">
                 <li>
-                    <button type="button" id="showInactive" class="btn btn-sm btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                    <button type="button" class="btn btn-sm btn-primary" data-tag="3" data-showtoken="{{csrf_token()}}" data-value="0" >
                         Show All
                     </button>
                 </li>
                 <li>
-                    <a href="{{ url('/employees/create') }}" class="btn btn-sm btn-primary">
+                    <button type="button" class="btn btn-sm btn-primary" data-tag="5">
                         Add New
-                    </a>
+                    </button>
                 </li>
             </ul>
 
@@ -32,14 +33,16 @@
         <div class="col-md-11 col-md-offset-1">
             <table class="table table-condensed">
                 <thead>
-                <th></th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone No</th>
-                <th class="text-center">Active</th>
-                <th>Address</th>
+                <tr>
+                    <th class="w-20"></th>
+                    <th class="w-200">Name</th>
+                    <th class="w-200">Email</th>
+                    <th class="w-80">Phone No</th>
+                    <th class="text-center w-30">Active</th>
+                    <th>Address</th>
+                </tr>
                 </thead>
-                <tbody>
+                <tbody id="EMPLOYEE_ROWDATA">
                     @include('emp_manager._emp', array('employees' => $employees))
                 </tbody>
             </table>
@@ -51,6 +54,12 @@
 @section('scripts')
 
 <script>
+
+    $(document).ready(function(){
+        wireButtonEvents(true, null);
+    });
+
+
     var url = window.location.href;
     $('#showInactive').on('click', function(){
         $.ajax({

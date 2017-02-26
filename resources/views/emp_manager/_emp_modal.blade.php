@@ -6,8 +6,8 @@
 	    <h4 class="modal-title">Edit Employee</h4>
 	  </div>
 	  <div class="modal-body">
-	    <form>
-	    	<input type="hidden" value="{{ csrf_token() }}">
+	    <form data-parentid="{{$emp[0]->id}}">
+	    	<input type="hidden" data-token="true" value="{{ csrf_token() }}">
 	    	<div class="form-group">
 	    		<label for="emp_name">Name</label>
 	    		<input type="text" class="form-control" id="emp_name" name="emp_name" value="{{ $emp[0]->name }}" placeholder="Employee Name">
@@ -21,12 +21,13 @@
 	    		<input type="number" class="form-control" id="emp_phone" name="emp_phone" value="{{ $emp[0]->phone_no }}" placeholder="Phone Number">
 	    	</div>
 	    	<div class="form-group">
-	    		<label for="emp_active">Active</label>
-	    		@if($emp[0]->is_active == 1)
-	    			<input type="checkbox" class="form-control" id="emp_active" name="emp_active" checked>
-    			@else
-    				<input type="checkbox" class="form-control" id="emp_active" name="emp_active">
-				@endif
+	    		<label for="emp_active">
+					Active <input type="checkbox" class="form-control" id="emp_active" name="emp_active" @if($emp[0]->is_active == 1) checked @endif />
+				</label>
+	    		{{--@if($emp[0]->is_active == 1)--}}
+    			{{--@else--}}
+					{{--<input type="checkbox" class="form-control" id="emp_active" name="emp_active">--}}
+				{{--@endif--}}
     		</div>
     		<div class="form-group">
 				<label for="emp_address">Address</label>
@@ -36,7 +37,7 @@
 	  </div>
 	  <div class="modal-footer">
 	    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	    <button type="button" class="btn btn-primary">Save changes</button>
+	    <button type="button" class="btn btn-primary" data-tag="4">Save changes</button>
 	  </div>
 	</div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->

@@ -6,6 +6,7 @@ use App\Http\Requests;
 use App\Invoice;
 use DateTime;
 use DateInterval;
+use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -24,7 +25,12 @@ class InvoiceController extends Controller
 
 	public function index()
 	{
-		$emps = DB::table('employees')->get();
+		$noSalaryEmps = ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'];
+		$emps = DB::table('employees')->where('is_active', 1)->get()->toArray();
+		foreach($noSalaryEmps as $e){
+			$emps = $this->unsetValue($emps, $e);
+		}
+		$emps = collect($emps);
 		$vendors = DB::table('vendors')->get();
 		$wedArr = [];
 		$dt = new DateTime();
@@ -158,17 +164,58 @@ class InvoiceController extends Controller
 	}
 
 
+	public function deletePaystub(Request $request)
+	{
+		$params = $request->all();
+		$id = $params["id"];
+		$date = $params["date"];
+		$date = date_create_from_format('m-d-Y', $date);
+		$date = $date->format('Y-m-d');
+
+		try{
+			DB::table('invoices')->where([
+				['agentid', '=', $id],
+				['issue_date', '=', $date]
+			])->delete();
+
+			DB::table('expenses')->where([
+				['agentid', '=', $id],
+				['issue_date', '=', $date]
+			])->delete();
+
+			DB::table('overrides')->where([
+				['agentid', '=', $id],
+				['issue_date', '=', $date]
+			])->delete();
+
+			$result = true;
+		} catch (MysqliException $e)
+		{
+			$result = false;
+		}
+
+		return response()->json($result);
+	}
+
+
 	public function historical()
 	{
 		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
 		$admin = $thisUser->is_admin;
+		$noSalaryEmps = DB::table('employees')->whereIn('name', ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'])->get();
 		if($admin == 1)
 		{
-			$result = DB::table('employees')->get();
+			$result = DB::table('employees')->where('is_active', 1)->get()->toArray();
+
+			foreach($noSalaryEmps as $e){
+				$result = $this->unsetValue($result, $e->name);
+			}
+
+			$result = collect($result);
 		}
 		else
 		{
-			$list = DB::table('permissions')->where('id', $thisUser->id)->first();
+			$list = DB::table('permissions')->where('emp_id', $thisUser->id)->first();
 			$list = explode('|', $list->roll_up);
 			$emps = DB::table('employees')->get();
 			$result = [];
@@ -181,6 +228,20 @@ class InvoiceController extends Controller
 
 
 		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser]);
+	}
+
+
+	private function unsetValue(array $array, $value)
+	{
+		foreach($array as $elementKey => $element){
+			foreach($element as $eKey => $eVal){
+				if($eKey == 'name' && $eVal == $value){
+					unset($array[$elementKey]);
+				}
+			}
+		}
+
+		return $array;
 	}
 
 

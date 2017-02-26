@@ -7,6 +7,7 @@ use App\Http\Requests\EmployeeRequest;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 
 class EmpManagerController extends Controller
@@ -38,7 +39,7 @@ class EmpManagerController extends Controller
      */
     public function create()
     {
-        return view('emp_manager.create');
+        return view('emp_manager._create')->render();
     }
 
     /**
@@ -70,6 +71,23 @@ class EmpManagerController extends Controller
 	    
     }
 
+
+    public function handleAddNewEmployee(Request $request)
+    {
+    	$data = $request["data"];
+    	$emp = new Employee();
+    	$emp->name = $data["name"];
+		$emp->email = $data["email"];
+		$emp->phone_no = $data["phone"];
+		$emp->address = $data["address"];
+		$emp->is_active = ($data["isactive"]) ? 1 : 0;
+
+    	$result = $emp->save();
+
+    	return response()->json($result);
+    }
+
+
     /**
      * Display the specified resource.
      *
@@ -99,9 +117,28 @@ class EmpManagerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        $data = $request['data'];
+        $emp = new Employee();
+
+        foreach($data as $key => $val){
+        	if($key != "tag" && $key != "token"){
+		        $emp[$key] = $val;
+	        }
+        }
+
+        try {
+	        DB::table('employees')
+	          ->where('id', $data['id'])
+	          ->update($emp->toArray());
+        } catch(\mysqli_sql_exception $e){
+            return response()->json("NOPE");
+        }
+
+
+
+    	return response()->json("YUP");
     }
 
     /**
@@ -115,6 +152,23 @@ class EmpManagerController extends Controller
         //
     }
 
+	public function refreshEmployeeRowData(Request $request)
+	{
+		$isactive = $request['showall'];
+
+		$isactive = ($isactive == "true") ? 0 : 1;
+
+		if($isactive == 0){
+			$emps = DB::table('employees')->get();
+		} else {
+			$emps = DB::table('employees')
+			          ->where('is_active', '=', 1)
+			          ->get();
+		}
+
+		return view('emp_manager._emp', ['employees' => $emps]);
+	}
+
     /*
     * Get employees and return in json format for ajax calls
     * 
@@ -123,7 +177,7 @@ class EmpManagerController extends Controller
     public function getemployees()
     {
         $emps = Employee::all();
-        $view = View::make('emp_manager._emp', ['employees' => $emp]);
+        $view = View::make('emp_manager._emp', ['employees' => $emps]);
         $html = $view->render();
 
         return response()->json($html);
@@ -143,4 +197,10 @@ class EmpManagerController extends Controller
 
         return view('emp_manager._emp_modal', ['emp' => $emp])->render();
     }
+
+
+	// Function for basic field validation (present and neither empty nor only white space
+	function IsNullOrEmptyString($question){
+		return (!isset($question) || trim($question)==='');
+	}
 }
