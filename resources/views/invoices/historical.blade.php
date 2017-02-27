@@ -73,11 +73,7 @@
 	$('#issueDate').on('change', function(){
 		var agentId = $('#employee').val(),
 			token = $('meta[name="csrf-token"]').attr('content'),
-			date = $(this).val();
-			date = date.match(/\d+/g);
-
-		date = new Date(date[2], date[0], date[1]);
-		date = date.getFullYear() + '-' + ('0' + (date.getMonth())).slice(-2) + '-' + ('0' + (date.getDate())).slice(-2);
+			date = $('#issueDate').val();
 
 		$.ajax({
 			url: '/getpaystub',

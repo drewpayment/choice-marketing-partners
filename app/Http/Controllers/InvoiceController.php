@@ -281,11 +281,14 @@ class InvoiceController extends Controller
 	public function returnPaystub(Request $request)
 	{
 		$agentId = $request->id;
+		$date = $request["date"];
+		$date = date_create_from_format('m-d-Y', $date);
+		$date = $date->format('Y-m-d');
 		$gross = 0;
-		$invoiceDt = strtotime($request->date);
+		$invoiceDt = strtotime($date);
 		$invoiceDt = date('m-d-Y', $invoiceDt);
 		$stubs = DB::table('invoices')
-						->where('issue_date', '=', $request->date)
+						->where('issue_date', '=', $date)
 						->where('agentid', '=', $agentId)
 						->get();
 
@@ -314,14 +317,16 @@ class InvoiceController extends Controller
 
 		$overrides = DB::table('overrides')
 							->select('*')
-							->where('agentid', '=', $agentId)
-							->where('issue_date', '=', $request->date)
+							->where([
+								['agentid', '=', $agentId],
+								['issue_date', '=', $date]
+							])
 							->get();
 
 		$expenses = DB::table('expenses')
 							->select('*')
 							->where('agentid', '=', $agentId)
-							->where('issue_date', '=', $request->date)
+							->where('issue_date', '=', $date)
 							->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
