@@ -88,11 +88,12 @@ function handleSubmitNewInvoice(data){
     });
 
     $.each(overrides, function(i, obj){
+        var issue = new Date(currentIssueDt);
         if(obj !== null && obj !== undefined) {
             var o = setNewOverride(obj);
             o.id = i;
             o.agentid = currentAgentId;
-            o.issueDate = new Date(currentIssueDt).toLocaleDateString();
+            o.issueDate = issue.toLocaleDateString();
             o.wkending = currentWkEnding;
             overList.push(o);
         }
