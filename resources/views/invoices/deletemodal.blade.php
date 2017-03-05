@@ -10,8 +10,8 @@
             <h5><strong>(This action cannot be undone)</strong></h5>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
-            <button type="button" class="btn btn-danger" data-tag="8">Yes</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" data-vero="button">No</button>
+            <button type="button" class="btn btn-danger" data-tag="8" data-vero="button">Yes</button>
         </div>
     </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->

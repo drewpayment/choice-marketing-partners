@@ -91,10 +91,10 @@
 		<div class="pull-right pr-60">
 			<ul class="list-inline">
 				<li>
-					<button class="btn btn-primary" data-tag="1">Submit</button>
+					<button class="btn btn-primary" data-tag="1" data-vero="button">Submit</button>
 				</li>
 				<li>
-					<button class="btn btn-default">Cancel</button>
+					<button class="btn btn-default" data-vero="button">Cancel</button>
 				</li>
 			</ul>
 		</div>
@@ -109,8 +109,9 @@
 <script type="text/javascript">
 $(function(){
 	$('#wkendDate').datepicker();
-	wireButtonEvents(true, null);
 });
+
+$(document).on('click', 'button', handleClick);
 
 
 var paystubContainer = document.getElementById('invoiceTable');

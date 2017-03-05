@@ -41,7 +41,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            <label for="ADD_EMPLOYEE_FORM" role="button" class="btn btn-primary" data-tag="6">Submit</label>
+            <label for="ADD_EMPLOYEE_FORM" role="button" class="btn btn-primary" data-tag="6" data-vero="button">Submit</label>
         </div>
     </div>
 </div>

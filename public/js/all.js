@@ -431,7 +431,10 @@ function handleSubmitNewInvoice(data){
         dataType:'JSON'
     }).done(function(data){
 
-        if(data) setMessageContainer("Success!", resetHOT);
+        if(data) {
+            setMessageContainer("Success!");
+            resetHOT();
+        }
 
     });
 

@@ -88,7 +88,7 @@
 			$('#paystub').html(data);
 
 			// finish this, need to create functionality with delete button to remove invoice, verify action with modal and then delete
-			$('#deletePaystubBtn').html("<button type='button' class='btn btn-primary' data-tag='7'>Delete</button>");
+			$('#deletePaystubBtn').html("<button type='button' class='btn btn-primary' data-tag='7' data-vero='button'>Delete</button>");
 			var el = document.getElementById("deletePaystubBtn");
 			el.addEventListener("click", handleClick, false);
 		});
