@@ -79,7 +79,7 @@ function handleSubmitNewInvoice(data){
             var s = setNewSale(obj);
             s.id = i;
             s.agentid = currentAgentId;
-            s.issueDate = currentIssueDt;
+            s.issueDate = new Date(currentIssueDt);
             s.wkending = currentWkEnding;
             s.vendor = vendor;
             salesList.push(s);

@@ -33,11 +33,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="_create.blade.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/resources/views/emp_manager/_create.blade.php">
+      <file leaf-file-name="InvoiceController.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="645">
-              <caret line="43" column="111" lean-forward="false" selection-start-line="43" selection-start-column="111" selection-end-line="43" selection-end-column="111" />
+            <state relative-caret-position="414">
+              <caret line="86" column="75" lean-forward="false" selection-start-line="86" selection-start-column="75" selection-end-line="86" selection-end-column="75" />
               <folding />
             </state>
           </provider>
@@ -105,7 +105,6 @@
         <option value="$PROJECT_DIR$/resources/assets/js/config.js" />
         <option value="$PROJECT_DIR$/gulpfile.js" />
         <option value="$PROJECT_DIR$/resources/assets/js/paystubs.js" />
-        <option value="$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php" />
         <option value="$PROJECT_DIR$/database/migrations/2017_03_01_042819_add_sales_ids_to_employees_table.php" />
         <option value="$PROJECT_DIR$/app/Employee.php" />
         <option value="$PROJECT_DIR$/resources/assets/less/custom.less" />
@@ -117,11 +116,12 @@
         <option value="$PROJECT_DIR$/resources/views/emp_manager/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/assets/js/custom.js" />
         <option value="$PROJECT_DIR$/resources/views/invoices/upload.blade.php" />
-        <option value="$PROJECT_DIR$/resources/assets/js/upload.js" />
         <option value="$PROJECT_DIR$/resources/views/invoices/historical.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/invoices/deletemodal.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/emp_manager/_emp_modal.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/emp_manager/_create.blade.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php" />
+        <option value="$PROJECT_DIR$/resources/assets/js/upload.js" />
       </list>
     </option>
   </component>
@@ -812,12 +812,12 @@
       <workItem from="1486219779653" duration="112819000" />
       <workItem from="1488423587423" duration="74000" />
       <workItem from="1488423676484" duration="266000" />
-      <workItem from="1488639896092" duration="18409000" />
+      <workItem from="1488639896092" duration="19074000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="341572000" />
+    <option name="totallyTimeSpent" value="342237000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1133,13 +1133,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="705">
           <caret line="49" column="37" lean-forward="false" selection-start-line="49" selection-start-column="37" selection-end-line="49" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="549">
-          <caret line="337" column="29" lean-forward="true" selection-start-line="337" selection-start-column="29" selection-end-line="337" selection-end-column="29" />
         </state>
       </provider>
     </entry>
@@ -1708,42 +1701,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/assets/js/upload.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="639">
-          <caret line="137" column="7" lean-forward="false" selection-start-line="137" selection-start-column="7" selection-end-line="137" selection-end-column="7" />
-          <folding>
-            <marker date="1488749575000" expanded="true" signature="227:543" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="240:540" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="294:353" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="580:816" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="593:813" ph="{&quot;agentid&quot;: currentAgentId...}" />
-            <marker date="1488749575000" expanded="true" signature="852:1039" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="865:1037" ph="{&quot;agentid&quot;: currentAgentId...}" />
-            <marker date="1488749575000" expanded="true" signature="1096:2649" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="1452:1761" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="1499:1755" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="1803:2085" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="1851:2079" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2126:2264" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2173:2258" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2279:2516" ph="{&quot;url&quot;: '/upload/invoice'...}" />
-            <marker date="1488749575000" expanded="true" signature="2349:2485" ph="{&quot;_token&quot;: token...}" />
-            <marker date="1488749575000" expanded="true" signature="2537:2644" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2557:2637" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2671:2838" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2703:2727" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2757:2781" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2810:2834" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="2841:3085" ph="//..." />
-            <marker date="1488749575000" expanded="true" signature="3116:3352" ph="{...}" />
-            <marker date="1488749575000" expanded="true" signature="3355:3492" ph="//..." />
-            <marker date="1488749575000" expanded="true" signature="3495:3650" ph="//..." />
-            <marker date="1488749575000" expanded="true" signature="3674:4007" ph="//..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/views/invoices/historical.blade.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="720">
@@ -1843,6 +1800,64 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="645">
           <caret line="43" column="111" lean-forward="false" selection-start-line="43" selection-start-column="111" selection-end-line="43" selection-end-column="111" />
+          <folding>
+            <marker date="1488749759000" expanded="true" signature="42:2116" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="74:2109" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="109:362" ph="..." />
+            <marker date="1488749759000" expanded="false" signature="224:231" ph="×" />
+            <marker date="1488749759000" expanded="true" signature="284:347" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="396:1825" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="426:1810" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="466:1791" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="624:843" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="889:1108" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="1154:1379" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="1425:1650" ph="..." />
+            <marker date="1488749759000" expanded="true" signature="1860:2098" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/assets/js/upload.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="82" column="41" lean-forward="true" selection-start-line="82" selection-start-column="41" selection-end-line="82" selection-end-column="41" />
+          <folding>
+            <marker date="1488750598000" expanded="true" signature="227:543" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="240:540" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="294:353" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="580:816" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="593:813" ph="{&quot;agentid&quot;: currentAgentId...}" />
+            <marker date="1488750598000" expanded="true" signature="852:1039" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="865:1037" ph="{&quot;agentid&quot;: currentAgentId...}" />
+            <marker date="1488750598000" expanded="true" signature="1096:2659" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="1452:1771" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="1499:1765" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="1813:2095" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="1861:2089" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2136:2274" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2183:2268" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2289:2526" ph="{&quot;url&quot;: '/upload/invoice'...}" />
+            <marker date="1488750598000" expanded="true" signature="2359:2495" ph="{&quot;_token&quot;: token...}" />
+            <marker date="1488750598000" expanded="true" signature="2547:2654" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2567:2647" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2681:2848" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2713:2737" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2767:2791" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2820:2844" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="2851:3095" ph="//..." />
+            <marker date="1488750598000" expanded="true" signature="3126:3362" ph="{...}" />
+            <marker date="1488750598000" expanded="true" signature="3365:3502" ph="//..." />
+            <marker date="1488750598000" expanded="true" signature="3505:3660" ph="//..." />
+            <marker date="1488750598000" expanded="true" signature="3684:4017" ph="//..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="86" column="75" lean-forward="false" selection-start-line="86" selection-start-column="75" selection-end-line="86" selection-end-column="75" />
           <folding />
         </state>
       </provider>
