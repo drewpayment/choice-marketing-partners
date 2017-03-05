@@ -390,11 +390,12 @@ function handleSubmitNewInvoice(data){
     var expenses = cleanArray(expenseData, expHot);
 
     $.each(invoices, function(i, obj){
+        var issue = new Date(currentIssueDt);
         if(obj !== null && obj !== undefined){
             var s = setNewSale(obj);
             s.id = i;
             s.agentid = currentAgentId;
-            s.issueDate = currentIssueDt;
+            s.issueDate = issue.toLocaleDateString();
             s.wkending = currentWkEnding;
             s.vendor = vendor;
             salesList.push(s);
