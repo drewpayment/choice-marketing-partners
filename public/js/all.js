@@ -567,11 +567,9 @@ var handleClick = function(evt){
     var parent, elem, dataList, data, element;
 
     var $target = $(evt.target);
-    if($target.data('vero') == null || $target.data('vero') == undefined || $target.data('vero') != 'button') {
-        return false;
-    }
 
     if(evt.target !== evt.currentTarget){
+        if($target.data('vero') != 'button') return false;
         elem = $(evt.target);
         dataList = elem.data();
         data = {};
@@ -726,7 +724,7 @@ function wireButtonEvents(wireEvent, container){
     if(wireEvent){
         // wire up initialized container
         if(container !== undefined && container !== null) {
-            container.addEventListener("click", handleClick, false);
+            container.addEventListener("click", handleClick);
         }
     }
 

@@ -58,8 +58,7 @@
 <script>
 
     $(document).ready(function(){
-        wireButtonEvents(true, null);
-
+        $(document).on('click', '.icon-link, .icon-edit', handleClick);
         $(document).on('focusout', 'input', handleBlur);
     });
 
