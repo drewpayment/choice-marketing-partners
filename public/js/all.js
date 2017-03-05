@@ -363,12 +363,13 @@ var setNewOverride = function (o){
 
 
 var setNewExpense = function (e){
+    var issue = new Date(currentIssueDt);
     return {
         type: e[0],
         amount: e[1],
         notes: e[2],
         agentid: currentAgentId,
-        issueDate: currentIssueDt,
+        issueDate: issue.toLocaleDateString(),
         wkending: currentWkEnding
     }
 };
