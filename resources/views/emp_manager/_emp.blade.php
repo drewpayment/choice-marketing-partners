@@ -1,8 +1,8 @@
 @foreach($employees as $emp)
     <tr data-token="true" data-value="{{ csrf_token() }}" data-parent="true" data-parentid="{{$emp->id}}" data-form="true">
         <td>
-            <a href="#" class="icon-link" data-tag="2" data-value="{{$emp->id}}" data-vero="button">
-                <i class="icon ion-edit"></i>
+            <a href="#" class="icon-link">
+                <i class="icon ion-edit" data-tag="2" data-value="{{$emp->id}}" data-vero="button"></i>
             </a>
         </td>
         <td>

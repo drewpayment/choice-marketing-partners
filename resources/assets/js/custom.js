@@ -64,70 +64,37 @@ function processDataTag(data){
 
 var handleClick = function(evt){
     evt.stopPropagation();
-    var parent, elem, dataList, data, element;
+    var parent, dataList, data, element;
 
     var $target = $(evt.target);
+    if($target.data('vero') != 'button') return false;
+    dataList = $target.data();
+    data = {};
+    data.e = evt.target;
 
-    if(evt.target !== evt.currentTarget){
-        if($target.data('vero') != 'button') return false;
-        elem = $(evt.target);
-        dataList = elem.data();
-        data = {};
-
-        data.e = evt.target;
-
-        if(dataList["parentid"] == undefined) {
-            parent = (elem.closest('[data-parent="true"]').length > 0) ? elem.closest('[data-parent="true"]') : $('[data-parent="true"]');
-            data.parent = parent;
-            data.parentid = ($(parent).data('parentid') === undefined) ? null : $(parent).data('parentid');
-        } else {
-            data.parentid = dataList["parentid"];
-            data.parent = $('[data-parentid="'+data.parentid+'"]').get();
-        }
-
-        element = evt.target;
-        // Cycle over each attribute on the element
-        for (var i = 0; i < element.attributes.length; i++) {
-            // Store reference to current attr
-            attr = element.attributes[i];
-            // If attribute nodeName starts with 'data-'
-            if (/^data-/.test(attr.nodeName)) {
-                // Log its name (minus the 'data-' part), and its value
-                data[attr.nodeName.replace(/^data-/, '')] = attr.nodeValue;
-            }
-        }
-
-
-        data.parentid = (data.parentid == null) ? -1 : data.parentid;
-        data.tag = (data.tag === undefined) ? $(data.e).closest('[data-tag]').data('tag') : data.tag;
-
+    if(dataList["parentid"] == undefined){
+        parent = ($target.closest('[data-parent="true"]').length) ? $target.closest('[data-parent="true"]') : $('[data-parent="true"]');
+        data.parent = parent;
+        data.parentid = ($(parent).data('parentid') == undefined) ? null : $(parent).data('parentid');
     } else {
-        elem = $(evt.currentTarget);
-        dataList = elem.data();
-        data = {};
-
-        data.e = elem;
-
-        if(dataList["parentid"] == undefined){
-            parent = (elem.closest('[data-parent="true"]').length > 0) ? elem.closest('[data-parent="true"]') : $('[data-parent="true"]');
-            data.parent = parent;
-            data.parentid = ($(parent).data('parentid') === undefined) ? -1 : $(parent).data('parentid');
-        } else {
-            data.parentid = dataList["parentid"];
-            data.parent = $('[data-parentid="'+data.parentid+'"]').get();
-        }
-
-        element = evt.currentTarget;
-        for(var i = 0; i < element.attributes.length; i++){
-            attr = element.attributes[i];
-            if(/^data-/.test(attr.nodeName)){
-                data[attr.nodeName.replace(/^data-/, '')] = attr.nodeValue;
-            }
-        }
-
-        data.parentid = (data.parentid == null) ? -1 : data.parentid;
-        data.tag = (data.tag === undefined) ? $(data.e).closest('[data-tag]').data('tag') : data.tag;
+        data.parentid = dataList["parentid"];
+        data.parent = $('[data-parentid='+data.parentid+'"]').get();
     }
+
+    element = evt.target;
+    // Cycle over each attribute on the element
+    for (var i = 0; i < element.attributes.length; i++) {
+        // Store reference to current attr
+        attr = element.attributes[i];
+        // If attribute nodeName starts with 'data-'
+        if (/^data-/.test(attr.nodeName)) {
+            // Log its name (minus the 'data-' part), and its value
+            data[attr.nodeName.replace(/^data-/, '')] = attr.nodeValue;
+        }
+    }
+
+    data.parentid = (data.parentid == null) ? -1 : data.parentid;
+    data.tag = (data.tag === undefined) ? $(data.e).closest('[data-tag]').data('tag') : data.tag;
 
     processDataTag(data);
 };
@@ -135,6 +102,7 @@ var handleClick = function(evt){
 
 // handles blurs on input elements with "data-vero='text'"
 var handleBlur = function(evt){
+    evt.stopPropagation();
     var parent, elem, dataList, data, element;
 
     if($(evt.target).data('vero') != 'text') return false;
@@ -234,8 +202,9 @@ function wireButtonEvents(wireEvent, container){
 
 var setMessageContainer = function(message, callback){
     var myToast = new ax5.ui.toast({
+        width: 200,
         icon: '<i class="fa fa-thumbs-up"></i>',
-        containerPosition: "top-left"
+        containerPosition: "bottom-right"
     });
 
     myToast.push({

@@ -58,8 +58,9 @@
 <script>
 
     $(document).ready(function(){
-        $(document).on('click', '.icon-link, .icon-edit', handleClick);
-        $(document).on('focusout', 'input', handleBlur);
+        $(document).on('click', '[data-form="true"]', handleClick);
+        $(document).on('focusout', '[data-form="true"]', handleBlur);
+        $(document).on('click', 'button', handleClick);
     });
 
 
