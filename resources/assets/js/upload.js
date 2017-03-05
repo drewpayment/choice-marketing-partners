@@ -92,7 +92,7 @@ function handleSubmitNewInvoice(data){
             var o = setNewOverride(obj);
             o.id = i;
             o.agentid = currentAgentId;
-            o.issueDate = currentIssueDt;
+            o.issueDate = new Date(currentIssueDt).toLocaleDateString();
             o.wkending = currentWkEnding;
             overList.push(o);
         }
