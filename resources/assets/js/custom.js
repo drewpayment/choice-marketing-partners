@@ -10,7 +10,10 @@ var tag = {
     SHOW_ADD_EMP_MODAL: 5,
     SUBMIT_NEW_EMPLOYEE: 6,
     CONFIRM_PAYSTUB_DEL: 7,
-    DELETE_PAYSTUB: 8
+    DELETE_PAYSTUB: 8,
+    UPDATE_SALES_ONE: 9,
+    UPDATE_SALES_TWO: 10,
+    UPDATE_SALES_THREE: 11
 
 };
 
@@ -18,7 +21,7 @@ var tag = {
 
 
 function processDataTag(data){
-    // data.tag must be coerced, because they're set at string
+    // data.tag must be coerced, because they're set as string
     switch(+data.tag){
         case tag.SUBMIT_INVOICE_BTN:
             handleSubmitNewInvoice(data);
@@ -44,6 +47,15 @@ function processDataTag(data){
         case tag.DELETE_PAYSTUB:
             handleDeletePaystub(data);
             break;
+        case tag.UPDATE_SALES_ONE:
+            handleUpdateSalesID(data);
+            break;
+        case tag.UPDATE_SALES_TWO:
+            handleUpdateSalesID(data);
+            break;
+        case tag.UPDATE_SALES_THREE:
+            handleUpdateSalesID(data);
+            break;
         default:
             break;
     }
@@ -53,6 +65,11 @@ function processDataTag(data){
 var handleClick = function(evt){
     evt.stopPropagation();
     var parent, elem, dataList, data, element;
+
+    var $target = $(evt.target);
+    if($target.data('vero') == null || $target.data('vero') == undefined || $target.data('vero') != 'button') {
+        return false;
+    }
 
     if(evt.target !== evt.currentTarget){
         elem = $(evt.target);
@@ -118,6 +135,79 @@ var handleClick = function(evt){
 };
 
 
+// handles blurs on input elements with "data-vero='text'"
+var handleBlur = function(evt){
+    var parent, elem, dataList, data, element;
+
+    if($(evt.target).data('vero') != 'text') return false;
+    if(evt.target.value == evt.target.defaultValue) return false;
+
+    if(evt.target !== evt.currentTarget){
+        elem = $(evt.target);
+        dataList = elem.data();
+        data = {};
+
+        data.e = evt.target;
+        data.value = $(elem).val();
+
+        if(dataList["parentid"] == undefined) {
+            parent = (elem.closest('[data-parent="true"]').length > 0) ? elem.closest('[data-parent="true"]') : $('[data-parent="true"]');
+            data.parent = parent;
+            data.parentid = ($(parent).data('parentid') === undefined) ? null : $(parent).data('parentid');
+        } else {
+            data.parentid = dataList["parentid"];
+            data.parent = $('[data-parentid="'+data.parentid+'"]').get();
+        }
+
+        element = evt.target;
+        // Cycle over each attribute on the element
+        for (var i = 0; i < element.attributes.length; i++) {
+            // Store reference to current attr
+            attr = element.attributes[i];
+            // If attribute nodeName starts with 'data-'
+            if (/^data-/.test(attr.nodeName)) {
+                // Log its name (minus the 'data-' part), and its value
+                data[attr.nodeName.replace(/^data-/, '')] = attr.nodeValue;
+            }
+        }
+
+
+        data.parentid = (data.parentid == null) ? -1 : data.parentid;
+        data.tag = (data.tag === undefined) ? $(data.e).closest('[data-tag]').data('tag') : data.tag;
+
+    } else {
+        elem = $(evt.currentTarget);
+        dataList = elem.data();
+        data = {};
+
+        data.e = elem;
+        data.value = $(elem).val();
+
+        if(dataList["parentid"] == undefined){
+            parent = (elem.closest('[data-parent="true"]').length > 0) ? elem.closest('[data-parent="true"]') : $('[data-parent="true"]');
+            data.parent = parent;
+            data.parentid = ($(parent).data('parentid') === undefined) ? -1 : $(parent).data('parentid');
+        } else {
+            data.parentid = dataList["parentid"];
+            data.parent = $('[data-parentid="'+data.parentid+'"]').get();
+        }
+
+        element = evt.currentTarget;
+        for(var i = 0; i < element.attributes.length; i++){
+            attr = element.attributes[i];
+            if(/^data-/.test(attr.nodeName)){
+                data[attr.nodeName.replace(/^data-/, '')] = attr.nodeValue;
+            }
+        }
+
+        data.parentid = (data.parentid == null) ? -1 : data.parentid;
+        data.tag = (data.tag === undefined) ? $(data.e).closest('[data-tag]').data('tag') : data.tag;
+    }
+
+    processDataTag(data);
+};
+
+
 // wire up events
 
 function wireButtonEvents(wireEvent, container){
@@ -141,6 +231,24 @@ function wireButtonEvents(wireEvent, container){
     }
 
 }
+
+
+
+var setMessageContainer = function(message, callback){
+    var myToast = new ax5.ui.toast({
+        icon: '<i class="fa fa-thumbs-up"></i>',
+        containerPosition: "top-left"
+    });
+
+    myToast.push({
+        theme: 'primary',
+        msg: message
+    });
+
+    if(callback == typeof 'function') callback.call();
+};
+
+
 
 
 // JS helper functions

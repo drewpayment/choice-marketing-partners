@@ -81,4 +81,5 @@ Route::post('/employee/create-ajax', 'EmpManagerController@handleAddNewEmployee'
 Route::post('/refresh-employees', 'EmpManagerController@refreshEmployeeRowData');
 Route::post('/editemployee', 'EmpManagerController@getEmployeeEditModal');
 Route::post('/update-employee', 'EmpManagerController@update');
+Route::post('/employee/update/salesid', 'EmpManagerController@updateEmployeeSalesID');
 

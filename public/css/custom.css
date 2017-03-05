@@ -129,6 +129,16 @@ hr.paystub-title-break {
 .bg-white {
   background: #fff !important;
 }
+.bg-gray-light {
+  background-color: #ECECEC !important;
+}
+.editable {
+  border: 1px dashed #d3d3d3;
+}
+.input-transparent {
+  background: transparent;
+  border: 1px dashed #ECECEC;
+}
 .paystub-header {
   border-collapse: separate;
   border-radius: 5px;

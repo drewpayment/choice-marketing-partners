@@ -166,6 +166,40 @@ function handleSubmitNewEmployee(data){
 }
 
 
+var salesIDs = {
+	9: 'sales_id1',
+	10: 'sales_id2',
+	11: 'sales_id3'
+};
+
+
+function handleUpdateSalesID(data){
+	token = $('[data-token="true"]').data('value');
+	var item = {
+		userId: data.parentid,
+		salesId: salesIDs[data.tag],
+		value: data.value
+	};
+
+	$.ajax({
+		url: '/employee/update/salesid',
+		type: 'POST',
+		dataType: 'json',
+		data: {
+			_token: token,
+			data: JSON.stringify(item)
+		},
+		success: afterData
+	});
+
+	function afterData(data){
+		if(data){
+			setMessageContainer("Success!");
+		}
+	}
+}
+
+
 function setEmployeeUpdateItem(tag){
 	return {
         tag: tag,

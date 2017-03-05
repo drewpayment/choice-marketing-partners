@@ -116,27 +116,23 @@ function handleSubmitNewInvoice(data){
         dataType:'JSON'
     }).done(function(data){
 
-        if(data) setUserMessage("Success!");
+        if(data) setMessageContainer("Success!", resetHOT);
 
     });
 
 }
 
 
-function setUserMessage(message){
-
-    $('#js_msgs').removeClass('hidden').html(message).fadeOut(2500, function(){
-        paystubHot.updateSettings({
-            data: []
-        });
-        overHot.updateSettings({
-            data: []
-        });
-        expHot.updateSettings({
-            data: []
-        });
+function resetHOT(){
+    paystubHot.updateSettings({
+        data: []
     });
-
+    overHot.updateSettings({
+        data: []
+    });
+    expHot.updateSettings({
+        data: []
+    });
 }
 
 

@@ -1,4 +1,7 @@
 
+@gray-light: #ECECEC;
+
+
 // Scaffolding
 
 .p-10 {
@@ -180,6 +183,21 @@ hr.paystub-title-break {
 
 .bg-white {
   background: #fff !important;
+}
+
+.bg-gray-light {
+  background-color: @gray-light !important;
+}
+
+
+.editable {
+  border: 1px dashed darken(@gray-light, 10%);
+}
+
+
+.input-transparent {
+  background: transparent;
+  border: 1px dashed @gray-light;
 }
 
 

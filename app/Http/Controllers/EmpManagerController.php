@@ -169,6 +169,23 @@ class EmpManagerController extends Controller
 		return view('emp_manager._emp', ['employees' => $emps]);
 	}
 
+
+	public function updateEmployeeSalesID(Request $request)
+	{
+		$object = json_decode($request["data"]);
+		$userId = $object->userId;
+		$salesId = $object->salesId;
+		$value = $object->value;
+		$result = DB::table('employees')
+			->where('id', '=', $userId)
+			->update([$salesId => $value]);
+
+		$result = ($result == 1) ? true : false;
+
+		return response()->json($result);
+	}
+
+
     /*
     * Get employees and return in json format for ajax calls
     * 
