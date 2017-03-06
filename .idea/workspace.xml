@@ -36,8 +36,8 @@
       <file leaf-file-name="InvoiceController.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="564">
-              <caret line="230" column="43" lean-forward="false" selection-start-line="230" selection-start-column="43" selection-end-line="230" selection-end-column="43" />
+            <state relative-caret-position="294">
+              <caret line="229" column="44" lean-forward="true" selection-start-line="229" selection-start-column="44" selection-end-line="229" selection-end-column="44" />
               <folding />
             </state>
           </provider>
@@ -813,12 +813,12 @@
       <workItem from="1488423587423" duration="74000" />
       <workItem from="1488423676484" duration="266000" />
       <workItem from="1488639896092" duration="20057000" />
-      <workItem from="1488766724080" duration="1800000" />
+      <workItem from="1488766724080" duration="2041000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="345020000" />
+    <option name="totallyTimeSpent" value="345261000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1562,8 +1562,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/resources/views/invoices/historical.blade.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="58" lean-forward="true" selection-start-line="20" selection-start-column="58" selection-end-line="20" selection-end-column="58" />
+        <state relative-caret-position="360">
+          <caret line="24" column="76" lean-forward="true" selection-start-line="24" selection-start-column="76" selection-end-line="24" selection-end-column="76" />
           <folding>
             <marker date="1488749650000" expanded="true" signature="44:1083" ph="..." />
             <marker date="1488749650000" expanded="true" signature="68:181" ph="..." />
@@ -1596,8 +1596,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="564">
-          <caret line="230" column="43" lean-forward="false" selection-start-line="230" selection-start-column="43" selection-end-line="230" selection-end-column="43" />
+        <state relative-caret-position="294">
+          <caret line="229" column="44" lean-forward="true" selection-start-line="229" selection-start-column="44" selection-end-line="229" selection-end-column="44" />
           <folding />
         </state>
       </provider>

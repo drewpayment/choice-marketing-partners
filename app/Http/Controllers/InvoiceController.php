@@ -227,7 +227,9 @@ class InvoiceController extends Controller
 				$result = collect($result);
 			} else {
 				$result = [];
-				$result[] = $thisUser->id;
+				$me = DB::table('employees')
+						->where('id', $thisUser->id)->get();
+				array_push($result, $this->findObjectById($thisUser->id, $me));
 				$result = collect($result);
 			}
 
