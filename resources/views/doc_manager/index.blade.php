@@ -7,6 +7,11 @@
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <div class="row">
+                <div class="col-xs-12">
+                    <h2>Document Manager <small>View/Download Attachments on-the-go</small></h2>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-12">
                     @if($admin == 1)
                     <div class="addDocumentLink pt-30">
