@@ -228,6 +228,7 @@ class InvoiceController extends Controller
 			} else {
 				$result = [];
 				$result[] = $thisUser->id;
+				$result = collect($result);
 			}
 
 		}
