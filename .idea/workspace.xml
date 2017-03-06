@@ -33,11 +33,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="_doc.blade.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/resources/views/doc_manager/_doc.blade.php">
+      <file leaf-file-name="DocumentController.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DocumentController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="26" lean-forward="false" selection-start-line="22" selection-start-column="26" selection-end-line="22" selection-end-column="26" />
+            <state relative-caret-position="375">
+              <caret line="39" column="0" lean-forward="true" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -119,9 +119,9 @@
         <option value="$PROJECT_DIR$/database/migrations/2017_03_06_023106_update_pk_users_table.php" />
         <option value="$PROJECT_DIR$/database/migrations/2017_03_06_025503_remove_unique_id_key_users_table.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/InvoiceController.php" />
-        <option value="$PROJECT_DIR$/app/Http/Controllers/DocumentController.php" />
         <option value="$PROJECT_DIR$/resources/views/doc_manager/index.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/doc_manager/_doc.blade.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/DocumentController.php" />
       </list>
     </option>
   </component>
@@ -835,12 +835,12 @@
       <workItem from="1488423587423" duration="74000" />
       <workItem from="1488423676484" duration="266000" />
       <workItem from="1488639896092" duration="20057000" />
-      <workItem from="1488766724080" duration="2316000" />
+      <workItem from="1488766724080" duration="2366000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="345536000" />
+    <option name="totallyTimeSpent" value="345586000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1649,35 +1649,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DocumentController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="38" column="0" lean-forward="true" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-          <folding>
-            <marker date="1488770136000" expanded="false" signature="44:461" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="506:2947" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="536:607" ph=" _UploadRepo constructor. ..." />
-            <marker date="1488770136000" expanded="true" signature="663:727" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="753:996" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="1003:1095" ph=" upload file and store document info ..." />
-            <marker date="1488770136000" expanded="true" signature="1136:1783" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="1635:1709" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="1718:1779" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="1825:2232" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="1850:2081" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="1921:2080" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="2101:2168" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="2176:2228" ph="..." />
-            <marker date="1488770136000" expanded="true" signature="2271:2533" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="2365:2413" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="2420:2530" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="2575:2944" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="2698:2782" ph="{...}" />
-            <marker date="1488770136000" expanded="true" signature="2789:2941" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/views/invoices/historical.blade.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="360">
@@ -1752,6 +1723,26 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
           <caret line="22" column="26" lean-forward="false" selection-start-line="22" selection-start-column="26" selection-end-line="22" selection-end-column="26" />
+          <folding>
+            <marker date="1488770281000" expanded="true" signature="68:917" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="112:906" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="123:334" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="367:895" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="410:882" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="420:620" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="514:609" ph="..." />
+            <marker date="1488770281000" expanded="false" signature="577:593" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="652:860" ph="..." />
+            <marker date="1488770281000" expanded="true" signature="767:849" ph="..." />
+            <marker date="1488770281000" expanded="false" signature="814:830" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DocumentController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="39" column="0" lean-forward="true" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
           <folding />
         </state>
       </provider>
