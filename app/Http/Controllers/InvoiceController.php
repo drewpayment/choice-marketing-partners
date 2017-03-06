@@ -216,14 +216,20 @@ class InvoiceController extends Controller
 		else
 		{
 			$list = DB::table('permissions')->where('emp_id', $thisUser->id)->first();
-			$list = explode('|', $list->roll_up);
-			$emps = DB::table('employees')->get();
-			$result = [];
-			foreach($list as $val)
-			{
-				array_push($result, $this->findObjectById($val, $emps));
+			if(count($list) > 0){
+				$list = explode('|', $list->roll_up);
+				$emps = DB::table('employees')->get();
+				$result = [];
+				foreach($list as $val)
+				{
+					array_push($result, $this->findObjectById($val, $emps));
+				}
+				$result = collect($result);
+			} else {
+				$result = [];
+				$result[] = $thisUser->id;
 			}
-			$result = collect($result);
+
 		}
 
 
