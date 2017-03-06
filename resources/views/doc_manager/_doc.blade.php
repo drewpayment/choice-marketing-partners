@@ -2,12 +2,14 @@
 @foreach($documents as $document)
 
     <div class="list-group-item">
-    	<ul class="list-unstyled list-inline">
+    	<ul class="list-inline">
     		<li>
 		        <h4 class="list-group-item-heading">{{$document->name}} <small>Document Owner: {{$document->uploaded_by}}</small></h4>
-		        <p class="list-group-item-text">{{$document->description}}</p>
 			</li>
-			<li class="pull-right pt-10">
+			<li>
+				<p class="list-group-item-text">{{$document->description}}</p>
+			</li>
+			<li class="pull-right">
 				<ul class="list-inline">
 					<li>
 						<a href="{{ url('download', ['filename' => $document->file_path]) }}" class="unstyled">
