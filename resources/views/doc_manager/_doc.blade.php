@@ -14,11 +14,13 @@
 							<i class="icon ion-ios-cloud-download-outline" style="font-size: 24px;"></i>
 						</a>
 					</li>
+					@if($admin == 1)
 					<li>
 						<a href="{{ url('delete', ['id' => $document->id, 'filename' => $document->file_path]) }}" class="unstyled">
 				    		<i class="icon ion-trash-a" style="font-size: 24px;"></i>
 				    	</a>
 					</li>
+					@endif
 				</ul>
 
 		    </li>

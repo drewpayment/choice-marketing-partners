@@ -34,8 +34,10 @@ class DocumentController extends Controller
 	public function index()
 	{
 		$documents = Document::all();
+		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$admin = $thisUser->is_admin;
 
-		return view('doc_manager.index')->with('documents', $documents);
+		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin]);
 	}
 
 

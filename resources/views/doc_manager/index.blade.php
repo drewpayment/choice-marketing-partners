@@ -8,9 +8,11 @@
         <div class="col-md-10 col-md-offset-1">
             <div class="row">
                 <div class="col-md-12">
+                    @if($admin == 1)
                     <div class="addDocumentLink pt-30">
                         <a href="#" class="btn btn-primary">Add a document <i class="fa fa-plus-circle"></i></a>
                     </div>
+                    @endif
                     <div class="documentUploader">
                         <form action="{{ url('/UploadDocument') }}" class="form-inline" method="POST" id="document_form" enctype="multipart/form-data">
                             <input type="hidden" id="_token" name="_token" value="{{csrf_token()}}" />
@@ -55,7 +57,7 @@
             </div>
             <span class="pt-30">&nbsp;</span>
             <div class="list-group" id="document_list">
-                @include('doc_manager._doc', array('documents' => $documents))
+                @include('doc_manager._doc', array('documents' => $documents, 'admin' => $admin))
             </div>
         </div>
     </div>
