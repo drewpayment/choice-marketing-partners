@@ -8,7 +8,7 @@
 		        <p class="list-group-item-text">{{$document->description}}</p>
 			</li>
 			<li class="pull-right pt-10">
-				<ul class="list-unstyled list-inline">
+				<ul class="list-inline">
 					<li>
 						<a href="{{ url('download', ['filename' => $document->file_path]) }}" class="unstyled">
 							<i class="icon ion-ios-cloud-download-outline" style="font-size: 24px;"></i>
