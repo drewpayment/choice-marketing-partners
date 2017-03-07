@@ -205,7 +205,8 @@ class InvoiceController extends Controller
 		$noSalaryEmps = DB::table('employees')->whereIn('name', ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'])->get();
 		if($admin == 1)
 		{
-			$result = DB::table('employees')->where('is_active', 1)->get()->toArray();
+			$result = DB::table('employees')->where('is_active', 1)->get();
+			$result = $result->sortBy('name')->toArray();
 
 			foreach($noSalaryEmps as $e){
 				$result = $this->unsetValue($result, $e->name);
@@ -219,6 +220,7 @@ class InvoiceController extends Controller
 			if(count($list) > 0){
 				$list = explode('|', $list->roll_up);
 				$emps = DB::table('employees')->get();
+				$emps = $emps->sortBy('name');
 				$result = [];
 				foreach($list as $val)
 				{
