@@ -6,7 +6,7 @@
 	    <h4 class="modal-title">Edit Employee</h4>
 	  </div>
 	  <div class="modal-body">
-	    <form data-parentid="{{$emp[0]->id}}">
+	    <form id="emp_id" data-parentid="{{$emp[0]->id}}">
 	    	<input type="hidden" data-token="true" value="{{ csrf_token() }}">
 	    	<div class="form-group">
 	    		<label for="emp_name">Name</label>

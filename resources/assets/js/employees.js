@@ -2,7 +2,7 @@
 // vars
 
 var token;
-var userMsg = $('#js_msgs');
+var currentObj;
 
 
 // methods
@@ -93,7 +93,9 @@ function handleEmployeeChangesSubmission(data){
 
 
 	function afterData(data){
-		console.dir(data);
+		if(data){
+			setMessageContainer("Employee updated!");
+		}
 	}
 
 }
@@ -159,7 +161,7 @@ function handleSubmitNewEmployee(data){
 
             refreshEmployeesAfterControl(obj);
 
-			setUserMessage("The employee was successfully added!");
+			setMessageContainer("The employee was successfully added!");
 		}
 	}
 
@@ -236,7 +238,7 @@ function afterShowEmployeeChangeModal(){
 		e.stopImmediatePropagation();
 		var data = {
 			tag: 4,
-			id: $('[data-parentid]').data('parentid'),
+			id: $('#emp_id').data('parentid'),
 			name: $('#emp_name').val(),
 			email: $('#emp_email').val(),
 			phone: $('#emp_phone').val(),

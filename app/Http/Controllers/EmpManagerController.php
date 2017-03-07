@@ -82,7 +82,20 @@ class EmpManagerController extends Controller
 		$emp->address = $data["address"];
 		$emp->is_active = ($data["isactive"]) ? 1 : 0;
 
-    	$result = $emp->save();
+    	$empTable = $emp->save();
+    	$id = Employee::where('name', $data["name"])->first()->id;
+
+    	$password = password_hash('Password1', PASSWORD_BCRYPT);
+
+    	$userId = DB::table('users')->insertGetId(
+		    ['id' => $id, 'name' => $data["name"], 'email' => $data["email"], 'password' => $password, 'created_at' => date('Ymd'), 'updated_at' => date('Ymd')]
+	    );
+
+    	if($empTable == true && $userId > 0){
+    		$result = true;
+	    } else {
+    		$result = false;
+	    }
 
     	return response()->json($result);
     }
@@ -133,12 +146,12 @@ class EmpManagerController extends Controller
 	          ->where('id', $data['id'])
 	          ->update($emp->toArray());
         } catch(\mysqli_sql_exception $e){
-            return response()->json("NOPE");
+            return response()->json(false);
         }
 
 
 
-    	return response()->json("YUP");
+    	return response()->json(true);
     }
 
     /**
