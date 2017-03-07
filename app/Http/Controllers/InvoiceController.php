@@ -26,7 +26,8 @@ class InvoiceController extends Controller
 	public function index()
 	{
 		$noSalaryEmps = ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'];
-		$emps = DB::table('employees')->where('is_active', 1)->get()->toArray();
+		$emps = DB::table('employees')->where('is_active', 1)->get();
+		$emps = $emps->sortBy('name')->toArray();
 		foreach($noSalaryEmps as $e){
 			$emps = $this->unsetValue($emps, $e);
 		}
