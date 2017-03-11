@@ -22,7 +22,9 @@
 //	return view('index', ['user' => $user]);
 //});
 
-
+Route::get('/', function(){
+	return view('index');
+});
 
 Route::get('/payroll-dispute', function(){
 	return view('emails.dispute');
@@ -49,12 +51,14 @@ Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
  * we also handle where users are sent after successful authentication
  *
  */
-Auth::routes();
+//Auth::routes();
+Route::get('getlogin', 'LoginController@showLoginForm');
+Route::post('login', 'LoginController@login');
 Route::get('logout', function(){
 	Auth::logout();
 	return redirect('/');
 });
-Route::get('/', 'HomeController@authenticated');
+//Route::get('/', 'HomeController@authenticated');
 Route::get('/dashboard', 'HomeController@index');
 Route::get('/dashboard', 'HomeController@index');
 Route::get('/home', 'HomeController@index');
