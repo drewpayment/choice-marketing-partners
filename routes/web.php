@@ -50,7 +50,10 @@ Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
  *
  */
 Auth::routes();
-Route::get('logout', 'LoginController@logout');
+Route::get('logout', function(){
+	Auth::logout();
+	return redirect('/');
+});
 Route::get('/', 'HomeController@authenticated');
 Route::get('/dashboard', 'HomeController@index');
 Route::get('/dashboard', 'HomeController@index');

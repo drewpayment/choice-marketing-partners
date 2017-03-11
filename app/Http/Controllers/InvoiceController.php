@@ -237,9 +237,10 @@ class InvoiceController extends Controller
 			}
 
 		}
+		$hidden = ($admin == 1) ? "" : "hidden";
+		$isAdmin = ($admin == 1) ? true : false;
 
-
-		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser]);
+		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser, 'hidden' => $hidden, 'isAdmin' => $isAdmin]);
 	}
 
 
@@ -273,6 +274,8 @@ class InvoiceController extends Controller
 
 	public function returnIssueDates(Request $request)
 	{
+		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$admin = ($thisUser->is_admin == 1) ? true : false;
 		$id = $request->id;
 		$dates = [];
 		$list = DB::table('invoices')
@@ -283,7 +286,24 @@ class InvoiceController extends Controller
 
 		foreach($list as $dt)
 		{
-			$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+			$today = strtotime('today');
+			$nextMon = strtotime('next wednesday') - ((60 * 60 * 24) * 2);
+			$issueDt = strtotime($dt->issue_date);
+
+			if($admin){
+				$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+			} else {
+				if($issueDt > $today){
+					if($today > $nextMon){
+						$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+					} else {
+						continue;
+					}
+				} else {
+					$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+				}
+			}
+
 		}
 
 		return view('invoices.issuedates', ['issuedates' => $dates]);

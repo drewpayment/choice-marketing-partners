@@ -33,7 +33,11 @@
 				<select class="selectpicker" id="issueDate" data-mobile="true"></select>
 			</li>
 			<li>
+				@if($isAdmin)
 				<div id="deletePaystubBtn"></div>
+				@else
+				<div></div>
+				@endif
 			</li>
 		</ul>
 	</div>
@@ -66,6 +70,7 @@
 		        $('#paystub').html('');
                 $('#issueDate').html(data);
                 $('#issueDate').selectpicker('refresh');
+                $('#deletePaystubBtn').addClass('hidden');
 			}
 		});
 	});
@@ -89,6 +94,7 @@
 
 			// finish this, need to create functionality with delete button to remove invoice, verify action with modal and then delete
 			$('#deletePaystubBtn').html("<button type='button' class='btn btn-primary' data-tag='7' data-vero='button'>Delete</button>");
+			$('#deletePaystubBtn').removeClass('hidden');
 			var el = document.getElementById("deletePaystubBtn");
 			el.addEventListener("click", handleClick, false);
 		});
