@@ -287,7 +287,7 @@ class InvoiceController extends Controller
 		foreach($list as $dt)
 		{
 			$today = strtotime('today');
-			$nextMon = strtotime('next wednesday') - ((60 * 60 * 24) * 2);
+			$nextMon = strtotime('next wednesday 20:00 -1 day');
 			$issueDt = strtotime($dt->issue_date);
 
 			if($admin){
