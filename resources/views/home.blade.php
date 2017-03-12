@@ -1,4 +1,4 @@
-
+{{-- this is the top menu navigation --}}
 <div class="w-650">
     <div class="row">
         <div class="col-xs-12">
@@ -12,6 +12,9 @@
                 </li>
                 <li>
                     <a href="/upload-invoice" class="btn btn-primary"><i class="ion ion-android-document"></i> Invoices</a>
+                </li>
+                <li>
+                    <a href="/dashboards/dashboard" class="btn btn-default"><i class="ion ion-ios-pie-outline"></i> Dashboard</a>
                 </li>
                 @endif
                 <li>

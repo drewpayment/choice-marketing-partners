@@ -232,5 +232,8 @@ body {
 .control-label {
   font-size: 16px;
 }
+.jsdata {
+  display: none !important;
+}
 
 /*# sourceMappingURL=custom.css.map */

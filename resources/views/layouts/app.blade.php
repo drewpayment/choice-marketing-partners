@@ -136,8 +136,10 @@
 {{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/loading.gif"></script>--}}
 {{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.js"></script>--}}
 <script src="{{url('js/jquery.webui-popover.js')}}"></script>
-<script type="text/javascript" src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
-<script type="text/javascript" src="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.min.js"></script>
+<script src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
+<script src="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.min.js"></script>
+<!-- moment js plugin for dates -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function(){

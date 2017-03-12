@@ -28,6 +28,7 @@ elixir(function(mix) {
         'paystubs.js',
     	'employees.js',
         'upload.js',
-        'custom.js'
+        'custom.js',
+        'dashboard.js'
 	])
 });

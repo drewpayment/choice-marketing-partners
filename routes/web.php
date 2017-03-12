@@ -90,3 +90,8 @@ Route::post('/editemployee', 'EmpManagerController@getEmployeeEditModal');
 Route::post('/update-employee', 'EmpManagerController@update');
 Route::post('/employee/update/salesid', 'EmpManagerController@updateEmployeeSalesID');
 
+/*
+ * admin dashboard routes
+ *
+ */
+Route::get('/dashboards/dashboard', 'DashboardController@index');
