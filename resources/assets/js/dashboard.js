@@ -12,7 +12,8 @@ $(document).ready(function(){
         series1 = [],
         series2 = [],
         series3 = [],
-        series4 = [], d;
+        series4 = [], d,
+        visibility = [];
 
     for(var i = 0; i < a.xAxis.length; i++){
         d = a.xAxis[i];
@@ -52,6 +53,15 @@ $(document).ready(function(){
         }
     }
 
+    // this figures out if the series has all empty points in it,
+    // and if it does, sets the series' visibility to default to false on the graph
+    var allSeries = [series1, series2, series3, series4];
+    for(var i = 0; i < 4; i++){
+        visibility[i] = (allSeries[i].every(isUndefined)) ? false : true;
+    }
+    console.dir([series1, series2, series3, series4]);
+    console.dir(visibility);
+
     var options = {
         chart: {
             type: 'column'
@@ -82,19 +92,23 @@ $(document).ready(function(){
         series: [{
             name: "Accepted",
             data: series1,
-            color: '#19b73e'
+            color: '#19b73e',
+            visible: visibility[0]
         }, {
             name: "Rejected",
             data: series2,
-            color: '#9e9e9e'
+            color: '#9e9e9e',
+            visible: visibility[1]
         }, {
             name: 'Chargebacks',
             data: series3,
-            color: '#f20707'
+            color: '#f20707',
+            visible: visibility[2]
         }, {
             name: 'Uncategorized',
             data: series4,
-            color: '#8c6b6b'
+            color: '#8c6b6b',
+            visible: visibility[3]
         }]
     };
 
@@ -103,3 +117,6 @@ $(document).ready(function(){
 });
 
 
+var isUndefined = function(elem){
+    return elem == undefined;
+};
