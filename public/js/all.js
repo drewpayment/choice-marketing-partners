@@ -382,6 +382,7 @@ var setNewExpense = function (e){
 
 
 function handleSubmitNewInvoice(data){
+    console.dir([data, paystubHot.getData(), overHot.getData(), expHot.getData()]);
     setCommonUserInfo();
 
     var invoiceData = paystubHot.getData();
@@ -447,6 +448,9 @@ function handleSubmitNewInvoice(data){
 
 
 function resetHOT(){
+    salesList = [];
+    overList = [];
+    expensesList = [];
     paystubHot.updateSettings({
         data: []
     });
@@ -756,7 +760,7 @@ function remoteModal(html, callback){
 
 // build sales by week highchart on page load
 $(document).ready(function(){
-
+    if(!$('#salesByWeek').length) return false;
     var a = JSON.parse($('#salesByWeek').find('.jsdata').text()),
         xAxis = [],
         series1 = [],

@@ -6,7 +6,7 @@
 
 // build sales by week highchart on page load
 $(document).ready(function(){
-
+    if(!$('#salesByWeek').length) return false;
     var a = JSON.parse($('#salesByWeek').find('.jsdata').text()),
         xAxis = [],
         series1 = [],
