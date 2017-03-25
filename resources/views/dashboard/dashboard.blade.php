@@ -14,6 +14,21 @@
     </div>
     <div>
         <div class="col-md-6">
+            <div class="panel panel-primary overflow-scroll">
+                <div class="panel-heading">
+                    <button type="button" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#admin_body"><i class="ion ion-plus-round" id="close-icon"></i></button>
+                    <div class="panel-title">Administration</div>
+                </div>
+
+                <div id="admin_body" class="list-group collapse">
+                    <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}">Payroll Info</a>
+                    <a class="list-group-item" href="#">&nbsp;</a>
+                    <a class="list-group-item" href="#">&nbsp;</a>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6">
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">Sales by Week</h3>
@@ -22,52 +37,6 @@
                     <div class="jsdata">{{$jsdata}}</div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <ul class="list-unstyled">
-                <li>
-                    <div class="panel panel-primary h-225 overflow-scroll">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Top Performers - Invoice Week of {{date('M jS', strtotime('last wednesday'))}}</h3>
-                        </div>
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th class="w-80"># of Sales</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Bret Payment</td>
-                                <td class="text-center">15</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </li>
-                <li>
-                    <div class="panel panel-danger h-225 overflow-scroll">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Underperformers</h3>
-                        </div>
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th class="w-80"># of Sales</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Drew Payment</td>
-                                <td class="text-center">-4</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </li>
-            </ul>
         </div>
     </div>
 
@@ -79,5 +48,12 @@
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script type="text/javascript">
+        $('#admin_body').on('shown.bs.collapse', function(){
+            $('#close-icon').removeClass('ion ion-plus-round').addClass('ion ion-close-round');
+        }).on('hidden.bs.collapse', function(){
+            $('#close-icon').removeClass('ion ion-close-round').addClass('ion ion-plus-round');
+        });
+    </script>
 
 @endsection

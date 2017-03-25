@@ -95,3 +95,7 @@ Route::post('/employee/update/salesid', 'EmpManagerController@updateEmployeeSale
  *
  */
 Route::get('/dashboards/dashboard', 'DashboardController@index');
+Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');
+// payroll info routes
+Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');
+Route::get('/dashboards/refreshPayrollInfo', 'DashboardController@refreshPayrollInfo');

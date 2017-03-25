@@ -1,8 +1,11 @@
+.pt-5 {
+  padding-top: 5px !important;
+}
 .p-10 {
   padding: 10px !important;
 }
-.pt-5 {
-  padding-top: 5px !important;
+.pb-10 {
+  padding-bottom: 10px !important;
 }
 .pt-10 {
   padding-top: 10px !important;
@@ -121,12 +124,18 @@
 .h-270 {
   height: 270px !important;
 }
+.h-470 {
+  height: 470px !important;
+}
 .h-700 {
   height: 700px !important;
 }
 .line-break-50 {
   padding-top: 25px;
   padding-bottom: 25px;
+}
+.b-all {
+  border: 1px solid #ECECEC;
 }
 hr.paystub-title-break {
   height: 10px;

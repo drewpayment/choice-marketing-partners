@@ -14,7 +14,7 @@
                     <a href="/upload-invoice" class="btn btn-primary"><i class="ion ion-android-document"></i> Invoices</a>
                 </li>
                 <li>
-                    <a href="/dashboards/dashboard" class="btn btn-default"><i class="ion ion-ios-pie-outline"></i> Dashboard</a>
+                    <a href="/dashboards/dashboard" class="btn btn-primary"><i class="ion ion-settings"></i> Admin</a>
                 </li>
                 @endif
                 <li>

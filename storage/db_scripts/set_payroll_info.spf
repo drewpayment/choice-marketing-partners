@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>database</key>
+			<string>choice</string>
+			<key>host</key>
+			<string>127.0.0.1</string>
+			<key>kcid</key>
+			<string>3591473376749710970</string>
+			<key>name</key>
+			<string>MAMP</string>
+			<key>port</key>
+			<integer>8889</integer>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPTCPIPConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8</string>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFy
+			Y2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJX
+			TlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAF
+			gAdUdHlwZVRyb3dzXxAdU2VsZWN0aW9uRGV0YWlsVHlwZU5TSW5k
+			ZXhTZXTSFwsYGVxOU1JhbmdlQ291bnQQAIAG0hscHR5aJGNsYXNz
+			bmFtZVgkY2xhc3Nlc1pOU0luZGV4U2V0oh8gWk5TSW5kZXhTZXRY
+			TlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVk
+			QXJjaGl2ZXLRJidUZGF0YYABAAgAEQAaACMALQAyADcAQABGAE0A
+			VQBgAGcAagBsAG4AcQBzAHUAdwB8AIEAoQCmALMAtQC3ALwAxwDQ
+			ANsA3gDpAPIA9wEEAQcBGQEcASEAAAAAAAACAQAAAAAAAAAoAAAA
+			AAAAAAAAAAAAAAABIw==
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, 0}, {953.5, 537}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>delimiter /
+
+DROP PROCEDURE IF EXISTS `set_payroll_info` /
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	
+	INSERT INTO payroll (id, amount, pay_date, agent_name)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	UPDATE payroll 
+	SET created_at = NOW()
+		, updated_at = NOW()
+	WHERE pay_date = issueDate;
+	
+END/
+
+delimiter ;</string>
+			<key>table</key>
+			<string>set_payroll_info</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>174.5</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>queryHistory</key>
+	<array>
+		<string>CALL set_payroll_info('20170215')</string>
+		<string>SELECT sum(amount)
+FROM invoices
+WHERE issue_date = '20170215'</string>
+		<string>SELECT amount
+FROM invoices
+WHERE issue_date = '20170215'</string>
+		<string>SELECT amount
+FROM invoices
+WHERE issue_date = '20170315'</string>
+		<string>SELECT sum(amount)
+FROM invoices
+WHERE issue_date = '20170315'</string>
+		<string>CALL set_payroll_info('20170305')</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	
+	INSERT INTO payroll (id, amount, pay_date, agent_name)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	UPDATE payroll 
+	SET created_at = NOW()
+		, updated_at = NOW()
+	WHERE pay_date = issueDate;
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	
+	INSERT INTO payroll (id, amount, pay_date, agent_name)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	UPDATE payroll 
+	SET created_at = NOW()
+		, updated_at = NOW()
+	WHERE issue_date = issueDate;
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	
+	INSERT INTO payroll (id, amount, pay_date, agent_name)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	INSERT INTO payroll (created_at, updated_at) VALUES (NOW(), NOW());
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	
+	INSERT INTO payroll (id, amount, pay_date, agent_name)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		amount int,
+		issuedt date,
+		aname varchar(60)
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	SELECT * FROM pay_data;
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		amount int,
+		issuedt date,
+		aname varchar(60)
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	SELECT * FROM pay_data;
+	
+END;
+CALL set_payroll_info('20170305')</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		amount int,
+		issuedt date,
+		aname varchar(60)
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		amount int,
+		issuedt date,
+		aname varchar(60)
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	DROP TABLE pay_data;
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		amount int,
+		issuedt date,
+		aname varchar(60)
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	DROP TABLE pay_data;
+END;
+CALL set_payroll_info('20170305')</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		aname varchar(60),
+		issuedt date,
+		amount int
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data (aid, aname, issuedate, amount)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	DROP TABLE pay_data;
+END;
+CALL set_payroll_info('20170305')</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		aname varchar(60),
+		issuedt date,
+		amount int
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data (aid, aname, issuedate, amount)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	SELECT * FROM pay_data;
+	
+	DROP TABLE pay_data;
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		aname varchar(60),
+		issuedt date,
+		amount int
+	) ENGINE=MEMORY;
+	
+	INSERT INTO pay_data (aid, aname, issuedate, amount)
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	
+	SELECT * FROM pay_data;
+	
+	DROP TABLE pay_data;
+END;
+CALL set_payroll_info('20170305')</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		aname varchar(60),
+		issuedt date,
+		amount int
+	)
+	
+	INSERT INTO pay_data (aid, aname, issuedate, amount)
+	VALUES 
+	(
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	)
+END</string>
+		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
+CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
+BEGIN
+	CREATE TEMPORARY TABLE pay_data(
+		aid int,
+		aname varchar(60),
+		issuedt date,
+		amount int
+	)
+	
+	INSERT INTO pay_data (aid, aname, issuedate, amount)
+	VALUES 
+	(
+	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
+	FROM invoices i 
+	INNER JOIN employees e ON e.id = i.agentid
+	WHERE issue_date = issueDate
+	GROUP BY agentid, issue_date;
+	)
+END;
+CALL set_payroll_info('20170305')</string>
+	</array>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>5.5.42</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>

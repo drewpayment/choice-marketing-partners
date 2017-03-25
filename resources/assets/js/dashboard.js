@@ -120,3 +120,55 @@ $(document).ready(function(){
 var isUndefined = function(elem){
     return elem == undefined;
 };
+
+
+function handlePaidConfirmClick(data){
+    var userId = data.parentid;
+    var isPaid = data.value;
+    token = $('#global-token').attr('content');
+
+    isPaid = (isPaid) ? 1 : 0;
+
+    $.ajax({
+        url: 'handlePayrollClick',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            userId: userId,
+            isPaid: isPaid,
+            _token: token
+        },
+        success: afterData
+    });
+
+    function afterData(data){
+        if(data){
+            setMessageContainer("Success!");
+        }
+    }
+}
+
+
+function refreshPayrollInfoTable(data){
+    var date = data.value;
+    token = (token) ? token : $('#global-token').attr('content');
+
+    date = moment(date, 'MM-DD-YYYY');
+    date = date.format('YYYY-MM-DD').toString();
+
+    $.ajax({
+        url: 'refreshPayrollInfo',
+        type: 'GET',
+        dataType: 'html',
+        data: {
+            date: date
+        },
+        success: afterData
+    });
+
+    function afterData(data){
+        if(data){
+            $('#TABLE_ROWDATA').html(data);
+        }
+    }
+}

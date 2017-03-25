@@ -65,7 +65,6 @@ var setNewExpense = function (e){
 
 
 function handleSubmitNewInvoice(data){
-    console.dir([data, paystubHot.getData(), overHot.getData(), expHot.getData()]);
     setCommonUserInfo();
 
     var invoiceData = paystubHot.getData();

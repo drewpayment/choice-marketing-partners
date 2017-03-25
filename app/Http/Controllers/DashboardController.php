@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -68,6 +69,52 @@ class DashboardController extends Controller
 //		dd($salesByRep);
 
 		return view('dashboard.dashboard', ['jsdata' => $jsdata]);
+	}
+
+
+	/*
+	 * load payroll landing page
+	 *
+	 */
+	public function payrollInfo()
+	{
+		$dates = DB::table('payroll')
+					->select('pay_date')
+					->groupBy('pay_date')
+					->orderBy('pay_date', 'desc')
+					->get();
+		$employees = DB::table('payroll')->where('pay_date', '=', $dates->first()->pay_date)->get();
+
+		return view('dashboard.payrollinfo', ['dates' => $dates, 'employees' => $employees]);
+	}
+
+
+	public function refreshPayrollInfo(Request $request)
+	{
+		$date = $request->date;
+		$employees = DB::table('payroll')->where('pay_date', '=', $date)->get();
+
+		return view('dashboard.payrollTableRowData', ['employees' => $employees]);
+	}
+
+
+	/*
+	 * handle when user clicks "paid" checkbox on payroll info page
+	 */
+	public function handlePayrollClick(Request $request)
+	{
+		$userId = $request->userId;
+		$isPaid = $request->isPaid;
+
+		try{
+			DB::table('payroll')
+			  ->where('id', $userId)
+			  ->update(['is_paid' => $isPaid]);
+		} catch(Exception $e){
+			return response()->json('false');
+		}
+
+		return response()->json('true');
 	}
 
 }
