@@ -40,7 +40,7 @@
                 <tbody id="TABLE_ROWDATA">
                 @if(count($employees) == 0)
                     <tr class="bg-white">
-                        <td colspan="3"><i class="ion ion-sad"></i>No Results Found</td>
+                        <td colspan="3" class="text-center"><i class="ion ion-sad"></i> No Results Found</td>
                     </tr>
                 @else
                     @foreach($employees as $e)
