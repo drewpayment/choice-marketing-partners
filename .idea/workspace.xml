@@ -33,15 +33,12 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="DashboardController.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DashboardController.php">
+      <file leaf-file-name="payrollinfo.blade.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/resources/views/dashboard/payrollinfo.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="324">
-              <caret line="86" column="80" lean-forward="true" selection-start-line="86" selection-start-column="80" selection-end-line="86" selection-end-column="80" />
-              <folding>
-                <element signature="e#40#54#0#PHP" expanded="true" />
-                <marker date="1490477439000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
-              </folding>
+            <state relative-caret-position="585">
+              <caret line="38" column="24" lean-forward="true" selection-start-line="38" selection-start-column="24" selection-end-line="38" selection-end-column="24" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -124,8 +121,8 @@
         <option value="$PROJECT_DIR$/routes/web.php" />
         <option value="$PROJECT_DIR$/resources/assets/js/dashboard.js" />
         <option value="$PROJECT_DIR$/resources/views/dashboard/payrollTableRowData.blade.php" />
-        <option value="$PROJECT_DIR$/resources/views/dashboard/payrollinfo.blade.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/DashboardController.php" />
+        <option value="$PROJECT_DIR$/resources/views/dashboard/payrollinfo.blade.php" />
       </list>
     </option>
   </component>
@@ -823,12 +820,12 @@
       <workItem from="1489296968838" duration="5361000" />
       <workItem from="1489362311710" duration="8419000" />
       <workItem from="1489458261700" duration="6651000" />
-      <workItem from="1489972918048" duration="25853000" />
+      <workItem from="1489972918048" duration="25960000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="401373000" />
+    <option name="totallyTimeSpent" value="401480000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1792,46 +1789,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/dashboard/payrollinfo.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="31" column="33" lean-forward="true" selection-start-line="31" selection-start-column="33" selection-end-line="31" selection-end-column="33" />
-          <folding>
-            <marker date="1490477160000" expanded="true" signature="66:2442" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="109:319" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="141:308" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="347:1210" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="379:1199" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="430:1184" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="451:1166" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="588:1144" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1232:2439" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1263:2428" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1297:2413" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1321:1526" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1361:1501" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1569:2392" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1651:1766" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="1967:2312" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="2109:2282" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="2475:3154" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="2511:3151" ph="..." />
-            <marker date="1490477160000" expanded="true" signature="2577:2868" ph="{...}" />
-            <marker date="1490477160000" expanded="true" signature="2665:2814" ph="{...}" />
-            <marker date="1490477160000" expanded="true" signature="2920:3136" ph="{...}" />
-            <marker date="1490477160000" expanded="true" signature="2945:3081" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DashboardController.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="324">
           <caret line="86" column="80" lean-forward="true" selection-start-line="86" selection-start-column="80" selection-end-line="86" selection-end-column="80" />
           <folding>
-            <element signature="e#40#54#0#PHP" expanded="true" />
+            <marker date="1490477439000" expanded="true" signature="44:142" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="188:3241" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="196:245" ph=" Middleware --- THIS IS AN ADMIN ONLY PAGE ..." />
+            <marker date="1490477439000" expanded="true" signature="278:313" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="320:350" ph=" dashboard landing view ..." />
+            <marker date="1490477439000" expanded="true" signature="377:2129" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="426:438" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="453:465" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="658:704" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="720:740" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="758:770" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="853:899" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="924:944" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="971:983" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1077:1123" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1152:1174" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1205:1217" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1319:1365" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1396:1408" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1441:1453" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="1684:2064" ph="//..." />
             <marker date="1490477439000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
+            <marker date="1490477439000" expanded="true" signature="2135:2172" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="2205:2600" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="2255:2265" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="2282:2292" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="2309:2327" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="2656:2841" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="2847:2915" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="2971:3238" ph="{...}" />
+            <marker date="1490477439000" expanded="true" signature="3042:3136" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="3080:3093" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="3109:3131" ph="..." />
+            <marker date="1490477439000" expanded="true" signature="3158:3198" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/dashboard/payrollinfo.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="585">
+          <caret line="38" column="24" lean-forward="true" selection-start-line="38" selection-start-column="24" selection-end-line="38" selection-end-column="24" />
+          <folding />
         </state>
       </provider>
     </entry>
