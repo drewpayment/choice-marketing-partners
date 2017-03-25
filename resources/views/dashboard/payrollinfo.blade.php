@@ -15,7 +15,7 @@
                 <li>
                     <label for="datepicker">Pay Date</label>
                     <select class="selectpicker show-tick" id="datepicker">
-                        @if(is_null($dates))
+                        @if(count($dates) == 0)
                             <option value="-1">No Dates</option>
                         @else
                             @foreach($dates as $d)
@@ -38,7 +38,7 @@
                 </tr>
                 </thead>
                 <tbody id="TABLE_ROWDATA">
-                @if(is_null($employees))
+                @if(count($employees) == 0)
                     <tr class="bg-white">
                         <td colspan="3"><i class="ion ion-sad"></i>No Results Found</td>
                     </tr>
