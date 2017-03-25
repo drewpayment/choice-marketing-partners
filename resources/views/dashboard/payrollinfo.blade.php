@@ -15,9 +15,13 @@
                 <li>
                     <label for="datepicker">Pay Date</label>
                     <select class="selectpicker show-tick" id="datepicker">
-                        @foreach($dates as $d)
-                            <option value="{{date_create_from_format('Y-m-d', $d->pay_date)->format('m-d-Y')}}" @if($dates->first()->pay_date == $d->pay_date)selected@else&nbsp;@endif>{{date_create_from_format('Y-m-d', $d->pay_date)->format('m-d-Y')}}</option>
-                        @endforeach
+                        @if(isNull($dates))
+                            <option value="-1">No Dates</option>
+                        @else
+                            @foreach($dates as $d)
+                                <option value="{{date_create_from_format('Y-m-d', $d->pay_date)->format('m-d-Y')}}" @if($dates->first()->pay_date == $d->pay_date)selected@else&nbsp;@endif>{{date_create_from_format('Y-m-d', $d->pay_date)->format('m-d-Y')}}</option>
+                            @endforeach
+                        @endif
                     </select>
                 </li>
             </ul>
@@ -34,15 +38,21 @@
                 </tr>
                 </thead>
                 <tbody id="TABLE_ROWDATA">
-                @foreach($employees as $e)
-                    <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}" data-parent="true" data-parentid="{{$e->id}}">
-                        <td>{{$e->agent_name}}</td>
-                        <td>${{$e->amount}}</td>
-                        <td>
-                            <input type="checkbox" id="paid-confirm" value="{{$e->is_paid}}" {{($e->is_paid == 1) ? "checked" : ""}}/>
-                        </td>
+                @if(isNull($employees))
+                    <tr class="bg-white">
+                        <td colspan="3"><i class="ion ion-sad"></i>No Results Found</td>
                     </tr>
-                @endforeach
+                @else
+                    @foreach($employees as $e)
+                        <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}" data-parent="true" data-parentid="{{$e->id}}">
+                            <td>{{$e->agent_name}}</td>
+                            <td>${{$e->amount}}</td>
+                            <td>
+                                <input type="checkbox" id="paid-confirm" value="{{$e->is_paid}}" {{($e->is_paid == 1) ? "checked" : ""}}/>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
                 </tbody>
             </table>
         </div>
