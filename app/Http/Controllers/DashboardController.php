@@ -83,7 +83,7 @@ class DashboardController extends Controller
 					->groupBy('pay_date')
 					->orderBy('pay_date', 'desc')
 					->get();
-		$date = (isNull($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
+		$date = (is_null($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
 		$employees = DB::table('payroll')->where('pay_date', '=', $date)->get();
 
 		return view('dashboard.payrollinfo', ['dates' => $dates, 'employees' => $employees]);

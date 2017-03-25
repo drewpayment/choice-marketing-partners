@@ -36,11 +36,11 @@
       <file leaf-file-name="DashboardController.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DashboardController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="354">
-              <caret line="88" column="93" lean-forward="true" selection-start-line="88" selection-start-column="93" selection-end-line="88" selection-end-column="93" />
+            <state relative-caret-position="324">
+              <caret line="86" column="80" lean-forward="true" selection-start-line="86" selection-start-column="80" selection-end-line="86" selection-end-column="80" />
               <folding>
                 <element signature="e#40#54#0#PHP" expanded="true" />
-                <marker date="1490477314000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
+                <marker date="1490477439000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
               </folding>
             </state>
           </provider>
@@ -823,12 +823,12 @@
       <workItem from="1489296968838" duration="5361000" />
       <workItem from="1489362311710" duration="8419000" />
       <workItem from="1489458261700" duration="6651000" />
-      <workItem from="1489972918048" duration="25778000" />
+      <workItem from="1489972918048" duration="25853000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="401298000" />
+    <option name="totallyTimeSpent" value="401373000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1826,11 +1826,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/DashboardController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="354">
-          <caret line="88" column="93" lean-forward="true" selection-start-line="88" selection-start-column="93" selection-end-line="88" selection-end-column="93" />
+        <state relative-caret-position="324">
+          <caret line="86" column="80" lean-forward="true" selection-start-line="86" selection-start-column="80" selection-end-line="86" selection-end-column="80" />
           <folding>
             <element signature="e#40#54#0#PHP" expanded="true" />
-            <marker date="1490477314000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
+            <marker date="1490477439000" expanded="true" signature="1813:2030" ph="SELECT emplo... " />
           </folding>
         </state>
       </provider>
