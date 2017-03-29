@@ -65,7 +65,7 @@
                         </a>
                     </li>
                     <li role="presentation" id="loginLink">
-                        <a href="{{url('/getlogin')}}" class="navbar-title-text">
+                        <a href="{{url('/login')}}" class="navbar-title-text">
                             <i class="icon ion-log-in"></i> Login
                         </a>
                     </li>

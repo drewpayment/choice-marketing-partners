@@ -57,7 +57,7 @@ return [
 
     'from' => [
         'address' => 'postmaster@mg.verostack.io',
-        'name' => 'Verostack Post',
+        'name' => 'Webmaster',
     ],
 
     /*

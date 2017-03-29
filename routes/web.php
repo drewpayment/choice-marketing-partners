@@ -54,18 +54,19 @@ Route::get('/invoices/edit-invoice/{vendor}/{name}/{issueDate}', 'InvoiceControl
  * we also handle where users are sent after successful authentication
  *
  */
-//Auth::routes();
-Route::get('getlogin', 'LoginController@showLoginForm');
-Route::post('login', 'LoginController@login');
-Route::get('logout', function(){
-	Auth::logout();
-	return redirect('/');
-});
-//Route::get('/', 'HomeController@authenticated');
-Route::get('/dashboard', 'HomeController@index');
-Route::get('/dashboard', 'HomeController@index');
-Route::get('/home', 'HomeController@index');
-Route::get('/password/reset', 'Auth\PasswordController@sendForgotPasswordLink');
+Auth::routes();
+Route::get('/logout', 'Auth\LoginController@logout');
+//Route::get('getlogin', 'LoginController@showLoginForm');
+//Route::post('login', 'LoginController@login');
+//Route::get('logout', function(){
+//	Auth::logout();
+//	return redirect('/');
+//});
+////Route::get('/', 'HomeController@authenticated');
+Route::get('/dashboard', 'HomeController@index'); //webuipopover menu
+//Route::get('/dashboard', 'HomeController@index');
+//Route::get('/home', 'HomeController@index');
+//Route::get('/password/reset', 'Auth\PasswordController@sendForgotPasswordLink');
 
 
 /*

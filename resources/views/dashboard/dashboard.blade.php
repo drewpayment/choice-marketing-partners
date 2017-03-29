@@ -16,13 +16,13 @@
         <div class="col-md-6">
             <div class="panel panel-primary overflow-scroll">
                 <div class="panel-heading">
-                    <button type="button" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#admin_body"><i class="ion ion-plus-round" id="close-icon"></i></button>
+                    <button type="button" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#admin_body"><i class="ion ion-close-round" id="close-icon"></i></button>
                     <div class="panel-title">Administration</div>
                 </div>
 
-                <div id="admin_body" class="list-group collapse">
+                <div id="admin_body" class="list-group collapse in">
                     <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}">Payroll Info</a>
-                    <a class="list-group-item" href="{{url('/invoices/edit-invoice')}}">Edit Invoice</a>
+                    {{--<a class="list-group-item" href="{{url('/invoices/edit-invoice')}}">Edit Invoice</a>--}}
                     <a class="list-group-item" href="#">&nbsp;</a>
                 </div>
 
