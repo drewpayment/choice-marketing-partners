@@ -438,4 +438,52 @@ class InvoiceController extends Controller
 	{
 		return view('invoices.overridesmodal');
 	}
+
+
+	public function searchInvoices()
+	{
+		$emps = DB::table('employees')
+		          ->where('is_active', 1)
+		          ->orderBy('name', 'desc')
+		          ->get();
+
+		$campaigns = DB::table('vendors')->orderBy('name', 'desc')->get();
+
+		$dates = DB::table('invoices')
+					->where('vendor', 7)
+					->orderBy('issue_date', 'desc')
+					->get()
+					->groupBy('issue_date');
+
+		$invoiceList = DB::table('invoices')
+					->get()
+					->groupBy(['agentid', 'vendor', 'issue_date']);
+
+
+		$invoices = [];
+		foreach($invoiceList as $i){
+			$name = $emps->first(function($v, $k) use ($i){
+				return $v->id == $i->agentid;
+			});
+			$campaign = $campaigns->first(function($v, $k) use ($i){
+				return $v->id == $i->vendor;
+			});
+
+			$invoices[] = [
+				'name' => $name,
+				'campaign' => $campaign,
+				'issueDate' => $i->issue_date
+			];
+		}
+
+		return view('invoices.search', ['employees' => $emps, 'campaigns' => $campaigns, 'dates' => $dates, 'invoices' => $invoices]);
+	}
+
+
+	public function editInvoice($campaign, $name, $issueDate)
+	{
+		// find invoice by id and then return filled out handsontable
+
+		return view('invoices.edit');
+	}
 }

@@ -22,7 +22,7 @@
 
                 <div id="admin_body" class="list-group collapse">
                     <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}">Payroll Info</a>
-                    <a class="list-group-item" href="#">&nbsp;</a>
+                    <a class="list-group-item" href="{{url('/invoices/edit-invoice')}}">Edit Invoice</a>
                     <a class="list-group-item" href="#">&nbsp;</a>
                 </div>
 

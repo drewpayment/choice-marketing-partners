@@ -169,6 +169,11 @@ function setCommonUserInfo(){
 }
 
 
+function returnExistingPaystubsByAgentId(){
+    var agentId = $('')
+}
+
+
 // function cancelOverrides(event){
 //
 // 	// need to handle where user gets sent after clicking no

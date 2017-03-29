@@ -105,6 +105,25 @@ delimiter ;</string>
 	<array/>
 	<key>queryHistory</key>
 	<array>
+		<string>SELECT pay_date
+FROM payroll
+GROUP BY pay_date
+ORDER BY pay_date desc</string>
+		<string>SELECT *
+FROM payroll
+GROUP BY (agentid, pay_date)
+ORDER BY pay_date desc</string>
+		<string>SELECT *
+FROM payroll
+GROUP BY pay_date
+ORDER BY pay_date desc</string>
+		<string>SELECT *
+FROM payroll
+GROUP BY pay_date
+ORDER BY pay_date asc</string>
+		<string>SELECT *
+FROM payroll
+GROUP BY pay_date</string>
 		<string>CALL set_payroll_info('20170215')</string>
 		<string>SELECT sum(amount)
 FROM invoices
@@ -275,110 +294,6 @@ BEGIN
 	GROUP BY agentid, issue_date;
 	
 	DROP TABLE pay_data;
-END;
-CALL set_payroll_info('20170305')</string>
-		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
-CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
-BEGIN
-	CREATE TEMPORARY TABLE pay_data(
-		aid int,
-		aname varchar(60),
-		issuedt date,
-		amount int
-	) ENGINE=MEMORY;
-	
-	INSERT INTO pay_data (aid, aname, issuedate, amount)
-	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
-	FROM invoices i 
-	INNER JOIN employees e ON e.id = i.agentid
-	WHERE issue_date = issueDate
-	GROUP BY agentid, issue_date;
-	
-	DROP TABLE pay_data;
-END;
-CALL set_payroll_info('20170305')</string>
-		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
-CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
-BEGIN
-	CREATE TEMPORARY TABLE pay_data(
-		aid int,
-		aname varchar(60),
-		issuedt date,
-		amount int
-	) ENGINE=MEMORY;
-	
-	INSERT INTO pay_data (aid, aname, issuedate, amount)
-	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
-	FROM invoices i 
-	INNER JOIN employees e ON e.id = i.agentid
-	WHERE issue_date = issueDate
-	GROUP BY agentid, issue_date;
-	
-	SELECT * FROM pay_data;
-	
-	DROP TABLE pay_data;
-END</string>
-		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
-CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
-BEGIN
-	CREATE TEMPORARY TABLE pay_data(
-		aid int,
-		aname varchar(60),
-		issuedt date,
-		amount int
-	) ENGINE=MEMORY;
-	
-	INSERT INTO pay_data (aid, aname, issuedate, amount)
-	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
-	FROM invoices i 
-	INNER JOIN employees e ON e.id = i.agentid
-	WHERE issue_date = issueDate
-	GROUP BY agentid, issue_date;
-	
-	SELECT * FROM pay_data;
-	
-	DROP TABLE pay_data;
-END;
-CALL set_payroll_info('20170305')</string>
-		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
-CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
-BEGIN
-	CREATE TEMPORARY TABLE pay_data(
-		aid int,
-		aname varchar(60),
-		issuedt date,
-		amount int
-	)
-	
-	INSERT INTO pay_data (aid, aname, issuedate, amount)
-	VALUES 
-	(
-	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
-	FROM invoices i 
-	INNER JOIN employees e ON e.id = i.agentid
-	WHERE issue_date = issueDate
-	GROUP BY agentid, issue_date;
-	)
-END</string>
-		<string>DROP PROCEDURE IF EXISTS `set_payroll_info`;
-CREATE DEFINER = 'root'@'localhost' PROCEDURE `set_payroll_info`(IN issueDate DATE)
-BEGIN
-	CREATE TEMPORARY TABLE pay_data(
-		aid int,
-		aname varchar(60),
-		issuedt date,
-		amount int
-	)
-	
-	INSERT INTO pay_data (aid, aname, issuedate, amount)
-	VALUES 
-	(
-	SELECT i.agentid, sum(i.amount) as amount, i.issue_date, e.name
-	FROM invoices i 
-	INNER JOIN employees e ON e.id = i.agentid
-	WHERE issue_date = issueDate
-	GROUP BY agentid, issue_date;
-	)
 END;
 CALL set_payroll_info('20170305')</string>
 	</array>

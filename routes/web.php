@@ -44,6 +44,9 @@ Route::get('/paystub/delete/confirm',  function(){
 	return view('invoices.deletemodal');
 });
 Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
+// edit invoices
+Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');
+Route::get('/invoices/edit-invoice/{vendor}/{name}/{issueDate}', 'InvoiceController@editInvoice');
 
 
 /*
@@ -62,6 +65,7 @@ Route::get('logout', function(){
 Route::get('/dashboard', 'HomeController@index');
 Route::get('/dashboard', 'HomeController@index');
 Route::get('/home', 'HomeController@index');
+Route::get('/password/reset', 'Auth\PasswordController@sendForgotPasswordLink');
 
 
 /*
