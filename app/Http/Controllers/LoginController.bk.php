@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
-class LoginController extends Controller
+class LoginControllerBk extends Controller
 {
 	/*
 	|--------------------------------------------------------------------------
