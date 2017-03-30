@@ -177,6 +177,7 @@ class EmpManagerController extends Controller
 		} else {
 			$emps = DB::table('employees')
 			          ->where('is_active', '=', 1)
+				      ->orderBy('name', 'asc')
 			          ->get();
 		}
 
@@ -207,7 +208,7 @@ class EmpManagerController extends Controller
     */
     public function getemployees()
     {
-        $emps = Employee::all();
+        $emps = Employee::all()->orderBy('name', 'asc')->get();
         $view = View::make('emp_manager._emp', ['employees' => $emps]);
         $html = $view->render();
 
