@@ -22,10 +22,10 @@
 	<div class="col-xs-12">
 		<ul class="list-inline">
 			<li>
-				<span><h4>Agent: </h4></span>
+				<label for="employee"><h4>Agent: </h4></label>
 			</li>
 			<li>
-				<select class="selectpicker" id="employee" data-mobile="true">
+				<select class="selectpicker" id="employee" data-live-search="true">
 					<?php $i = 0; ?>
 					@foreach($emps as $emp)
 						<option value="{{$emp->id}}" @if($i == 0) selected @endif>{{$emp->name}}</option>

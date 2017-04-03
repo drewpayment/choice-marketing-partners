@@ -46,7 +46,8 @@ Route::get('/paystub/delete/confirm',  function(){
 Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
 // edit invoices
 Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');
-Route::get('/invoices/edit-invoice/{vendor}/{name}/{issueDate}', 'InvoiceController@editInvoice');
+Route::get('/invoices/show-invoice/{agentID}/{vendorID}/{issueDate}', 'InvoiceController@editInvoice');
+Route::post('/getSearchResults', 'InvoiceController@getSearchResults');
 
 
 /*

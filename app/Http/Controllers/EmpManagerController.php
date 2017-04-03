@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\View;
 
 class EmpManagerController extends Controller
 {
@@ -208,7 +209,8 @@ class EmpManagerController extends Controller
     */
     public function getemployees()
     {
-        $emps = Employee::all()->orderBy('name', 'asc')->get();
+        $emps = Employee::all()->get();
+        $emps = $emps->sortBy('name');
         $view = View::make('emp_manager._emp', ['employees' => $emps]);
         $html = $view->render();
 

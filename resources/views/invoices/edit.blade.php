@@ -12,7 +12,7 @@
 
 @section('content')
 
-@include('invoices._invoice', ['invoices' => $invoices, 'employee' => $employee, 'campaign' => $campaign])
+@include('invoices._editinvoice', ['invoices' => $invoices, 'employee' => $employee, 'campaign' => $campaign])
 
 @endsection
 
@@ -22,7 +22,9 @@
 <script type="text/javascript">
 
 $(document).on('click', 'button', handleClick);
-
+var invoices = JSON.parse($('#invoiceTable').text());
+var overrides = JSON.parse($('#overridesTable').text());
+var expenses = JSON.parse($('#expensesTable').text());
 
 var paystubContainer = document.getElementById('invoiceTable');
 var paystubHot = new Handsontable(paystubContainer, {
@@ -39,11 +41,12 @@ var paystubHot = new Handsontable(paystubContainer, {
 	allowInsertColumn: false,
 	allowRemoveColumn: false,
 	minSpareRows: 1,
-	data: [],
+	data: invoices,
 	dataSchema: {
 		id: null, 
 		saleDate: null,
-		custName: { first: null, last: null },
+		first_name: null,
+        last_name: null,
 		address: null,
 		city: null,
 		status: null,
@@ -51,9 +54,9 @@ var paystubHot = new Handsontable(paystubContainer, {
 	},
 	columns: [
 		{data: 'id'},
-		{data: 'saleDate', type: 'date', dateFormat: 'MM/DD/YYYY'},
-		{data: 'custName.first'},
-		{data: 'custName.last'},
+		{data: 'sale_date', type: 'date', dateFormat: 'MM-DD-YYYY', correctFormat: true},
+		{data: 'first_name'},
+		{data: 'last_name'},
 		{data: 'address'},
 		{data: 'city'},
 		{data: 'status'},
@@ -72,7 +75,7 @@ var overHot = new Handsontable(overrideContainer, {
     allowInsertColumn: false,
     allowRemoveColumn: false,
     minSpareRows: 1,
-    data: [],
+    data: overrides,
     dataSchema: {
         id: null,
         name: null,
@@ -100,7 +103,7 @@ var expHot = new Handsontable(expenseContainer, {
     allowInsertColumn: false,
     allowRemoveColumn: false,
     minSpareRows: 1,
-    data: [],
+    data: expenses,
     dataSchema: {
         type: null,
         amount: null,
@@ -111,6 +114,16 @@ var expHot = new Handsontable(expenseContainer, {
         {data: 'amount'},
         {data: 'notes'}
     ]
+});
+
+$('#deleteInvoiceBtn').confirmation({
+    rootSelector: '#deleteInvoiceBtn',
+    singleton: true,
+    popout: true,
+    onConfirm: function(){
+        deleteInvoiceFromEditView();
+    },
+    onCancel: $(this).confirmation('hide')
 });
 
 </script>

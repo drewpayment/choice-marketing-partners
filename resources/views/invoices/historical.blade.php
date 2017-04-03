@@ -16,7 +16,7 @@
 				<meta name="csrf-token" content="{{ csrf_token() }}" />
 			</li>
 			<li>
-				<select class="selectpicker" id="employee" data-mobile="true">
+				<select class="selectpicker" id="employee" data-live-search="true">
 					<option value="-1" selected>Select Agent</option>
 					@if(!$emps->contains('id', $self->id))
 						<option value="{{$self->id}}">{{$self->name}}</option>

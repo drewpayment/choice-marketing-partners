@@ -338,6 +338,7 @@ class InvoiceController extends Controller
 						->select('issue_date')
 						->where('agentid', '=', $id)
 						->groupBy('issue_date')
+						->orderBy('issue_date', 'desc')
 						->get();
 
 		foreach($list as $dt)
@@ -444,46 +445,139 @@ class InvoiceController extends Controller
 	{
 		$emps = DB::table('employees')
 		          ->where('is_active', 1)
-		          ->orderBy('name', 'desc')
+		          ->orderBy('name', 'asc')
 		          ->get();
 
 		$campaigns = DB::table('vendors')->orderBy('name', 'desc')->get();
 
 		$dates = DB::table('invoices')
 					->where('vendor', 7)
-					->orderBy('issue_date', 'desc')
-					->get()
-					->groupBy('issue_date');
+					->get(['issue_date'])
+					->unique()
+					->values()
+					->all();
+		$dates = collect($dates)->sortByDesc('issue_date');
 
-		$invoiceList = DB::table('invoices')
-					->get()
-					->groupBy(['agentid', 'vendor', 'issue_date']);
-
+		$invoiceList = DB::table('invoices')->get();
+		$invoiceList = $invoiceList->groupBy('issue_date')->all();
 
 		$invoices = [];
+		$count = 0;
 		foreach($invoiceList as $i){
-			$name = $emps->first(function($v, $k) use ($i){
-				return $v->id == $i->agentid;
+			$row = $i->first(function($v, $k){
+				return $v->agentid;
 			});
-			$campaign = $campaigns->first(function($v, $k) use ($i){
-				return $v->id == $i->vendor;
+			$vendorId = $i->first(function($v, $k){
+				return $v->vendor;
+			})->vendor;
+			$id = $i->first(function($v, $k){
+				return $v->agentid;
+			})->agentid;
+
+			$name = $emps->first(function($v, $k) use ($row){
+				return $v->id == $row->agentid;
 			});
+			$name = (!is_null($name)) ? $name->name : null;
+
+			$c = $campaigns->first(function($v, $k) use ($vendorId){
+				return $v->id == $vendorId;
+			});
+			$campaign = $c->name;
 
 			$invoices[] = [
 				'name' => $name,
 				'campaign' => $campaign,
-				'issueDate' => $i->issue_date
+				'issueDate' => $row->issue_date
 			];
 		}
+
 
 		return view('invoices.search', ['employees' => $emps, 'campaigns' => $campaigns, 'dates' => $dates, 'invoices' => $invoices]);
 	}
 
 
-	public function editInvoice($campaign, $name, $issueDate)
+	public function getSearchResults(Request $request)
 	{
+		$inputParams = $request->inputParams;
+		$vID = $inputParams['vendorid'];
+		$aID = $inputParams['agentid'];
+		$date = $inputParams['issue_date'];
 		// find invoice by id and then return filled out handsontable
+		$data = DB::table('invoices')->where([
+			['vendor', '=', $vID],
+			['issue_date', '=', $date],
+			['agentid', '=', $aID]
+		])->get();
 
-		return view('invoices.edit');
+		$employees = DB::table('employees')->get();
+		$vendors = DB::table('vendors')->get();
+		$result = [];
+
+		foreach($data as $d)
+		{
+			$empName = $employees->first(function($v, $k) use ($d){
+				return $v->id == $d->agentid;
+			})->name;
+			$vendor = $vendors->first(function($v, $k) use($d){
+				return $v->id == $d->vendor;
+			})->name;
+			$result[] = [
+				'agentID' => $d->agentid,
+				'agentName' => $empName,
+				'issueDate' => $d->issue_date,
+				'vendorID' => $d->vendor,
+				'vendorName' => $vendor
+			];
+		}
+		$result = collect($result)->unique('issue_date')->all();
+
+		return view('invoices._searchresults', ['invoices' => $result]);
+	}
+
+
+	public function editInvoice($agentID, $vendorID, $issueDate)
+	{
+		$invoices = DB::table('invoices')
+						->where([
+							['agentid', '=', $agentID],
+							['vendor', '=', $vendorID],
+							['issue_date', '=', $issueDate]
+						])->get();
+
+		$overrides = DB::table('overrides')
+						->where([
+							['agentid', '=', $agentID],
+							['issue_date', '=', $issueDate]
+						])->get();
+
+		$expenses = DB::table('expenses')
+						->where([
+							['agentid', '=', $agentID],
+							['issue_date', '=', $issueDate]
+						])->get();
+
+		$employee = DB::table('employees')
+						->where('id', '=', $invoices->first()->agentid)->first();
+
+		$campaign = DB::table('vendors')
+						->where('id', '=', $invoices->first()->vendor)->first();
+
+		$invoices = $invoices->transform(function($v, $k){
+			$date = new DateTime($v->sale_date);
+			$v->sale_date = $date->format('m-d-Y');
+			return $v;
+		});
+
+		$invoiceDate = new DateTime($invoices->first()->issue_date);
+		$weekEnding = new DateTime($invoices->first()->wkending);
+		$issueDate = $invoiceDate->format('F jS, Y');
+		$weekEnding = $weekEnding->format('m-d-Y');
+		$invoiceDate = $invoiceDate->format('Y-m-d');
+
+		$invoices = json_encode($invoices);
+		$overrides = json_encode($overrides);
+		$expenses = json_encode($expenses);
+
+		return view('invoices.edit', ['invoices' => $invoices, 'employee' => $employee, 'campaign' => $campaign, 'overrides' => $overrides, 'expenses' => $expenses, 'issueDate' => $issueDate, 'weekEnding' => $weekEnding, 'invoiceDate' => $invoiceDate]);
 	}
 }

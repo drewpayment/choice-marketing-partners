@@ -128,6 +128,7 @@
 <script src="{{url('js/jquery-3.1.1.min.js')}}"></script>
 {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>--}}
 <script src="{{url('js/bootstrap.min.js')}}"></script>
+<script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
 <script src="{{url('js/config.js')}}"></script>
 <script src="{{ url('js/all.js') }}"></script>
 <!-- Latest compiled and minified Bootstrap select/option js -->

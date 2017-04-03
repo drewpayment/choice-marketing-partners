@@ -376,6 +376,12 @@ var setNewExpense = function (e){
     }
 };
 
+var inputParams = {
+    vendorid: null,
+    issue_date: null,
+    agentid: null
+};
+
 
 
 // Functions
@@ -483,6 +489,51 @@ function setCommonUserInfo(){
     currentIssueDt = new Date($('#issueDate').val());
     currentWkEnding = $('#wkendDate').val();
     vendor = $('#vendor').val();
+}
+
+
+function returnExistingPaystubsByAgentId(){
+    var agentId = $('')
+}
+
+
+function returnInvoiceSearchResults(token){
+    inputParams.vendorid = $('#campaignName').val();
+    inputParams.issue_date = $('#invoiceDates').val();
+    inputParams.agentid = $('#employeeName').val();
+
+    $.ajax({
+        url: '/getSearchResults',
+        type: 'POST',
+        data: {
+            _token: token,
+            inputParams: inputParams
+        },
+        dataType: 'html'
+    }).done(function(data){
+        $('#TABLE_ROWDATA').html(data);
+    });
+}
+
+
+function deleteInvoiceFromEditView(){
+    var id = $('#employee').data('id');
+    var tempDate = moment($('#issueDate').data('date'), 'YYYY-MM-DD');
+    var date = tempDate.format('MM-DD-YYYY');
+
+    $.ajax({
+        url: '/paystub/delete/submit',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            _token: $('#global-token').attr('content'),
+            id: id,
+            date: date
+        }
+    }).done(function(){
+        setMessageContainer("Your invoice has been deleted.");
+        resetHOT();
+    });
 }
 
 

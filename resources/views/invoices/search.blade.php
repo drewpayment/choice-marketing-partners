@@ -46,23 +46,22 @@
                     <td class="w-100">Campaign</td>
                 </tr>
                 </thead>
-                <tbody id="TABLE_ROWDATA">
-                    @foreach($invoices as $inv)
-                        <tr>
-                            <td>
-                                <a href="{{url('/invoices/edit-invoice/'.$inv->campaign.'/'.$inv->name.'/'.$inv->issueDate)}}">{{$inv->name}}</a>
-                            </td>
-                            <td>
-                                <a href="{{url('/invoices/edit-invoice/'.$inv->campaign.'/'.$inv->name.'/'.$inv->issueDate)}}">{{$inv->issueDate}}</a>
-                            </td>
-                            <td>
-                                <a href="{{url('/invoices/edit-invoice/'.$inv->campaign.'/'.$inv->name.'/'.$inv->issueDate)}}">{{$inv->campaign}}</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
+                <tbody id="TABLE_ROWDATA"></tbody>
             </table>
         </div>
     </div>
+
+@endsection
+
+@section('scripts')
+
+    <script type="text/javascript">
+        var token = '{{csrf_token()}}';
+
+        // listen to event on employee name change
+        $('#employeeName').on('change', function(){ returnInvoiceSearchResults(token); });
+        $('#invoiceDates').on('change', function(){ returnInvoiceSearchResults(token); });
+        $('#campaignName').on('change', function(){ returnInvoiceSearchResults(token); });
+    </script>
 
 @endsection
