@@ -36,9 +36,13 @@ class InvoiceController extends Controller
 		$wedArr = [];
 		$dt = new DateTime();
 
-		for($i = 1; $i < 4; $i++)
+		for($i = 0; $i < 3; $i++)
 		{
-			if($i == 1)
+			if($i == 0){
+				$dt = strtotime('wednesday');
+				$wedArr[] = date('m-d-Y', $dt);
+			}
+			else if($i == 1)
 			{
 				$dt = strtotime('next wednesday');
 				$wedArr[] = date('m-d-Y', $dt);
