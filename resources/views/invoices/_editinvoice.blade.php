@@ -12,7 +12,7 @@
                 <h4 id="issueDate" data-date="{{$invoiceDate}}">Issued: {{$issueDate}}</h4>
             </li>
             <li>
-                <h4 id="wkendDate" data-weekending="{{$weekEnding}}">Weekending: {{date_format(date_create($weekEnding), "F jS, Y")}}</h4>
+                <h4 id="wkendDate" data-weekending="{{$weekEnding}}">Weekending: {{date_format(new DateTime($weekEnding), "F jS, Y")}}</h4>
             </li>
         </ul>
     </div>
