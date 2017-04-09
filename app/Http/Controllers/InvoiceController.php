@@ -583,9 +583,12 @@ class InvoiceController extends Controller
 		          ->get();
 
 		$campaigns = DB::table('vendors')->orderBy('name', 'desc')->get();
+		$vID = $campaigns->first(function($val, $key){
+			return $val->name == 'Palmco';
+		})->id;
 
 		$dates = DB::table('invoices')
-					->where('vendor', 7)
+					->where('vendor', $vID)
 					->get(['issue_date'])
 					->unique()
 					->values()

@@ -21,7 +21,7 @@
                     <label for="invoiceDates">Date</label>
                     <select class="selectpicker" id="invoiceDates">
                         @foreach($dates as $d)
-                            <option value="{{$d->issue_date}}" {{($d->issue_date == date(strtotime('next wednesday'))) ? "selected" : ""}}>{{$d->issue_date}}</option>
+                            <option value="{{$d->issue_date}}" {{($d->issue_date == date(strtotime('next wednesday'))) ? "selected" : ""}}>{{date_format(date_create($d->issue_date), 'm-d-Y')}}</option>
                         @endforeach
                     </select>
                 </li>
