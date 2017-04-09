@@ -388,7 +388,7 @@ var inputParams = {
 
 
 function handleSubmitNewInvoice(data){
-    setCommonUserInfo();
+    setCommonUserInfo(false);
 
     var invoiceData = paystubHot.getData();
     var overrideData = overHot.getData();
@@ -483,17 +483,19 @@ function resetHOT(){
 // }
 
 
-function setCommonUserInfo(){
+function setCommonUserInfo(edit){
+    if(edit){
+        currentAgentId = $('#employee').data('id');
+        currentIssueDt = moment($('#issueDate').data('date'), 'YYYY-MM-DD').format('MM-DD-YYYY');
+        currentWkEnding = $('#wkendDate').data('weekending');
+        vendor = $('#vendor').data('vendor');
+    } else {
+        currentAgentId = $('#employee').val();
+        currentIssueDt = new Date($('#issueDate').val());
+        currentWkEnding = $('#wkendDate').val();
+        vendor = $('#vendor').val();
+    }
     token = $('meta[name="csrf-token"]').attr('content');
-    currentAgentId = $('#employee').val();
-    currentIssueDt = new Date($('#issueDate').val());
-    currentWkEnding = $('#wkendDate').val();
-    vendor = $('#vendor').val();
-}
-
-
-function returnExistingPaystubsByAgentId(){
-    var agentId = $('')
 }
 
 
@@ -516,23 +518,66 @@ function returnInvoiceSearchResults(token){
 }
 
 
-function deleteInvoiceFromEditView(){
-    var id = $('#employee').data('id');
-    var tempDate = moment($('#issueDate').data('date'), 'YYYY-MM-DD');
-    var date = tempDate.format('MM-DD-YYYY');
+function updateExistingInvoice(newToken){
+    setCommonUserInfo(true);
+
+    var invoiceData = paystubHot.getData();
+    var overrideData = overHot.getData();
+    var expenseData = expHot.getData();
+
+    var invoices = cleanArray(invoiceData, paystubHot);
+    var overrides = cleanArray(overrideData, overHot);
+    var expenses = cleanArray(expenseData, expHot);
+
+    $.each(invoices, function(i, obj){
+        var issue = new Date(currentIssueDt);
+        if(obj !== null && obj !== undefined){
+            var s = setNewSale(obj);
+            s.id = i;
+            s.agentid = currentAgentId;
+            s.issueDate = issue.toLocaleDateString();
+            s.wkending = currentWkEnding;
+            s.vendor = vendor;
+            salesList.push(s);
+        }
+    });
+
+    $.each(overrides, function(i, obj){
+        var issue = new Date(currentIssueDt);
+        if(obj !== null && obj !== undefined) {
+            var o = setNewOverride(obj);
+            o.id = i;
+            o.agentid = currentAgentId;
+            o.issueDate = issue.toLocaleDateString();
+            o.wkending = currentWkEnding;
+            overList.push(o);
+        }
+    });
+
+    $.each(expenses, function(i, obj){
+        if(obj !== null && obj !== undefined){
+            var e = setNewExpense(obj);
+            expensesList.push(e);
+        }
+    });
 
     $.ajax({
-        url: '/paystub/delete/submit',
+        url: '/invoices/editExistingInvoice',
         type: 'POST',
-        dataType: 'json',
         data: {
-            _token: $('#global-token').attr('content'),
-            id: id,
-            date: date
+            _token: newToken,
+            sales: salesList,
+            overrides: overList,
+            expenses: expensesList
+        },
+        dataType:'JSON'
+    }).done(function(data){
+
+        if(data) {
+            setMessageContainer("Success!");
+            resetHOT();
         }
-    }).done(function(){
-        setMessageContainer("Your invoice has been deleted.");
-        resetHOT();
+
     });
 }
 

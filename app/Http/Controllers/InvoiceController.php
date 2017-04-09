@@ -59,6 +59,136 @@ class InvoiceController extends Controller
 	}
 
 
+	public function HandleEditExistingInvoice(Request $request)
+	{
+		$salesInput = $request->sales;
+		$overrideInput = $request->overrides;
+		$expenseInput = $request->expenses;
+		$salesArr = [];
+		$overArr = [];
+		$expArr = [];
+		$exception = null;
+		$payrollData = [];
+
+		if(!is_null($salesInput))
+		{
+			foreach($salesInput as $invoice)
+			{
+				if(!empty($invoice['issueDate']))
+				{
+					$salesArr[] = [
+						'id' => $invoice['id'],
+						'vendor' => $invoice['vendor'],
+						'sale_date' => new DateTime($invoice['date']),
+						'first_name' => $invoice['name']['first'],
+						'last_name' => $invoice['name']['last'],
+						'address' => $invoice['address'],
+						'city' => $invoice['city'],
+						'status' => $invoice['status'],
+						'amount' => $invoice['amount'],
+						'agentid' => $invoice['agentid'],
+						'issue_date' => new DateTime($invoice['issueDate']),
+						'wkending' => new DateTime($invoice['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
+			}
+		}
+
+
+		if(!is_null($overrideInput))
+		{
+			foreach($overrideInput as $ovr)
+			{
+				if(!empty($ovr['issueDate']))
+				{
+					$overArr[] = [
+						'id' => $ovr['id'],
+						'name' => $ovr['name'],
+						'sales' => $ovr['numOfSales'],
+						'commission' => $ovr['commission'],
+						'total' => $ovr['total'],
+						'agentid' => $ovr['agentid'],
+						'issue_date' => new DateTime($ovr['issueDate']),
+						'wkending' => new DateTime($ovr['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
+			}
+		}
+
+
+		if(!is_null($expenseInput))
+		{
+			foreach($expenseInput as $exp)
+			{
+				if(!empty($exp['issueDate']))
+				{
+					$expArr[] = [
+						'type' => $exp['type'],
+						'amount' => $exp['amount'],
+						'notes' => $exp['notes'],
+						'agentid' => $exp['agentid'],
+						'issue_date' => new DateTime($exp['issueDate']),
+						'wkending' => new DateTime($exp['wkending']),
+						'created_at' => new DateTime(),
+						'updated_at' => new DateTime()
+					];
+				}
+			}
+		}
+
+		try{
+			if(!is_null($salesArr))
+			{
+				DB::table('invoices')->where([
+					['agentid', '=', $salesArr[0]['agentid']],
+					['vendor', '=', $salesArr[0]['vendor']],
+					['issue_date', '=', $salesArr[0]['issue_date']]
+				])->delete();
+				DB::table('invoices')->insert($salesArr);
+			}
+			if(!is_null($overArr))
+			{
+				DB::table('overrides')->where([
+					['agentid', '=', $overArr[0]['agentid']],
+					['issue_date', '=', $overArr[0]['issue_date']]
+				])->delete();
+				DB::table('overrides')->insert($overArr);
+			}
+			if(!is_null($expArr))
+			{
+				DB::table('expenses')->where([
+					['agentid', '=', $expArr[0]['agentid']],
+					['issue_date', '=', $expArr[0]['issue_date']]
+				])->delete();
+				DB::table('expenses')->insert($expArr);
+			}
+		}
+		catch(Exception $e)
+		{
+			return response()->json('false');
+		}
+
+		$agentid = ($salesInput[0]['agentid'] > 0) ? $salesInput[0]['agentid'] : $overrideInput[0]['agentid'];
+		$result = is_null($exception) ? true : $exception;
+
+		$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
+
+		try{
+			DB::table('payroll')->insert($payrollData);
+		}
+		catch(Exception $e)
+		{
+			return response()->json('false');
+		}
+
+		return response()->json($result);
+	}
+
+
 	/**
 	 * Upload invoice from handsontable
 	 */

@@ -21,8 +21,8 @@
                 </div>
 
                 <div id="admin_body" class="list-group collapse in">
-                    <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}">Payroll Info</a>
-                    <a class="list-group-item" href="{{url('/invoices/edit-invoice')}}">Edit Invoice</a>
+                    <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue dates."><i class="ion ion-clipboard"></i> Payroll Tracking</a>
+                    <a class="list-group-item" href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice."><i class="ion ion-edit"></i> Edit Invoice</a>
                     <a class="list-group-item" href="#">&nbsp;</a>
                 </div>
 

@@ -116,14 +116,8 @@ var expHot = new Handsontable(expenseContainer, {
     ]
 });
 
-$('#deleteInvoiceBtn').confirmation({
-    rootSelector: '#deleteInvoiceBtn',
-    singleton: true,
-    popout: true,
-    onConfirm: function(){
-        deleteInvoiceFromEditView();
-    },
-    onCancel: $(this).confirmation('hide')
+$('#saveInvoiceChanges').on('click', function(){
+    updateExistingInvoice('{{csrf_token()}}');
 });
 
 </script>

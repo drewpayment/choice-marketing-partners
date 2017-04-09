@@ -6,16 +6,13 @@
     <div class="col-xs-12">
         <ul class="list-inline list-unstyled">
             <li>
-                <h3 id="employee" data-id="{{$employee->id}}">{{$employee->name}} <small>{{$campaign->name}}</small></h3>
+                <h3 id="employee" data-id="{{$employee->id}}">{{$employee->name}} <small id="vendor" data-vendor="{{$campaign->id}}">{{$campaign->name}}</small></h3>
             </li>
             <li>
                 <h4 id="issueDate" data-date="{{$invoiceDate}}">Issued: {{$issueDate}}</h4>
             </li>
             <li>
-                <h4 id="weekEnding" data-weekending="{{$weekEnding}}">Weekending: {{$weekEnding}}</h4>
-            </li>
-            <li>
-                <button class="btn btn-danger" id="deleteInvoiceBtn" data-toggle="confirmation">Delete</button>
+                <h4 id="wkendDate" data-weekending="{{$weekEnding}}">Weekending: {{date_format(date_create($weekEnding), "F jS, Y")}}</h4>
             </li>
         </ul>
     </div>
