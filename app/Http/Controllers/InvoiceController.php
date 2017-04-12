@@ -111,7 +111,7 @@ class InvoiceController extends Controller
 						'total' => $ovr['total'],
 						'agentid' => $ovr['agentid'],
 						'issue_date' => new DateTime($ovr['issueDate']),
-						'wkending' => new DateTime($ovr['wkending']),
+						'wkending' => DateTime::createFromFormat('m-d-Y', $ovr['wkending']),
 						'created_at' => new DateTime(),
 						'updated_at' => new DateTime()
 					];
