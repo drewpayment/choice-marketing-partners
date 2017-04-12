@@ -132,7 +132,7 @@ class InvoiceController extends Controller
 						'notes' => $exp['notes'],
 						'agentid' => $exp['agentid'],
 						'issue_date' => new DateTime($exp['issueDate']),
-						'wkending' => new DateTime($exp['wkending']),
+						'wkending' => DateTime::createFromFormat('m-d-Y', $exp['wkending']),
 						'created_at' => new DateTime(),
 						'updated_at' => new DateTime()
 					];
