@@ -79,7 +79,7 @@ class InvoiceController extends Controller
 					$salesArr[] = [
 						'id' => $invoice['id'],
 						'vendor' => $invoice['vendor'],
-						'sale_date' => new DateTime($invoice['date']),
+						'sale_date' => DateTime::createFromFormat('m-d-Y', $invoice['date']),
 						'first_name' => $invoice['name']['first'],
 						'last_name' => $invoice['name']['last'],
 						'address' => $invoice['address'],
