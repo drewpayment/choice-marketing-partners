@@ -3594,6 +3594,12 @@ body, html, main {
 
 /*# sourceMappingURL=app.css.map */
 
+body {
+  padding-top: 50px;
+}
+nav a:hover {
+  color: #777;
+}
 .pt-5 {
   padding-top: 5px !important;
 }

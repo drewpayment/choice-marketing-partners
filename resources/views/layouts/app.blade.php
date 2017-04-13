@@ -51,7 +51,7 @@
 </head>
 <body id="app-layout">
 <div class="wrapper">
-<nav class="navbar navbar-default bg-blue">
+<nav class="navbar navbar-default navbar-fixed-top bg-blue">
     <div class="container">
         <div class="navbar-header"><a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}"><i class="glyphicon glyphicon-globe"></i>Choice Marketing Partners</a>
             <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
@@ -71,16 +71,44 @@
                     </li>
                 @endif
                 @if(Auth::user())
-                    <li role="presentation" id="dashboardLink">
-                        <a href="#">
-                            <i class="icon ion-grid navbar-title-text"></i>
-                        </a>
-                    </li>
-                    <li role="presentation" id="logoutLink">
-                        <a href="{{url('/logout')}}">
-                            <i class="fa icon ion-log-out navbar-title-text"></i>
-                        </a>
-                    </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon ion-grid navbar-title-text"></i></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{action('DocumentController@index')}}"><i class="ion ion-android-attach"></i> Documents</a>
+                        </li>
+                        <li>
+                            <a href="/historical-invoice-data"><i class="ion ion-social-usd"></i> Paystubs</a>
+                        </li>
+                        @if(session('authenticatedUserIsAdmin'))
+                            <li>
+                                <a href="{{action('EmpManagerController@index')}}"><i class="ion ion-android-contacts"></i> Employees</a>
+                            </li>
+                            <li>
+                                <a href="/upload-invoice"><i class="ion ion-android-document"></i> Invoices</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="{{url('/dashboards/dashboard')}}"><i class="ion ion-planet"></i> Admin</a>
+                            </li>
+                            <li>
+                                <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
+                                    <i class="ion ion-clipboard"></i> Payroll Tracking
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">
+                                    <i class="ion ion-edit"></i> Edit Invoice
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+                <li id="logoutLink">
+                    <a href="{{url('/logout')}}">
+                        <i class="fa icon ion-log-out navbar-title-text"></i>
+                    </a>
+                </li>
                 @endif
             </ul>
         </div>
@@ -110,6 +138,15 @@
 </div>
 </div>
 
+<nav class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <h5 class="text-center"><a href="https://twitter.com/VerostackDev" class="text-muted" target="_blank">Inspired and designed by: Verostack Development</a></h5>
+            </div>
+        </div>
+    </div>
+</nav>
 {{-- <footer class="site-footer">
     <div class="container">
         <div class="row">

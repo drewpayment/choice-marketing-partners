@@ -908,8 +908,6 @@ $(document).ready(function(){
     for(var i = 0; i < 4; i++){
         visibility[i] = (allSeries[i].every(isUndefined)) ? false : true;
     }
-    console.dir([series1, series2, series3, series4]);
-    console.dir(visibility);
 
     var options = {
         chart: {
@@ -933,10 +931,15 @@ $(document).ready(function(){
             stacking: 'normal'
         },
         tooltip: {
+            borderColor: '#000000',
             formatter: function () {
-                return '<b>' + this.series.name + '</b><br/>' +
-                    this.x + ': ' + this.y;
-            }
+                var s = '<b>'+this.x+'</b>';
+                $.each(this.points, function(i, point){
+                    s += '<br/><h3 class="bold" style="color:'+point.series.color+';">'+point.series.name+': '+point.y+'</h3>';
+                });
+                return s;
+            },
+            shared: true
         },
         series: [{
             name: "Accepted",
