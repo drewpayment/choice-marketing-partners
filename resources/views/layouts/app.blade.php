@@ -138,7 +138,7 @@
 </div>
 </div>
 
-<nav class="navbar navbar-default navbar-fixed-bottom">
+<nav class="navbar navbar-default navbar-fixed-bottom hidden">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-10 col-md-offset-1">
