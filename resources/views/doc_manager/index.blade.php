@@ -18,9 +18,8 @@
                         <a href="#" class="btn btn-primary">Add a document <i class="fa fa-plus-circle"></i></a>
                     </div>
                     @endif
-                    <div class="documentUploader">
-                        <form action="{{ url('/UploadDocument') }}" class="form-inline" method="POST" id="document_form" enctype="multipart/form-data">
-                            <input type="hidden" id="_token" name="_token" value="{{csrf_token()}}" />
+                    <div id="documentPanel" class="panel panel-primary"  style="display: none;">
+                        <div class="panel-heading">
                             <h3>Document Uploader
                                 <small>
                                     <a href="#" class="unstyled" id="hideDocUploader">
@@ -28,41 +27,49 @@
                                     </a>
                                 </small>
                             </h3>
-                            <div class="form-group">
-                                <label class="sr-only" for="name">Name </label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="name" name="name" placeholder="Document Name">
-                                    <div class="input-group-addon"><i class="fa fa-pencil"></i></div>
-                                </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="documentUploader">
+                                <form action="{{ url('/UploadDocument') }}" class="form-inline" method="POST" id="document_form" enctype="multipart/form-data">
+                                    <input type="hidden" id="_token" name="_token" value="{{csrf_token()}}" />
+
+                                    <div class="form-group">
+                                        <label class="sr-only" for="name">Name </label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="name" name="name" placeholder="Document Name">
+                                            <div class="input-group-addon"><i class="fa fa-pencil"></i></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group pl-30">
+                                        <label class="sr-only" for="file_upload">Filename </label>
+                                        <input type="file" class="form-control" id="file_upload" name="file_upload">
+                                    </div>
+
+                                    <br><br>
+
+                                    <div class="form-group">
+                                        <label class="sr-only" for="description">Description </label>
+                                        <div class="input-group">
+                                            <textarea class="form-control" id="description" name="description" placeholder="Document description. Please be as descriptive as possible so others will know what your document is used for." rows="2" cols="90" maxlength="160"></textarea>
+                                            <div class="input-group-addon"><i class="fa fa-pencil"></i></div>
+                                        </div>
+                                    </div>
+
+                                    <br><br>
+
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary">Upload Document</button>
+                                    </div>
+                                </form>
                             </div>
-
-                            <div class="form-group pl-30">
-                                <label class="sr-only" for="file_upload">Filename </label>
-                                <input type="file" class="form-control" id="file_upload" name="file_upload">
-                            </div>
-
-                            <br><br>
-
-                            <div class="form-group">
-                                <label class="sr-only" for="description">Description </label>
-                                <div class="input-group">
-                                    <textarea class="form-control" id="description" name="description" placeholder="Document description. Please be as descriptive as possible so others will know what your document is used for." rows="2" cols="90" maxlength="160"></textarea>
-                                    <div class="input-group-addon"><i class="fa fa-pencil"></i></div>
-                                </div>
-                            </div>
-
-                            <br><br>
-
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Upload Document</button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
             <span class="pt-30">&nbsp;</span>
             <div class="list-group" id="document_list">
-                @include('doc_manager._doc', array('documents' => $documents, 'admin' => $admin))
+                @include('doc_manager._doc', array('documents' => $documents, 'admin' => $admin, 'tags' => $tags))
             </div>
         </div>
     </div>
@@ -71,6 +78,7 @@
 
 @section('scripts')
 
+    <script src="{{url('/js/selectize.js')}}"></script>
     <script>
 
         $('.addDocumentLink').on('click', function(e){
@@ -79,7 +87,7 @@
                 duration: 'fast',
                 easing: 'linear',
                 done: function(){
-                    $('.documentUploader').slideDown('fast');
+                    $('#documentPanel').slideDown('fast');
                 }
             });
         });
@@ -93,6 +101,33 @@
                     $('.addDocumentLink').slideDown('fast');
                 }
             })
+        });
+
+        $('.list-group-item').hover(function(){
+            $(this).find('.ion-trash-a').parent().fadeIn();
+        }, function(){
+            $(this).find('.ion-trash-a').parent().fadeOut();
+        });
+
+        $(document).ready(function() {
+            var elem = $('#input-tags');
+            var tags = [
+                @foreach($tags as $tag)
+                {tag: "{{$tag}}"},
+                @endforeach
+            ];
+
+            elem.val(tags);
+            elem.selectize({
+                delimiter: ',',
+                persist: false,
+                maxItems: 2,
+                valueField: 'tag',
+                labelField: 'tag',
+                searchField: 'tag',
+                options: tags,
+                create: false
+            });
         });
 
         {{--var file = null;--}}

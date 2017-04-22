@@ -2,29 +2,35 @@
 @foreach($documents as $document)
 
     <div class="list-group-item">
-    	<ul class="list-inline">
+    	<ul class="list-inline list-unstyled">
     		<li>
-		        <h4 class="list-group-item-heading">{{$document->name}} <small>Document Owner: {{$document->uploaded_by}}</small></h4>
-			</li>
-			<li>
-				<p class="list-group-item-text">{{$document->description}}</p>
+		        <ul class="list-unstyled">
+					<li>
+						<h3 class="list-group-item-heading">
+							<a href="{{ url('download', ['filename' => $document->file_path]) }}" target="_blank">{{$document->name}}</a>
+							<small>
+								@if($admin == 1)
+									<a href="{{ url('delete', ['id' => $document->id, 'filename' => $document->file_path]) }}" class="unstyled" style="display: none;">
+										<i class="icon ion-trash-a" style="font-size: 24px;"></i>
+									</a>
+								@endif
+							</small>
+						</h3>
+					</li>
+					<li>
+						<h5 class="list-group-item-text">{{$document->description}}</h5>
+					</li>
+					<li class="w-600 pt-10">
+						<input id="input-tags" type="text" placeholder="Categories" />
+					</li>
+				</ul>
 			</li>
 			<li class="pull-right">
-				<ul class="list-inline">
+				<ul class="list-unstyled">
 					<li>
-						<a href="{{ url('download', ['filename' => $document->file_path]) }}" class="unstyled">
-							<i class="icon ion-ios-cloud-download-outline" style="font-size: 24px;"></i>
-						</a>
+						<h5 class="text-muted">Owner: {{$document->uploaded_by}}</h5>
 					</li>
-					@if($admin == 1)
-					<li>
-						<a href="{{ url('delete', ['id' => $document->id, 'filename' => $document->file_path]) }}" class="unstyled">
-				    		<i class="icon ion-trash-a" style="font-size: 24px;"></i>
-				    	</a>
-					</li>
-					@endif
 				</ul>
-
 		    </li>
     	</ul>
     </div>

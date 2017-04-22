@@ -2,10 +2,12 @@
 
 namespace App;
 
+use Conner\Tagging\Taggable;
 use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
+	use Taggable;
 
 	/**
 	 * Database table used by the model.

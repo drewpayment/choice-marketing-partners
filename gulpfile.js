@@ -15,7 +15,11 @@ elixir(function(mix) {
     mix.sass('app.scss');
     mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
 
-    mix.less('custom.less');
+    mix.less([
+        'custom.less',
+        'selectize.less',
+        'selectize.default.less'
+    ]);
 
     mix.styles([
         '../../../public/css/user.css',

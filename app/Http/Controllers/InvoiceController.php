@@ -70,8 +70,13 @@ class InvoiceController extends Controller
 		$exception = null;
 		$payrollData = [];
 
+		$payDetail = [];
+
 		if(!is_null($salesInput))
 		{
+			$payDetail['id'] = $salesInput[0]['agentid'];
+			$payDetail['payDate'] = $salesInput[0]['issueDate'];
+
 			foreach($salesInput as $invoice)
 			{
 				if(!empty($invoice['issueDate']))
@@ -99,6 +104,9 @@ class InvoiceController extends Controller
 
 		if(!is_null($overrideInput))
 		{
+			$payDetail['id'] = (!is_null($payDetail['id'])) ? $overrideInput[0]['agentid'] : $payDetail['id'];
+			$payDetail['payDate'] = (!is_null($overrideInput[0]['issueDate'])) ? $overrideInput[0]['issueDate'] : $payDetail['payDate'];
+
 			foreach($overrideInput as $ovr)
 			{
 				if(!empty($ovr['issueDate']))
@@ -122,6 +130,9 @@ class InvoiceController extends Controller
 
 		if(!is_null($expenseInput))
 		{
+			$payDetail['id'] = (!is_null($payDetail['id'])) ? $expenseInput[0]['agentid'] : $payDetail['id'];
+			$payDetail['payDate'] = (!is_null($expenseInput[0]['issueDate'])) ? $expenseInput[0]['issueDate'] : $payDetail['payDate'];
+
 			foreach($expenseInput as $exp)
 			{
 				if(!empty($exp['issueDate']))
@@ -175,15 +186,30 @@ class InvoiceController extends Controller
 		$agentid = ($salesInput[0]['agentid'] > 0) ? $salesInput[0]['agentid'] : $overrideInput[0]['agentid'];
 		$result = is_null($exception) ? true : $exception;
 
-		$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
+		$payDetail['payDate'] = date_create_from_format('m/d/Y', $payDetail['payDate']);
+		$agentPayDetail = DB::table('payroll')->where([
+			['agent_id', '=', $payDetail['id']],
+			['pay_date', '=', date_format($payDetail['payDate'], 'Y-m-d')]
+		])->get();
 
-		try{
-			DB::table('payroll')->insert($payrollData);
+		if($agentPayDetail->count() > 0){
+
+			DB::table('payroll')->where([
+				['agent_id', '=', $payDetail['id']],
+				['pay_date', '=', date_format($payDetail['payDate'], 'Y-m-d')]
+			])->delete();
+
+			$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
+
+			try{
+				DB::table('payroll')->insert($payrollData);
+			}
+			catch(Exception $e)
+			{
+				return response()->json('false');
+			}
 		}
-		catch(Exception $e)
-		{
-			return response()->json('false');
-		}
+
 
 		return response()->json($result);
 	}
@@ -524,8 +550,8 @@ class InvoiceController extends Controller
 		$vendorName = DB::table('vendors')
 						->select('name')
 						->where('id', '=', $vendorId)
-						->get();
-		$vendorName = $vendorName->first()->name;
+						->first();
+		$vendorName = $vendorName->name;
 
 		foreach($stubs as $s)
 		{
@@ -543,8 +569,7 @@ class InvoiceController extends Controller
 							->where([
 								['agentid', '=', $agentId],
 								['issue_date', '=', $date]
-							])
-							->get();
+							])->get();
 
 		$expenses = DB::table('expenses')
 							->select('*')

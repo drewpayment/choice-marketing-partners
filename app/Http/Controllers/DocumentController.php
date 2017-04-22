@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Document;
 use App\Http\Requests\UploadFileRequest;
+use App\Link;
 use App\Services\UploadsManager;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -38,7 +39,9 @@ class DocumentController extends Controller
 		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
 		$admin = $thisUser->is_admin;
 
-		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin]);
+		$tags = ['onboarding', 'hr', 'sales', 'general'];
+
+		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags]);
 	}
 
 
