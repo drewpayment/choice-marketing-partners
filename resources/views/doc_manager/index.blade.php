@@ -110,94 +110,75 @@
         });
 
         $(document).ready(function() {
-            var elem = $('#input-tags');
+            var elemList = $('[data-tagtype="admin"]');
+            var noEditElemList = $('[data-tagtype="user"]');
             var tags = [
                 @foreach($tags as $tag)
                 {tag: "{{$tag}}"},
                 @endforeach
             ];
 
-            elem.val(tags);
-            elem.selectize({
-                delimiter: ',',
-                persist: false,
-                maxItems: 2,
-                valueField: 'tag',
-                labelField: 'tag',
-                searchField: 'tag',
-                options: tags,
-                create: false
-            });
+            if(elemList.length > 0){
+                $.each(elemList, function(idx, obj){
+                    var elem = $(obj);
+                    elem.val(tags);
+                    elem.selectize({
+                        delimiter: ',',
+                        persist: false,
+                        maxItems: 2,
+                        valueField: 'tag',
+                        labelField: 'tag',
+                        searchField: 'tag',
+                        options: tags,
+                        create: function(value){
+                            return {
+                                tag: value
+                            }
+                        },
+                        onOptionAdd: function(value, data){
+                            handleCreateDocumentTag(data);
+                        }
+                    });
+                });
+            } else if(noEditElemList.length > 0){
+                $.each(noEditElemList, function(idx, obj){
+                    var noEditElem = $(obj);
+                    noEditElem.val(tags);
+                    noEditElem.selectize({
+                        delimiter: ',',
+                        persist: false,
+                        maxItems: 2,
+                        valueField: 'tag',
+                        labelField: 'tag',
+                        searchField: 'tag',
+                        options: tags,
+                        create: false
+                    });
+                });
+            }
+
         });
 
-        {{--var file = null;--}}
-        {{--$('#file_upload').on('change', prepUpload);--}}
+        var handleCreateDocumentTag = function(tagData){
+            var token = $('#global-token').attr('content');
+            var options = {
+                url: '/createTag',
+                type: 'POST',
+                data: {
+                    tagOrder: tagData.$order,
+                    tagName: tagData.tag,
+                    _token: token
+                },
+                dataType: 'JSON',
+                afterData: afterData
+            };
 
-        {{--function prepUpload(){--}}
-            {{--file = $('#file_upload')[0];--}}
-        {{--}--}}
+            fireAjaxRequest(options);
 
-        {{--$('form').submit(function(e){--}}
-            {{--e.stopPropagation();--}}
-            {{--e.preventDefault();--}}
-            {{--$('.form-group').removeClass('has-error');--}}
-            {{--$('.help-block').remove();--}}
-
-            {{--var token = $('input[name="_token"]').val();--}}
-
-            {{--var formData = [];--}}
-            {{--formData["file"] = file;--}}
-            {{--formData["name"] = $('#name').val();--}}
-            {{--formData["description"] = $('#description').val();--}}
-
-            {{--var name = $('#name').val();--}}
-            {{--var description = $('#description').val();--}}
-
-{{--//            var sendData = new FormData();--}}
-{{--//            sendData.append('name', name);--}}
-{{--//            sendData.append('file', file);--}}
-{{--//            sendData.append('description', description);--}}
-
-
-            {{--$.ajax({--}}
-                {{--type: 'POST',--}}
-                {{--url: '{{action('DocumentController@uploadFile')}}',--}}
-                {{--headers: {--}}
-                    {{--"X-CSRF-TOKEN": token--}}
-                {{--},--}}
-                {{--data: JSON.stringify(formData),--}}
-                {{--dataType: 'json',--}}
-                {{--processData: false,--}}
-                {{--contentType: false,--}}
-                {{--beforeSend: function(jqXHR, settings){--}}
-                    {{--console.log(formData);--}}
-                {{--}--}}
-            {{--}).done(function(data){--}}
-                {{--$('form').append('<div class="alert alert-success">'+data.message+'</div>');--}}
-
-                {{--$.get('{{action('DocumentController@getDocumentsViaAjax')}}', function(){--}}
-                    {{--var doc_list = $('#document_list');--}}
-                    {{--doc_list.empty();--}}
-                    {{--doc_list.append(data['html']);--}}
-                {{--});--}}
-            {{--}).fail(function(response){--}}
-                {{--console.log(response.statusText);--}}
-
-                {{--if(response.name){--}}
-                    {{--docName.parent().addClass('has-error');--}}
-                    {{--docName.parent().append('<div class="help-block">'+response.name+'</div>');--}}
-                {{--}--}}
-                {{--if(response.file){--}}
-                    {{--fileName.parent().addClass('has-error');--}}
-                    {{--fileName.parent().append('<div class="help-block">'+response.file+'</div>');--}}
-                {{--}--}}
-                {{--if(response.description){--}}
-                    {{--docDesc.parent().addClass('has-error');--}}
-                    {{--docDesc.parent().append('<div class="help-block">'+response.description+'</div>');--}}
-                {{--}--}}
-            {{--});--}}
-
-        {{--});--}}
+            function afterData(data){
+                console.dir(data);
+            }
+        };
     </script>
 
 @stop

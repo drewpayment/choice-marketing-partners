@@ -196,6 +196,13 @@
                 $(this).find('a').addClass('navbar-title-text');
             }
         });
+
+        // globally set laravel token for all ajax calls
+//        $.ajaxSetup({
+//            headers: {
+//                'X-CSRF-TOKEN': $('#global-token').attr('content')
+//            }
+//        })
     });
 
     (function(){

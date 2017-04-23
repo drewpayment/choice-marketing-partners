@@ -128,4 +128,10 @@ class DocumentController extends Controller
 		}
 	}
 
+
+	public function HandleNewTagCRUD(Request $request)
+	{
+		$data = $request->all();
+		return json_encode($data);
+	}
 }

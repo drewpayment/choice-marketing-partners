@@ -174,8 +174,12 @@ var handleBlur = function(evt){
 };
 
 
-// wire up events
-
+/**
+ * standard method to wire events, bool wireEvent and optionally specify container
+ *
+ * @param wireEvent
+ * @param container
+ */
 function wireButtonEvents(wireEvent, container){
 
     // parent containers available on page load
@@ -199,7 +203,12 @@ function wireButtonEvents(wireEvent, container){
 }
 
 
-
+/**
+ * set toast notification to show user successful message
+ *
+ * @param message
+ * @param callback
+ */
 var setMessageContainer = function(message, callback){
     var myToast = new ax5.ui.toast({
         width: 200,
@@ -216,10 +225,17 @@ var setMessageContainer = function(message, callback){
 };
 
 
+/**
+ * JavaScript helper functions in website
+ */
 
 
-// JS helper functions
-
+/**
+ * remove empty entries in object array
+ * @param data
+ * @param hot
+ * @returns {{}}
+ */
 function cleanArray(data, hot) {
     var temp = {};
 
@@ -228,9 +244,15 @@ function cleanArray(data, hot) {
     });
 
     return temp;
-
 }
 
+
+/**
+ * create universal modal within website, pass fillable html to modal and callback function for further action after modal is shown
+ *
+ * @param html
+ * @param callback
+ */
 function remoteModal(html, callback){
     var modal = $('#modal_layout');
 
@@ -239,4 +261,40 @@ function remoteModal(html, callback){
             callback();
         }).modal('show');
     });
+}
+
+
+/**
+ * handle ajax requests that return an error
+ * @param data
+ */
+function ajaxErrorHandler(data){
+    console.log(data.statusText);
+    console.dir(data);
+}
+
+
+function ajaxSuccessHandler(data){
+    console.log("The success handler was not defined.");
+    console.dir(data);
+}
+
+
+/**
+ * standard ajax request handler
+ * @param options
+ */
+function fireAjaxRequest(options){
+    if(options === undefined) ajaxErrorHandler("Options object is undefined.");
+
+    var settings = {
+        url: (options.url === undefined) ? null : options.url,
+        method: (options.type === undefined) ? 'GET' : options.type,
+        params: (options.data.length === 0) ? {} : options.data,
+        dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
+        success: (options.afterData === undefined) ? ajaxSuccessHandler : options.afterData,
+        error: ajaxErrorHandler
+    };
+    console.dir(settings);
+    $.ajax(settings);
 }

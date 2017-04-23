@@ -21,7 +21,11 @@
 						<h5 class="list-group-item-text">{{$document->description}}</h5>
 					</li>
 					<li class="w-600 pt-10">
-						<input id="input-tags" type="text" placeholder="Categories" />
+						@if($admin == 1)
+						<input id="input-tags" data-tagtype="admin" type="text" placeholder="Click to add Tags" />
+						@else
+						<input id="tags-noedit" data-tagtype="user" type="text" readonly/>
+						@endif
 					</li>
 				</ul>
 			</li>
