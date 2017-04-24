@@ -1024,7 +1024,7 @@ body {
   padding: 6px 8px 3px;
 }
 .selectize-input.full {
-  background-color: #fff;
+  background-color: #444444;
 }
 .selectize-input.disabled,
 .selectize-input.disabled * {
@@ -1329,7 +1329,7 @@ body {
   padding: 5px 8px 2px;
 }
 .selectize-input.full {
-  background-color: #fff;
+  background-color: #444444;
 }
 .selectize-input.disabled,
 .selectize-input.disabled * {

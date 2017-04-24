@@ -4,7 +4,7 @@
     <div class="list-group-item">
     	<ul class="list-inline list-unstyled">
     		<li>
-		        <ul class="list-unstyled">
+		        <ul class="list-unstyled" data-parent="true" data-parentid="{{$document->id}}">
 					<li>
 						<h3 class="list-group-item-heading">
 							<a href="{{ url('download', ['filename' => $document->file_path]) }}" target="_blank">{{$document->name}}</a>
@@ -22,7 +22,7 @@
 					</li>
 					<li class="w-600 pt-10">
 						@if($admin == 1)
-						<input id="input-tags" data-tagtype="admin" type="text" placeholder="Click to add Tags" />
+						<input id="input-tags" data-tagtype="admin" type="text" data-docid="{{$document->id}}" placeholder="Click to add Tags" />
 						@else
 						<input id="tags-noedit" data-tagtype="user" type="text" readonly/>
 						@endif

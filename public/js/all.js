@@ -896,13 +896,13 @@ function fireAjaxRequest(options){
 
     var settings = {
         url: (options.url === undefined) ? null : options.url,
-        method: (options.type === undefined) ? 'GET' : options.type,
-        params: (options.data.length === 0) ? {} : options.data,
+        type: (options.type === undefined) ? 'GET' : options.type,
+        data: (options.data.length === 0) ? {} : options.data,
         dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
         success: (options.afterData === undefined) ? ajaxSuccessHandler : options.afterData,
         error: ajaxErrorHandler
     };
-    console.dir(settings);
+
     $.ajax(settings);
 }
 /**

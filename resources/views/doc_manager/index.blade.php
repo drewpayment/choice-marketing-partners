@@ -112,38 +112,74 @@
         $(document).ready(function() {
             var elemList = $('[data-tagtype="admin"]');
             var noEditElemList = $('[data-tagtype="user"]');
-            var tags = [
-                @foreach($tags as $tag)
-                {tag: "{{$tag}}"},
-                @endforeach
-            ];
+            var tags = [];
+            var tagOptions = [];
+            var selectedTags = JSON.parse('{!! json_encode($selected) !!}');
+
+            @foreach($tags as $t)
+            tags.push({
+                slug: '{{$t->slug}}',
+                name: '{{$t->name}}',
+                count: '{{$t->count}}'
+            });
+            @endforeach
+
+            for(var i = 0; i < tags.length; i++){
+                var d = tags[i];
+                tagOptions.push({tag: d.name});
+            }
 
             if(elemList.length > 0){
                 $.each(elemList, function(idx, obj){
                     var elem = $(obj);
-                    elem.val(tags);
+                    var id = elem.closest('[data-parent="true"]').data('parentid');
+                    var elemTags = [];
+
+                    for(var i = 0; i < selectedTags.length; i++){
+                        var item = selectedTags[i];
+                        if(item.docId == id){
+                            elemTags = item.tags;
+                        }
+                    }
+
                     elem.selectize({
                         delimiter: ',',
-                        persist: false,
+                        persist: true,
                         maxItems: 2,
                         valueField: 'tag',
                         labelField: 'tag',
                         searchField: 'tag',
-                        options: tags,
+                        options: tagOptions,
+                        items: elemTags,
                         create: function(value){
                             return {
                                 tag: value
                             }
                         },
                         onOptionAdd: function(value, data){
-                            handleCreateDocumentTag(data);
+                            handleCreateDocumentTag(data, elem);
+                        },
+                        onItemAdd: function(value, data){
+                            handleTagDocument(value, data);
+                        },
+                        onItemRemove: function(value){
+                            handleUntagDocument(value, elem);
                         }
                     });
                 });
             } else if(noEditElemList.length > 0){
                 $.each(noEditElemList, function(idx, obj){
                     var noEditElem = $(obj);
-                    noEditElem.val(tags);
+                    var id = noEditElem.closest('[data-parent="true"]').data('parentid');
+                    var elemTags = [];
+
+                    for(var i = 0; i < selectedTags.length; i++){
+                        var item = selectedTags[i];
+                        if(item.docId == id){
+                            elemTags = item.tags;
+                        }
+                    }
+
                     noEditElem.selectize({
                         delimiter: ',',
                         persist: false,
@@ -152,22 +188,28 @@
                         labelField: 'tag',
                         searchField: 'tag',
                         options: tags,
-                        create: false
+                        items: elemTags,
+                        create: false,
+                        onItemAdd: function(value, data){
+                            handleTagDocument(value, data);
+                        },
+                        onItemRemove: function(value){
+                            handleUntagDocument(value, noEditElem);
+                        }
                     });
                 });
             }
-
         });
 
-        var handleCreateDocumentTag = function(tagData){
-            var token = $('#global-token').attr('content');
+        var handleTagDocument = function(tag, elem){
+            var docId = $(elem).closest('[data-parent="true"]').data('parentid');
+
             var options = {
-                url: '/createTag',
+                url: '/tagDocument',
                 type: 'POST',
                 data: {
-                    tagOrder: tagData.$order,
-                    tagName: tagData.tag,
-                    _token: token
+                    docId: docId,
+                    tag: tag
                 },
                 dataType: 'JSON',
                 afterData: afterData
@@ -177,6 +219,52 @@
 
             function afterData(data){
                 console.dir(data);
+                setMessageContainer(data);
+            }
+        };
+
+        var handleUntagDocument = function(tag, elem){
+            var docId = $(elem).closest('[data-parent="true"]').data('parentid');
+
+            var options = {
+                url: '/untagDocument',
+                type: 'POST',
+                data: {
+                    docId: docId,
+                    tag: tag
+                },
+                dataType: 'JSON',
+                afterData: afterData
+            };
+
+            fireAjaxRequest(options);
+
+            function afterData(data){
+                console.dir(data);
+                setMessageContainer(data);
+            }
+        };
+
+        var handleCreateDocumentTag = function(tagData, elem){
+            var docId = $(elem).closest('[data-parent="true"]').data('parentid');
+
+            var options = {
+                url: '/createTag',
+                type: 'POST',
+                data: {
+                    docId: docId,
+                    tagOrder: tagData.$order,
+                    tagName: tagData.tag
+                },
+                dataType: 'JSON',
+                afterData: afterData
+            };
+
+            fireAjaxRequest(options);
+
+            function afterData(data){
+                console.dir(data);
+                setMessageContainer(data);
             }
         };
     </script>

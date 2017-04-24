@@ -6,6 +6,7 @@ use App\Document;
 use App\Http\Requests\UploadFileRequest;
 use App\Link;
 use App\Services\UploadsManager;
+use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -39,9 +40,19 @@ class DocumentController extends Controller
 		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
 		$admin = $thisUser->is_admin;
 
-		$tags = ['onboarding', 'hr', 'sales', 'general'];
+		$tags = Document::existingTags();
+		$selectedTags = [];
+		foreach($documents as $doc)
+		{
+			$docTags = $doc->tagNames();
+			$docInfo = [
+				'docId' => $doc->id,
+				'tags' => $docTags
+			];
+			array_push($selectedTags, $docInfo);
+		}
 
-		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags]);
+		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags, 'selected' => $selectedTags]);
 	}
 
 
@@ -129,9 +140,54 @@ class DocumentController extends Controller
 	}
 
 
-	public function HandleNewTagCRUD(Request $request)
+	public function HandleNewTagCRUD()
 	{
-		$data = $request->all();
-		return json_encode($data);
+		$data = Input::all();
+
+		$doc = Document::find($data['docId']);
+
+		try
+		{
+			$doc->tag($data['tagName']);
+			return response()->json("Success!");
+		}
+		catch (MysqliException $e)
+		{
+			return response()->json("Failed! Error msg: " . $e);
+		}
+	}
+
+
+	public function HandleTagDocument()
+	{
+		$data = Input::all();
+		$doc = Document::find($data['docId']);
+
+		try
+		{
+			$doc->retag($data['tag']);
+			return response()->json("Success!");
+		}
+		catch (MysqliException $e)
+		{
+			return response()->json("Failed! Error msg: " . $e);
+		}
+	}
+
+
+	public function HandleUntagDocument()
+	{
+		$data = Input::all();
+		$doc = Document::find($data['docId']);
+		
+		try
+		{
+			$doc->untag($data['tag']);
+			return response()->json("Success!");
+		}
+		catch (MysqliException $e)
+		{
+			return response()->json("Failed! Error msg: " . $e);
+		}
 	}
 }

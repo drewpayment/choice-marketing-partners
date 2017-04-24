@@ -85,6 +85,8 @@ Route::get('delete/{id}/{filename}', 'DocumentController@delete');
 Route::post('/uploadFile', 'DocumentController@uploadFile');
 Route::post('/upload', 'DocumentController@upload');
 Route::post('/createTag', 'DocumentController@HandleNewTagCRUD');
+Route::post('/tagDocument', 'DocumentController@HandleTagDocument');
+Route::post('/untagDocument', 'DocumentController@HandleUntagDocument');
 
 /*
  * employee management routes
