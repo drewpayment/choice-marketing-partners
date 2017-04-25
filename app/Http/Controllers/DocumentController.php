@@ -179,7 +179,7 @@ class DocumentController extends Controller
 	{
 		$data = Input::all();
 		$doc = Document::find($data['docId']);
-		
+
 		try
 		{
 			$doc->untag($data['tag']);

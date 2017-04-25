@@ -143,6 +143,7 @@
                     }
 
                     elem.selectize({
+                        plugins: ['remove_button'],
                         delimiter: ',',
                         persist: true,
                         maxItems: 2,
@@ -181,6 +182,7 @@
                     }
 
                     noEditElem.selectize({
+                        plugins: ['remove_button'],
                         delimiter: ',',
                         persist: false,
                         maxItems: 2,
