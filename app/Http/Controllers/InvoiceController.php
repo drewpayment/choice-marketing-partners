@@ -537,9 +537,11 @@ class InvoiceController extends Controller
 		$invoiceDt = strtotime($date);
 		$invoiceDt = date('m-d-Y', $invoiceDt);
 		$stubs = DB::table('invoices')
-						->where('issue_date', '=', $date)
-						->where('agentid', '=', $agentId)
-						->get();
+						->where([
+							['issue_date', '=', $date],
+							['agentid', '=', $agentId],
+							['vendor', '=', 1]
+						])->get();
 
 		$emp = DB::table('employees')
 						->select('*')
