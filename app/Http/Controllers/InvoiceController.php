@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use App\Invoice;
+use App\Serivces\DbHelper;
 use DateTime;
 use DateInterval;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
@@ -14,7 +15,9 @@ use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
-    /**
+    protected $dbHelper;
+
+	/**
 	 * Middleware
 	 */
 	public function __construct()
@@ -151,40 +154,19 @@ class InvoiceController extends Controller
 			}
 		}
 
-		try{
-			if(!is_null($salesArr))
-			{
-				DB::table('invoices')->where([
-					['agentid', '=', $salesArr[0]['agentid']],
-					['vendor', '=', $salesArr[0]['vendor']],
-					['issue_date', '=', $salesArr[0]['issue_date']]
-				])->delete();
-				DB::table('invoices')->insert($salesArr);
-			}
-			if(!is_null($overArr))
-			{
-				DB::table('overrides')->where([
-					['agentid', '=', $overArr[0]['agentid']],
-					['issue_date', '=', $overArr[0]['issue_date']]
-				])->delete();
-				DB::table('overrides')->insert($overArr);
-			}
-			if(!is_null($expArr))
-			{
-				DB::table('expenses')->where([
-					['agentid', '=', $expArr[0]['agentid']],
-					['issue_date', '=', $expArr[0]['issue_date']]
-				])->delete();
-				DB::table('expenses')->insert($expArr);
-			}
-		}
-		catch(Exception $e)
-		{
-			return response()->json('false');
+		$dbHelper = new DbHelper;
+		DB::beginTransaction();
+		try {
+			$dbHelper->DeleteAndInsertSalesArray($salesArr);
+			$dbHelper->DeleteAndInsertOverridesArray($overArr);
+			$dbHelper->DeleteAndInsertExpensesArray($expArr);
+			DB::commit();
+		} catch(\Exception $e) {
+			DB::rollback();
+			return response()->json(false);
 		}
 
 		$agentid = ($salesInput[0]['agentid'] > 0) ? $salesInput[0]['agentid'] : $overrideInput[0]['agentid'];
-		$result = is_null($exception) ? true : $exception;
 
 		$payDetail['payDate'] = date_create_from_format('m/d/Y', $payDetail['payDate']);
 		$agentPayDetail = DB::table('payroll')->where([
@@ -193,25 +175,25 @@ class InvoiceController extends Controller
 		])->get();
 
 		if($agentPayDetail->count() > 0){
-
-			DB::table('payroll')->where([
-				['agent_id', '=', $payDetail['id']],
-				['pay_date', '=', date_format($payDetail['payDate'], 'Y-m-d')]
-			])->delete();
-
 			$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
 
+			DB::beginTransaction();
 			try{
+				DB::table('payroll')->where([
+					['agent_id', '=', $payDetail['id']],
+					['pay_date', '=', date_format($payDetail['payDate'], 'Y-m-d')]
+				])->delete();
 				DB::table('payroll')->insert($payrollData);
+				DB::commit();
 			}
-			catch(Exception $e)
+			catch(\Exception $e)
 			{
-				return response()->json('false');
+				DB::rollback();
+				return response()->json(false);
 			}
 		}
 
-
-		return response()->json($result);
+		return response()->json(true);
 	}
 
 
