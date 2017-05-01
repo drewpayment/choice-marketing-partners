@@ -1,6 +1,6 @@
 <?php
 
-return [
+$results = [
 
     /*
     |--------------------------------------------------------------------------
@@ -178,7 +178,7 @@ return [
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
 	    Conner\Tagging\Providers\TaggingServiceProvider::class,
-	    Barryvdh\Debugbar\ServiceProvider::class,
+
 
     ],
 
@@ -229,8 +229,14 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
-        'Debugbar' => Barryvdh\Debugbar\Facade::class,
 
     ],
 
 ];
+
+if(env('APP_ENV') === 'local'){
+	$results['providers'][] = 'Barryvdh\Debugbar\ServiceProvider';
+	$results['aliases']['Debugbar'] = 'Barryvdh\Debugbar\Facade';
+}
+
+return $results;
