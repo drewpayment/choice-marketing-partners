@@ -190,4 +190,10 @@ class DocumentController extends Controller
 			return response()->json("Failed! Error msg: " . $e);
 		}
 	}
+
+
+	public function ReturnNewDocumentModal()
+	{
+		return view('doc_manager._newDocumentModal');
+	}
 }

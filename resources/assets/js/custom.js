@@ -257,7 +257,10 @@ function remoteModal(html, callback){
     var modal = $('#modal_layout');
 
     $.when(modal.html(html)).then(function(){
-        modal.on('shown.bs.modal', function(){
+        modal.on('hidden.bs.modal', function(){
+            modal.removeData();
+            modal.html('');
+        }).on('shown.bs.modal', function(){
             callback();
         }).modal('show');
     });
@@ -290,7 +293,7 @@ function fireAjaxRequest(options){
     var settings = {
         url: (options.url === undefined) ? null : options.url,
         type: (options.type === undefined) ? 'GET' : options.type,
-        data: (options.data.length === 0) ? {} : options.data,
+        data: (options.data === undefined) ? {} : options.data,
         dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
         success: (options.afterData === undefined) ? ajaxSuccessHandler : options.afterData,
         error: ajaxErrorHandler
