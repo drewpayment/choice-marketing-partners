@@ -109,19 +109,16 @@ class DocumentController extends Controller
 	}
 
 
-	public function sendMessage($formData)
+	public function sendMessage(Request $request)
 	{
-		$sent = Mail::send('emails.modal', ['sender' => $formData], function ($m) use ($formData){
+		$formData = $request->input('form');
+		Mail::send('emails.modal', ['sender' => $formData], function ($m) use ($formData){
 			$m->from('messages@choice-marketing-partners.com', 'Choice Messages');
 
 			$m->to('drew@verostack.io', 'Drew Payment')->subject('Message from Choice!');
 		});
 
-		if($sent > 0){
-			return view('emails.confirmation')->with()->compact('sent');
-		} else {
-			return redirect()->back()->withErrors($sent);
-		}
+		return response()->json(true);
 	}
 
 

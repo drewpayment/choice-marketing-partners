@@ -225,38 +225,6 @@
         }
     })();
 
-    function getModalForm(){
-        var form = $('form');
-
-        return {
-            'name': form.find('sender-name').val(),
-            'phone': form.find('sender-phone').val(),
-            'email': form.find('sender-email').val(),
-            'message': form.find('sender-msg').val()
-        }
-    }
-
-    $(document).on('click', '#sender-btn', function(e){
-        e.stopPropagation();
-        var modalForm = getModalForm();
-
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('#_token').val()
-            },
-            url: '/sendmodal',
-            data: {
-                'form': modalForm
-            },
-            method: 'POST',
-            dataType: 'html'
-        }).done(function(data){
-            if(data){
-                $('#modal-body').html(data.data);
-            }
-        });
-    });
-
     $('#dashboardLink').webuiPopover({
         type: 'async',
         url: '{{url('/dashboard')}}',

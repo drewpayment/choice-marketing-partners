@@ -8,7 +8,7 @@
                 <h4 class="modal-title" id="modal-title"></h4>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="EMAIL_FORM">
                     <div class="form-group">
                         <label for="sender-name" class="control-label">Name: </label>
                         <input type="text" class="form-control" id="sender-name">

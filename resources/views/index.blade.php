@@ -54,13 +54,52 @@
 @section('scripts')
 
     <script type="text/javascript">
-        $('#modal').on('show.bs.modal', function(e){
+        $('#modal').on('hidden.bs.modal', function(){
+            $('#modal').removeData();
+        }).on('show.bs.modal', function(e){
             var button = $(e.relatedTarget);
             var modalType = button.data('modaltype');
 
             var modal = $(this);
             modal.find('.modal-title').text('Become our ' + modalType + ' today!');
-        })
+        });
+
+        $(document).on('click', '#sender-btn', function(e){
+            e.stopPropagation();
+            var modalForm = getModalForm();
+
+            var options = {
+                url: '/sendmodal',
+                type: 'POST',
+                dataType: 'JSON',
+                data: {
+                    form: modalForm
+                },
+                afterData: afterData
+            };
+
+            fireAjaxRequest(options);
+
+            function afterData(data){
+                if(data){
+                    setMessageContainer('Sent!');
+                    $('#modal').modal('hide');
+                } else {
+                    setMessageContainer('Something went wrong!');
+                    $('#modal').modal('hide');
+                }
+            }
+        });
+
+        var getModalForm = function(){
+            var form = $('#EMAIL_FORM');
+            return {
+                name: form.find('#sender-name').val(),
+                phone: form.find('#sender-phone').val(),
+                email: form.find('#sender-email').val(),
+                message: form.find('#sender-msg').val()
+            }
+        }
     </script>
 
 @endsection

@@ -4,10 +4,10 @@
 
 <hr>
 
-<p>Name: $sender->name</p>
+<p>Name: {{$sender['name']}}</p>
 
-<p>Phone Number: $sender->phoneNo</p>
+<p>Phone Number: {{$sender['phone']}}</p>
 
-<p>Email: $sender->email</p>
+<p>Email: {{$sender['email']}}</p>
 
-<p>Message: $sender->message</p>
+<p>Message: {{$sender['message']}}</p>
