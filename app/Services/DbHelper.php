@@ -27,12 +27,6 @@ class DbHelper
 				['issue_date', '=', $salesArray[0]['issue_date']]
 			])->delete();
 			DB::table('invoices')->insert($salesArray);
-
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 
@@ -54,12 +48,6 @@ class DbHelper
 				['issue_date', '=', $overridesArray[0]['issue_date']]
 			])->delete();
 			DB::table('overrides')->insert($overridesArray);
-
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 
@@ -67,21 +55,13 @@ class DbHelper
 
 	public function DeleteAndInsertExpensesArray($expensesArray)
 	{
-		return $expensesArray;
 		if(count($expensesArray) > 0)
 		{
 			DB::table('expenses')->where([
 				['agentid', '=', $expensesArray[0]['agentid']],
 				['issue_date', '=', $expensesArray[0]['issue_date']]
 			])->delete();
-			Debugbar::addMessage('Delete', 'Worked!');
 			DB::table('expenses')->insert($expensesArray);
-
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 

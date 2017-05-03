@@ -71,8 +71,6 @@ class InvoiceController extends Controller
 		$overArr = [];
 		$expArr = [];
 		$exception = null;
-		$payrollData = [];
-
 		$payDetail = [];
 
 		if(!is_null($salesInput))
@@ -175,13 +173,13 @@ class InvoiceController extends Controller
 		])->get();
 
 		if($agentPayDetail->count() > 0){
-			$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
+			$payrollData = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
 
 			DB::beginTransaction();
 			try{
 				DB::table('payroll')->where([
-					['agent_id', '=', $payDetail['id']],
-					['pay_date', '=', date_format($payDetail['payDate'], 'Y-m-d')]
+					['agent_id', '=', $payrollData['agent_id']],
+					['pay_date', '=', date_format($payrollData['pay_date'], 'Y-m-d')]
 				])->delete();
 				DB::table('payroll')->insert($payrollData);
 				DB::commit();
@@ -306,11 +304,14 @@ class InvoiceController extends Controller
 
 		$payrollData[] = $this->setPayrollData($salesArr, $overArr, $expArr, $agentid);
 
+		DB::beginTransaction();
 		try{
 			DB::table('payroll')->insert($payrollData);
+			DB::commit();
 		}
 		catch(Exception $e)
 		{
+			DB::rollback();
 			return response()->json('false');
 		}
 
@@ -326,14 +327,10 @@ class InvoiceController extends Controller
 		if(count($invoices) > 0){
 			$insert['agent_name'] = DB::table('employees')->where('id', '=', $invoices[0]['agentid'])->first()->name;
 			$insert['pay_date'] = $invoices[0]['issue_date'];
-		}
-
-		if(count($overrides) > 0){
+		} else if(count($overrides) > 0){
 			$insert['agent_name'] = DB::table('employees')->where('id', '=', $overrides[0]['agentid'])->first()->name;
 			$insert['pay_date'] = $overrides[0]['issue_date'];
-		}
-
-		if(count($expenses) > 0){
+		} else if(count($expenses) > 0){
 			$insert['agent_name'] = DB::table('employees')->where('id', '=', $expenses[0]['agentid'])->first()->name;
 			$insert['pay_date'] = $expenses[0]['issue_date'];
 		}
