@@ -52,7 +52,25 @@ class DocumentController extends Controller
 			array_push($selectedTags, $docInfo);
 		}
 
-		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags, 'selected' => $selectedTags]);
+		$uTags = array();
+		foreach($tags as $t){
+			$exists = $this->selectTagBySlug($uTags, $t->slug);
+			if(is_null($exists)){
+				array_push($uTags, $t);
+			}
+		}
+
+		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags, 'selected' => $selectedTags, 'uTags' => $uTags]);
+	}
+
+
+	function selectTagBySlug($array, $slug)
+	{
+		foreach($array as $row)
+		{
+			if($row['slug'] == $slug) return $row;
+		}
+		return null;
 	}
 
 
