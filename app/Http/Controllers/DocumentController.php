@@ -196,4 +196,37 @@ class DocumentController extends Controller
 	{
 		return view('doc_manager._newDocumentModal');
 	}
+
+
+	public function ReturnDocumentsByTag(Request $request)
+	{
+		$searchTags = $request->input('tags');
+		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$admin = $thisUser->is_admin;
+		$tags = Document::existingTags();
+
+		if(count($searchTags) > 0){
+			$documents = Document::withAnyTag($searchTags)->get();
+		} else {
+			$documents = Document::all();
+		}
+
+		$selectedTags = [];
+		foreach($documents as $doc)
+		{
+			$docTags = $doc->tagNames();
+			$docInfo = [
+				'docId' => $doc->id,
+				'tags' => $docTags
+			];
+			array_push($selectedTags, $docInfo);
+		}
+
+		$view = View::make('doc_manager._doc', ['documents' => $documents, 'admin' => $admin]);
+		$pv = $view->render();
+
+		$result = [$pv, $tags, $selectedTags];
+
+		return response()->json($result);
+	}
 }

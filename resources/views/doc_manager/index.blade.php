@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="col-md-9 col-md-offset-1">
             <div class="row">
                 <div class="col-xs-12">
                     <h2>Document Manager <small>View/Download Attachments on-the-go</small></h2>
@@ -13,16 +13,32 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
-                    @if($admin == 1)
-                    <div class="addDocumentLink pt-30">
-                        <a href="#" class="btn btn-primary" id="addDocumentLink">Add a document <i class="fa fa-plus-circle"></i></a>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">Filter documents by tag</div>
+                        <div class="panel-body p-0 h-40">
+                            <ol class="breadcrumb">
+                                @foreach($tags as $t)
+                                    <li>
+                                        <button type="button" class="btn btn-primary btn-xs" data-button="tag" data-slug="{{$t->slug}}" data-count="{{$t->count}}" data-name="{{$t->name}}">{{$t->name}}</button>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        </div>
                     </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    @if($admin == 1)
+                        <div class="addDocumentLink">
+                            <a href="#" class="btn btn-primary btn-block" id="addDocumentLink">Add a document <i class="fa fa-plus-circle"></i></a>
+                        </div>
                     @endif
                 </div>
             </div>
             <span class="pt-30">&nbsp;</span>
             <div class="list-group" id="document_list">
-                @include('doc_manager._doc', array('documents' => $documents, 'admin' => $admin, 'tags' => $tags))
+                @include('doc_manager._doc', ['documents' => $documents, 'admin' => $admin, 'tags' => $tags])
             </div>
         </div>
     </div>
@@ -33,6 +49,34 @@
 
     <script src="{{url('/js/selectize.js')}}"></script>
     <script>
+
+        $('[data-button="tag"]').on('click', function(){
+            $(this).toggleClass('active');
+            var activeTags = $(this).closest('.breadcrumb').find('.active');
+            var tags = [];
+
+            $.each(activeTags, function(idx, obj){
+                 tags.push($(obj).data('slug'));
+            });
+
+            var options = {
+                url: '/returnDocumentsByTag',
+                type: 'POST',
+                data: {
+                    tags: tags
+                },
+                dataType: 'JSON',
+                afterData: afterData
+            };
+
+            fireAjaxRequest(options);
+
+            function afterData(data){
+                $('#document_list').html(data[0]);
+
+                wireUpTagging(data[1], data[2]);
+            }
+        });
 
         $('#addDocumentLink').on('click', function(){
             var options = {
@@ -62,23 +106,13 @@
             $(this).find('.ion-trash-a').parent().fadeOut();
         });
 
-        $(document).ready(function() {
+        var wireUpTagging = function(tags, selectedTags){
             var elemList = $('[data-tagtype="admin"]');
             var noEditElemList = $('[data-tagtype="user"]');
-            var tags = [];
-            var tagOptions = [];
-            var selectedTags = JSON.parse('{!! json_encode($selected) !!}');
-
-            @foreach($tags as $t)
-            tags.push({
-                slug: '{{$t->slug}}',
-                name: '{{$t->name}}',
-                count: '{{$t->count}}'
-            });
-            @endforeach
+            var tagOptions = [], d;
 
             for(var i = 0; i < tags.length; i++){
-                var d = tags[i];
+                d = tags[i];
                 tagOptions.push({tag: d.name});
             }
 
@@ -154,6 +188,21 @@
                     });
                 });
             }
+        };
+
+        $(document).ready(function() {
+            var tags = [];
+            var selectedTags = JSON.parse('{!! json_encode($selected) !!}');
+
+            @foreach($tags as $t)
+            tags.push({
+                slug: '{{$t->slug}}',
+                name: '{{$t->name}}',
+                count: '{{$t->count}}'
+            });
+            @endforeach
+
+            wireUpTagging(tags, selectedTags);
         });
 
         var handleTagDocument = function(tag, elem){

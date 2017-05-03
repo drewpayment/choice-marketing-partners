@@ -4701,9 +4701,9 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
   display: inline-block;
 }
 .breadcrumb > li + li:before {
-  padding: 0 5px;
+  padding: 0 1px;
   color: #ccc;
-  content: "/\00a0";
+  content: "\00a0";
 }
 .breadcrumb > .active {
   color: #777;

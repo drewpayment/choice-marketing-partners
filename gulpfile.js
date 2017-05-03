@@ -22,10 +22,11 @@ elixir(function(mix) {
     ]);
 
     mix.styles([
-        '../../../public/css/user.css',
-        '../../../public/css/normalize.css',
-        '../../../public/css/app.css',
-        '../../../public/css/custom.css'
+        '../../../public/css/*/*.css'
+        // '../../../public/css/user.css',
+        // '../../../public/css/normalize.css',
+        // '../../../public/css/app.css',
+        // '../../../public/css/custom.css'
     ]);
 
     mix.scripts([

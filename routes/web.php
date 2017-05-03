@@ -88,6 +88,7 @@ Route::post('/createTag', 'DocumentController@HandleNewTagCRUD');
 Route::post('/tagDocument', 'DocumentController@HandleTagDocument');
 Route::post('/untagDocument', 'DocumentController@HandleUntagDocument');
 Route::get('/showNewDocumentModal', 'DocumentController@ReturnNewDocumentModal');
+Route::post('/returnDocumentsByTag', 'DocumentController@ReturnDocumentsByTag');
 
 /*
  * employee management routes

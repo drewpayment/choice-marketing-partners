@@ -14,8 +14,8 @@
 
     <!-- Styles -->
     {{--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">--}}
-    <link rel="stylesheet" href="{{url('css/bootstrap/bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{url('css/bootstrap/bootstrap-theme.min.css')}}">
+    {{--<link rel="stylesheet" href="{{url('css/bootstrap/bootstrap.min.css')}}"> removed because gulped bootstrap into all.css--}}
+    {{--<link rel="stylesheet" href="{{url('css/bootstrap/bootstrap-theme.min.css')}}">--}}
     <!-- Latest compiled and minified Bootstrap select/option module -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
     {{-- <link href="{{ elixir('css/app.css') }}" rel="stylesheet"> --}}
@@ -53,7 +53,7 @@
 <div class="wrapper">
 <nav class="navbar navbar-default navbar-fixed-top bg-blue">
     <div class="container">
-        <div class="navbar-header"><a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}"><i class="glyphicon glyphicon-globe"></i>Choice Marketing Partners</a>
+        <div class="navbar-header"><a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}"><i class="ion ion-earth"></i> Choice Marketing Partners</a>
             <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
         </div>
         <div class="collapse navbar-collapse" id="navcol-1">
