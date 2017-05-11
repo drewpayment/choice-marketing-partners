@@ -29,6 +29,7 @@
     {{-- How do I only use local as backup? --}}
     {{--<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">--}}
     <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
+    <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
     @yield('topCSS')
 
@@ -53,8 +54,23 @@
 <div class="wrapper">
 <nav class="navbar navbar-default navbar-fixed-top bg-blue">
     <div class="container">
-        <div class="navbar-header"><a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}"><i class="ion ion-earth"></i> Choice Marketing Partners</a>
-            <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <div class="navbar-header">
+            <a class="navbar-brand navbar-link navbar-title-text" href="{{url('/')}}">
+                <ul class="list-inline list-unstyled mt-neg-10 bg-gray br-5">
+                    <li class="pr-0">
+                        <img src="{{url('/images/cmp_logo_nowords.png')}}" width="40px" height="40px">
+                    </li>
+                    <li class="color-brand pl-0 pr-10 strong">
+                        Choice Marketing Partners
+                    </li>
+                </ul>
+            </a>
+            <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
         </div>
         <div class="collapse navbar-collapse" id="navcol-1">
             <ul class="nav navbar-nav navbar-right">
@@ -178,15 +194,21 @@
 <script src="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.min.js"></script>
 <!-- moment js plugin for dates -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
-
+{{-- jscrollpane --}}
+<script src="{{url('assets/jscrollpane/jquery.mousewheel.js')}}"></script>
+<script src="{{url('assets/jscrollpane/mwheelintent.js')}}"></script>
+<script src="{{url('assets/jscrollpane/jquery.jscrollpane.js')}}"></script>
+{{--jquery scroll to plugin--}}
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
 <script type="text/javascript">
     // opt-in to bootstrap tooltips
     $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
+        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-usescroll="true"]').jScrollPane();
     });
 
     $(document).ready(function(){
-        $('ul.nav li').on('click', function(){
+        $('ul.nav.navbar-nav li').on('click', function(){
             $('li').removeClass('active');
             $(this).addClass('active');
             $(this).find('navbar-title-text').removeClass('navbar-title-text');

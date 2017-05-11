@@ -30,6 +30,7 @@ elixir(function(mix) {
     ]);
 
     mix.scripts([
+        'welcome.js',
         'paystubs.js',
     	'employees.js',
         'upload.js',

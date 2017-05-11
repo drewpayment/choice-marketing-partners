@@ -37,4 +37,5 @@ class HomeController extends Controller
 
     	return view('home', ['admin' => $admin, 'currentUser' => Auth::user()]);
     }
+
 }

@@ -22,9 +22,11 @@
 //	return view('index', ['user' => $user]);
 //});
 
-Route::get('/', function(){
-	return view('index');
-});
+//Route::get('/', function(){
+//	return view('index');
+//});
+Route::get('/', 'PublicController@index');
+Route::post('/returnCommaClubListByID', 'PublicController@ReturnCommaClubListByID');
 
 Route::get('/payroll-dispute', function(){
 	return view('emails.dispute');

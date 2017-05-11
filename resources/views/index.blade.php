@@ -1,59 +1,160 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="jumbotron hero">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 col-md-push-7 phone-preview">
-                <div class="iphone-mockup"><img src="{{url('images/iphone.svg')}}" class="device" />
-                    <div class="screen"></div>
-                </div>
-            </div>
-            <div class="col-md-6 col-md-pull-3 get-it">
-                <h2>Highly Motivated Marketing Strategists</h2>
-                <p>We are here to be your partners, or your guides. We work hard as a team to deliver undisputed sales performance while maintaining integrity and loyalty to our clients and associates.</p>
-                <p><a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner"><i class="fa fa-users"></i> Become a Partner</a></p>
+
+{{--<div class="row">--}}
+    {{--<div class="col-xs-12">--}}
+        {{--<div class="text-center">--}}
+            {{--<img src="{{url('/images/cmp_logo.png')}}">--}}
+        {{--</div>--}}
+    {{--</div>--}}
+{{--</div>--}}
+<div class="row">
+    <div class="col-xs-10 col-xs-offset-1">
+        <div class="box box-default b-all">
+            <div class="box-content">
+                <ul class="nav nav-pills nav-justified" id="pill_menu">
+                    <li role="presentation">
+                        <a href="#" data-target="#agent_testimonials">Agents</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#" data-target="#customer_testimonials">Customers</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#" data-target="#incentives">Incentives</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#" data-target="#clients">Clients</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#" data-target="#locations">Locations</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#" data-target="#blog">Blog</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
-    <section class="testimonials">
-        <h2 class="text-center">Our partners, clients and associates love us.</h2>
-        <blockquote>
-            <p>"We are only as successful as our weakest associate and partner. By creating value for our clients, we grow our relationships with our partners and develop our associates in order to empower ourselves and others, so we can bepositive corporate
-                citizens in our communities."</p>
-            <footer>Chris Payment, Vice President</footer>
-        </blockquote>
-    </section>
-    <section class="features">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Homegrown Recipe for Success</h2>
-                    <p>Through industry leading training techniques, we equip our sales associates to become their own business leaders. Anyone of our individuals could manage their own market by the end of their training, and we pride ourselves on their
-                        career aspirations. </p>
+<div class="jumbotron hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-md-push-7 get-it b-l-1">
+                <h2>Weekly Comma Club</h2>
+                <div class="text-center">
+                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="4000">$4,000+</a></p>
+                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="3000">$3,000</a></p>
+                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="2000">$2,000</a></p>
+                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="1000">$1,000</a></p>
+                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="500">$500</a></p>
                 </div>
-                <div class="col-md-6">
-                    <div class="row icon-features">
-                        <div class="col-xs-4 icon-feature"><i class="glyphicon glyphicon-book"></i>
-                            <p>Training </p>
+            </div>
+            <div class="col-md-6 col-md-pull-3 get-it">
+                <h2>Marketing Strategists</h2>
+                <p class="mb-10">You can have everything in life you want, if you will just help other people get what they want.</p>
+                <p class="text-right">- Zig Ziglar</p>
+                <p><a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner"><i class="fa fa-users"></i> Apply Now</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="testimonials" id="agent_testimonials">
+    <div class="box box-default b-all">
+        <div class="box-title">
+            <h2 class="text-center pb-5">What our Agents say about Us</h2>
+        </div>
+        <div class="box-content">
+            <ul class="row list-unstyled">
+                @foreach($agents as $a)
+                    <li class="col-xs-12">
+                        <div class="box box-primary">
+                            <div class="box-content">
+                                <blockquote>
+                                    {{$a->content}}
+                                    <footer>{{$a->location}}</footer>
+                                </blockquote>
+                            </div>
                         </div>
-                        <div class="col-xs-4 icon-feature"><i class="glyphicon glyphicon-stats"></i>
-                            <p>Critical Analysis</p>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</section>
+<section class="testimonials" id="customer_testimonials">
+    <div class="box box-default b-all">
+        <div class="box-title">
+            <h2 class="text-center pb-5">What our Customers say about Us</h2>
+        </div>
+        <div class="box-content">
+            <ul class="row list-unstyled">
+                @foreach($customers as $c)
+                    <li class="col-xs-12">
+                        <div class="box box-primary">
+                            <div class="box-content">
+                                <blockquote>
+                                    {{$c->content}}
+                                    <footer>{{$c->location}}</footer>
+                                </blockquote>
+                            </div>
                         </div>
-                        <div class="col-xs-4 icon-feature"><i class="glyphicon glyphicon-heart"></i>
-                            <p>Compassion </p>
-                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</section>
+<section class="features" id="incentives">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Agent Incentives</h2>
+                <p>
+                    Beyond normal salaries and commission opportunities, Choice Marketing Partners strives to be one of the most competitive compensatory energy affiliates in the industry. We believe that if we share profits with our people, they will work harder and be more likely to invest themselves in the organization. We regularly award Agents with daily cash incentives, weekly bonus opportunities through exceptional sales and customer service interactions, and big award contests like all-expense paid vacations, cars and even houses!
+                </p>
+            </div>
+            <div class="col-md-6">
+                <div class="row icon-features">
+                    <div class="col-xs-4 icon-feature"><i class="fa fa-money fa-5x"></i>
+                        <p>Commission & Incentives</p>
+                    </div>
+                    <div class="col-xs-4 icon-feature"><i class="fa fa-gift fa-5x"></i>
+                        <p>Contest Awards</p>
+                    </div>
+                    <div class="col-xs-4 icon-feature"><i class="fa fa-institution fa-5x"></i>
+                        <p>Competitive Comp</p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+{{--<section class="features" id="clients">--}}
+    {{--<div class="container">--}}
+        {{--<div class="row">--}}
+            {{--<div>--}}
+                {{----}}
+            {{--</div>--}}
+        {{--</div>--}}
+    {{--</div>--}}
+{{--</section>--}}
 @endsection
 
 @section('scripts')
 
     <script type="text/javascript">
+        $(function(){
+           var elems = $('#pill_menu').find('a[href]');
+           $(elems).on('click', function(){
+               $(this).toggleClass('active');
+               var target = $(this).data('target');
+               $('html, body').animate({
+                   scrollTop: $(target).offset().top - 50
+               }, 1500);
+           });
+        });
+
         $('#modal').on('hidden.bs.modal', function(){
             $('#modal').removeData();
         }).on('show.bs.modal', function(e){

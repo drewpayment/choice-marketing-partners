@@ -261,7 +261,7 @@ function remoteModal(html, callback){
             modal.removeData();
             modal.html('');
         }).on('shown.bs.modal', function(){
-            callback();
+            if(callback === typeof 'function') callback();
         }).modal('show');
     });
 }
