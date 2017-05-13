@@ -167,7 +167,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-6">
-                <h4>Choice Marketing Partners © 2016</h4>
+                <h4 id="footer-copyright"></h4>
             </div>
             <div class="col-sm-6 social-icons">
                 <span class="pull-right">
@@ -212,6 +212,10 @@
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
         $('[data-usescroll="true"]').jScrollPane();
+
+        var dt = new Date();
+        var footerCopyrightText = "Choice Marketing Partners © " + dt.getFullYear();
+        $('#footer-copyright').html(footerCopyrightText);
     });
 
     $(document).ready(function(){
