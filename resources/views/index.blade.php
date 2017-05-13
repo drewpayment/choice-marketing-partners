@@ -26,12 +26,12 @@
                     <li role="presentation">
                         <a href="#" data-target="#clients">Clients</a>
                     </li>
-                    <li role="presentation">
-                        <a href="#" data-target="#locations">Locations</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#" data-target="#blog">Blog</a>
-                    </li>
+                    {{--<li role="presentation">--}}
+                        {{--<a href="#" data-target="#locations">Locations</a>--}}
+                    {{--</li>--}}
+                    {{--<li role="presentation">--}}
+                        {{--<a href="#" data-target="#blog">Blog</a>--}}
+                    {{--</li>--}}
                 </ul>
             </div>
         </div>
@@ -59,7 +59,7 @@
         </div>
     </div>
 </div>
-<section class="testimonials" id="agent_testimonials">
+<section class="testimonials pt-10" id="agent_testimonials">
     <div class="box box-default b-all">
         <div class="box-title">
             <h2 class="text-center pb-5">What our Agents say about Us</h2>
@@ -82,7 +82,7 @@
         </div>
     </div>
 </section>
-<section class="testimonials" id="customer_testimonials">
+<section class="testimonials pt-10" id="customer_testimonials">
     <div class="box box-default b-all">
         <div class="box-title">
             <h2 class="text-center pb-5">What our Customers say about Us</h2>
@@ -105,7 +105,7 @@
         </div>
     </div>
 </section>
-<section class="features" id="incentives">
+<section class="features pt-10" id="incentives">
     <div class="container">
         <div class="row">
             <div class="col-md-6">
@@ -130,15 +130,53 @@
         </div>
     </div>
 </section>
-{{--<section class="features" id="clients">--}}
-    {{--<div class="container">--}}
-        {{--<div class="row">--}}
-            {{--<div>--}}
-                {{----}}
-            {{--</div>--}}
-        {{--</div>--}}
-    {{--</div>--}}
-{{--</section>--}}
+<section class="pt-10" id="clients">
+    <div class="container">
+        <div class="row">
+            <div class="box box-default b-all">
+                <div class="box-title">
+                    <h2 class="text-center">Clients We Work With</h2>
+                </div>
+                <div class="box-content">
+                    <div class="row">
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://santannaenergyservices.com/">
+                                <img src="{{url('/images/clients/santanna.jpeg')}}" class="img">
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://continuumenergyservices.com/">
+                                <img src="{{url('/images/clients/continuum.jpg')}}" class="img">
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://palmcoenergy.com/">
+                                <img src="{{url('/images/clients/palmco.jpeg')}}" class="img">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://www.att.com/">
+                                <img src="{{url('/images/clients/att.png')}}" class="img">
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://www.spectrum.com/">
+                                <img src="{{url('/images/clients/charter.png')}}" class="img">
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center hp-100">
+                            <a href="https://www.directv.com/">
+                                <img src="{{url('/images/clients/directv.png')}}" class="img">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 @endsection
 
 @section('scripts')

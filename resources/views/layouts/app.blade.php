@@ -163,15 +163,22 @@
         </div>
     </div>
 </nav>
-{{-- <footer class="site-footer">
+ <footer class="footer">
     <div class="container">
         <div class="row">
             <div class="col-sm-6">
-                <h5>Choice Marketing Partners © 2016</h5></div>
-            <div class="col-sm-6 social-icons"><a href="https://www.facebook.com/pages/Choice-Marketing-Partners-LLC/221793854688554" target="_blank"><i class="fa fa-facebook"></i></a></div>
+                <h4>Choice Marketing Partners © 2016</h4>
+            </div>
+            <div class="col-sm-6 social-icons">
+                <span class="pull-right">
+                    <a href="mailto:contactus@choice-marketing-partners.com"><i class="fa fa-paper-plane fa-2x"></i></a>
+                    <span>&nbsp;&nbsp;</span>
+                    <a href="https://www.facebook.com/choicemarketingpartnersllc" target="_blank"><i class="fa fa-facebook fa-2x"></i></a>
+                </span>
+            </div>
         </div>
     </div>
-</footer> --}}
+</footer>
 
 @include('layouts.modal')
 @include('layouts.modal_layout')
