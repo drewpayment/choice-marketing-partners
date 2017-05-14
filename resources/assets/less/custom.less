@@ -7,21 +7,43 @@
 @nav-bar-highlight: #E1E1E1;
 @brand-white: #FDFDFD;
 
-html, body {
+html {
   height: 100%;
+}
+
+body {
+  min-height: 100%;
   background: linear-gradient(to bottom, #e9e9e9 0%, #f0f0f0 100%);
   background-repeat: no-repeat;
   background-attachment: fixed;
-  padding-top: 50px;
-  margin-bottom: 60px;
+  display: flex;
+  flex-direction: column;
 }
 
+//.site-content{
+//  margin: 60px 0 0 0;
+//  min-height: calc(100vh - 70px);
+//}
+
 .footer{
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 60px;
+  color: @brand-white;
   background-color: @brand-color;
+  bottom: 0;
+  height: 50px;
+
+  & a {
+    text-decoration: none;
+    color: @brand-white !important;
+
+    & :hover {
+      color: @text-muted;
+    }
+  }
+}
+
+.site-content{
+  margin-top: 60px;
+  flex: 1;
 }
 
 nav a:hover{
@@ -37,8 +59,87 @@ a.unstyled {
   cursor: auto;
 }
 
+#scrollToTop{
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  width: 40px;
+  height: 40px;
+  background-color: @brand-white;
+  border: 3px solid @brand-color;
+  border-radius: 30px;
+  padding: 3px;
+
+  & i {
+    left: 4px;
+    align-content: center;
+  }
+}
+
+#scrollHint {
+  display: none;
+  position: fixed;
+  bottom: 65px;
+  right: 20px;
+  z-index: 99;
+  width: 65px;
+  height: 20px;
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: @brand-color;
+  letter-spacing: -1px;
+  line-height: 90%;
+  background-color: @brand-white;
+  border: 2px solid @brand-color;
+  border-radius: 5px;
+  padding: 3px;
+}
+
+#show-all{
+  position: fixed;
+  top: 80px;
+  left: 50px;
+  width: 90px;
+  height: 38px;
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: @brand-color;
+  letter-spacing: -1px;
+  line-height: 110%;
+  background-color: @brand-white;
+  border: 2px solid @brand-color;
+  border-radius: 2px;
+  padding: 5px 2px 2px 2px;
+  z-index: 99;
+  text-align: center;
+  vertical-align: middle;
+  opacity: .75;
+
+  & :hover {
+    background-color: @text-muted;
+    color: darken(@brand-color, 25%);
+  }
+}
+
 // text mutators
 .color-brand{color:@brand-color !important;}
+
+
+// point manipulation
+.cursor-clickable {cursor: pointer;}
+
+
+// DOM manipulation w/jquery
+.display-none {display: none;}
+
+.opac-25 {opacity: .25 !important;}
+.opac-50 {opacity: .5 !important;}
+.opac-75 {opacity: .75 !important;}
+.opac-100 {opacity: 1 !important;}
 
 
 // Scaffolding
@@ -52,6 +153,7 @@ a.unstyled {
 .pt-5 {padding-top: 5px !important;}
 
 .p-0{padding: 0 !important;}
+.p-1{ padding: 1px !important; }
 .p-5{ padding: 5px !important; }
 .pb-0{padding-bottom: 0 !important;}
 .pb-5{padding-bottom: 5px !important;}

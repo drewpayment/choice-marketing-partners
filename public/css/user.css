@@ -13,7 +13,7 @@
   border:none;
 }
 
-@media (min-width:992px) {
+@media (min-width:1202px) {
   .hero .get-it{
     text-align:right;
     margin-top:80px;
@@ -21,13 +21,13 @@
   }
 }
 
-@media (max-width:992px) {
+@media (max-width:1202px) {
   .hero .get-it{
     text-align:center;
   }
 }
 
-@media (max-width:992px) {
+@media (max-width:1202px) {
   .hero .phone-preview{
     text-align:center;
   }
@@ -97,6 +97,7 @@ section.features{
   background-color:#369;
   padding:40px 0;
   color:#fff;
+  margin-bottom: 10px;
 }
 
 .features h2{

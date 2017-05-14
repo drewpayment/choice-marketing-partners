@@ -9,35 +9,41 @@
         {{--</div>--}}
     {{--</div>--}}
 {{--</div>--}}
+
 <div class="row">
-    <div class="col-xs-10 col-xs-offset-1">
-        <div class="box box-default b-all">
-            <div class="box-content">
-                <ul class="nav nav-pills nav-justified" id="pill_menu">
-                    <li role="presentation">
-                        <a href="#" data-target="#agent_testimonials">Agents</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#" data-target="#customer_testimonials">Customers</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#" data-target="#incentives">Incentives</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#" data-target="#clients">Clients</a>
-                    </li>
-                    {{--<li role="presentation">--}}
-                        {{--<a href="#" data-target="#locations">Locations</a>--}}
-                    {{--</li>--}}
-                    {{--<li role="presentation">--}}
-                        {{--<a href="#" data-target="#blog">Blog</a>--}}
-                    {{--</li>--}}
-                </ul>
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <div class="box box-default b-all p-1 opac-75">
+                    <div class="box-content">
+                        <ul class="nav nav-pills nav-justified" id="pill_menu">
+                            <li class="cursor-clickable" role="presentation">
+                                <a href="#" data-target="agent_testimonials">Agents</a>
+                            </li>
+                            <li class="cursor-clickable" role="presentation">
+                                <a href="#" data-target="customer_testimonials">Customers</a>
+                            </li>
+                            <li class="cursor-clickable" role="presentation">
+                                <a href="#" data-target="incentives">Incentives</a>
+                            </li>
+                            <li class="cursor-clickable" role="presentation">
+                                <a href="#" data-target="clients">Clients</a>
+                            </li>
+                            {{--<li role="presentation">--}}
+                            {{--<a href="#" data-target="#locations">Locations</a>--}}
+                            {{--</li>--}}
+                            {{--<li role="presentation">--}}
+                            {{--<a href="#" data-target="#blog">Blog</a>--}}
+                            {{--</li>--}}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<div class="jumbotron hero">
+
+<section class="jumbotron hero" id="hero">
     <div class="container">
         <div class="row">
             <div class="col-md-4 col-md-push-7 get-it b-l-1">
@@ -58,8 +64,8 @@
             </div>
         </div>
     </div>
-</div>
-<section class="testimonials pt-10" id="agent_testimonials">
+</section>
+<section class="testimonials" id="agent_testimonials">
     <div class="box box-default b-all">
         <div class="box-title">
             <h2 class="text-center pb-5">What our Agents say about Us</h2>
@@ -82,7 +88,7 @@
         </div>
     </div>
 </section>
-<section class="testimonials pt-10" id="customer_testimonials">
+<section class="testimonials" id="customer_testimonials">
     <div class="box box-default b-all">
         <div class="box-title">
             <h2 class="text-center pb-5">What our Customers say about Us</h2>
@@ -105,7 +111,7 @@
         </div>
     </div>
 </section>
-<section class="features pt-10" id="incentives">
+<section class="features" id="incentives">
     <div class="container">
         <div class="row">
             <div class="col-md-6">
@@ -130,7 +136,7 @@
         </div>
     </div>
 </section>
-<section class="pt-10" id="clients">
+<section id="clients">
     <div class="container">
         <div class="row">
             <div class="box box-default b-all">
@@ -182,16 +188,38 @@
 @section('scripts')
 
     <script type="text/javascript">
+
         $(function(){
            var elems = $('#pill_menu').find('a[href]');
            $(elems).on('click', function(){
-               $(this).toggleClass('active');
-               var target = $(this).data('target');
-               $('html, body').animate({
-                   scrollTop: $(target).offset().top - 50
-               }, 1500);
+               var sections = $('section:visible');
+               var target = '#' + $(this).data('target');
+               if($(target).is(':visible')){
+                   $(sections).not(target).slideToggle(500, function() { setShowAllButton(); });
+                   if(sections.not(target).length < 1){
+                       $('#hero, #agent_testimonials, #customer_testimonials, #incentives, #clients').not(target).slideToggle(500, function() {setShowAllButton();});
+                   }
+               } else if($(sections).length){
+                   $(sections).slideToggle(500, function(){setShowAllButton();});
+                   $(target).slideToggle(500, function(){setShowAllButton();});
+               }
+
+           });
+
+           $('#show-all').on('click', function(){
+                var shown = $('section:visible');
+                $('#hero, #agent_testimontials, #customer_testimonials, #incentives, #clients').not(shown).slideToggle(500, function(){setShowAllButton();});
            });
         });
+
+        var setShowAllButton = function(){
+
+            if($('#hero:visible').length) {
+                $('#show-all').fadeOut();
+            } else {
+                $('#show-all').fadeIn();
+            }
+        }
 
         $('#modal').on('hidden.bs.modal', function(){
             $('#modal').removeData();

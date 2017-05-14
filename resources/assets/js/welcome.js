@@ -52,6 +52,7 @@ App = (function(){
                 remoteModal(data);
             }
         });
+
     };
 
     return {
