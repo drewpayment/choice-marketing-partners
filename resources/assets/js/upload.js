@@ -18,8 +18,6 @@ var setNewSale = function (s){
     amt = String(amt).replace(/[^0-9]/, "");
     amt = amt.substring(0, amt.indexOf('.') + 3);
 
-    console.dir(amt); return;
-
     return {
         id: s[0],
         date: s[1],
@@ -30,7 +28,7 @@ var setNewSale = function (s){
         address: s[4],
         city: s[5],
         status: s[6],
-        amount: s[7],
+        amount: amt,
         agentid: null,
         issueDate: null,
         wkending: null,
