@@ -14,9 +14,7 @@ var MODAL_ELEM = $('#modal_layout'),
     vendor;
 
 var setNewSale = function (s){
-    var amt = s[7];
-    amt = String(amt).replace(/[^0-9]/, "");
-    amt = amt.substring(0, amt.indexOf('.') + 3);
+    var amt = sanitizeCurrency(s[7]);
 
     return {
         id: s[0],
@@ -38,12 +36,14 @@ var setNewSale = function (s){
 
 
 var setNewOverride = function (o){
+    var amt = sanitizeCurrency(o[4]);
+
     return {
         id: o[0],
         name: o[1],
         numOfSales: o[2],
         commission: o[3],
-        total: o[4],
+        total: amt,
         agentid: currentAgentId,
         issueDate: currentIssueDt,
         wkending: currentWkEnding
@@ -53,9 +53,11 @@ var setNewOverride = function (o){
 
 var setNewExpense = function (e){
     var issue = new Date(currentIssueDt);
+    var amt = sanitizeCurrency(e[1]);
+
     return {
         type: e[0],
-        amount: e[1],
+        amount: amt,
         notes: e[2],
         agentid: currentAgentId,
         issueDate: issue.toLocaleDateString(),
@@ -67,6 +69,14 @@ var inputParams = {
     vendorid: null,
     issue_date: null,
     agentid: null
+};
+
+var sanitizeCurrency = function(value){
+    var val = String(value).replace(/[^0-9.\-]/, "");
+    val = parseFloat(val);
+    val = Math.round(val * 100) / 100;
+
+    return val;
 };
 
 
@@ -117,24 +127,31 @@ function handleSubmitNewInvoice(data){
         }
     });
 
-    $.ajax({
+    var options = {
         url: '/upload/invoice',
-        type: 'POST',
         data: {
-            _token: token,
             sales: salesList,
             overrides: overList,
             expenses: expensesList
         },
-        dataType:'JSON'
-    }).done(function(data){
+        dataType: 'JSON',
+        type: 'POST',
+        afterData: afterData
+    };
 
-        if(data) {
+    if(salesList.length){
+        fireAjaxRequest(options);
+    } else {
+        setMessageContainer("Don't forget personal sales!", null, 'danger');
+    }
+
+
+    function afterData(data){
+        if(data){
             setMessageContainer("Success!");
             resetHOT();
         }
-
-    });
+    }
 
 }
 

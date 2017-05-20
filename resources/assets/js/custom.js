@@ -180,18 +180,38 @@ function wireButtonEvents(wireEvent, container){
  *
  * @param message
  * @param callback
+ * @param messageType
  */
-var setMessageContainer = function(message, callback){
+var setMessageContainer = function(message, callback, messageType){
+    messageType = (messageType === undefined) ? 'primary' : messageType;
+    var icon = 'fa fa-thumbs-up';
+    var isConfirm = false;
+    var width = 200;
+
+    if(messageType == 'danger'){
+        icon = 'fa fa-warning';
+        isConfirm = true;
+        width = 350;
+    }
+
+
     var myToast = new ax5.ui.toast({
-        width: 200,
-        icon: '<i class="fa fa-thumbs-up"></i>',
+        width: width,
+        icon: '<i class="'+icon+'"></i>',
         containerPosition: "bottom-right"
     });
 
-    myToast.push({
-        theme: 'primary',
-        msg: message
-    });
+    if(isConfirm){
+        myToast.confirm({
+            theme: messageType,
+            msg: message
+        })
+    } else {
+        myToast.push({
+            theme: messageType,
+            msg: message
+        });
+    }
 
     if(callback == typeof 'function') callback.call();
 };
