@@ -12,10 +12,9 @@
 
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
-            <div class="hidden" data-token="true" data-value="{{csrf_token()}}"></div>
             <ul class="list-unstyled list-inline">
                 <li>
-                    <button type="button" class="btn btn-sm btn-primary" data-vero="button" data-tag="3" data-showtoken="{{csrf_token()}}" data-value="0" >
+                    <button type="button" class="btn btn-sm btn-primary" data-vero="button" data-tag="3" data-value="false">
                         Show All
                     </button>
                 </li>
@@ -57,13 +56,10 @@
 
 <script>
 
-    $(document).ready(function(){
-//        $(document).on('click', '[data-form="true"]', handleClick);
-        $(document).on('focusout', '[data-form="true"]', handleBlur);
-        //$(document).on('click', 'button', handleClick);
-    });
+    var onlyActive = 1;
 
 
+    // edit existing employee
     $(document).on('click', '[data-tag="2"]', function(){
 
         var options = {
@@ -84,6 +80,7 @@
     });
 
 
+    // submit employee changes
     $(document).on('click', '[data-tag="4"]', function(e){
         var data = {
             tag: 4,
@@ -95,12 +92,13 @@
             isactive: $('#emp_active').prop('checked')
         };
 
-        processDataTag(data);
+        handleEmployeeChangesSubmission(data);
         $('#modal_layout').modal('hide');
-        refreshEmployeeRowData();
+        refreshEmployeesAfterControl(onlyActive);
     });
 
 
+    // show new employee modal
     $(document).on('click', '[data-tag="5"]', function(){
          var options = {
              url: '/employees/create',
@@ -116,6 +114,7 @@
          }
     });
 
+    // send new employee data
     $(document).on('click', '[data-tag="6"]', function(){
         var item = setEmployeeUpdateItem(6);
         item.name = $('#empName').val();
@@ -124,25 +123,24 @@
         item.phone = $('#empPhone').val();
         item.isactive = true;
 
-        handleSubmitNewEmployee(item);
-        $('#modal_layout').modal('hide');
-//        refreshEmployeeRowData();
+        handleSubmitNewEmployee(item, onlyActive);
     });
 
 
-    $('#showInactive').on('click', function(){
-        $.ajax({
-            dataType: 'html',
-            url: '/getemployees'
-        }).done(function(data){
-            if(data.data){
-                var content = JSON.stringify(data.data);
-                $('tbody').html(content);
-            }
-        }).fail(function(event){
-            console.log('We failed to update the page. Please try again.');
-            console.dir(event);
-        });
+    $(document).on('click', '[data-tag="3"]', function(){
+        var showBool = $(this).data('value');
+
+        if(showBool){
+            onlyActive = 1;
+            $(this).data('value', false).attr('data-value', false);
+        } else {
+            onlyActive = 0;
+            $(this).data('value', true).attr('data-value', true);
+        }
+
+        $(this).toggleClass('active');
+
+        refreshEmployeesAfterControl(onlyActive)
     });
 </script>
 

@@ -171,8 +171,6 @@ class EmpManagerController extends Controller
 	{
 		$isactive = $request['showall'];
 
-		$isactive = ($isactive == "true") ? 0 : 1;
-
 		if($isactive == 0){
 			$emps = DB::table('employees')->get();
 		} else {
