@@ -58,17 +58,82 @@
 <script>
 
     $(document).ready(function(){
-        $(document).on('click', '[data-form="true"]', handleClick);
+//        $(document).on('click', '[data-form="true"]', handleClick);
         $(document).on('focusout', '[data-form="true"]', handleBlur);
-        $(document).on('click', 'button', handleClick);
+        //$(document).on('click', 'button', handleClick);
     });
 
 
-    var url = window.location.href;
+    $(document).on('click', '[data-tag="2"]', function(){
+
+        var options = {
+            url: '/editemployee',
+            type: 'POST',
+            dataType: 'HTML',
+            data: {
+                id: $(this).data('value')
+            },
+            afterData: afterData
+        };
+
+        fireAjaxRequest(options);
+
+        function afterData(result){
+            remoteModal(result, null);
+        }
+    });
+
+
+    $(document).on('click', '[data-tag="4"]', function(e){
+        var data = {
+            tag: 4,
+            id: $('#emp_id').data('parentid'),
+            name: $('#emp_name').val(),
+            email: $('#emp_email').val(),
+            phone: $('#emp_phone').val(),
+            address: $('#emp_address').val(),
+            isactive: $('#emp_active').prop('checked')
+        };
+
+        processDataTag(data);
+        $('#modal_layout').modal('hide');
+        refreshEmployeeRowData();
+    });
+
+
+    $(document).on('click', '[data-tag="5"]', function(){
+         var options = {
+             url: '/employees/create',
+             type: 'GET',
+             dataType: 'HTML',
+             afterData: afterData
+         };
+
+         fireAjaxRequest(options);
+
+         function afterData(data){
+             remoteModal(data, null);
+         }
+    });
+
+    $(document).on('click', '[data-tag="6"]', function(){
+        var item = setEmployeeUpdateItem(6);
+        item.name = $('#empName').val();
+        item.email = $('#empEmail').val();
+        item.address = $('#empAddress').val();
+        item.phone = $('#empPhone').val();
+        item.isactive = true;
+
+        handleSubmitNewEmployee(item);
+        $('#modal_layout').modal('hide');
+//        refreshEmployeeRowData();
+    });
+
+
     $('#showInactive').on('click', function(){
         $.ajax({
             dataType: 'html',
-            url: url + '/getemployees'
+            url: '/getemployees'
         }).done(function(data){
             if(data.data){
                 var content = JSON.stringify(data.data);

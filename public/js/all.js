@@ -149,38 +149,57 @@ function refreshEmployeesAfterControl(data){
 		showall = false;
 	}
 
-    token = (token == undefined) ? $(data.e).data('showtoken') : token;
-
 	$.ajax({
 		url: 'refresh-employees',
 		type: 'POST',
 		dataType: 'html',
 		data: {
-			showall: showall,
-			_token: token
+			showall: showall
 		},
 		success: afterData
 	});
 
 	function afterData(data){
+        $('#EMPLOYEE_ROWDATA').html(data);
+        var elem = $('[data-tag="3"]');
+        if(showall){
+            elem.removeAttr('data-value');
+            elem.attr('data-value', 1).data('value', 1);
+            // elem.addClass('active');
+        } else {
+            elem.removeAttr('data-value');
+            elem.attr('data-value', 0).data('value', 0);
+            // elem.removeClass('active');
+        }
 
-		$.when($('#EMPLOYEE_ROWDATA').html(data)).then(function(){
-            var elem = $('[data-tag="3"]');
-            if(showall){
-                elem.removeAttr('data-value');
-                elem.attr('data-value', 1);
-                elem.addClass('active');
-            } else {
-                elem.removeAttr('data-value');
-                elem.attr('data-value', 0);
-                elem.removeClass('active');
-            }
+        elem.toggleClass('active');
 
-            wireButtonEvents(true, null);
-		});
+        wireButtonEvents(true, null);
 	}
 
 }
+
+
+function refreshEmployeeRowData(){
+	var showAll = $('[data-tag="3"]').data('value');
+
+	var options = {
+		url: '/returnEmployeeRowData',
+		type: 'POST',
+		dataType: 'HTML',
+		data: {
+			showAll: showAll
+		},
+		afterData: afterData
+	};
+
+	fireAjaxRequest(options, null);
+
+	function afterData(data){
+		$('#EMPLOYEE_ROWDATA').html(data);
+	}
+}
+
 
 function handleEmployeeChangesSubmission(data){
 	var props = Object.getOwnPropertyNames(data);
@@ -221,70 +240,30 @@ function handleEmployeeChangesSubmission(data){
 
 }
 
-function showEmployeeInfoModal(data){
-
-	token = $('[data-token="true"]').data('value');
-	data.value = (data.value == undefined) ? $(data.e).closest('[data-value]').data('value') : data.value;
-
-    $.ajax({
-        url: './editemployee/',
-        type: 'POST',
-        dataType: "html",
-        data: {
-            id: data.value,
-            _token: token
-        },
-		success: afterData
-    });
-
-    function afterData(result){
-        remoteModal(result, afterShowEmployeeChangeModal);
-	}
-}
-
-
-function showAddNewEmployeeModal(data){
-
-    token = $('[data-token="true"]').data('value');
-    data.value = (data.value == undefined) ? $(data.e).closest('[data-value]').data('value') : data.value;
-
-    $.ajax({
-        url: '/employees/create',
-        type: 'GET',
-        dataType: "html",
-        success: afterData
-    });
-
-    function afterData(result){
-        remoteModal(result, afterAddEmpModalShow);
-    }
-}
-
 
 function handleSubmitNewEmployee(data){
 
-	$.ajax({
+	var options = {
 		url: '/employee/create-ajax',
 		type: 'POST',
-		dataType: "html",
 		data: {
-			_token: token,
 			data: data
 		},
-		success: afterData
-	});
+		dataType: 'HTML',
+		afterData: afterData
+	};
 
-	function afterData(data){
-		if(data){
-			var obj = {
-				e: $('[data-tag="3"]')
-			};
+	fireAjaxRequest(options);
 
-            refreshEmployeesAfterControl(obj);
+	function afterData(data) {
+        var obj = {
+            e: $('[data-tag="3"]')
+        };
 
-			setMessageContainer("The employee was successfully added!");
-		}
-	}
+        refreshEmployeesAfterControl(obj);
+
+        setMessageContainer("The employee was successfully added!");
+    }
 
 }
 
@@ -337,43 +316,43 @@ function setEmployeeUpdateItem(tag){
 }
 
 
-function afterAddEmpModalShow(){
-	$('[data-tag="6"]').on('click', function(e){
-		e.stopImmediatePropagation();
-		var item = setEmployeeUpdateItem(6);
-		item.name = $('#empName').val();
-		item.email = $('#empEmail').val();
-		item.address = $('#empAddress').val();
-		item.phone = $('#empPhone').val();
-		item.isactive = true;
-
-		$.when(processDataTag(item)).then(function(){
-			$('#modal_layout').modal('hide');
-		});
-	});
-}
-
-
-function afterShowEmployeeChangeModal(){
-	$('[data-tag="4"]').on('click', function(e){
-		e.stopImmediatePropagation();
-		var data = {
-			tag: 4,
-			id: $('#emp_id').data('parentid'),
-			name: $('#emp_name').val(),
-			email: $('#emp_email').val(),
-			phone: $('#emp_phone').val(),
-			address: $('#emp_address').val(),
-            isactive: $('#emp_active').prop('checked'),
-			token: $('[data-token="true"]').data('value')
-        };
-
-		$.when(processDataTag(data)).then(function(){
-			$('#modal_layout').modal('hide');
-			window.location.reload();
-		});
-	})
-}
+// function afterAddEmpModalShow(){
+// 	$('[data-tag="6"]').on('click', function(e){
+//
+// 		var item = setEmployeeUpdateItem(6);
+// 		item.name = $('#empName').val();
+// 		item.email = $('#empEmail').val();
+// 		item.address = $('#empAddress').val();
+// 		item.phone = $('#empPhone').val();
+// 		item.isactive = true;
+//
+// 		$.when(processDataTag(item)).then(function(){
+// 			$('#modal_layout').modal('hide');
+// 		});
+// 	});
+// }
+//
+//
+// function afterShowEmployeeChangeModal(){
+// 	$('[data-tag="4"]').on('click', function(e){
+// 		e.stopImmediatePropagation();
+// 		var data = {
+// 			tag: 4,
+// 			id: $('#emp_id').data('parentid'),
+// 			name: $('#emp_name').val(),
+// 			email: $('#emp_email').val(),
+// 			phone: $('#emp_phone').val(),
+// 			address: $('#emp_address').val(),
+//             isactive: $('#emp_active').prop('checked'),
+// 			token: $('[data-token="true"]').data('value')
+//         };
+//
+// 		$.when(processDataTag(data)).then(function(){
+// 			$('#modal_layout').modal('hide');
+// 			window.location.reload();
+// 		});
+// 	})
+// }
 
 $(function(){
 	var $modal = $('#modal_layout');
@@ -678,11 +657,7 @@ function updateExistingInvoice(newToken){
 var tag = {
 
 	SUBMIT_INVOICE_BTN: 1,
-	SHOW_EDIT_EMP_MODAL: 2,
 	SHOW_ALL_EMP: 3,
-    SUBMIT_EMP_CHANGES: 4,
-    SHOW_ADD_EMP_MODAL: 5,
-    SUBMIT_NEW_EMPLOYEE: 6,
     CONFIRM_PAYSTUB_DEL: 7,
     DELETE_PAYSTUB: 8,
     UPDATE_SALES_ONE: 9,

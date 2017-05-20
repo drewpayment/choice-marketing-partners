@@ -186,6 +186,25 @@ class EmpManagerController extends Controller
 	}
 
 
+	public function returnEmployeeRowData(Request $request)
+	{
+		$showall = $request['showall'];
+
+		$showall = ($showall == 'true') ? 0 : 1;
+
+		if($showall == 0){
+			$emps = DB::table('employees')->get();
+		} else {
+			$emps = DB::table('employees')
+			          ->where('is_active', '=', 1)
+			          ->orderBy('name', 'asc')
+			          ->get();
+		}
+
+		return view('emp_manager._emp', ['employees' => $emps]);
+	}
+
+
 	public function updateEmployeeSalesID(Request $request)
 	{
 		$object = json_decode($request["data"]);
