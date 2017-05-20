@@ -105,23 +105,23 @@ var salesIDs = {
 
 
 function handleUpdateSalesID(data){
-	token = $('[data-token="true"]').data('value');
 	var item = {
 		userId: data.parentid,
 		salesId: salesIDs[data.tag],
 		value: data.value
 	};
 
-	$.ajax({
+	var options = {
 		url: '/employee/update/salesid',
 		type: 'POST',
 		dataType: 'json',
 		data: {
-			_token: token,
 			data: JSON.stringify(item)
 		},
-		success: afterData
-	});
+		afterData: afterData
+	};
+
+	fireAjaxRequest(options);
 
 	function afterData(data){
 		if(data){

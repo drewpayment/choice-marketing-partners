@@ -226,23 +226,23 @@ var salesIDs = {
 
 
 function handleUpdateSalesID(data){
-	token = $('[data-token="true"]').data('value');
 	var item = {
 		userId: data.parentid,
 		salesId: salesIDs[data.tag],
 		value: data.value
 	};
 
-	$.ajax({
+	var options = {
 		url: '/employee/update/salesid',
 		type: 'POST',
 		dataType: 'json',
 		data: {
-			_token: token,
 			data: JSON.stringify(item)
 		},
-		success: afterData
-	});
+		afterData: afterData
+	};
+
+	fireAjaxRequest(options);
 
 	function afterData(data){
 		if(data){
@@ -289,6 +289,12 @@ var MODAL_ELEM = $('#modal_layout'),
     vendor;
 
 var setNewSale = function (s){
+    var amt = s[7];
+    amt = String(amt).replace(/[^0-9]/, "");
+    amt = amt.substring(0, amt.indexOf('.') + 3);
+
+    console.dir(amt); return;
+
     return {
         id: s[0],
         date: s[1],
@@ -426,21 +432,6 @@ function resetHOT(){
 }
 
 
-// function verifyOverrides(){
-//
-// 	$.ajax({
-// 		url: '/upload/overrides-modal',
-// 		type: 'GET',
-// 		dataType: 'html'
-// 	}).done(function(data){
-// 		MODAL_ELEM.html(data);
-//
-// 		wireButtonEvents(true, '#modal_layout');
-// 	});
-//
-// }
-
-
 function setCommonUserInfo(edit){
     if(edit){
         currentAgentId = $('#employee').data('id');
@@ -540,29 +531,6 @@ function updateExistingInvoice(newToken){
 }
 
 
-// function cancelOverrides(event){
-//
-// 	// need to handle where user gets sent after clicking no
-//
-// 	MODAL_ELEM.modal('hide');
-// }
-
-
-// MODAL_ELEM.off().on('shown.bs.modal', function(){
-// 	// hide/show modal to handle refreshing content
-// 	MODAL_ELEM.modal('hide').modal('show');
-// });
-
-
-
-// Register events
-
-// $(document).on('show.bs.modal', MODAL_ELEM, function(e){ verifyOverrides(e); });
-// $(document).on('click', '#noOvrBtn', function(e) { cancelOverrides(e); }); // no overrides, cancel and return
-// $(document).on('click', '#yesOvrBtn', function(e) { handleOverridesInput(); }); // include overrides, advance to overrides input view
-
-
-
 
 
 
@@ -571,10 +539,7 @@ var tag = {
 	SUBMIT_INVOICE_BTN: 1,
 	SHOW_ALL_EMP: 3,
     CONFIRM_PAYSTUB_DEL: 7,
-    DELETE_PAYSTUB: 8,
-    UPDATE_SALES_ONE: 9,
-    UPDATE_SALES_TWO: 10,
-    UPDATE_SALES_THREE: 11
+    DELETE_PAYSTUB: 8
 
 };
 
@@ -587,35 +552,14 @@ function processDataTag(data){
         case tag.SUBMIT_INVOICE_BTN:
             handleSubmitNewInvoice(data);
             break;
-        case tag.SHOW_EDIT_EMP_MODAL:
-            showEmployeeInfoModal(data);
-            break;
-        case tag.SUBMIT_EMP_CHANGES:
-            handleEmployeeChangesSubmission(data);
-            break;
         case tag.SHOW_ALL_EMP:
             refreshEmployeesAfterControl(data);
-            break;
-        case tag.SHOW_ADD_EMP_MODAL:
-            showAddNewEmployeeModal(data);
-            break;
-        case tag.SUBMIT_NEW_EMPLOYEE:
-            handleSubmitNewEmployee(data);
             break;
         case tag.CONFIRM_PAYSTUB_DEL:
             showDeletePaystubConfirmDialog(data);
             break;
         case tag.DELETE_PAYSTUB:
             handleDeletePaystub(data);
-            break;
-        case tag.UPDATE_SALES_ONE:
-            handleUpdateSalesID(data);
-            break;
-        case tag.UPDATE_SALES_TWO:
-            handleUpdateSalesID(data);
-            break;
-        case tag.UPDATE_SALES_THREE:
-            handleUpdateSalesID(data);
             break;
         default:
             break;

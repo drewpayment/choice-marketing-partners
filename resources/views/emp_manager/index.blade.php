@@ -126,7 +126,7 @@
         handleSubmitNewEmployee(item, onlyActive);
     });
 
-
+    // show all employees toggle button
     $(document).on('click', '[data-tag="3"]', function(){
         var showBool = $(this).data('value');
 
@@ -141,6 +141,18 @@
         $(this).toggleClass('active');
 
         refreshEmployeesAfterControl(onlyActive)
+    });
+
+    // update employee sales id
+    $(document).on('change', 'input[data-vero="text"]', function(){
+
+        var data = {
+            parentid: $(this).closest('[data-parent="true"]').data('parentid'),
+            tag: $(this).data('tag'),
+            value: $(this).val()
+        };
+
+        handleUpdateSalesID(data);
     });
 </script>
 

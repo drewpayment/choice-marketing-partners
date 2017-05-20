@@ -6,10 +6,7 @@ var tag = {
 	SUBMIT_INVOICE_BTN: 1,
 	SHOW_ALL_EMP: 3,
     CONFIRM_PAYSTUB_DEL: 7,
-    DELETE_PAYSTUB: 8,
-    UPDATE_SALES_ONE: 9,
-    UPDATE_SALES_TWO: 10,
-    UPDATE_SALES_THREE: 11
+    DELETE_PAYSTUB: 8
 
 };
 
@@ -22,35 +19,14 @@ function processDataTag(data){
         case tag.SUBMIT_INVOICE_BTN:
             handleSubmitNewInvoice(data);
             break;
-        case tag.SHOW_EDIT_EMP_MODAL:
-            showEmployeeInfoModal(data);
-            break;
-        case tag.SUBMIT_EMP_CHANGES:
-            handleEmployeeChangesSubmission(data);
-            break;
         case tag.SHOW_ALL_EMP:
             refreshEmployeesAfterControl(data);
-            break;
-        case tag.SHOW_ADD_EMP_MODAL:
-            showAddNewEmployeeModal(data);
-            break;
-        case tag.SUBMIT_NEW_EMPLOYEE:
-            handleSubmitNewEmployee(data);
             break;
         case tag.CONFIRM_PAYSTUB_DEL:
             showDeletePaystubConfirmDialog(data);
             break;
         case tag.DELETE_PAYSTUB:
             handleDeletePaystub(data);
-            break;
-        case tag.UPDATE_SALES_ONE:
-            handleUpdateSalesID(data);
-            break;
-        case tag.UPDATE_SALES_TWO:
-            handleUpdateSalesID(data);
-            break;
-        case tag.UPDATE_SALES_THREE:
-            handleUpdateSalesID(data);
             break;
         default:
             break;

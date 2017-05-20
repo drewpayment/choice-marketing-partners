@@ -14,6 +14,12 @@ var MODAL_ELEM = $('#modal_layout'),
     vendor;
 
 var setNewSale = function (s){
+    var amt = s[7];
+    amt = String(amt).replace(/[^0-9]/, "");
+    amt = amt.substring(0, amt.indexOf('.') + 3);
+
+    console.dir(amt); return;
+
     return {
         id: s[0],
         date: s[1],
@@ -151,21 +157,6 @@ function resetHOT(){
 }
 
 
-// function verifyOverrides(){
-//
-// 	$.ajax({
-// 		url: '/upload/overrides-modal',
-// 		type: 'GET',
-// 		dataType: 'html'
-// 	}).done(function(data){
-// 		MODAL_ELEM.html(data);
-//
-// 		wireButtonEvents(true, '#modal_layout');
-// 	});
-//
-// }
-
-
 function setCommonUserInfo(edit){
     if(edit){
         currentAgentId = $('#employee').data('id');
@@ -263,27 +254,4 @@ function updateExistingInvoice(newToken){
 
     });
 }
-
-
-// function cancelOverrides(event){
-//
-// 	// need to handle where user gets sent after clicking no
-//
-// 	MODAL_ELEM.modal('hide');
-// }
-
-
-// MODAL_ELEM.off().on('shown.bs.modal', function(){
-// 	// hide/show modal to handle refreshing content
-// 	MODAL_ELEM.modal('hide').modal('show');
-// });
-
-
-
-// Register events
-
-// $(document).on('show.bs.modal', MODAL_ELEM, function(e){ verifyOverrides(e); });
-// $(document).on('click', '#noOvrBtn', function(e) { cancelOverrides(e); }); // no overrides, cancel and return
-// $(document).on('click', '#yesOvrBtn', function(e) { handleOverridesInput(); }); // include overrides, advance to overrides input view
-
 
