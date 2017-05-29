@@ -3,20 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Document;
-use App\Http\Requests\UploadFileRequest;
-use App\Link;
 use App\Services\UploadsManager;
+use Carbon\Carbon;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -80,32 +76,38 @@ class DocumentController extends Controller
 	 * @param Request $request
 	 * @return view
 	 */
-	public function store(Request $input)
+	public function store(Request $request)
 	{
-		$file = request()->file('file_upload');
-		$temp_path = $file->store('uploads/');
+		// we don't use request class for ajax calls
+		if($request->hasFile('file')){
+			$timestamp = $this->getFormattedTimestamp();
 
-		$split = explode('//', $temp_path);
-		$path = $split[1];
+			$input = $request->all();
+			$filename = $input['name'] . '_' . $timestamp . '.' . $request->file('file')->getClientOriginalExtension();
+			$dest_path = public_path() . '/uploads/';
 
-		$filename = $file->getClientOriginalName();
-		$mime = $file->getClientMimeType();
+			$file = $request->file('file')->move($dest_path, $filename);
 
-		$document = new Document;
-		$document->name = $input->name;
-		$document->description = $input->description;
-		$document->file_path = $path;
-		$document->mime_type = $mime;
-		$document->uploaded_by = Auth::user()->name;
-		$result = $document->save();
+			if($file){
+				$document = new Document;
+				$document->name = $input['name'];
+				$document->description = $input['description'];
+				$document->file_path = $filename;
+				$document->mime_type = $file->getMimeType();
+				$document->uploaded_by = Auth::user()->name;
+				$document->save();
 
-		if($result)
-		{
-			return back()->with('message', 'Your upload was successful!');
+				return response()->json(['files' => [$document], 200]);
+			} else {
+				return response()->json('error', 400);
+			}
 		}
-		else {
-			return back()->with('alert', 'Something went wrong!');
-		}
+	}
+
+
+	protected function getFormattedTimestamp()
+	{
+		return Carbon::now()->timestamp;
 	}
 
 

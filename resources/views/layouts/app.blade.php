@@ -111,7 +111,7 @@
                                         <i class="ion ion-clipboard"></i> Payroll Tracking
                                     </a>
                                 </li>
-                                <li>
+                                <li class="mobile-hidden">
                                     <a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">
                                         <i class="ion ion-edit"></i> Edit Invoice
                                     </a>

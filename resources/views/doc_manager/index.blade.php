@@ -47,8 +47,13 @@
 
 @section('scripts')
 
+    <script src="{{url('/js/dropzone.js')}}"></script>
     <script src="{{url('/js/selectize.js')}}"></script>
     <script>
+        // disable autodiscover
+        Dropzone.autoDiscover = false;
+        var that;
+
 
         $('[data-button="tag"]').on('click', function(){
             $(this).toggleClass('active');
@@ -88,16 +93,102 @@
             fireAjaxRequest(options);
 
             function afterData(data){
+                $('#modal_layout').on('shown.bs.modal', function(){
+                    var previewNode = document.querySelector('#template');
+                    var previewTemplate = document.createElement('div').appendChild(previewNode);
+                    previewTemplate.id = "";
+                    $('#template').remove();
+
+                    Dropzone.options.dropzoneModal = {
+                        url: '{{url('/UploadDocument')}}',
+                        paramName: 'file',
+                        clickable: '#dropzone-previews',
+                        maxFileSize: 2,
+                        previewsContainer: '#dropzone-previews',
+                        previewTemplate: previewTemplate.innerHTML,
+                        thumbnailHeight: 100,
+                        maxFiles: 1,
+                        autoProcessQueue: false,
+                        addRemoveLinks: true,
+                        dictRemoveFile: '<i class="fa fa-times-circle"></i> Remove',
+                        init: function(){
+                            that = this;
+
+                            this.on('maxfilesreached', function(){
+                                this.removeEventListeners();
+
+                                $('a.dz-remove').on('click', function(){
+                                    $('.h-100').show();
+                                    that.setupEventListeners();
+                                });
+                            });
+
+                            this.on('addedfile', function(){
+                                $('.h-100').hide();
+                                $('#submitNewDocument').removeClass('hidden').on('click', function(e){
+                                    e.preventDefault();
+
+                                    Dropzone.forElement('#dropzone-modal').processQueue();
+                                    $('.dz-hidden-input').prop('disabled', true);
+                                });
+                            });
+
+                            this.on('sending', function(file, xhr, formData){
+                                var elem = $('#dropzone-modal');
+                                var inputList = elem.find('input');
+                                var token = "";
+                                $.each(inputList, function(idx, obj){
+                                    if($(obj).attr('name') == '_token'){
+                                        token = $(obj).val();
+                                    } else if ($(obj).attr('name') == 'file'){
+                                        formData.append('file', file);
+                                    } else {
+                                        formData.append($(obj).attr('name'), $(obj).val());
+                                    }
+                                });
+                                xhr.setRequestHeader('X-CSRF-TOKEN', token);
+                            });
+
+                            this.on('complete', function(file){
+                                var msg;
+                                if(file.status == 'success'){
+                                    $('.dz-remove').hide();
+                                    msg = file.name + ' was uploaded successfully!';
+                                    setMessageContainer(msg, null);
+
+                                    setTimeout(function(){
+
+                                        $('#submitNewDocument').addClass('hidden');
+                                        $('.h-100').show();
+                                        $('#name').val('');
+                                        $('#description').val('');
+                                        that.removeAllFiles(true);
+                                        that.setupEventListeners();
+                                        $('.dz-hidden-input').prop('disabled', false);
+                                    }, 1000);
+
+                                } else if(file.status == 'canceled') {
+
+                                    msg = file.name + ' upload canceled.';
+                                    setMessageContainer(msg, null, 'info');
+                                } else {
+                                    msg = file.name + ' upload failed! Please try again. If the problem persists, please contact your admin.';
+                                    setMessageContainer(msg, null, 'danger');
+                                }
+                            });
+                        }
+                    };
+
+                    $('#dropzone-modal').dropzone();
+                }).on('hidden.bs.modal', function(){
+                    that.destroy();
+                    $('#modal_layout').html('');
+                });
                 remoteModal(data, afterNewDocumentModalShow);
             }
         });
 
         function afterNewDocumentModalShow(){
-            $('#submitNewDocument').on('click', function(e){
-                e.stopImmediatePropagation();
-                $('#document_form').submit();
-                $('#modal_layout').hide();
-            });
         }
 
         $('.list-group-item').hover(function(){

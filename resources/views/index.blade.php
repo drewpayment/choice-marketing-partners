@@ -266,7 +266,15 @@
                 email: form.find('#sender-email').val(),
                 message: form.find('#sender-msg').val()
             }
+        };
+
+        function commaImageError(img){
+
+            img.onerror = '';
+            img.src = '/images/nouserimage.png';
+            return true;
         }
+
     </script>
 
 @endsection

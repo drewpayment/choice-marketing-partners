@@ -20,6 +20,31 @@ body {
   flex-direction: column;
 }
 
+.dropzone-previews {
+  cursor:pointer;
+}
+
+.dropzone-dragfield {
+  background-color: @gray-light;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  -webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.6);
+  -moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.6);
+  box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.6);
+}
+
+.commaClubImg {
+  max-width: 50%;
+  height: auto;
+}
+
+//.dz-max-files-reached {
+//  pointer-events: none;
+//  cursor:default;
+//}
+
 //.site-content{
 //  margin: 60px 0 0 0;
 //  min-height: calc(100vh - 70px);
@@ -57,6 +82,10 @@ ul .dropdown-menu {
 a.unstyled {
   color: #0f0f0f !important;
   cursor: auto;
+}
+
+.overflow-scroll {
+  overflow: scroll;
 }
 
 #scrollToTop{
@@ -125,6 +154,34 @@ a.unstyled {
   }
 }
 
+@media screen and (max-width: 767px){
+  .mobile-hidden{
+    visibility: hidden;
+    clear: both;
+    display: none;
+  }
+
+  .navbar-collapse{
+    &.collapse{
+      ul{
+        li{
+          a{
+            color: #FFF !important;
+          }
+          i{
+            color: #FFF !important;
+          }
+        }
+      }
+    }
+  }
+
+  .icon-bar{
+    background-color: #FFF !important;
+  }
+}
+
+
 // text mutators
 .color-brand{color:@brand-color !important;}
 
@@ -135,6 +192,7 @@ a.unstyled {
 
 // DOM manipulation w/jquery
 .display-none {display: none;}
+.display-inline {display:inline;}
 
 .opac-25 {opacity: .25 !important;}
 .opac-50 {opacity: .5 !important;}
@@ -283,8 +341,18 @@ a.unstyled {
 .wp-90{width:90% !important;}
 .wp-100{width:100% !important;}
 
+
+
+
+
+// height
+.minh-220{min-height:220px !important;}
+
+.maxh-470{max-height:470px !important;}
+
 .h-40{height:40px !important;}
 .h-50{height:50px !important;}
+.h-100{height:100px !important;}
 
 .h-220 {
   height: 220px !important;
@@ -376,6 +444,13 @@ hr.paystub-title-break {
 .input-transparent {
   background: transparent;
   border: 1px dashed @gray-light;
+}
+
+
+.flex-center{
+  display: flex;
+  align-items:center;
+  justify-content:center;
 }
 
 

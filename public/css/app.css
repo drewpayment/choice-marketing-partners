@@ -13,6 +13,24 @@ body {
   -webkit-box-direction: normal;
   flex-direction: column;
 }
+.dropzone-previews {
+  cursor: pointer;
+}
+.dropzone-dragfield {
+  background-color: #ECECEC;
+  display: -webkit-box;
+  display: flex;
+  flex-flow: column;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.6);
+}
+.commaClubImg {
+  max-width: 50%;
+  height: auto;
+}
 .footer {
   color: #FDFDFD;
   background-color: #336699;
@@ -40,6 +58,9 @@ ul .dropdown-menu {
 a.unstyled {
   color: #0f0f0f !important;
   cursor: auto;
+}
+.overflow-scroll {
+  overflow: scroll;
 }
 #scrollToTop {
   display: none;
@@ -102,6 +123,22 @@ a.unstyled {
   background-color: #777;
   color: #132639;
 }
+@media screen and (max-width: 767px) {
+  .mobile-hidden {
+    visibility: hidden;
+    clear: both;
+    display: none;
+  }
+  .navbar-collapse.collapse ul li a {
+    color: #FFF !important;
+  }
+  .navbar-collapse.collapse ul li i {
+    color: #FFF !important;
+  }
+  .icon-bar {
+    background-color: #FFF !important;
+  }
+}
 .color-brand {
   color: #336699 !important;
 }
@@ -110,6 +147,9 @@ a.unstyled {
 }
 .display-none {
   display: none;
+}
+.display-inline {
+  display: inline;
 }
 .opac-25 {
   opacity: .25 !important;
@@ -294,11 +334,20 @@ a.unstyled {
 .wp-100 {
   width: 100% !important;
 }
+.minh-220 {
+  min-height: 220px !important;
+}
+.maxh-470 {
+  max-height: 470px !important;
+}
 .h-40 {
   height: 40px !important;
 }
 .h-50 {
   height: 50px !important;
+}
+.h-100 {
+  height: 100px !important;
 }
 .h-220 {
   height: 220px !important;
@@ -368,6 +417,14 @@ hr.paystub-title-break {
 .input-transparent {
   background: transparent;
   border: 1px dashed #ECECEC;
+}
+.flex-center {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
 }
 .paystub-header {
   border-collapse: separate;

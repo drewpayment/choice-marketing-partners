@@ -2,7 +2,7 @@
 @foreach($documents as $document)
 
     <div class="list-group-item">
-    	<ul class="list-inline list-unstyled">
+    	<ul class="list-inline list-unstyled" style="display:inline;">
     		<li>
 		        <ul class="list-unstyled" data-parent="true" data-parentid="{{$document->id}}">
 					<li>
@@ -32,11 +32,12 @@
 			<li class="pull-right">
 				<ul class="list-unstyled">
 					<li>
-						<h5 class="text-muted">Owner: {{$document->uploaded_by}}</h5>
+
 					</li>
 				</ul>
 		    </li>
     	</ul>
+		<h5 class="text-muted pull-right" style="display:inline;">Owner: {{$document->uploaded_by}}</h5>
     </div>
 
 

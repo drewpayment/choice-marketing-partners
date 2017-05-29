@@ -184,6 +184,7 @@ function wireButtonEvents(wireEvent, container){
  */
 var setMessageContainer = function(message, callback, messageType){
     messageType = (messageType === undefined) ? 'primary' : messageType;
+    messageType = (messageType === 'error') ? 'danger' : messageType;
     var icon = 'fa fa-thumbs-up';
     var isConfirm = false;
     var width = 200;
@@ -192,6 +193,8 @@ var setMessageContainer = function(message, callback, messageType){
         icon = 'fa fa-warning';
         isConfirm = true;
         width = 350;
+    } else if(messageType == 'info'){
+        icon = 'fa fa-info';
     }
 
 
@@ -247,15 +250,15 @@ function cleanArray(data, hot) {
  */
 function remoteModal(html, callback){
     var modal = $('#modal_layout');
+    modal.html(html);
 
-    $.when(modal.html(html)).then(function(){
-        modal.on('hidden.bs.modal', function(){
-            modal.removeData();
-            modal.html('');
-        }).on('shown.bs.modal', function(){
-            if(callback === typeof 'function') callback();
-        }).modal('show');
-    });
+    modal.on('hidden.bs.modal', function(){
+        modal.removeData();
+        modal.html('');
+    }).on('shown.bs.modal', function(){
+        if(callback === typeof 'function') callback.call();
+    }).modal('show');
+
 }
 
 

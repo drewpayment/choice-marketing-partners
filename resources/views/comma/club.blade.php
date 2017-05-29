@@ -9,9 +9,13 @@
         </div>
         <div class="modal-body">
             <p>Want to join the ranks of these professionals? Click Apply Now and send us a message today.</p>
-            <ul class="list-unstyled">
+            <ul class="list-unstyled maxh-470 overflow-scroll">
                 @foreach($agents as $a)
-                    <li><h4>{{$a[0]}} <small>img: {{$a[1]}}</small></h4></li>
+                    <li>
+                        <img src="{{$a[1]}}" class="commaClubImg" data-rotate="{{(!array_key_exists(2, $a)) ? 0 : $a[2]}}" onerror="commaImageError(this)" />
+                        <h4>{{$a[0]}}</h4>
+                    </li>
+                    {{--<li><h4>{{$a[0]}} <small>img: {{$a[1]}}</small></h4></li>--}}
                 @endforeach
             </ul>
         </div>
