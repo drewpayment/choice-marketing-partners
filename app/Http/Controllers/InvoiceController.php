@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\InvoiceHelper;
 use App\Http\Requests;
 use App\Invoice;
 use App\Serivces\DbHelper;
+use Carbon\Carbon;
 use DateTime;
 use DateInterval;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
@@ -16,13 +18,15 @@ use Illuminate\Http\Request;
 class InvoiceController extends Controller
 {
     protected $dbHelper;
+    protected $invoiceHelper;
 
 	/**
-	 * Middleware
+	 * Middleware and helpers wiring
 	 */
-	public function __construct()
+	public function __construct(InvoiceHelper $_invoiceHelper)
 	{
 		$this->middleware('auth');
+		$this->invoiceHelper = $_invoiceHelper;
 	}
 
 
@@ -37,24 +41,11 @@ class InvoiceController extends Controller
 		$emps = collect($emps);
 		$vendors = DB::table('vendors')->get();
 		$wedArr = [];
-		$dt = new DateTime();
 
-		for($i = 0; $i < 3; $i++)
-		{
-			if($i == 0){
-				$dt = strtotime('wednesday');
-				$wedArr[] = date('m-d-Y', $dt);
-			}
-			else if($i == 1)
-			{
-				$dt = strtotime('next wednesday');
-				$wedArr[] = date('m-d-Y', $dt);
-			}
-			else 
-			{
-				$dt = strtotime('+'. $i .' week wednesday');
-				$wedArr[] = date('m-d-Y', $dt);
-			}
+		for($i = 0; $i < 3; $i++){
+			$dt = Carbon::parse('this wednesday');
+			$tmpDt = $dt->addWeek($i);
+			$wedArr[] = $tmpDt->format('m-d-Y');
 		}
 
 
@@ -208,6 +199,10 @@ class InvoiceController extends Controller
 		$expArr = [];
 		$exception = null;
 		$payrollData = [];
+
+		$hasExistingInvoice = $this->invoiceHelper->checkForExistingInvoice($salesInput[0]['agentid'], $salesInput[0]['vendor'], $salesInput[0]['issueDate']);
+
+		if($hasExistingInvoice === true) return response()->json(false);
 
 		if(!is_null($salesInput))
 		{
@@ -588,7 +583,7 @@ class InvoiceController extends Controller
 		          ->orderBy('name', 'asc')
 		          ->get();
 
-		$campaigns = DB::table('vendors')->orderBy('name', 'desc')->get();
+		$campaigns = DB::table('vendors')->orderBy('id', 'asc')->get();
 		$vID = $campaigns->first(function($val, $key){
 			return $val->name == 'Palmco';
 		})->id;
@@ -623,7 +618,7 @@ class InvoiceController extends Controller
 			$name = (!is_null($name)) ? $name->name : null;
 
 			$c = $campaigns->first(function($v, $k) use ($vendorId){
-				return $v->id == $vendorId;
+				return $v->id == 1;
 			});
 			$campaign = $c->name;
 

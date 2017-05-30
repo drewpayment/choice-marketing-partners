@@ -445,9 +445,17 @@ function handleSubmitNewInvoice(data){
 
 
     function afterData(data){
-        if(data){
+
+        if(data) {
             setMessageContainer("Success!");
             resetHOT();
+        } else {
+            var msg = 'Paystub for this date already exists. Please edit instead of creating new invoice.';
+            setMessageContainer(msg, null, 'danger');
+
+            $('[data-ax-toast-btn="ok"]').on('click', function(){
+                 location.reload();
+            });
         }
     }
 
