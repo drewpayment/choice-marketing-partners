@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Blade::directive('datetime', function($expression){
+        	$dt = Carbon::createFromFormat('Y-m-d', $expression)->format('m-d-Y');
+	        return "<?php echo $dt; ?>";
+        });
     }
 
     /**

@@ -513,8 +513,15 @@ function returnInvoiceSearchResults(token){
 }
 
 
-function updateExistingInvoice(newToken){
+function updateExistingInvoice(){
     setCommonUserInfo(true);
+
+    var payrollData = {
+        agentID: currentAgentId,
+        issueDate: currentIssueDt,
+        weekEnding: currentWkEnding,
+        vendor: vendor
+    };
 
     var invoiceData = paystubHot.getData();
     var overrideData = overHot.getData();
@@ -556,24 +563,28 @@ function updateExistingInvoice(newToken){
         }
     });
 
-    $.ajax({
+    var options = {
         url: '/invoices/editExistingInvoice',
         type: 'POST',
         data: {
-            _token: newToken,
             sales: salesList,
             overrides: overList,
-            expenses: expensesList
+            expenses: expensesList,
+            payrollData: payrollData
         },
-        dataType:'JSON'
-    }).done(function(data){
+        afterData: afterData
+    };
 
-        if(data) {
+    fireAjaxRequest(options);
+
+    function afterData(data){
+
+        if(data){
             setMessageContainer("Success!");
             resetHOT();
         }
+    }
 
-    });
 }
 
 

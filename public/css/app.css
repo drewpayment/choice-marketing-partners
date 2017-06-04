@@ -142,6 +142,9 @@ a.unstyled {
 .color-brand {
   color: #336699 !important;
 }
+.color-white {
+  color: #FDFDFD !important;
+}
 .cursor-clickable {
   cursor: pointer;
 }
@@ -481,10 +484,7 @@ hr.paystub-title-break {
   border-top-right-radius: 6px;
   border-bottom-right-radius: 6px;
 }
-.navbar-title-text {
-  color: #FFF !important;
-}
-li .navbar-title-text {
+ul .dropdown-menu li {
   color: #000000 !important;
 }
 .overridesTable {

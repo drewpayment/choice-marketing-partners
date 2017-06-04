@@ -87,7 +87,7 @@
                     @endif
                     @if(Auth::user())
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon ion-grid navbar-title-text"></i> <span class="hidden-sm hidden-md hidden-lg">Menu</span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-th navbar-title-text color-white"></i> <span class="hidden-sm hidden-md color-white">Menu</span></a>
                         <ul class="dropdown-menu">
                             <li>
                                 <a href="{{action('DocumentController@index')}}"><i class="ion ion-android-attach"></i> Documents</a>
@@ -117,12 +117,13 @@
                                     </a>
                                 </li>
                             @endif
+                            <li class="divider"></li>
+                            <li id="logoutLink">
+                                <a href="{{url('/logout')}}">
+                                    <i class="fa icon ion-log-out navbar-title-text"></i> Logout
+                                </a>
+                            </li>
                         </ul>
-                    </li>
-                    <li id="logoutLink">
-                        <a href="{{url('/logout')}}">
-                            <i class="fa icon ion-log-out navbar-title-text"></i> <span class="hidden-sm hidden-md hidden-lg">Logout</span>
-                        </a>
                     </li>
                     @endif
                 </ul>

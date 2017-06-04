@@ -117,7 +117,7 @@ var expHot = new Handsontable(expenseContainer, {
 });
 
 $('#saveInvoiceChanges').on('click', function(){
-    updateExistingInvoice('{{csrf_token()}}');
+    updateExistingInvoice();
 });
 
 </script>

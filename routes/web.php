@@ -46,6 +46,10 @@ Route::get('/paystub/delete/confirm',  function(){
 	return view('invoices.deletemodal');
 });
 Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
+
+// new paystub module (do not implement on production)
+//Route::get('/paystubs', 'InvoiceController@paystubs');
+
 // edit invoices
 Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');
 Route::get('/invoices/show-invoice/{agentID}/{vendorID}/{issueDate}', 'InvoiceController@editInvoice');
