@@ -137,7 +137,9 @@
                 </div>
             </div>
             <div class="col-md-12 text-center">
-                <iframe width="853" height="480" src="https://www.youtube.com/embed/mhQy_QsUz08?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
+                <div class="yt-vid-container">
+                    <iframe class="yt-vid-responsive" src="https://www.youtube.com/embed/mhQy_QsUz08?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
+                </div>
             </div>
         </div>
     </div>
