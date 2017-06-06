@@ -90,6 +90,10 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-th navbar-title-text color-white"></i> <span class="hidden-sm hidden-md color-white">Menu</span></a>
                         <ul class="dropdown-menu">
                             <li>
+                                <a href="{{url('/')}}"><i class="ion ion-ios-home-outline"></i> Home</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
                                 <a href="{{action('DocumentController@index')}}"><i class="ion ion-android-attach"></i> Documents</a>
                             </li>
                             <li>
@@ -173,9 +177,7 @@
     @include('layouts.modal')
     @include('layouts.modal_layout')
 
-    <a id="scrollToTop" href="#"><i class="fa fa-2x fa-arrow-up"></i></a>
-    <div id="scrollHint">Scroll to Top</div>
-    <div class="cursor-clickable" id="show-all" style="display:none;">Show All</div>
+    <a id="scrollToTop" href="#"><i class="fa fa-3x fa-chevron-circle-up"></i></a>
 
     <!-- JavaScripts -->
     {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>--}}
@@ -219,11 +221,7 @@
                 }
             });
 
-            $('#scrollToTop').hover(function(){
-                $('#scrollHint').fadeIn();
-            }, function(){
-                $('#scrollHint').fadeOut();
-            }).on('click', function(){
+            $('#scrollToTop').on('click', function(){
                 $('html, body').animate({
                     scrollTop: 0
                 }, 500);

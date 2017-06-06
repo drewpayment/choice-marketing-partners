@@ -10,10 +10,13 @@
     {{--</div>--}}
 {{--</div>--}}
 
-<div class="row">
+<div class="row pt-0">
     <div class="col-md-12">
         <div class="row">
-            <div class="col-xs-10 col-xs-offset-1">
+            <div class="col-xs-1">
+                <i class="fa fa-3x fa-plus-circle cursor-clickable pull-right" id="show-all" style="display:none;"></i>
+            </div>
+            <div class="col-xs-10">
                 <div class="box box-default b-all p-1 opac-75">
                     <div class="box-content">
                         <ul class="nav nav-pills nav-justified" id="pill_menu">
@@ -133,6 +136,9 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-12 text-center">
+                <iframe width="853" height="480" src="https://www.youtube.com/embed/mhQy_QsUz08?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
+            </div>
         </div>
     </div>
 </section>
@@ -219,7 +225,7 @@
             } else {
                 $('#show-all').fadeIn();
             }
-        }
+        };
 
         $('#modal').on('hidden.bs.modal', function(){
             $('#modal').removeData();
