@@ -24,7 +24,7 @@
 
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
     <link rel="stylesheet" href="{{url('css/user.css')}}">
-    <link rel="stylesheet" href="{{url('css/all.css')}}">
+    <link rel="stylesheet" href="{{elixir('css/all.css')}}">
     {{-- Sandy Walker/WebUI-Popover --}}
     {{-- How do I only use local as backup? --}}
     {{--<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">--}}
@@ -184,7 +184,7 @@
     <script src="{{url('js/bootstrap.min.js')}}"></script>
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
-    <script src="{{ url('js/all.js') }}"></script>
+    <script src="{{ elixir('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
     {{-- Sandy Walker WebUI Popover --}}

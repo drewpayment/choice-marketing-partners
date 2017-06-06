@@ -36,5 +36,7 @@ elixir(function(mix) {
         'upload.js',
         'custom.js',
         'dashboard.js'
-	])
+	]);
+
+    mix.version(['js/all.js', 'css/all.css']);
 });
