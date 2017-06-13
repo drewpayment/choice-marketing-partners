@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Employee;
 use App\Http\Requests\EmployeeRequest;
+use App\User;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -78,23 +79,28 @@ class EmpManagerController extends Controller
     {
     	$data = $request["data"];
     	$emp = new Employee();
-    	$emp->name = $data["name"];
-		$emp->email = $data["email"];
-		$emp->phone_no = $data["phone"];
-		$emp->address = $data["address"];
-		$emp->is_active = ($data["isactive"]) ? 1 : 0;
 
-    	$empTable = $emp->save();
-    	$id = Employee::where('name', $data["name"])->first()->id;
-
+	    $isActive = ($data['isactive']) ? 1 : 0;
+		$empResult = $emp->create([
+			'name' => $data['name'],
+			'email' => $data['email'],
+			'phone_no' => $data['phone'],
+			'address' => $data['address'],
+			'is_active' => $isActive
+		]);
     	$password = password_hash('Password1', PASSWORD_BCRYPT);
 
-    	$userId = DB::table('users')->insertGetId(
-		    ['id' => $id, 'name' => $data["name"], 'email' => $data["email"], 'password' => $password, 'created_at' => date('Ymd'), 'updated_at' => date('Ymd')]
-	    );
+    	if($empResult->id > 0)
+	    {
+		    $user = new User();
+		    $userResult = $user->create([
+			    'id' => $empResult->id,
+			    'name' => $data['name'],
+			    'email' => $data['email'],
+			    'password' => $password
+		    ]);
 
-    	if($empTable == true && $userId > 0){
-    		$result = true;
+		    $result = ($empResult->id > 0 && $userResult->id > 0);
 	    } else {
     		$result = false;
 	    }

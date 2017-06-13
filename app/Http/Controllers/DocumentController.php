@@ -71,6 +71,7 @@ class DocumentController extends Controller
 
 
 	/**
+	 * ROUTE: /UploadDocument
 	 * upload file and store document info
 	 *
 	 * @param Request $request
@@ -78,7 +79,7 @@ class DocumentController extends Controller
 	 */
 	public function store(Request $request)
 	{
-		// we don't use request class for ajax calls
+
 		if($request->hasFile('file')){
 			$timestamp = $this->getFormattedTimestamp();
 
@@ -102,6 +103,7 @@ class DocumentController extends Controller
 				return response()->json('error', 400);
 			}
 		}
+
 	}
 
 

@@ -85,7 +85,8 @@ Route::get('/documents', 'DocumentController@index');
 Route::post('/sendmodal', 'DocumentController@sendMessage');
 Route::get('/getDocuments', 'DocumentController@getDocumentsViaAjax');
 Route::post('/postNewDocument', 'DocumentController@postNewDocument');
-Route::post('UploadDocument', 'DocumentController@store');
+// upload documents
+Route::post('/UploadDocument', 'DocumentController@store');
 Route::get('download/{filename}', 'DocumentController@download');
 Route::get('delete/{id}/{filename}', 'DocumentController@delete');
 Route::post('/uploadFile', 'DocumentController@uploadFile');

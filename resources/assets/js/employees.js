@@ -91,6 +91,7 @@ function handleSubmitNewEmployee(data, onlyActive){
 
 	function afterData(data) {
         $('#modal_layout').modal('hide');
+        console.dir(data);
         setMessageContainer("The employee was successfully added!");
         refreshEmployeesAfterControl(onlyActive);
     }
