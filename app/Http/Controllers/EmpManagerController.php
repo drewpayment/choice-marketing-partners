@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 
 class EmpManagerController extends Controller
@@ -77,6 +78,22 @@ class EmpManagerController extends Controller
 
     public function handleAddNewEmployee(Request $request)
     {
+    	$rules = [
+		    'data.name' => 'required',
+		    'data.email' => 'required|email',
+		    'data.phone' => 'required|digits:10',
+		    'data.address' => 'required'
+	    ];
+    	$messages = [
+    	    'data.name.required' => "The 'name' field is required.",
+		    'data.email.required' => "The 'email' field is required.",
+		    'data.email.email' => "The 'email' must be a valid email address.",
+		    'data.phone.required' => "The 'phone number' field is required.",
+		    'data.address.required' => "The 'address' field is required.",
+		    'data.phone.digits' => "The 'phone number' must be 10-digits."
+	    ];
+    	$validator = Validator::make($request->all(), $rules, $messages)->validate();
+
     	$data = $request["data"];
     	$emp = new Employee();
 

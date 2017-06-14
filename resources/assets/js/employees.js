@@ -84,17 +84,35 @@ function handleSubmitNewEmployee(data, onlyActive){
 			data: data
 		},
 		dataType: 'HTML',
-		afterData: afterData
+		afterData: afterData,
+		errorData: errorData
 	};
 
 	fireAjaxRequest(options);
 
-	function afterData(data) {
+	function afterData() {
+
         $('#modal_layout').modal('hide');
-        console.dir(data);
         setMessageContainer("The employee was successfully added!");
         refreshEmployeesAfterControl(onlyActive);
+
     }
+
+    function errorData(xhr){
+        var responseText = JSON.parse(xhr.responseText);
+        var responseKeys = Object.keys(responseText);
+
+        var responseMsg = "";
+        for(var i = 0; i < responseKeys.length; i++){
+            var d = responseKeys[i];
+            var text = responseText[d];
+
+            responseMsg += text + '<br/>';
+        }
+
+        setMessageContainer(responseMsg, null, 'danger');
+
+	}
 }
 
 

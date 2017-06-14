@@ -291,7 +291,7 @@ function fireAjaxRequest(options){
         data: (options.data === undefined) ? {} : options.data,
         dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
         success: (options.afterData === undefined) ? ajaxSuccessHandler : options.afterData,
-        error: ajaxErrorHandler
+        error: (options.errorData === undefined) ? ajaxErrorHandler : options.errorData
     };
 
     $.ajax(settings);
