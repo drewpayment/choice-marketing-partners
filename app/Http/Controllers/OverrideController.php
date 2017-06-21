@@ -39,7 +39,7 @@ class OverrideController extends Controller
 	 */
 	public function overrides()
 	{
-		$managers = Employee::has('permissions')->get();
+		$managers = Employee::where('is_mgr', 1)->get();
 
 		return view('overrides.overrides', ['managers' => $managers]);
 	}
