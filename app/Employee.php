@@ -3,13 +3,9 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Sofa\Eloquence\Eloquence;
-use Sofa\Eloquence\Mappable;
 
 class Employee extends Model
 {
-
-	use Eloquence, Mappable;
 
 	protected $maps = [
 		'phone' => 'phone_no'

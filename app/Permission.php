@@ -3,8 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Sofa\Eloquence\Eloquence;
-use Sofa\Eloquence\Mappable;
 
 class Permission extends Model
 {
