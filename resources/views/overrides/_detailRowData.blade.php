@@ -14,3 +14,10 @@
         </td>
     </tr>
 @endforeach
+@if(count($children) == 0)
+
+    <tr>
+        <td colspan="2" class="text-center"><i class="fa fa-frown-o fa-2x"></i> <h3 class="display-inline">No Results</h3></td>
+    </tr>
+
+@endif
