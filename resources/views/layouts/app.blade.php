@@ -111,6 +111,9 @@
                                     <a href="{{url('/dashboards/dashboard')}}"><i class="ion ion-planet"></i> Admin</a>
                                 </li>
                                 <li>
+                                    <a href="{{url('/overrides')}}"><i class="ion ion-ios-settings"></i> Overrides</a>
+                                </li>
+                                <li>
                                     <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
                                         <i class="ion ion-clipboard"></i> Payroll Tracking
                                     </a>
@@ -203,6 +206,8 @@
     <script src="{{url('assets/jscrollpane/jquery.jscrollpane.js')}}"></script>
     {{--jquery scroll to plugin--}}
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
+    {{-- http://selectize.github.io/selectize.js/ --}}
+    <script src="{{url('/js/selectize.js')}}"></script>
     <script type="text/javascript">
         // opt-in to bootstrap tooltips
         $(function () {

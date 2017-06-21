@@ -178,6 +178,7 @@ $results = [
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
 	    Conner\Tagging\Providers\TaggingServiceProvider::class,
+	    Sofa\Eloquence\ServiceProvider::class,
 
 
     ],

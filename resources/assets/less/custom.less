@@ -172,6 +172,8 @@ a.unstyled {
 .display-none {display: none;}
 .display-inline {display:inline;}
 
+.baseline-align{vertical-align:baseline;}
+
 .opac-25 {opacity: .25 !important;}
 .opac-50 {opacity: .5 !important;}
 .opac-75 {opacity: .75 !important;}
@@ -333,6 +335,7 @@ a.unstyled {
 
 .maxh-470{max-height:470px !important;}
 
+.h-20{height:20px !important;}
 .h-40{height:40px !important;}
 .h-50{height:50px !important;}
 .h-100{height:100px !important;}
@@ -379,8 +382,9 @@ a.unstyled {
 
 // borders
 
-.b-all {border: 1px solid @gray;}
-.b-l-1{ border-left: 1px solid @gray-light; }
+.b-all{border: 1px solid @gray;}
+.b-l-1{border-left:1px solid @gray-light;}
+.b-r-1{border-right:1 px solid @gray-light;}
 
 
 .br-5{border-radius:5px !important;}
@@ -637,4 +641,18 @@ ul .dropdown-menu{
   max-width: 853px;
   width: 100%;
   height: 100%;
+}
+
+
+
+.label {
+  display: inline;
+  padding: .2em .6em .3em;
+  font-weight: bold;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
 }

@@ -48,7 +48,6 @@
 @section('scripts')
 
     <script src="{{url('/js/dropzone.js')}}"></script>
-    <script src="{{url('/js/selectize.js')}}"></script>
     <script>
         // disable autodiscover
         Dropzone.autoDiscover = false;
