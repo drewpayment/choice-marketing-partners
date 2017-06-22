@@ -10,7 +10,7 @@
             <p><strong>Agent Name:</strong> {{$agent->name}}</p>
         </div>
         <div class="modal-footer" data-parent="true" data-parentid="{{$agent->id}}">
-            <button type="button" class="btn btn-primary" id="confirm-submit">Submit</button>
+            <button type="button" class="btn btn-danger" id="confirm-submit">Delete</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         </div>
     </div><!-- /.modal-content -->
