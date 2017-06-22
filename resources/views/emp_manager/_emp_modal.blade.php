@@ -21,13 +21,16 @@
 	    		<input type="number" class="form-control" id="emp_phone" name="emp_phone" value="{{ $emp[0]->phone_no }}" placeholder="Phone Number">
 	    	</div>
 	    	<div class="form-group">
-	    		<label for="emp_active">
-					Active <input type="checkbox" class="form-control" id="emp_active" name="emp_active" @if($emp[0]->is_active == 1) checked @endif />
-				</label>
-	    		{{--@if($emp[0]->is_active == 1)--}}
-    			{{--@else--}}
-					{{--<input type="checkbox" class="form-control" id="emp_active" name="emp_active">--}}
-				{{--@endif--}}
+				<ul class="list-inline">
+					<li>
+						<label for="emp_active">Active</label>
+						<input type="checkbox" class="form-control" id="emp_active" name="emp_active" @if($emp[0]->is_active == 1) checked @endif />
+					</li>
+					<li>
+						<label for="is_mgr">Manager</label>
+						<input type="checkbox" class="form-control" id="is_mgr" name="is_mgr" @if($emp[0]->is_mgr == 1) checked @endif />
+					</li>
+				</ul>
     		</div>
     		<div class="form-group">
 				<label for="emp_address">Address</label>

@@ -40,7 +40,7 @@ function handleEmployeeChangesSubmission(data){
     var emp = setEmployeeUpdateObj(data.id);
 	for(var i = 0; i < props.length; i++){
 		var p = props[i];
-		if(p !== "isactive"){
+		if(p !== "isactive" && p !== "ismgr"){
             if(data[p] === null || data[p] === undefined || data[p] == ""){
                 delete data[p];
             }
@@ -49,6 +49,7 @@ function handleEmployeeChangesSubmission(data){
 
 	emp.id = data.id;
     emp.is_active = (data.isactive) ? 1 : 0;
+    emp.is_mgr = (data.ismgr) ? 1 : 0;
     if(data.name !== undefined) emp.name = data.name;
 	if(data.email !== undefined) emp.email = data.email;
 	if(data.phone !== undefined) emp.phone_no = data.phone;

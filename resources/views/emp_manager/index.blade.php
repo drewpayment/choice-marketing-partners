@@ -89,7 +89,8 @@
             email: $('#emp_email').val(),
             phone: $('#emp_phone').val(),
             address: $('#emp_address').val(),
-            isactive: $('#emp_active').prop('checked')
+            isactive: $('#emp_active').prop('checked'),
+            ismgr: $('#is_mgr').prop('checked')
         };
 
         handleEmployeeChangesSubmission(data);

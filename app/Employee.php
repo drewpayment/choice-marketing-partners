@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Employee extends Model
 {
 
-	protected $maps = [
-		'phone' => 'phone_no'
-	];
-
 
 	/**
 	 * table that model references
@@ -26,7 +22,7 @@ class Employee extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-		'name', 'address', 'phone_no', 'email', 'is_active', 'sales_id1', 'sales_id2', 'sales_id3'
+		'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3'
 	];
 
 
