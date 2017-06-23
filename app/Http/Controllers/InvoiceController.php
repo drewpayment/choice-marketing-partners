@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Employee;
 use App\Helpers\InvoiceHelper;
 use App\Services\DbHelper;
 use Carbon\Carbon;
@@ -328,74 +329,17 @@ class InvoiceController extends Controller
 
 	public function historical()
 	{
-		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$thisUser = Employee::where('id', Auth::user()->id)->first();
+
+		$result = $this->invoiceHelper->getPaystubEmployeeListByLoggedInUser($thisUser);
 		$admin = $thisUser->is_admin;
-		$noSalaryEmps = DB::table('employees')->whereIn('name', ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'])->get();
-		if($admin == 1)
-		{
-			$result = DB::table('employees')->where('is_active', 1)->get();
-			$result = $result->sortBy('name')->toArray();
 
-			foreach($noSalaryEmps as $e){
-				$result = $this->unsetValue($result, $e->name);
-			}
-
-			$result = collect($result);
-		}
-		else
-		{
-			$list = DB::table('permissions')->where('emp_id', $thisUser->id)->first();
-			if(count($list) > 0){
-				$list = explode('|', $list->roll_up);
-				$emps = DB::table('employees')->get();
-				$emps = $emps->sortBy('name');
-				$result = [];
-				foreach($list as $val)
-				{
-					array_push($result, $this->findObjectById($val, $emps));
-				}
-				$result = collect($result);
-			} else {
-				$result = [];
-				$me = DB::table('employees')
-						->where('id', $thisUser->id)->get();
-				array_push($result, $this->findObjectById($thisUser->id, $me));
-				$result = collect($result);
-			}
-		}
 		$hidden = ($admin == 1) ? "" : "hidden";
 		$isAdmin = ($admin == 1) ? true : false;
 
 		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser, 'hidden' => $hidden, 'isAdmin' => $isAdmin]);
 	}
 
-
-	private function unsetValue(array $array, $value)
-	{
-		foreach($array as $elementKey => $element){
-			foreach($element as $eKey => $eVal){
-				if($eKey == 'name' && $eVal == $value){
-					unset($array[$elementKey]);
-				}
-			}
-		}
-
-		return $array;
-	}
-
-
-	private function findObjectById($id, $array)
-	{
-		foreach($array as $a)
-		{
-			if($id == $a->id)
-			{
-				return $a;
-			}
-		}
-
-		return false;
-	}
 
 
 	public function returnIssueDates(Request $request)
@@ -743,4 +687,19 @@ class InvoiceController extends Controller
 
 		return view('paystubs.paystubs', ['isAdmin' => $isAdmin, 'emps' => $emps, 'paystubs' => $paystubs, 'agents' => $agents]);
 	}
+
+
+	private function unsetValue(array $array, $value)
+	{
+		foreach($array as $elementKey => $element){
+			foreach($element as $eKey => $eVal){
+				if($eKey == 'name' && $eVal == $value){
+					unset($array[$elementKey]);
+				}
+			}
+		}
+
+		return $array;
+	}
+
 }

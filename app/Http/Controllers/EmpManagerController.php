@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Employee;
 use App\Http\Requests\EmployeeRequest;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -122,6 +123,17 @@ class EmpManagerController extends Controller
 	    } else {
     		$result = false;
 	    }
+
+
+	    /*
+	     * if new employee was added successfully
+	     * add employee's id to permissions table in db so they can roll to manager
+	     */
+	    if($result)
+	    {
+		    DB::table('permissions')->insert(['emp_id' => $empResult->id, 'is_active' => 1, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+	    }
+
 
     	return response()->json($result);
     }
