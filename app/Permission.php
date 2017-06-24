@@ -35,4 +35,17 @@ class Permission extends Model
 		return $this->belongsToMany(Employee::class, 'employee_permission', 'employee_id', 'permission_id');
 	}
 
+
+	/**
+	 * scope query to filter by employee id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeEmpId($query, $id)
+	{
+		return $query->where('emp_id', $id);
+	}
+
 }

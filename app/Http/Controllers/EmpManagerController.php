@@ -97,6 +97,11 @@ class EmpManagerController extends Controller
     	$validator = Validator::make($request->all(), $rules, $messages)->validate();
 
     	$data = $request["data"];
+
+    	// check if an employee w/the same name already exists
+    	$existing = Employee::where('name', $data['name'])->get();
+    	if(count($existing) > 0) return false;
+
     	$emp = new Employee();
 
 	    $isActive = ($data['isactive']) ? 1 : 0;
@@ -179,11 +184,19 @@ class EmpManagerController extends Controller
 	        }
         }
 
+
         try {
+	        DB::beginTransaction();
 	        DB::table('employees')
 	          ->where('id', $data['id'])
 	          ->update($emp->toArray());
+
+	        DB::table('permissions')
+		        ->where('emp_id', $data['id'])
+		        ->update(['is_active' => $emp->is_active]);
+	        DB::commit();
         } catch(\mysqli_sql_exception $e){
+        	DB::rollback();
             return response()->json(false);
         }
 
@@ -208,12 +221,9 @@ class EmpManagerController extends Controller
 		$isactive = $request['showall'];
 
 		if($isactive == 0){
-			$emps = DB::table('employees')->get();
+			$emps = Employee::all()->sortBy('name');
 		} else {
-			$emps = DB::table('employees')
-			          ->where('is_active', '=', 1)
-				      ->orderBy('name', 'asc')
-			          ->get();
+			$emps = Employee::active()->orderByName()->get();
 		}
 
 		return view('emp_manager._emp', ['employees' => $emps]);
@@ -227,12 +237,9 @@ class EmpManagerController extends Controller
 		$showall = ($showall == 'true') ? 0 : 1;
 
 		if($showall == 0){
-			$emps = DB::table('employees')->get();
+			$emps = Employee::all()->sortBy('name');
 		} else {
-			$emps = DB::table('employees')
-			          ->where('is_active', '=', 1)
-			          ->orderBy('name', 'asc')
-			          ->get();
+			$emps = Employee::active()->orderByName()->get();
 		}
 
 		return view('emp_manager._emp', ['employees' => $emps]);

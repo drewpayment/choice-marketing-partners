@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
+use App\Expense;
 use App\Helpers\InvoiceHelper;
+use App\Invoice;
+use App\Override;
+use App\Permission;
 use App\Services\DbHelper;
+use App\Vendor;
 use Carbon\Carbon;
 use DateTime;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
@@ -30,14 +35,8 @@ class InvoiceController extends Controller
 
 	public function index()
 	{
-		$noSalaryEmps = ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'];
-		$emps = DB::table('employees')->where('is_active', 1)->get();
-		$emps = $emps->sortBy('name')->toArray();
-		foreach($noSalaryEmps as $e){
-			$emps = $this->unsetValue($emps, $e);
-		}
-		$emps = collect($emps);
-		$vendors = DB::table('vendors')->get();
+		$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
+		$vendors = Vendor::all();
 		$wedArr = [];
 
 		for($i = 0; $i < 3; $i++){
@@ -157,7 +156,6 @@ class InvoiceController extends Controller
 		} catch(\Exception $e) {
 			DB::rollback();
 
-			echo $e;
 			return response()->json([false, $e]);
 		}
 
@@ -301,25 +299,17 @@ class InvoiceController extends Controller
 		$date = date_create_from_format('m-d-Y', $date);
 		$date = $date->format('Y-m-d');
 
+		DB::beginTransaction();
 		try{
-			DB::table('invoices')->where([
-				['agentid', '=', $id],
-				['issue_date', '=', $date]
-			])->delete();
+			Invoice::agentId($id)->issueDate($date)->delete();
+			Expense::agentId($id)->issueDate($date)->delete();
+			Override::agentId($id)->issueDate($date)->delete();
 
-			DB::table('expenses')->where([
-				['agentid', '=', $id],
-				['issue_date', '=', $date]
-			])->delete();
-
-			DB::table('overrides')->where([
-				['agentid', '=', $id],
-				['issue_date', '=', $date]
-			])->delete();
-
+			DB::commit();
 			$result = true;
 		} catch (MysqliException $e)
 		{
+			DB::rollback();
 			$result = false;
 		}
 
@@ -329,49 +319,46 @@ class InvoiceController extends Controller
 
 	public function historical()
 	{
-		$thisUser = Employee::where('id', Auth::user()->id)->first();
+		$thisUser = Employee::find(Auth::user()->id);
 
 		$result = $this->invoiceHelper->getPaystubEmployeeListByLoggedInUser($thisUser);
 		$admin = $thisUser->is_admin;
 
 		$hidden = ($admin == 1) ? "" : "hidden";
-		$isAdmin = ($admin == 1) ? true : false;
+		$isAdmin = ($admin == 1);
 
-		return view('invoices.historical', ['emps' => $result, 'self' => $thisUser, 'hidden' => $hidden, 'isAdmin' => $isAdmin]);
+		return view('invoices.historical',
+			['emps' => $result, 'self' => $thisUser, 'hidden' => $hidden, 'isAdmin' => $isAdmin]);
 	}
 
 
 
 	public function returnIssueDates(Request $request)
 	{
-		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
-		$admin = ($thisUser->is_admin == 1) ? true : false;
+		$thisUser = Employee::find(Auth::user()->id);
+		$admin = ($thisUser->is_admin == 1);
 		$id = $request->id;
 		$dates = [];
-		$list = DB::table('invoices')
-						->select('issue_date')
-						->where('agentid', '=', $id)
-						->groupBy('issue_date')
-						->orderBy('issue_date', 'desc')
-						->get();
+		$list = Invoice::agentId($id)->latest('issue_date')->get()->unique('issue_date');
 
 		foreach($list as $dt)
 		{
+			$date = $dt->issue_date;
 			$today = strtotime('today');
 			$nextMon = strtotime('next wednesday 20:00 -1 day');
-			$issueDt = strtotime($dt->issue_date);
+			$issueDt = strtotime($date);
 
 			if($admin){
-				$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+				$dates[] = date('m-d-Y', strtotime($date));
 			} else {
 				if($issueDt > $today){
 					if($today > $nextMon){
-						$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+						$dates[] = date('m-d-Y', strtotime($date));
 					} else {
 						continue;
 					}
 				} else {
-					$dates[] = date('m-d-Y', strtotime($dt->issue_date));
+					$dates[] = date('m-d-Y', strtotime($date));
 				}
 			}
 
@@ -390,24 +377,10 @@ class InvoiceController extends Controller
 		$gross = 0;
 		$invoiceDt = strtotime($date);
 		$invoiceDt = date('m-d-Y', $invoiceDt);
-		$stubs = DB::table('invoices')
-						->where([
-							['issue_date', '=', $date],
-							['agentid', '=', $agentId],
-							['vendor', '=', 1]
-						])->get();
-
-		$emp = DB::table('employees')
-						->select('*')
-						->where('id', '=', $agentId)
-						->first();
-
+		$stubs = Invoice::agentId($agentId)->issueDate($date)->get();
+		$emp = Employee::find($agentId);
 		$vendorId = $stubs->first()->vendor;
-		$vendorName = DB::table('vendors')
-						->select('name')
-						->where('id', '=', $vendorId)
-						->first();
-		$vendorName = $vendorName->name;
+		$vendorName = DB::table('vendors')->where('id', $vendorId)->first()->name;
 
 		foreach($stubs as $s)
 		{
@@ -420,18 +393,8 @@ class InvoiceController extends Controller
 			$s->sale_date = date('m-d-Y', $s->sale_date);
 		}
 
-		$overrides = DB::table('overrides')
-							->select('*')
-							->where([
-								['agentid', '=', $agentId],
-								['issue_date', '=', $date]
-							])->get();
-
-		$expenses = DB::table('expenses')
-							->select('*')
-							->where('agentid', '=', $agentId)
-							->where('issue_date', '=', $date)
-							->get();
+		$overrides = Override::agentId($agentId)->issueDate($date)->get();
+		$expenses = Expense::agentId($agentId)->issueDate($date)->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
@@ -446,7 +409,16 @@ class InvoiceController extends Controller
 		$gross = array_sum([$gross, $ovrGross, $expGross]);
 
 
-		return view('invoices.paystub', ['stubs' => $stubs, 'emp' => $emp, 'gross' => $gross, 'invoiceDt' => $invoiceDt, 'vendor' => $vendorName, 'overrides' => $overrides, 'expenses' => $expenses, 'ovrgross' => $ovrGross, 'expgross' => $expGross]);
+		return view('invoices.paystub',
+			['stubs' => $stubs,
+			 'emp' => $emp,
+			 'gross' => $gross,
+			 'invoiceDt' => $invoiceDt,
+			 'vendor' => $vendorName,
+			 'overrides' => $overrides,
+			 'expenses' => $expenses,
+			 'ovrgross' => $ovrGross,
+			 'expgross' => $expGross]);
 	}
 
 
@@ -458,26 +430,13 @@ class InvoiceController extends Controller
 
 	public function searchInvoices()
 	{
-		$emps = DB::table('employees')
-		          ->where('is_active', 1)
-		          ->orderBy('name', 'asc')
-		          ->get();
+		$emps = Employee::active()->orderByName()->get();
+		$campaigns = Vendor::all()->sortBy('id');
+		$vID = Vendor::find(1)->id; // palmco
 
-		$campaigns = DB::table('vendors')->orderBy('id', 'asc')->get();
-		$vID = $campaigns->first(function($val, $key){
-			return $val->name == 'Palmco';
-		})->id;
-
-		$dates = DB::table('invoices')
-					->where('vendor', $vID)
-					->get(['issue_date'])
-					->unique()
-					->values()
-					->all();
+		$dates = Invoice::vendorId($vID)->get(['issue_date'])->unique()->values()->all();
 		$dates = collect($dates)->sortByDesc('issue_date');
-
-		$invoiceList = DB::table('invoices')->get();
-		$invoiceList = $invoiceList->groupBy('issue_date')->all();
+		$invoiceList = Invoice::all()->groupBy('issue_date')->all();
 
 		$invoices = [];
 		$count = 0;
@@ -510,7 +469,11 @@ class InvoiceController extends Controller
 		}
 
 
-		return view('invoices.search', ['employees' => $emps, 'campaigns' => $campaigns, 'dates' => $dates, 'invoices' => $invoices]);
+		return view('invoices.search',
+			['employees' => $emps,
+			 'campaigns' => $campaigns,
+			 'dates' => $dates,
+			 'invoices' => $invoices]);
 	}
 
 
@@ -521,14 +484,10 @@ class InvoiceController extends Controller
 		$aID = $inputParams['agentid'];
 		$date = $inputParams['issue_date'];
 		// find invoice by id and then return filled out handsontable
-		$data = DB::table('invoices')->where([
-			['vendor', '=', $vID],
-			['issue_date', '=', $date],
-			['agentid', '=', $aID]
-		])->get();
+		$data = Invoice::vendorId($vID)->issueDate($date)->agentId($aID)->get();
 
-		$employees = DB::table('employees')->get();
-		$vendors = DB::table('vendors')->get();
+		$employees = Employee::all();
+		$vendors = Vendor::all();
 		$result = [];
 
 		foreach($data as $d)
@@ -555,30 +514,11 @@ class InvoiceController extends Controller
 
 	public function editInvoice($agentID, $vendorID, $issueDate)
 	{
-		$invoices = DB::table('invoices')
-						->where([
-							['agentid', '=', $agentID],
-							['vendor', '=', $vendorID],
-							['issue_date', '=', $issueDate]
-						])->get();
-
-		$overrides = DB::table('overrides')
-						->where([
-							['agentid', '=', $agentID],
-							['issue_date', '=', $issueDate]
-						])->get();
-
-		$expenses = DB::table('expenses')
-						->where([
-							['agentid', '=', $agentID],
-							['issue_date', '=', $issueDate]
-						])->get();
-
-		$employee = DB::table('employees')
-						->where('id', '=', $invoices->first()->agentid)->first();
-
-		$campaign = DB::table('vendors')
-						->where('id', '=', $invoices->first()->vendor)->first();
+		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
+		$overrides = Override::agentId($agentID)->issueDate($issueDate)->get();
+		$expenses = Expense::agentId($agentID)->issueDate($issueDate)->get();
+		$employee = Employee::find($invoices->first()->agentid);
+		$campaign = Vendor::find($invoices->first()->vendor);
 
 		$invoices = $invoices->transform(function($v, $k){
 			$date = new DateTime($v->sale_date);
@@ -596,7 +536,15 @@ class InvoiceController extends Controller
 		$overrides = json_encode($overrides);
 		$expenses = json_encode($expenses);
 
-		return view('invoices.edit', ['invoices' => $invoices, 'employee' => $employee, 'campaign' => $campaign, 'overrides' => $overrides, 'expenses' => $expenses, 'issueDate' => $issueDate, 'weekEnding' => $weekEnding, 'invoiceDate' => $invoiceDate]);
+		return view('invoices.edit',
+			['invoices' => $invoices,
+			 'employee' => $employee,
+			 'campaign' => $campaign,
+			 'overrides' => $overrides,
+			 'expenses' => $expenses,
+			 'issueDate' => $issueDate,
+			 'weekEnding' => $weekEnding,
+			 'invoiceDate' => $invoiceDate]);
 	}
 
 
@@ -606,86 +554,84 @@ class InvoiceController extends Controller
 	 */
 	public function paystubs()
 	{
-		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
+		$thisUser = Employee::find(Auth::user()->id)->first();
 		$admin = $thisUser->is_admin;
-		$noSalaryEmps = DB::table('employees')->whereIn('name', ['Chris Payment', 'Terri Payment', 'Drew Payment', 'Bret Payment'])->get();
 
-		$isAdmin = ($admin == 1) ? true : false;
+		$isAdmin = ($admin == 1);
 		$vendor = 1; // explicitly set to Palmco
 
 		if($isAdmin){
-			$emps = DB::table('employees')->where('is_active', 1)->get();
-			$emps = $emps->sortBy('name')->toArray();
-
-			foreach($noSalaryEmps as $e){
-				$emps = $this->unsetValue($emps, $e->name);
+			$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
+			//$paystubs = Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->get()->unique('issue_date');
+			$paystubs = [];
+			foreach(Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->cursor() as $invoice)
+			{
+				$test = Employee::find($invoice->agentid);
+				if($test->is_active == 1 && $this->findValueInObjectArrayByType($test->id, $paystubs, 'agentid')) {
+					array_push($paystubs, $invoice);
+				}
 			}
-
-			$emps = collect($emps);
-
-			$paystubs = DB::table('invoices')
-			              ->where('vendor', '=', $vendor)
-			              ->groupBy('issue_date')
-			              ->orderBy([
-				              ['issue_date', 'desc'],
-				              ['agentid', 'desc']
-			              ])->get();
+			collect($paystubs)->unique('issue_date');
 		} else {
-			$list = DB::table('permissions')->where('emp_id', $thisUser->id)->first();
+			$list = Permission::empId($thisUser->id)->first();
 
 			// not admin, but has agents roll to them
 			if(count($list) > 0){
 				$list = explode('|', $list->roll_up);
-				$emps = DB::table('employees')->get();
-				$emps = $emps->sortBy('name');
-				$emps = [];
+				$emps = Employee::all()->sortBy('name');
+				$empsResult = [];
 				foreach($list as $val)
 				{
-					array_push($emps, $this->findObjectById($val, $emps));
+					array_push($empsResult, $this->findObjectById($val, $emps));
 				}
-				$emps = collect($emps);
+				$empsResult = collect($empsResult);
 
 				$eIdList = [];
-				foreach($emps as $e)
+				foreach($empsResult as $e)
 				{
 					$eIdList[] = $e->agentid;
 				}
 
-				$paystubs = DB::table('invoices')
-								->where(function($query) use ($vendor, $eIdList){
-									$query->where('vendor', '=', $vendor)
-										->whereIn('agentid', $eIdList);
-								})
-								->groupBy('issue_date')
-								->orderBy([
-									['issue_date', 'desc'],
-									['agentid', 'desc']
-								])->get();
+				$paystubs = [];
+				foreach(Invoice::vendorId($vendor)->agentId($thisUser->id)
+				               ->groupBy('issue_date')
+				               ->orderBy([
+					               ['issue_date', 'desc'],
+					               ['agentid', 'desc']
+				               ])->cursor() as $invoice) {
+					$test = Employee::find($invoice->agentid);
+
+					if($test->is_active == 1) $paystubs[] = $invoice;
+				}
+				collect($paystubs);
 			} else { // agent w/no roll up employees
 				$emps = [];
-				$me = DB::table('employees')
-				        ->where('id', $thisUser->id)->get();
+				$me = Employee::find($thisUser->id);
 				array_push($emps, $this->findObjectById($thisUser->id, $me));
 				$emps = collect($emps);
 
-				$paystubs = DB::table('invoices')
-								->where([
-									['vendor', '=', $vendor],
-									['agentid', '=', $thisUser->id]
-								])
-								->groupBy('issue_date')
-								->orderBy([
-									['issue_date', 'desc'],
-									['agentid', 'desc']
-								])->get();
+				$paystubs = [];
+				foreach(Invoice::vendorId($vendor)->agentId($thisUser->id)
+					->groupBy('issue_date')
+					->orderBy([
+						['issue_date', 'desc'],
+						['agentid', 'desc']
+					])->cursor() as $invoice) {
+					$test = Employee::find($invoice->agentid);
+
+					if($test->is_active == 1) $paystubs[] = $invoice;
+				}
+				collect($paystubs);
 			}
 		}
 
+		$agents = Employee::active()->get();
 
-
-		$agents = DB::table('employees')->where('is_active', 1)->get();
-
-		return view('paystubs.paystubs', ['isAdmin' => $isAdmin, 'emps' => $emps, 'paystubs' => $paystubs, 'agents' => $agents]);
+		return view('paystubs.paystubs',
+			['isAdmin' => $isAdmin,
+			 'emps' => $emps,
+			 'paystubs' => $paystubs,
+			 'agents' => $agents]);
 	}
 
 
@@ -700,6 +646,30 @@ class InvoiceController extends Controller
 		}
 
 		return $array;
+	}
+
+	private function findObjectById($id, $array)
+	{
+		foreach($array as $a)
+		{
+			if($id == $a->id)
+			{
+				return $a;
+			}
+		}
+	}
+
+	private function findValueInObjectArrayByType($id, $array, $key)
+	{
+		foreach($array as $a)
+		{
+			if($id == $a[$key])
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }

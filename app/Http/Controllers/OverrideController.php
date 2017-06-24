@@ -55,7 +55,7 @@ class OverrideController extends Controller
 		foreach($permissions as $p)
 		{
 			$children[] = $employees->first(function($val, $key) use ($p){
-				return $val->id == $p->emp_id;
+				return $val->id == $p->emp_id && $p->is_active == 1;
 			});
 		}
 

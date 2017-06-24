@@ -11,11 +11,9 @@
     <tbody>
         @foreach($paystubs as $p)
 
-            <tr>
+            <tr data-parent="true" data-parentid="{{$p->agentid}}">
                 <td>
-                    {{$agents->first(function($v, $k) use ($p){
-                        return $v == $p->agentid;
-                    })->name}}
+                    {{$agents->first(function($v, $k) use ($p){return $v->id == $p->agentid;})['name']}}
                 </td>
                 <td>
                     {{$p->vendor}}

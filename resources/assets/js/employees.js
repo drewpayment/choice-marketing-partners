@@ -78,6 +78,8 @@ function handleEmployeeChangesSubmission(data){
 
 function handleSubmitNewEmployee(data, onlyActive){
 
+    $('#modal_layout').modal('hide');
+
 	var options = {
 		url: '/employee/create-ajax',
 		type: 'POST',
@@ -93,7 +95,6 @@ function handleSubmitNewEmployee(data, onlyActive){
 
 	function afterData() {
 
-        $('#modal_layout').modal('hide');
         setMessageContainer("The employee was successfully added!");
         refreshEmployeesAfterControl(onlyActive);
 

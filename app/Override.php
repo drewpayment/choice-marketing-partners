@@ -20,4 +20,30 @@ class Override extends Model
 		'updated_at'
 	];
 
+
+	/**
+	 * scope query to filter by agent id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeAgentId($query, $id)
+	{
+		return $query->where('agentid', $id);
+	}
+
+
+	/**
+	 * Scope query to filter by issue date
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param date
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeIssueDate($query, $date)
+	{
+		return $query->where('issue_date', $date);
+	}
+
 }

@@ -12,6 +12,46 @@ class Invoice extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-		'id', 'sale_date', 'first_name', 'last_name', 'address', 'city', 'status', 'amount', 'agent', 'issue_date', 'created_at', 'updated_at'
+		'id', 'sale_date', 'first_name', 'last_name', 'address', 'city', 'status', 'amount', 'agentid', 'issue_date', 'created_at', 'updated_at'
 	];
+
+
+	/**
+	 * Scope query to filter by agent id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeAgentId($query, $id)
+	{
+		return $query->where('agentid', $id);
+	}
+
+
+	/**
+	 * Scope query to filter by issue date
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param date
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeIssueDate($query, $date)
+	{
+		return $query->where('issue_date', $date);
+	}
+
+
+	/**
+	 * scope query filter by vendor id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeVendorId($query, $id)
+	{
+		return $query->where('vendor', $id);
+	}
+
 }
