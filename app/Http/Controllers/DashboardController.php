@@ -84,7 +84,7 @@ class DashboardController extends Controller
 		}, null, true)->values()->all();
 		$dates = collect($dates);
 		$date = (is_null($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
-		$employees = Payroll::payDate($date)->get();
+		$employees = Payroll::payDate($date)->paidFirst()->orderByName()->get();
 
 		return view('dashboard.payrollinfo', ['dates' => $dates, 'employees' => $employees]);
 	}
@@ -93,7 +93,7 @@ class DashboardController extends Controller
 	public function refreshPayrollInfo(Request $request)
 	{
 		$date = $request->date;
-		$employees = Payroll::payDate($date)->get();
+		$employees = Payroll::payDate($date)->paidFirst()->orderByName()->get();
 
 		return view('dashboard.payrollTableRowData', ['employees' => $employees]);
 	}

@@ -25,7 +25,7 @@ class Payroll extends Model
 	 */
 	public function scopeOrderByName($query)
 	{
-		return $query->orderBy('agent_name', 'desc');
+		return $query->orderBy('agent_name', 'asc');
 	}
 
 	/**
@@ -50,6 +50,17 @@ class Payroll extends Model
 	public function scopePayrollId($query, $id)
 	{
 		return $query->where('id', $id);
+	}
+
+	/**
+	 * scope query to order by paid first
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopePaidFirst($query)
+	{
+		return $query->orderBy('is_paid', 'desc');
 	}
 
 }
