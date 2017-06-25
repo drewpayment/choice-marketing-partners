@@ -564,6 +564,10 @@ class InvoiceController extends Controller
 			$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
 			$rawStubs = Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->get()->unique('issue_date');
 
+			$stubs = [];
+			$stubs = Employee::find(1)->invoices;
+			dd($stubs);
+
 			$paystubs = [];
 			$testArr = $emps->toArray();
 			foreach($rawStubs as $p)

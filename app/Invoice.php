@@ -17,6 +17,17 @@ class Invoice extends Model
 
 
 	/**
+	 * access agent info from invoice
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+	 */
+	public function agent()
+	{
+		return $this->belongsToMany(Employee::class, 'employee_invoice', 'employee_id', 'invoice_id');
+	}
+
+
+	/**
 	 * Scope query to filter by agent id
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query

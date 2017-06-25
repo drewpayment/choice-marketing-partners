@@ -38,6 +38,31 @@ class Employee extends Model
 
 
 	/**
+	 * Get invoices associated with the employee
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+	 */
+	public function invoices()
+	{
+		return $this->belongsToMany(Invoice::class, 'employee_invoice', 'employee_id', 'invoice_id');
+	}
+
+
+	/**
+	 * scope query to filter managers
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param bool
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeManagersOnly($query, $mgrsOnly)
+	{
+		$managersOnly = ($mgrsOnly) ? 1 : 0;
+		return $query->where('is_mgr', $managersOnly);
+	}
+
+
+	/**
 	 * Scope a query to only include active users.
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query
@@ -84,5 +109,6 @@ class Employee extends Model
 	{
 		return $query->where('agentid', $id);
 	}
+
 
 }

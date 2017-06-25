@@ -14,7 +14,6 @@ class CreateEmployeeInvoiceTable extends Migration
     public function up()
     {
         Schema::create('employee_invoice', function (Blueprint $table) {
-            $table->increments('id');
             $table->integer('employee_id')->unsigned();
             $table->integer('invoice_id')->unsigned();
 
