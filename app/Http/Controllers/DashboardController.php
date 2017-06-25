@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Payroll;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -78,13 +79,12 @@ class DashboardController extends Controller
 	 */
 	public function payrollInfo()
 	{
-		$dates = DB::table('payroll')
-					->select('pay_date')
-					->groupBy('pay_date')
-					->orderBy('pay_date', 'desc')
-					->get();
+		$dates = Payroll::all()->unique('pay_date')->sortBy(function($col){
+			return $col->pay_date;
+		}, null, true)->values()->all();
+		$dates = collect($dates);
 		$date = (is_null($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
-		$employees = DB::table('payroll')->where('pay_date', '=', $date)->get();
+		$employees = Payroll::payDate($date)->get();
 
 		return view('dashboard.payrollinfo', ['dates' => $dates, 'employees' => $employees]);
 	}
@@ -93,7 +93,7 @@ class DashboardController extends Controller
 	public function refreshPayrollInfo(Request $request)
 	{
 		$date = $request->date;
-		$employees = DB::table('payroll')->where('pay_date', '=', $date)->get();
+		$employees = Payroll::payDate($date)->get();
 
 		return view('dashboard.payrollTableRowData', ['employees' => $employees]);
 	}
@@ -104,14 +104,15 @@ class DashboardController extends Controller
 	 */
 	public function handlePayrollClick(Request $request)
 	{
-		$userId = $request->userId;
+		$payrollId = $request->payId;
 		$isPaid = $request->isPaid;
 
+		DB::beginTransaction();
 		try{
-			DB::table('payroll')
-			  ->where('id', $userId)
-			  ->update(['is_paid' => $isPaid]);
+			Payroll::payrollId($payrollId)->update(['is_paid' => $isPaid]);
+			DB::commit();
 		} catch(Exception $e){
+			DB::rollback();
 			return response()->json('false');
 		}
 

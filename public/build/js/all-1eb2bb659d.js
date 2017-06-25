@@ -1035,7 +1035,7 @@ var isUndefined = function(elem){
 
 
 function handlePaidConfirmClick(data){
-    var userId = data.parentid;
+    var payrollId = data.parentid;
     var isPaid = data.value;
     token = $('#global-token').attr('content');
 
@@ -1046,7 +1046,7 @@ function handlePaidConfirmClick(data){
         type: 'POST',
         dataType: 'json',
         data: {
-            userId: userId,
+            payId: payrollId,
             isPaid: isPaid,
             _token: token
         },
