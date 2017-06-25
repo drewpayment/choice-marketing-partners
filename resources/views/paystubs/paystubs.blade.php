@@ -19,7 +19,7 @@
                     {{$p->vendor}}
                 </td>
                 <td>
-                    {{--{{ echo $p->issue_date }}--}}
+                    {{$p->issue_date}}
                 </td>
             </tr>
 

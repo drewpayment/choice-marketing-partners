@@ -562,16 +562,18 @@ class InvoiceController extends Controller
 
 		if($isAdmin){
 			$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
-			//$paystubs = Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->get()->unique('issue_date');
+			$rawStubs = Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->get()->unique('issue_date');
+
 			$paystubs = [];
-			foreach(Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->cursor() as $invoice)
+			$testArr = $emps->toArray();
+			foreach($rawStubs as $p)
 			{
-				$test = Employee::find($invoice->agentid);
-				if($test->is_active == 1 && $this->findValueInObjectArrayByType($test->id, $paystubs, 'agentid')) {
-					array_push($paystubs, $invoice);
+				if($this->findValueInObjectArrayByType($p->agentid, $testArr, 'id'))
+				{
+					$paystubs[] = $p;
 				}
 			}
-			collect($paystubs)->unique('issue_date');
+			collect($paystubs);
 		} else {
 			$list = Permission::empId($thisUser->id)->first();
 
@@ -659,7 +661,7 @@ class InvoiceController extends Controller
 		}
 	}
 
-	private function findValueInObjectArrayByType($id, $array, $key)
+	protected function findValueInObjectArrayByType($id, $array, $key)
 	{
 		foreach($array as $a)
 		{
