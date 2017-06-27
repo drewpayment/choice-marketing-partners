@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
+
+	/**
+	 * Primary key used by the model
+	 */
+	protected $primaryKey = 'invoice_id';
+
     /**
 	 * The attributes that are mass assignable.
 	 *
@@ -23,7 +29,7 @@ class Invoice extends Model
 	 */
 	public function agent()
 	{
-		return $this->belongsToMany(Employee::class, 'employee_invoice', 'employee_id', 'invoice_id');
+		return $this->belongsToMany(Employee::class, 'employee_invoice', 'invoice_id', 'employee_id');
 	}
 
 

@@ -554,90 +554,105 @@ class InvoiceController extends Controller
 	 */
 	public function paystubs()
 	{
-		$thisUser = Employee::find(Auth::user()->id)->first();
+		$thisUser = Auth::user()->employee->first();
 		$admin = $thisUser->is_admin;
 
 		$isAdmin = ($admin == 1);
 		$vendor = 1; // explicitly set to Palmco
 
+		$paystubs = [];
+		$issueDates = [];
+		$agents = [];
+
 		if($isAdmin){
 			$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
-			$rawStubs = Invoice::vendorId($vendor)->latest('issue_date')->latest('agentid')->get()->unique('issue_date');
+			$rawStubs = Invoice::vendorId($vendor)
+			                   ->latest('issue_date')
+			                   ->latest('agentid')
+			                   ->with(['agent' => function($query){
+			                   	$query->where('is_active', 1);
+			                   }])
+			                   ->get()
+			                   ->unique('issue_date');
 
-			$stubs = [];
-			$stubs = Employee::find(1)->invoices;
-			dd($stubs);
-
-			$paystubs = [];
-			$testArr = $emps->toArray();
 			foreach($rawStubs as $p)
 			{
-				if($this->findValueInObjectArrayByType($p->agentid, $testArr, 'id'))
+				if(count($p->agent))
 				{
 					$paystubs[] = $p;
+					$issueDates[] = $p->issue_date;
 				}
 			}
-			collect($paystubs);
+
+			$agents = $emps;
+
 		} else {
-			$list = Permission::empId($thisUser->id)->first();
+			$list = $thisUser->permissions()->active()->get();
 
 			// not admin, but has agents roll to them
 			if(count($list) > 0){
-				$list = explode('|', $list->roll_up);
-				$emps = Employee::all()->sortBy('name');
 				$empsResult = [];
-				foreach($list as $val)
+				$empsResult[] = $thisUser;
+				foreach($list as $p)
 				{
-					array_push($empsResult, $this->findObjectById($val, $emps));
+					$empsResult[] = Employee::find($p->emp_id);
 				}
 				$empsResult = collect($empsResult);
+				$empIds = $empsResult->pluck('id')->all();
+				$rawStubs = Invoice::vendorId($vendor)
+									->whereIn('agentid', $empIds)
+									->latest('issue_date')
+									->latest('agentid')
+									->with(['agent' => function($query){
+										$query->where('is_active', 1);
+									}])
+									->get()
+									->unique('issue_date');
 
-				$eIdList = [];
-				foreach($empsResult as $e)
+				foreach($rawStubs as $p)
 				{
-					$eIdList[] = $e->agentid;
+					if(count($p->agent))
+					{
+						$paystubs[] = $p;
+						$issueDates[] = $p->issue_date;
+					}
 				}
 
-				$paystubs = [];
-				foreach(Invoice::vendorId($vendor)->agentId($thisUser->id)
-				               ->groupBy('issue_date')
-				               ->orderBy([
-					               ['issue_date', 'desc'],
-					               ['agentid', 'desc']
-				               ])->cursor() as $invoice) {
-					$test = Employee::find($invoice->agentid);
+				$agents = $empsResult;
 
-					if($test->is_active == 1) $paystubs[] = $invoice;
-				}
-				collect($paystubs);
 			} else { // agent w/no roll up employees
-				$emps = [];
-				$me = Employee::find($thisUser->id);
-				array_push($emps, $this->findObjectById($thisUser->id, $me));
-				$emps = collect($emps);
+				$rawStubs = Invoice::vendorId($vendor)
+									->agentId($thisUser->id)
+									->latest('issue_date')
+									->with(['agent' => function($query){
+										$query->where('is_active', 1);
+									}])
+									->get()
+									->unique('issue_date');
 
-				$paystubs = [];
-				foreach(Invoice::vendorId($vendor)->agentId($thisUser->id)
-					->groupBy('issue_date')
-					->orderBy([
-						['issue_date', 'desc'],
-						['agentid', 'desc']
-					])->cursor() as $invoice) {
-					$test = Employee::find($invoice->agentid);
-
-					if($test->is_active == 1) $paystubs[] = $invoice;
+				foreach($rawStubs as $p)
+				{
+					if(count($p->agent))
+					{
+						$paystubs[] = $p;
+						$issueDates[] = $p->issue_date;
+					}
 				}
-				collect($paystubs);
+
+				$agents = Auth::user()->employee;
 			}
 		}
-
-		$agents = Employee::active()->get();
+		$issueDates = collect($issueDates);
+		$paystubs = collect($paystubs);
+		$agents = collect($agents);
+		$emps = Employee::active()->get();
 
 		return view('paystubs.paystubs',
 			['isAdmin' => $isAdmin,
 			 'emps' => $emps,
 			 'paystubs' => $paystubs,
-			 'agents' => $agents]);
+			 'agents' => $agents,
+			 'issueDates' => $issueDates]);
 	}
 
 

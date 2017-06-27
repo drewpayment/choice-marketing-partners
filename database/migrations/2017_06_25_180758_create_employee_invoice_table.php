@@ -17,6 +17,7 @@ class CreateEmployeeInvoiceTable extends Migration
             $table->integer('employee_id')->unsigned();
             $table->integer('invoice_id')->unsigned();
 
+            $table->primary(['employee_id', 'invoice_id']);
             $table->foreign('employee_id')->references('id')->on('employees');
             $table->foreign('invoice_id')->references('invoice_id')->on('invoices');
         });

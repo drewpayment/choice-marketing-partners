@@ -9,6 +9,16 @@ class User extends Authenticatable
 {
     use Notifiable;
 
+	/**
+	 * table used by model
+	 */
+	protected $table = 'users';
+
+	/**
+	 * primary key used by model
+	 */
+	protected $primaryKey = 'uid';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -18,8 +28,6 @@ class User extends Authenticatable
         'id', 'name', 'email', 'password', 'isAdmin'
     ];
 
-    protected $primaryKey = 'uid';
-
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -28,4 +36,14 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /**
+     * Get employee related to logged in user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function employee()
+    {
+    	return $this->belongsToMany(Employee::class, 'employee_user', 'user_id', 'employee_id');
+    }
 }

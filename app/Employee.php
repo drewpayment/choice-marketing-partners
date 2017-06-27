@@ -44,7 +44,7 @@ class Employee extends Model
 	 */
 	public function invoices()
 	{
-		return $this->belongsToMany(Invoice::class, 'employee_invoice', 'employee_id', 'invoice_id');
+		return $this->belongsToMany(Invoice::class, 'employee_invoice', 'employee_id');
 	}
 
 

@@ -48,4 +48,16 @@ class Permission extends Model
 		return $query->where('emp_id', $id);
 	}
 
+
+	/**
+	 * scope query to filter active only
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeActive($query)
+	{
+		return $query->where('is_active', 1);
+	}
+
 }
