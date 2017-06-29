@@ -556,7 +556,7 @@ class InvoiceController extends Controller
 	 */
 	public function paystubs()
 	{
-		$thisUser = Auth::user()->employee->first();
+		$thisUser = Auth::user()->employee()->first();
 		$admin = $thisUser->is_admin;
 
 		$isAdmin = ($admin == 1);
