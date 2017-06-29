@@ -49,6 +49,8 @@ Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
 
 // new paystub module (do not implement on production)
 Route::get('/paystubs', 'InvoiceController@paystubs');
+Route::post('/paystubs/filter-paystubs', 'InvoiceController@filterPaystubs');
+Route::post('/paystubs/pdf-detail', 'InvoiceController@generatePdfPaystub');
 
 // edit invoices
 Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');

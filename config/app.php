@@ -178,6 +178,7 @@ $results = [
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
 	    Conner\Tagging\Providers\TaggingServiceProvider::class,
+	    niklasravnsborg\LaravelPdf\PdfServiceProvider::class,
 
 
     ],
@@ -229,6 +230,7 @@ $results = [
         'View' => Illuminate\Support\Facades\View::class,
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
+	    'PDF' => niklasravnsborg\LaravelPdf\Facades\Pdf::class,
 
     ],
 

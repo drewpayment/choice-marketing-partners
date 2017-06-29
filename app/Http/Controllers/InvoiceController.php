@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -380,7 +382,7 @@ class InvoiceController extends Controller
 		$stubs = Invoice::agentId($agentId)->issueDate($date)->get();
 		$emp = Employee::find($agentId);
 		$vendorId = $stubs->first()->vendor;
-		$vendorName = DB::table('vendors')->where('id', $vendorId)->first()->name;
+		$vendorName = Vendor::find($vendorId)->name;
 
 		foreach($stubs as $s)
 		{
@@ -558,101 +560,141 @@ class InvoiceController extends Controller
 		$admin = $thisUser->is_admin;
 
 		$isAdmin = ($admin == 1);
-		$vendor = 1; // explicitly set to Palmco
+		$vendor = -1;
+		$date = Invoice::latest('issue_date')->first()->issue_date;
 
-		$paystubs = [];
-		$issueDates = [];
-		$agents = [];
+		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
+						->get()->unique('issue_date')->pluck('issue_date');
+
 
 		if($isAdmin){
-			$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
-			$rawStubs = Invoice::vendorId($vendor)
-			                   ->latest('issue_date')
-			                   ->latest('agentid')
-			                   ->with(['agent' => function($query){
-			                   	$query->where('is_active', 1);
-			                   }])
-			                   ->get()
-			                   ->unique('issue_date');
-
-			foreach($rawStubs as $p)
-			{
-				if(count($p->agent))
-				{
-					$paystubs[] = $p;
-					$issueDates[] = $p->issue_date;
-				}
-			}
-
-			$agents = $emps;
+			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+			$paystubs = Invoice::vendorId($vendor)
+							->issueDate($date)
+							->agentId($agents->pluck('id')->toArray())
+							->latest('issue_date')
+							->latest('agentid')
+							->withActiveAgent()
+							->get()
+							->unique('agentid', 'issue_date');
 
 		} else {
 			$list = $thisUser->permissions()->active()->get();
 
 			// not admin, but has agents roll to them
 			if(count($list) > 0){
-				$empsResult = [];
+				$empsResult = Employee::agentId($list->pluck('emp_id')->all())->get();
 				$empsResult[] = $thisUser;
-				foreach($list as $p)
-				{
-					$empsResult[] = Employee::find($p->emp_id);
-				}
-				$empsResult = collect($empsResult);
-				$empIds = $empsResult->pluck('id')->all();
-				$rawStubs = Invoice::vendorId($vendor)
-									->whereIn('agentid', $empIds)
-									->latest('issue_date')
-									->latest('agentid')
-									->with(['agent' => function($query){
-										$query->where('is_active', 1);
-									}])
-									->get()
-									->unique('issue_date');
+				$agents = collect($empsResult);
 
-				foreach($rawStubs as $p)
-				{
-					if(count($p->agent))
-					{
-						$paystubs[] = $p;
-						$issueDates[] = $p->issue_date;
-					}
-				}
-
-				$agents = $empsResult;
+				$paystubs = Invoice::vendorId($vendor)
+				                   ->issueDate($date)
+				                   ->agentId($agents->pluck('id')->all())
+				                   ->latest('issue_date')
+				                   ->latest('agentid')
+				                   ->withActiveAgent()
+				                   ->get()
+				                   ->unique('agentid', 'issue_date');
 
 			} else { // agent w/no roll up employees
-				$rawStubs = Invoice::vendorId($vendor)
-									->agentId($thisUser->id)
-									->latest('issue_date')
-									->with(['agent' => function($query){
-										$query->where('is_active', 1);
-									}])
-									->get()
-									->unique('issue_date');
-
-				foreach($rawStubs as $p)
-				{
-					if(count($p->agent))
-					{
-						$paystubs[] = $p;
-						$issueDates[] = $p->issue_date;
-					}
-				}
+				$paystubs = Invoice::vendorId($vendor)
+				                   ->issueDate($date)
+				                   ->agentId($thisUser->id)
+				                   ->latest('issue_date')
+				                   ->withActiveAgent()
+				                   ->get()
+				                   ->unique('agentid', 'issue_date');
 
 				$agents = Auth::user()->employee;
 			}
 		}
+
+
 		$issueDates = collect($issueDates);
 		$paystubs = collect($paystubs);
 		$agents = collect($agents);
 		$emps = Employee::active()->get();
+		$vendors = Vendor::active()->get();
 
 		return view('paystubs.paystubs',
 			['isAdmin' => $isAdmin,
 			 'emps' => $emps,
 			 'paystubs' => $paystubs,
 			 'agents' => $agents,
-			 'issueDates' => $issueDates]);
+			 'issueDates' => $issueDates,
+			 'vendors' => $vendors]);
+	}
+
+
+	public function filterPaystubs(Request $request)
+	{
+		if(!$request->ajax()) return response()->json(false);
+
+		$params = Input::all()['inputParams'];
+		$results = $this->invoiceHelper->searchPaystubData($params);
+
+		return view('paystubs._stubrowdata', [
+			'paystubs' => $results->stubs,
+			'agents' => $results->agents,
+			'vendors' => $results->vendors
+		]);
+	}
+
+
+	public function generatePdfPaystub(Request $request)
+	{
+		if(!$request->ajax()) return response()->json(false);
+
+		$inputParams = Input::all()['inputParams'];
+		$agentId = $inputParams->agentid;
+		$date = new Carbon($inputParams->date);
+		$gross = 0;
+		$invoiceDt = $date->format('m-d-Y');
+		$stubs = Invoice::agentId($agentId)->issueDate($date->format('Y-m-d'))->get();
+		$emp = Employee::find($agentId);
+		$vendorId = $stubs->first()->vendor;
+		$vendorName = Vendor::find($vendorId)->name;
+
+		foreach($stubs as $s)
+		{
+			if(is_numeric($s->amount))
+			{
+				$gross = $gross + $s->amount;
+			}
+
+			$s->sale_date = strtotime($s->sale_date);
+			$s->sale_date = date('m-d-Y', $s->sale_date);
+		}
+
+		$overrides = Override::agentId($agentId)->issueDate($date)->get();
+		$expenses = Expense::agentId($agentId)->issueDate($date)->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + $ovr->total;
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + $exp->amount;
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+
+		$pdf = PDF::loadView('pdf.paystub', [
+			'stubs' => $stubs,
+			'emp' => $emp,
+			'gross' => $gross,
+			'invoiceDt' => $invoiceDt,
+			'vendor' => $vendorName,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'ovrgross' => $ovrGross,
+			'expgross' => $expGross
+		]);
+
+		return $pdf;
 	}
 
 

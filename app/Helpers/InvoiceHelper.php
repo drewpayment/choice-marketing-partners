@@ -3,9 +3,10 @@
 
 namespace App\Helpers;
 
-
-
+use App\Invoice;
+use App\Vendor;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Employee;
 
@@ -13,6 +14,80 @@ use App\Employee;
 
 class InvoiceHelper
 {
+
+	public function searchPaystubData($params)
+	{
+		$params = is_null($params) ? (object)['vendor' => -1, 'agent' => -1, 'date' => -1] : (object)$params;
+		$thisUser = Auth::user()->employee->first();
+		$admin = $thisUser->is_admin;
+		$isAdmin = ($admin == 1);
+		$date = ($params->date != -1) ? new Carbon($params->date) : $params->date;
+
+		if($params->agent == -1)
+		{
+			if($isAdmin){
+				$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
+				$paystubs = Invoice::vendorId($params->vendor)
+				                   ->issueDate($date)
+				                   ->agentId($emps->pluck('id')->toArray())
+				                   ->latest('issue_date')
+				                   ->latest('agentid')
+				                   ->get()
+				                   ->unique('agentid', 'issue_date');
+
+				$agents = $emps;
+
+			} else {
+				$list = $thisUser->permissions()->active()->get();
+				if(count($list) > 0)
+				{
+					$empsResult = [];
+					$empsResult[] = $thisUser;
+					$empsResult[] = Employee::listOfAgents($list);
+					$agents = collect($empsResult);
+
+					$paystubs = Invoice::vendorId($params->vendor)
+					                   ->issueDate($date)
+					                   ->agentId($agents->pluck('id')->all())
+					                   ->latest('issue_date')
+					                   ->latest('agentid')
+					                   ->withActiveAgent()
+					                   ->get()
+					                   ->unique('issue_date');
+				}
+				else
+				{
+					$paystubs = Invoice::vendorId($params->vendor)
+					                   ->issueDate($date)
+					                   ->agentId($thisUser->id)
+					                   ->latest('issue_date')
+					                   ->withActiveAgent()
+					                   ->get()
+					                   ->unique('issue_date');
+
+					$agents = Auth::user()->employee;
+				}
+			}
+		}
+		else
+		{
+			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+			$paystubs = Invoice::vendorId($params->vendor)
+								->issueDate($date)
+								->agentId($params->agent)
+								->latest('issue_date')
+								->latest('agentid')
+								->withActiveAgent()
+								->get()
+								->unique('agentid', 'issue_date');
+		}
+
+		$paystubs = collect($paystubs);
+		$agents = collect($agents);
+		$vendors = Vendor::all();
+
+		return (object)['stubs' => $paystubs, 'agents' => $agents, 'vendors' => $vendors];
+	}
 
 
 	/*

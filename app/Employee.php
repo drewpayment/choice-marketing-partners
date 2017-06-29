@@ -107,7 +107,28 @@ class Employee extends Model
 	 */
 	public function scopeAgentId($query, $id)
 	{
-		return $query->where('agentid', $id);
+		if(!is_object($id) && $id == -1) {
+			return $query;
+		}
+		else if (is_array($id))
+		{
+			return $query->whereIn('id', $id);
+		}
+
+		return $query->where('id', $id);
+	}
+
+
+	/**
+	 * scope list of agents
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param array
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeListOfAgents($query, $arr)
+	{
+		return $query->whereIn('id', $arr);
 	}
 
 

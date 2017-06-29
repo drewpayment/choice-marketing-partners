@@ -42,6 +42,14 @@ class Invoice extends Model
 	 */
 	public function scopeAgentId($query, $id)
 	{
+		if(!is_object($id) && $id == -1) {
+			return $query;
+		}
+		else if (is_array($id))
+		{
+			return $query->whereIn('agentid', $id);
+		}
+
 		return $query->where('agentid', $id);
 	}
 
@@ -55,6 +63,8 @@ class Invoice extends Model
 	 */
 	public function scopeIssueDate($query, $date)
 	{
+		if(!is_object($date) && $date == -1) return $query;
+
 		return $query->where('issue_date', $date);
 	}
 
@@ -68,7 +78,28 @@ class Invoice extends Model
 	 */
 	public function scopeVendorId($query, $id)
 	{
+		if($id == -1)
+		{
+			$vendors = Vendor::all();
+			$ids = $vendors->pluck('id')->all();
+			return $query->whereIn('vendor', $ids);
+		}
+
 		return $query->where('vendor', $id);
+	}
+
+
+	/**
+	 * scope query to active only
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeWithActiveAgent($query)
+	{
+		return $query->with(['agent' => function($query){
+			$query->where('is_active', 1);
+		}]);
 	}
 
 }

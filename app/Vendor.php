@@ -27,4 +27,15 @@ class Vendor extends Model
     	return $query->orderBy('name', 'asc');
     }
 
+    /**
+     * scope query to active vendors only
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+	public function scopeActive($query)
+	{
+		return $query->where('is_active', 1);
+	}
+
 }

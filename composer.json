@@ -11,7 +11,9 @@
         "doctrine/dbal": "^2.5",
         "rtconner/laravel-tagging": "~2.0",
         "barryvdh/laravel-debugbar": "^2.3",
-        "sofa/eloquence": "5.3"
+        "sofa/eloquence": "5.3",
+        "mpdf/mpdf": "^6.1",
+        "niklasravnsborg/laravel-pdf": "^1.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
