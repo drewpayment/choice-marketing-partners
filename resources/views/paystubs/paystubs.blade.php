@@ -130,6 +130,7 @@
              *
              */
             $('[data-stub="true"]').on('click', function(){
+
                 var el = $(this);
                 var input = {
                     date: inputParams.date,
@@ -137,35 +138,36 @@
                     agent: el.data('aid')
                 };
 
-                var options = {
-                    url: '/paystubs/pdf-detail',
-                    type: 'POST',
-                    data: {
-                        inputParams: input
-                    },
-                    dataType: 'html',
-                    afterData: afterData
-                };
+                var form = el.find('#form');
+                form.find('#date').val(input.date);
+                form.find('#vendor').val(input.vendor);
+                form.find('#agent').val(input.agent);
 
-                fireAjaxRequest(options);
+                form.submit();
 
-                function afterData(data){
-
-                    if(data){
-                        var modal = $('#modal_layout');
-                        modal.html(data);
-                        modal.on('shown.bs.modal', function(){
-
-
-
-                        }).on('hidden.bs.modal', function(){
-                            modal.html('');
-                        }).modal('show');
-                    } else {
-                        setMessageContainer('An error has occurred! Please try again later.', null, 'danger');
-                    }
-
-                }
+//                var options = {
+//                    url: '/paystubs/pdf-detail',
+//                    type: 'POST',
+//                    data: {
+//                        inputParams: input
+//                    },
+//                    dataType: 'JSON',
+//                    afterData: afterData
+//                };
+//
+//                fireAjaxRequest(options);
+//
+//                function afterData(data){
+//
+//                    if(data){
+//
+//                        window.location.href = data;
+//
+//                    } else {
+//                        setMessageContainer('An error has occurred! Please try again later.', null, 'danger');
+//                    }
+//
+//                }
             });
 
         })();

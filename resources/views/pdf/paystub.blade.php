@@ -1,3 +1,22 @@
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row p-10">
+	<div class="col-xs-2">
+		<form id="pdfForm" class="hidden" action="{{url('payroll/printable')}}" method="POST">
+			<input type="hidden" name="_token" value="{{csrf_token()}}" />
+			<input type="hidden" name="agent" value="{{$emp->id}}" />
+			<input type="hidden" name="vendor" value="{{$vendorId}}" />
+			<input type="hidden" name="date" value="{{$invoiceDt}}" />
+
+		</form>
+		<button type="button" class="btn btn-default" id="generatePdf">
+			<i class="fa fa-print"></i> Printable
+		</button>
+	</div>
+</div>
+
 <div class="paystub-wrapper">
 	<div class="row p-10">
 		<div class="col-xs-12">
@@ -104,20 +123,6 @@
 							<td><strong>Gross Pay</strong></td>
 							<td class="text-right"><strong>$ {{number_format($gross, 2)}}</strong></td>
 						</tr>
-						{{--<tr>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td><strong>Other Pay</strong></td>--}}
-							{{--<td class="text-right">--}}{{-- sum of rows --}}{{--</td>--}}
-						{{--</tr>--}}
-						{{--<tr>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td>&nbsp;</td>--}}
-							{{--<td><strong>Loan</strong></td>--}}
-							{{--<td class="text-right">--}}{{-- sum of rows --}}{{--</td>--}}
-						{{--</tr>--}}
 						<tr>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
@@ -131,3 +136,22 @@
 		</div>
 	</div>
 </div>
+
+@endsection
+
+
+@section('scripts')
+
+	<script type="text/javascript">
+
+		$('#generatePdf').on('click', function(){
+
+		    $('#url').val(encodeURIComponent(location.href));
+
+		    $('form#pdfForm').submit();
+
+		});
+
+	</script>
+
+@endsection

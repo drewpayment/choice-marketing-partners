@@ -178,7 +178,7 @@ $results = [
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
 	    Conner\Tagging\Providers\TaggingServiceProvider::class,
-	    niklasravnsborg\LaravelPdf\PdfServiceProvider::class,
+	    Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
 
 
     ],
@@ -230,15 +230,15 @@ $results = [
         'View' => Illuminate\Support\Facades\View::class,
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
-	    'PDF' => niklasravnsborg\LaravelPdf\Facades\Pdf::class,
+	    'PDF' => Meneses\LaravelMpdf\Facades\LaravelMpdf::class,
 
     ],
 
 ];
 
-if(env('APP_ENV') === 'local'){
-	$results['providers'][] = 'Barryvdh\Debugbar\ServiceProvider';
-	$results['aliases']['Debugbar'] = 'Barryvdh\Debugbar\Facade';
-}
+//if(env('APP_ENV') === 'local'){
+//	$results['providers'][] = 'Barryvdh\Debugbar\ServiceProvider';
+//	$results['aliases']['Debugbar'] = 'Barryvdh\Debugbar\Facade';
+//}
 
 return $results;

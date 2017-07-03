@@ -12,6 +12,11 @@ var elixir = require('laravel-elixir');
  */
 
 elixir(function(mix) {
+
+    mix.less([
+        'pdfwrapper.less'
+    ], 'assets/pdfs/wrapper.css');
+
     mix.sass('app.scss');
     mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
 
@@ -39,4 +44,8 @@ elixir(function(mix) {
 	]);
 
     mix.version(['js/all.js', 'css/all.css']);
+
+
+
+
 });

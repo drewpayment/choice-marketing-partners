@@ -13,7 +13,7 @@
         "barryvdh/laravel-debugbar": "^2.3",
         "sofa/eloquence": "5.3",
         "mpdf/mpdf": "^6.1",
-        "niklasravnsborg/laravel-pdf": "^1.5"
+        "carlos-meneses/laravel-mpdf": "^1.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

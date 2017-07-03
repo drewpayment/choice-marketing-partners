@@ -18,10 +18,15 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
-use niklasravnsborg\LaravelPdf\Facades\Pdf;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
+use Meneses\LaravelMpdf\Facades\LaravelMpdf;
+use mPDF;
 
 class InvoiceController extends Controller
 {
+
     protected $dbHelper;
     protected $invoiceHelper;
 
@@ -641,13 +646,12 @@ class InvoiceController extends Controller
 	}
 
 
-	public function generatePdfPaystub(Request $request)
+	public function showPaystub(Request $request)
 	{
-		if(!$request->ajax()) return response()->json(false);
-
-		$inputParams = Input::all()['inputParams'];
-		$agentId = $inputParams->agentid;
-		$date = new Carbon($inputParams->date);
+		//$inputParams = Input::all()['inputParams'];
+		$inputParams = $request->all();
+		$agentId = $inputParams['agent'];
+		$date = new Carbon($inputParams['date']);
 		$gross = 0;
 		$invoiceDt = $date->format('m-d-Y');
 		$stubs = Invoice::agentId($agentId)->issueDate($date->format('Y-m-d'))->get();
@@ -682,7 +686,7 @@ class InvoiceController extends Controller
 		$gross = array_sum([$gross, $ovrGross, $expGross]);
 
 
-		$pdf = PDF::loadView('pdf.paystub', [
+		return view('pdf.paystub', [
 			'stubs' => $stubs,
 			'emp' => $emp,
 			'gross' => $gross,
@@ -691,11 +695,132 @@ class InvoiceController extends Controller
 			'overrides' => $overrides,
 			'expenses' => $expenses,
 			'ovrgross' => $ovrGross,
-			'expgross' => $expGross
+			'expgross' => $expGross,
+			'vendorId' => $vendorId
 		]);
-
-		return $pdf;
 	}
+
+
+	public function printablePaystub(Request $request)
+	{
+		//$inputParams = Input::all()['inputParams'];
+		$inputParams = $request->all();
+
+		$agentId = $inputParams['agent'];
+		$date = Carbon::createFromFormat('m-d-Y', $inputParams['date']);
+		$sqlDate = $date->format('Y-m-d');
+		$gross = 0;
+		$invoiceDt = $date->format('m-d-Y');
+		$stubs = Invoice::agentId($agentId)->issueDate($sqlDate)->get();
+		$emp = Employee::find($agentId);
+		$vendorId = $inputParams['vendor'];
+		$vendorName = Vendor::find($vendorId)->name;
+
+		foreach($stubs as $s)
+		{
+			if(is_numeric($s->amount))
+			{
+				$gross = $gross + $s->amount;
+			}
+
+			$s->sale_date = strtotime($s->sale_date);
+			$s->sale_date = date('m-d-Y', $s->sale_date);
+		}
+
+		$overrides = Override::agentId($agentId)->issueDate($date)->get();
+		$expenses = Expense::agentId($agentId)->issueDate($date)->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + $ovr->total;
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + $exp->amount;
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+
+		$path = strtolower($emp->name . '_' . $vendorName . '_' . $date->format('Ymd') . '.pdf');
+		$view = View::make('pdf.template', [
+			'stubs' => $stubs,
+			'emp' => $emp,
+			'gross' => $gross,
+			'invoiceDt' => $invoiceDt,
+			'vendor' => $vendorName,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'ovrgross' => $ovrGross,
+			'expgross' => $expGross,
+			'vendorId' => $vendorId
+		])->render();
+
+		$pdf = LaravelMpdf::loadHTML('');
+		$pdf->getMpdf()->WriteHTML($view);
+
+		return response($pdf->stream($path));
+	}
+
+
+	public function makePdf(Request $request)
+	{
+		$url = urldecode($request->url);
+
+		if(ini_get('allow_url_fopen'))
+		{
+			$html = file_get_contents($url);
+		}
+		else
+		{
+			$ch = curl_init($url);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$html = curl_exec($ch);
+			curl_close($ch);
+		}
+
+		$mpdf = new mPdf();
+		$mpdf->useSubstitutions = true;
+		$mpdf->CSSselectMedia = 'mpdf';
+		$mpdf->setBasePath($url);
+		$mpdf->WriteHTML($html);
+
+		$path = strtolower(str_replace(' ', '', Auth::user()->employee()->name)) . '_' . strtotime(Carbon::now());
+		$stream = $mpdf->Output($path, 'I');
+
+		return view('pdf.template', ['html' => $stream]);
+	}
+
+
+	public function deletePaystubPdf(Request $request)
+	{
+		if(!$request->ajax()){
+
+			$msg = "Someone attempted to navigate to the delete PDF link without AJAX. Please inspect for attempted hacking.";
+
+			Mail::to('drew.payment@choice-marketing-partners.com')
+				->send($msg);
+
+			return response()->json(false);
+		}
+		else
+		{
+			$pdf = Input::all()['pdf'];
+			$sto = new Storage;
+			$sto->delete('/public/pdfs/' . $pdf);
+			return response()->json(true);
+		}
+
+
+	}
+
+
+	/**
+	 * HELPER FUNCTIONS
+	 *
+	 */
 
 
 	private function unsetValue(array $array, $value)
