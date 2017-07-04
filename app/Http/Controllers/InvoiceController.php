@@ -703,7 +703,7 @@ class InvoiceController extends Controller
 
 	public function printablePaystub(Request $request)
 	{
-		define('_MPDF_TEMP_PATH', '../../public/assets/pdfs/temp');
+		define('_MPDF_TEMP_PATH', public_path('/assets/pdfs/temp'));
 		$inputParams = $request->all();
 
 		$agentId = $inputParams['agent'];
