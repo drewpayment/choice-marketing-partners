@@ -12,7 +12,7 @@
         <div class="row p-10">
             <div class="col-xs-12">
                 <div class="pdf-header">
-                    <h3 style="background-color:#f2f2f2;padding:15px 5px 15px 5px;width:100%;">Pay Advice</h3>
+                    <h3 style="background-color:#f2f2f2;padding:15px 5px 15px 5px;width:100%;">Advice Statement</h3>
 
                     <div class="row" style="margin-bottom:15px;">
                         <div class="col-xs-12">
