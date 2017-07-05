@@ -31,6 +31,10 @@
     <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
     <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
+    <!-- Slick Carousel http://kenwheeler.github.io/slick/ -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css"/>
+
     @yield('topCSS')
 
     <style>
@@ -46,7 +50,9 @@
     <!-- jsPDF -->
     <script src="{{url('js/jspdf.js')}}"></script>
     <!-- jsPDF plugin Autotable: https://github.com/simonbengtsson/jsPDF-AutoTable -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.0/jspdf.plugin.autotable.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/g/jquery.slick@1.6.0(slick-theme.css+slick.css)">
+
+    {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.0/jspdf.plugin.autotable.js"></script>--}}
 
     @yield('topJS')
 </head>

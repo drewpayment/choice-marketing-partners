@@ -142,6 +142,9 @@ a.unstyled {
 .mt-neg-5 {
   margin-top: -5px !important;
 }
+.m-10 {
+  margin: 10px !important;
+}
 .mb-10 {
   margin-bottom: 10px !important;
 }
@@ -544,7 +547,7 @@ ul .dropdown-menu li {
   top: 0;
   left: 0;
   max-width: 853px;
-  width: 100%;
+  width: 95%;
   height: 100%;
 }
 .label {
@@ -557,6 +560,35 @@ ul .dropdown-menu li {
   white-space: nowrap;
   vertical-align: baseline;
   border-radius: .25em;
+}
+#carousel {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  height: 250px;
+}
+#carousel div * {
+  display: -webkit-box;
+  display: flex;
+  align-self: center;
+  justify-self: center;
+}
+#carousel div img {
+  display: block;
+  margin: 0 auto;
+  max-height: 240px;
+}
+.carousel-arrows {
+  cursor: pointer;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
 }
 
 .selectize-control.plugin-drag_drop.multi > .selectize-input > div.ui-sortable-placeholder {

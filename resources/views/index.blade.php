@@ -2,14 +2,6 @@
 
 @section('content')
 
-{{--<div class="row">--}}
-    {{--<div class="col-xs-12">--}}
-        {{--<div class="text-center">--}}
-            {{--<img src="{{url('/images/cmp_logo.png')}}">--}}
-        {{--</div>--}}
-    {{--</div>--}}
-{{--</div>--}}
-
 <div class="row pt-0">
     <div class="col-md-12">
         <div class="row">
@@ -68,6 +60,66 @@
         </div>
     </div>
 </section>
+<section class="features" id="incentives">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Agent Incentives</h2>
+                <p>
+                    Beyond normal salaries and commission opportunities, Choice Marketing Partners strives to be one of the most competitive compensatory energy affiliates in the industry. We believe that if we share profits with our people, they will work harder and be more likely to invest themselves in the organization. We regularly award Agents with daily cash incentives, weekly bonus opportunities through exceptional sales and customer service interactions, and big award contests like all-expense paid vacations, cars and even houses!
+                </p>
+            </div>
+            <div class="col-md-8">
+                <div id="carousel" class="h-200 m-10">
+                    <div>
+                        <div class="row icon-features">
+                            <div class="col-xs-4 icon-feature"><i class="fa fa-money fa-5x"></i>
+                                <p>Commission & Incentives</p>
+                            </div>
+                            <div class="col-xs-4 icon-feature"><i class="fa fa-gift fa-5x"></i>
+                                <p>Contest Awards</p>
+                            </div>
+                            <div class="col-xs-4 icon-feature"><i class="fa fa-institution fa-5x"></i>
+                                <p>Competitive Comp</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <img src="https://dl.dropboxusercontent.com/s/395o9rz0i8zt5oh/20170628_113842.jpg?dl=0" />
+                    </div>
+                    <div>
+                        <img src="https://dl.dropboxusercontent.com/s/fdndb58sa5knh6h/20170628_114947.jpg?dl=0" />
+                    </div>
+                    <div>
+                        <img src="https://dl.dropboxusercontent.com/s/y4qk9ufdxwq5sf4/20170628_115437.jpg?dl=0" />
+                    </div>
+                </div>
+                <div class="carousel-arrows">
+                    <ul class="list-inline list-unstyled">
+                        <li>
+                            <i class="fa fa-arrow-circle-o-left fa-2x" id="prevArrow"></i>
+                        </li>
+                        <li>
+                            <i class="fa fa-arrow-circle-o-right fa-2x" id="nextArrow"></i>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row pt-10">
+            <div class="col-md-6">
+                <div class="yt-vid-container">
+                    <iframe class="yt-vid-responsive" src="https://www.youtube.com/embed/mhQy_QsUz08?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="yt-vid-container">
+                    <iframe class="yt-vid-responsive" src="https://www.youtube.com/embed/AskrLet35Fs?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 <section class="testimonials" id="agent_testimonials">
     <div class="box box-default b-all">
         <div class="box-title">
@@ -111,36 +163,6 @@
                     </li>
                 @endforeach
             </ul>
-        </div>
-    </div>
-</section>
-<section class="features" id="incentives">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <h2>Agent Incentives</h2>
-                <p>
-                    Beyond normal salaries and commission opportunities, Choice Marketing Partners strives to be one of the most competitive compensatory energy affiliates in the industry. We believe that if we share profits with our people, they will work harder and be more likely to invest themselves in the organization. We regularly award Agents with daily cash incentives, weekly bonus opportunities through exceptional sales and customer service interactions, and big award contests like all-expense paid vacations, cars and even houses!
-                </p>
-            </div>
-            <div class="col-md-6">
-                <div class="row icon-features">
-                    <div class="col-xs-4 icon-feature"><i class="fa fa-money fa-5x"></i>
-                        <p>Commission & Incentives</p>
-                    </div>
-                    <div class="col-xs-4 icon-feature"><i class="fa fa-gift fa-5x"></i>
-                        <p>Contest Awards</p>
-                    </div>
-                    <div class="col-xs-4 icon-feature"><i class="fa fa-institution fa-5x"></i>
-                        <p>Competitive Comp</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-12 text-center">
-                <div class="yt-vid-container">
-                    <iframe class="yt-vid-responsive" src="https://www.youtube.com/embed/mhQy_QsUz08?rel=0&amp;controls=0" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -194,8 +216,17 @@
 @endsection
 
 @section('scripts')
-
+    <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
     <script type="text/javascript">
+        $(function(){
+            $('#carousel').slick({
+                autoplay: true,
+                autoplaySpeed: 3000,
+                appendArrows: $('.carousel-arrows'),
+                prevArrow: $('#prevArrow'),
+                nextArrow: $('#nextArrow')
+            });
+        });
 
         $(function(){
            var elems = $('#pill_menu').find('a[href]');

@@ -156,6 +156,9 @@
              */
             $(document).ready(function(){
                 if($('#pageRefresh').val() == 1) {
+                    var tbl = $('.table-responsive');
+                    tbl.addClass('text-center').html('');
+                    tbl.html('<i class="fa fa-circle-o-notch fa-spin fa-5x"></i>');
                     location.reload();
                 }
             });
