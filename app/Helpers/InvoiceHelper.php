@@ -47,7 +47,15 @@ class InvoiceHelper
 				{
 					$empsResult = [];
 					$empsResult[] = $thisUser;
-					$empsResult[] = Employee::listOfAgents($list);
+					$rolls = Employee::agentId($list->pluck('emp_id')->all())->get();
+					if($rolls->count() > 1)
+					{
+						$empsResult = array_merge($empsResult, $rolls->toArray());
+					}
+					else
+					{
+						$empsResult[] = $rolls->first();
+					}
 					$agents = collect($empsResult);
 
 					$rows = Invoice::vendorId($params->vendor)
@@ -58,7 +66,7 @@ class InvoiceHelper
 					                   ->withActiveAgent()
 					                   ->get();
 
-					$paystubs = $rows->unique('issue_date');
+					$paystubs = $rows->unique('agentid', 'issue_date');
 
 					$overrides = Override::agentId($agents->pluck('id')->toArray())->issueDate($date)->get();
 					$expenses = Expense::agentId($agents->pluck('id')->toArray())->issueDate($date)->get();
