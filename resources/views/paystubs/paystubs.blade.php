@@ -75,6 +75,8 @@
     </div>
 </div>
 
+<input type="hidden" id="pageRefresh" value="0" />
+
 @endsection
 
 
@@ -129,8 +131,7 @@
              * event handler for clicks on rows and showing paystubs
              *
              */
-            $('[data-stub="true"]').on('click', function(){
-
+            $(document).on('click', '[data-stub="true"]', function(){
                 var el = $(this);
                 var input = {
                     date: inputParams.date,
@@ -144,30 +145,23 @@
                 form.find('#agent').val(input.agent);
 
                 form.submit();
+            });
 
-//                var options = {
-//                    url: '/paystubs/pdf-detail',
-//                    type: 'POST',
-//                    data: {
-//                        inputParams: input
-//                    },
-//                    dataType: 'JSON',
-//                    afterData: afterData
-//                };
-//
-//                fireAjaxRequest(options);
-//
-//                function afterData(data){
-//
-//                    if(data){
-//
-//                        window.location.href = data;
-//
-//                    } else {
-//                        setMessageContainer('An error has occurred! Please try again later.', null, 'danger');
-//                    }
-//
-//                }
+
+            /**
+             * browser caching utility -
+             * on window unload, sets hidden input and on browser back btn,
+             * reloads page with valid data
+             *
+             */
+            $(document).ready(function(){
+                if($('#pageRefresh').val() == 1) {
+                    location.reload();
+                }
+            });
+
+            $(window).on('unload', function(){
+                $('#pageRefresh').val(1);
             });
 
         })();

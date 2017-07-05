@@ -3,17 +3,21 @@
 @section('content')
 
 <div class="row p-10">
-	<div class="col-xs-2">
-		<form id="pdfForm" class="hidden" action="{{url('payroll/printable')}}" method="POST">
+	<div class="col-xs-5">
+
+		<form id="pdfForm" action="{{url('payroll/printable')}}" method="POST">
 			<input type="hidden" name="_token" value="{{csrf_token()}}" />
 			<input type="hidden" name="agent" value="{{$emp->id}}" />
 			<input type="hidden" name="vendor" value="{{$vendorId}}" />
 			<input type="hidden" name="date" value="{{$invoiceDt}}" />
 
+			<button type="button" class="btn btn-default display-inline" onclick="history.back()">
+				<i class="fa fa-arrow-circle-left"></i> Back
+			</button>
+			<button type="submit" class="btn btn-default display-inline" id="generatePdf" formtarget="_blank">
+				<i class="fa fa-print"></i> Print Version
+			</button>
 		</form>
-		<button type="button" class="btn btn-default" id="generatePdf">
-			<i class="fa fa-print"></i> Printable
-		</button>
 	</div>
 </div>
 
@@ -136,22 +140,5 @@
 		</div>
 	</div>
 </div>
-
-@endsection
-
-
-@section('scripts')
-
-	<script type="text/javascript">
-
-		$('#generatePdf').on('click', function(){
-
-		    $('#url').val(encodeURIComponent(location.href));
-
-		    $('form#pdfForm').submit();
-
-		});
-
-	</script>
 
 @endsection

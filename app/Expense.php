@@ -30,7 +30,15 @@ class Expense extends Model
      */
     public function scopeAgentId($query, $id)
     {
-    	return $query->where('agentid', $id);
+	    if(!is_object($id) && $id == -1) {
+		    return $query;
+	    }
+	    else if (is_array($id))
+	    {
+		    return $query->whereIn('agentid', $id);
+	    }
+
+	    return $query->where('agentid', $id);
     }
 
 

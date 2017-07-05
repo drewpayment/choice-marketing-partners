@@ -7,7 +7,6 @@ use App\Expense;
 use App\Helpers\InvoiceHelper;
 use App\Invoice;
 use App\Override;
-use App\Permission;
 use App\Services\DbHelper;
 use App\Vendor;
 use Carbon\Carbon;
@@ -439,7 +438,7 @@ class InvoiceController extends Controller
 	{
 		$emps = Employee::active()->orderByName()->get();
 		$campaigns = Vendor::all()->sortBy('id');
-		$vID = Vendor::find(1)->id; // palmco
+		$vID = Vendor::find(1)->id;
 
 		$dates = Invoice::vendorId($vID)->get(['issue_date'])->unique()->values()->all();
 		$dates = collect($dates)->sortByDesc('issue_date');
@@ -574,14 +573,17 @@ class InvoiceController extends Controller
 
 		if($isAdmin){
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
-			$paystubs = Invoice::vendorId($vendor)
+			$rows = Invoice::vendorId($vendor)
 							->issueDate($date)
 							->agentId($agents->pluck('id')->toArray())
 							->latest('issue_date')
 							->latest('agentid')
 							->withActiveAgent()
-							->get()
-							->unique('agentid', 'issue_date');
+							->get();
+
+			$paystubs = $rows->unique('agentid', 'issue_date');
+			$overrides = Override::agentId($agents->pluck('id')->toArray())->issueDate($date)->get();
+			$expenses = Expense::agentId($agents->pluck('id')->toArray())->issueDate($date)->get();
 
 		} else {
 			$list = $thisUser->permissions()->active()->get();
@@ -592,25 +594,32 @@ class InvoiceController extends Controller
 				$empsResult[] = $thisUser;
 				$agents = collect($empsResult);
 
-				$paystubs = Invoice::vendorId($vendor)
+				$rows = Invoice::vendorId($vendor)
 				                   ->issueDate($date)
 				                   ->agentId($agents->pluck('id')->all())
 				                   ->latest('issue_date')
 				                   ->latest('agentid')
 				                   ->withActiveAgent()
-				                   ->get()
-				                   ->unique('agentid', 'issue_date');
+				                   ->get();
+				$paystubs = $rows->unique('agentid', 'issue_date');
+
+				$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+				$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 
 			} else { // agent w/no roll up employees
-				$paystubs = Invoice::vendorId($vendor)
+				$rows = Invoice::vendorId($vendor)
 				                   ->issueDate($date)
 				                   ->agentId($thisUser->id)
 				                   ->latest('issue_date')
 				                   ->withActiveAgent()
-				                   ->get()
-				                   ->unique('agentid', 'issue_date');
+				                   ->get();
+
+				$paystubs = $rows->unique('agentid', 'issue_date');
 
 				$agents = Auth::user()->employee;
+
+				$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+				$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 			}
 		}
 
@@ -627,7 +636,20 @@ class InvoiceController extends Controller
 			 'paystubs' => $paystubs,
 			 'agents' => $agents,
 			 'issueDates' => $issueDates,
-			 'vendors' => $vendors]);
+			 'vendors' => $vendors,
+			 'rows' => $rows,
+			 'overrides' => $overrides,
+			 'expenses' => $expenses]);
+	}
+
+
+	function array_insert($array, $var, $position)
+	{
+		$before = array_slice($array, 0, $position);
+		$after = array_slice($array, $position);
+
+		$return = array_merge($before, (array) $var);
+		return array_merge($return, $after);
 	}
 
 
@@ -641,14 +663,17 @@ class InvoiceController extends Controller
 		return view('paystubs._stubrowdata', [
 			'paystubs' => $results->stubs,
 			'agents' => $results->agents,
-			'vendors' => $results->vendors
+			'vendors' => $results->vendors,
+			'rows' => $results->rows,
+			'overrides' => $results->overrides,
+			'expenses' => $results->expenses
 		]);
 	}
 
 
 	public function showPaystub(Request $request)
 	{
-		//$inputParams = Input::all()['inputParams'];
+
 		$inputParams = $request->all();
 		$agentId = $inputParams['agent'];
 		$date = new Carbon($inputParams['date']);

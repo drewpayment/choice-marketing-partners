@@ -1,3 +1,17 @@
+@php
+
+function returnTotals($id, $rows, $overrides, $expenses)
+{
+    $rowTotal = $rows->where('agentid', $id)->sum('amount');
+    $ovrTotal = $overrides->where('agentid', $id)->sum('total');
+    $expTotal = $expenses->where('agentid', $id)->sum('amount');
+    $total = $rowTotal + $ovrTotal + $expTotal;
+
+    return $total;
+}
+
+@endphp
+
 
 @if(count($paystubs) > 0)
     @foreach($paystubs as $p)
@@ -12,7 +26,9 @@
                 </form>
             </td>
             <td>{{$vendors->first(function($v, $k)use($p){return $v->id = (int)$p->vendor;})->name}}</td>
-            <td>${{money_format('%.2n', $paystubs->sum(function($s)use($p){ if($s->agentid == $p->agentid){ return $s->amount;}else{return null;} }))}}</td>
+            <td>
+                ${{returnTotals($p->agentid, $rows, $overrides, $expenses)}}
+            </td>
         </tr>
     @endforeach
 @else
