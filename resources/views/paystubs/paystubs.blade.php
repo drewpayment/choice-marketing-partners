@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+
+<div class="row">
+    <div class="col-xs-10 col-xs-offset-1">
+        <p>Having issues with the new paystub portal? <a class="btn btn-default btn-xs" href="/historical-invoice-data">Click here</a> to use the old one.</p>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-xs-10 col-xs-offset-1">
         <div class="box box-default">
