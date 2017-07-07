@@ -103,6 +103,7 @@
                                 <a href="{{action('DocumentController@index')}}"><i class="ion ion-android-attach"></i> Documents</a>
                             </li>
                             <li>
+                                {{--removed to launch new paystub module--}}
                                 {{--<a href="/historical-invoice-data"><i class="ion ion-social-usd"></i> Paystubs</a>--}}
                                 <a href="/paystubs"><i class="ion ion-social-usd"></i> Paystubs</a>
                             </li>
@@ -128,6 +129,11 @@
                                 <li class="mobile-hidden">
                                     <a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">
                                         <i class="ion ion-edit"></i> Edit Invoice
+                                    </a>
+                                </li>
+                                <li class="mobile-hidden">
+                                    <a href="{{url('/vendors')}}">
+                                        <i class="fa fa-building"></i> Campaigns
                                     </a>
                                 </li>
                             @endif
