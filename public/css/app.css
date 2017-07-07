@@ -590,6 +590,13 @@ ul .dropdown-menu li {
   -webkit-box-pack: center;
   justify-content: center;
 }
+[class^="fa-circle-o-notch"],
+[class*=" fa-circle-o-notch"] {
+  display: inline-block;
+}
+td i .fa-circle-o-notch {
+  text-align: center;
+}
 
 .selectize-control.plugin-drag_drop.multi > .selectize-input > div.ui-sortable-placeholder {
   visibility: visible !important;

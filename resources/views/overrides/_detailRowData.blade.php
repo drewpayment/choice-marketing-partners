@@ -1,5 +1,5 @@
 
-
+@if(count($children) > 0 && $children[0] != null)
 @foreach($children as $c)
     <tr data-parent="true" data-parentid="{{$c->id}}">
         <td class="text-center">
@@ -20,4 +20,9 @@
         <td colspan="2" class="text-center"><i class="fa fa-frown-o fa-2x"></i> <h3 class="display-inline">No Results</h3></td>
     </tr>
 
+@endif
+@else
+    <tr>
+        <td colspan="2" class="text-center"><i class="fa fa-frown-o fa-2x"></i> <h3 class="display-inline">No Results</h3></td>
+    </tr>
 @endif

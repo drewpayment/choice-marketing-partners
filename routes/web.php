@@ -130,3 +130,13 @@ Route::get('/overrides/confirm-add-agent/{id}', 'OverrideController@returnAddAge
 Route::post('/overrides/handleAddAgentOverride', 'OverrideController@handleAddAgentOverride');
 Route::get('/overrides/confirm-delete-agent/{id}', 'OverrideController@returnDeleteAgentConfirmModal');
 Route::post('/overrides/handleDeleteAgentOverride', 'OverrideController@handleDeleteAgentOverride');
+
+
+/**
+ * vendor routes
+ *
+ */
+Route::get('/vendors', 'VendorController@index');
+Route::post('/vendors/handleAddVendor', 'VendorController@handleAddVendor');
+Route::get('/vendors/returnAddModal', 'VendorController@returnAddModal');
+Route::get('/vendors/refreshVendorRowData', 'VendorController@refreshVendorRowData');

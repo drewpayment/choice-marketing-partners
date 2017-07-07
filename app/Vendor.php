@@ -14,7 +14,7 @@ class Vendor extends Model
     /**
      * mass assignable fields
      */
-    protected $fillable = ['name'];
+    protected $fillable = ['id', 'name', 'is_active'];
 
     /**
      * scope query order by name, ascending
