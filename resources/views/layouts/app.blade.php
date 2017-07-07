@@ -96,39 +96,39 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-th navbar-title-text color-white"></i> <span class="hidden-sm hidden-md color-white">Menu</span></a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a href="{{url('/')}}"><i class="ion ion-ios-home-outline"></i> Home</a>
+                                <a href="{{url('/')}}"><i class="fa fa-home"></i> Home</a>
                             </li>
                             <li class="divider"></li>
                             <li>
-                                <a href="{{action('DocumentController@index')}}"><i class="ion ion-android-attach"></i> Documents</a>
+                                <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
                             </li>
                             <li>
                                 {{--removed to launch new paystub module--}}
                                 {{--<a href="/historical-invoice-data"><i class="ion ion-social-usd"></i> Paystubs</a>--}}
-                                <a href="/paystubs"><i class="ion ion-social-usd"></i> Paystubs</a>
+                                <a href="/paystubs"><i class="fa fa-dollar"></i> Paystubs</a>
                             </li>
                             @if(session('authenticatedUserIsAdmin'))
                                 <li>
-                                    <a href="{{action('EmpManagerController@index')}}"><i class="ion ion-android-contacts"></i> Employees</a>
+                                    <a href="{{action('EmpManagerController@index')}}"><i class="fa fa-users"></i> Employees</a>
                                 </li>
                                 <li>
-                                    <a href="/upload-invoice"><i class="ion ion-android-document"></i> Invoices</a>
+                                    <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
                                 </li>
                                 <li class="divider"></li>
                                 <li>
-                                    <a href="{{url('/dashboards/dashboard')}}"><i class="ion ion-planet"></i> Admin</a>
+                                    <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-globe"></i> Admin</a>
                                 </li>
                                 <li>
-                                    <a href="{{url('/overrides')}}"><i class="ion ion-ios-settings"></i> Overrides</a>
+                                    <a href="{{url('/overrides')}}"><i class="fa fa-cog"></i> Overrides</a>
                                 </li>
                                 <li>
                                     <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
-                                        <i class="ion ion-clipboard"></i> Payroll Tracking
+                                        <i class="fa fa-calculator"></i> Payroll Tracking
                                     </a>
                                 </li>
                                 <li class="mobile-hidden">
                                     <a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">
-                                        <i class="ion ion-edit"></i> Edit Invoice
+                                        <i class="fa fa-edit"></i> Edit Invoice
                                     </a>
                                 </li>
                                 <li class="mobile-hidden">
@@ -140,7 +140,7 @@
                             <li class="divider"></li>
                             <li id="logoutLink">
                                 <a href="{{url('/logout')}}">
-                                    <i class="fa icon ion-log-out navbar-title-text"></i> Logout
+                                    <i class="fa fa-sign-out navbar-title-text"></i> Logout
                                 </a>
                             </li>
                         </ul>
