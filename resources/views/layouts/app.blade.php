@@ -82,12 +82,17 @@
                     @if(!Auth::user())
                         <li role="presentation" id="homeLink">
                             <a href="{{url('/')}}" class="navbar-title-text">
-                                <i class="icon ion-home"></i> Home
+                                <i class="fa fa-home"></i> Home
+                            </a>
+                        </li>
+                        <li role="presentation" id="aboutLink">
+                            <a href="/about-us" class="navbar-title-text">
+                                <i class="fa fa-info"></i> About
                             </a>
                         </li>
                         <li role="presentation" id="loginLink">
                             <a href="{{url('/login')}}" class="navbar-title-text">
-                                <i class="icon ion-log-in"></i> Login
+                                <i class="fa fa-sign-in"></i> Login
                             </a>
                         </li>
                     @endif
@@ -131,7 +136,7 @@
                                         <i class="fa fa-edit"></i> Edit Invoice
                                     </a>
                                 </li>
-                                <li class="mobile-hidden">
+                                <li>
                                     <a href="{{url('/vendors')}}">
                                         <i class="fa fa-building"></i> Campaigns
                                     </a>
@@ -181,8 +186,8 @@
                 </div>
                 <div class="col-sm-6 social-icons">
                     <span class="pull-right">
+                        <a href="/about-us"><i class="fa fa-info fa-2x"></i></a>
                         <a href="mailto:contactus@choice-marketing-partners.com"><i class="fa fa-paper-plane fa-2x"></i></a>
-                        <span>&nbsp;&nbsp;</span>
                         <a href="https://www.facebook.com/choicemarketingpartnersllc" target="_blank"><i class="fa fa-facebook fa-2x"></i></a>
                     </span>
                 </div>
@@ -282,6 +287,9 @@
                 case "/dashboard":
                     $('#dashboardLink').addClass('active');
                     break;
+                case "/about-us":
+                    $('#aboutLink').addClass('active');
+                    break;
                 default:
                     break;
             }
@@ -315,6 +323,13 @@
             }
         })
     </script>
+
+    {{--livereload js --- only for dev env--}}
+    @if ( config('app.debug') )
+        <script type="text/javascript">
+            document.write('<script src="//localhost:35729/livereload.js?snipver=1" type="text/javascript"><\/script>')
+        </script>
+    @endif
 
     @yield('scripts')
 

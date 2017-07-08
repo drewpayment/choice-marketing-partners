@@ -576,6 +576,14 @@ ul .dropdown-menu{
   display: none !important;
 }
 
+.jumbotron {
+  margin: 5px 0 5px 0;
+  background-color: lighten(@brand-color, 40%) !important;
+  border: 1px solid @brand-color;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+}
+
 .box {
   margin-bottom: 20px;
   background-color: #fff;
@@ -625,6 +633,13 @@ ul .dropdown-menu{
   height: auto;
   max-width: 100%;
   vertical-align: middle;
+}
+
+.img-container {
+  border: 1px solid transparent;
+  -webkit-box-shadow: 10px 10px 41px 4px rgba(255,255,255,.95);
+  -moz-box-shadow: 10px 10px 41px 4px rgba(255,255,255,.95);
+  box-shadow: 10px 10px 41px 4px rgba(255,255,255,.95);
 }
 
 .yt-vid-container {
@@ -682,6 +697,8 @@ ul .dropdown-menu{
   }
 }
 
+
+
 .carousel-arrows {
   cursor: pointer;
   display: flex;
@@ -695,4 +712,31 @@ ul .dropdown-menu{
 
 td i .fa-circle-o-notch{
   text-align: center;
+}
+
+.social-icons span a i {
+  padding: 0 5px 0 5px;
+}
+
+.navbar-default .navbar-nav {
+
+  li {
+
+    a {
+      color: @brand-white !important;
+    }
+
+    :hover {
+      background-color: lighten(@brand-color, 80%);
+    }
+  }
+
+  li.active{
+    a {
+      color: @brand-color !important;
+    }
+  }
+
+
+
 }

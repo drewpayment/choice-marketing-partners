@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
 {
-    //
-
+    // MAIN VIEWS
 
 	public function index()
 	{
@@ -18,6 +17,13 @@ class PublicController extends Controller
 		return view('index', ['customers' => $customers, 'agents' => $agents]);
 	}
 
+	public function aboutus()
+	{
+		return view('about');
+	}
+
+
+	// HELPER
 
 	public function ReturnCommaClubListByID()
 	{

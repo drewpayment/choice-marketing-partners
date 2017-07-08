@@ -494,6 +494,12 @@ ul .dropdown-menu li {
 .jsdata {
   display: none !important;
 }
+.jumbotron {
+  margin: 5px 0 5px 0;
+  background-color: #b3cce6 !important;
+  border: 1px solid #336699;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
 .box {
   margin-bottom: 20px;
   background-color: #fff;
@@ -532,6 +538,10 @@ ul .dropdown-menu li {
   height: auto;
   max-width: 100%;
   vertical-align: middle;
+}
+.img-container {
+  border: 1px solid transparent;
+  box-shadow: 10px 10px 41px 4px rgba(255, 255, 255, 0.95);
 }
 .yt-vid-container {
   position: relative;
@@ -596,6 +606,18 @@ ul .dropdown-menu li {
 }
 td i .fa-circle-o-notch {
   text-align: center;
+}
+.social-icons span a i {
+  padding: 0 5px 0 5px;
+}
+.navbar-default .navbar-nav li a {
+  color: #FDFDFD !important;
+}
+.navbar-default .navbar-nav li :hover {
+  background-color: #ffffff;
+}
+.navbar-default .navbar-nav li.active a {
+  color: #336699 !important;
 }
 
 .selectize-control.plugin-drag_drop.multi > .selectize-input > div.ui-sortable-placeholder {

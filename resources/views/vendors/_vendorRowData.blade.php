@@ -10,7 +10,7 @@
                 <i class="fa fa-building fa-2x fa-fw"></i>
             </div>
             <div class="col-xs-11">
-                <h4>{{$v->name}} <small class="pull-right"><label>Active <input type="checkbox" {{$checked}}></label></small></h4>
+                <h4>{{$v->name}} <small class="pull-right"><label data-parent="true" data-parentid="{{$v->id}}">Active <input data-active="true" type="checkbox" {{$checked}}></label></small></h4>
             </div>
         </div>
     </li>

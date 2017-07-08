@@ -66,6 +66,36 @@
             }
         });
 
+        $(document).on('change', '[data-active="true"]', function(){
+            var inputParams = {
+                id: null,
+                isActive: null
+            };
+
+            inputParams.id = $(this).closest('[data-parent="true"]').data('parentid');
+            inputParams.isActive = $(this).is(':checked') ? 1 : 0;
+
+            var options = {
+                url: '/vendors/handleVendorActive',
+                type: 'POST',
+                dataType: 'JSON',
+                data: {
+                    inputParams: inputParams
+                },
+                afterData: afterData
+            };
+
+            fireAjaxRequest(options);
+
+            function afterData(data){
+                if(data){
+                    setMessageContainer('Success!');
+                } else {
+                    setMessageContainer('Failed. Please try again later.', null, 'danger');
+                }
+            }
+        });
+
         var handleAddVendor = function(){
             var modal = $('#modal_layout');
             var inputParams = {

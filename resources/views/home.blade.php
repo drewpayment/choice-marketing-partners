@@ -1,5 +1,5 @@
 {{-- this is the top menu navigation --}}
-<div class="w-650">
+<div class="w-650 mobile-hidden">
     <div class="row">
         <div class="col-xs-12">
             <ul class="list-inline">

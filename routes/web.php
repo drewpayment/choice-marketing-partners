@@ -26,6 +26,7 @@
 //	return view('index');
 //});
 Route::get('/', 'PublicController@index');
+Route::get('/about-us', 'PublicController@aboutus');
 Route::post('/returnCommaClubListByID', 'PublicController@ReturnCommaClubListByID');
 
 Route::get('/payroll-dispute', function(){
@@ -140,3 +141,4 @@ Route::get('/vendors', 'VendorController@index');
 Route::post('/vendors/handleAddVendor', 'VendorController@handleAddVendor');
 Route::get('/vendors/returnAddModal', 'VendorController@returnAddModal');
 Route::get('/vendors/refreshVendorRowData', 'VendorController@refreshVendorRowData');
+Route::post('/vendors/handleVendorActive', 'VendorController@handleVendorActive');
