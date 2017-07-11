@@ -1,8 +1,10 @@
 @extends('layouts.app')
 
+@section('title', 'Choice Marketing Partners')
+
 @section('content')
 
-<div class="row pt-0">
+<div class="row pt-0 mobile-hidden">
     <div class="col-md-12">
         <div class="row">
             <div class="col-xs-1">

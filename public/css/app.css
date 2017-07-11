@@ -90,15 +90,6 @@ a.unstyled {
     clear: both;
     display: none;
   }
-  .navbar-collapse.collapse ul li a {
-    color: #FFF !important;
-  }
-  .navbar-collapse.collapse ul li i {
-    color: #FFF !important;
-  }
-  .icon-bar {
-    background-color: #FFF !important;
-  }
 }
 .color-brand {
   color: #336699 !important;
@@ -538,10 +529,6 @@ ul .dropdown-menu li {
   height: auto;
   max-width: 100%;
   vertical-align: middle;
-}
-.img-container {
-  border: 1px solid transparent;
-  box-shadow: 10px 10px 41px 4px rgba(255, 255, 255, 0.95);
 }
 .yt-vid-container {
   position: relative;

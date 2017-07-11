@@ -2,7 +2,6 @@
 
 @section('title', 'Search Invoices')
 
-
 @section('content')
 
     <div class="row">

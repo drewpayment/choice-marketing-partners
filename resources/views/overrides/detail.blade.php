@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Override Detail')
+
 @section('content')
 
     <div class="row">

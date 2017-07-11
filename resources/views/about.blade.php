@@ -1,18 +1,22 @@
 @extends('layouts.app')
 
+@section('title', 'About Us')
+
 @section('content')
 
     <div class="row">
         <div class="col-md-12">
-            <div class="jumbotron mb-10">
-                <div class="row">
-                    <div class="col-md-9">
-                        <h1>About Us</h1>
-                        <p>Chris and Terri Payment are longtime residents of West Michigan, married in 1987, parents of two adult men while facilitating outside sales operations since 1995...</p>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="img-container">
-                            <img class="img" src="https://dl.dropboxusercontent.com/s/f0g18gzfmkl1hua/payments.jpg?dl=0" />
+            <div class="box box-primary">
+                <div class="box-content">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <h1 class="page-header">About Us</h1>
+                            <h3>Chris and Terri Payment are longtime residents of West Michigan, married in 1987, parents of two adult men while facilitating outside sales operations since 1995...</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <div>
+                                <img class="img" src="https://dl.dropboxusercontent.com/s/f0g18gzfmkl1hua/payments.jpg?dl=0" />
+                            </div>
                         </div>
                     </div>
                 </div>

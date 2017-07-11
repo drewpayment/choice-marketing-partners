@@ -10,6 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
 @endsection
 
+@section('title', 'Create an Invoice')
+
 @section('content')
 
 <div class="row pt-10">

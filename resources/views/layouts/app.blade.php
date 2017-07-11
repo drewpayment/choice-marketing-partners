@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta id="global-token" name="token" content="{{csrf_token()}}">
 
-    <title>Choice Marketing Partners - @yield('title')</title>
+    <title>@yield('title')</title>
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
@@ -181,10 +181,10 @@
      <footer class="footer pt-5">
         <div class="container">
             <div class="row">
-                <div class="col-sm-6">
+                <div class="col-md-6 mobile-hidden">
                     <h4 id="footer-copyright"></h4>
                 </div>
-                <div class="col-sm-6 social-icons">
+                <div class="col-md-6 social-icons">
                     <span class="pull-right">
                         <a href="/about-us"><i class="fa fa-info fa-2x"></i></a>
                         <a href="mailto:contactus@choice-marketing-partners.com"><i class="fa fa-paper-plane fa-2x"></i></a>

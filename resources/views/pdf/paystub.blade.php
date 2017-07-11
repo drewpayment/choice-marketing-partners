@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('Paystub Detail')
+
 @section('content')
 
 <div class="row p-10">
