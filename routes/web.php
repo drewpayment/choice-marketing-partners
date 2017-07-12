@@ -91,6 +91,7 @@ Route::get('/documents', 'DocumentController@index');
 Route::post('/sendmodal', 'DocumentController@sendMessage');
 Route::get('/getDocuments', 'DocumentController@getDocumentsViaAjax');
 Route::post('/postNewDocument', 'DocumentController@postNewDocument');
+
 // upload documents
 Route::post('/UploadDocument', 'DocumentController@store');
 Route::get('download/{filename}', 'DocumentController@download');
@@ -102,6 +103,9 @@ Route::post('/tagDocument', 'DocumentController@HandleTagDocument');
 Route::post('/untagDocument', 'DocumentController@HandleUntagDocument');
 Route::get('/showNewDocumentModal', 'DocumentController@ReturnNewDocumentModal');
 Route::post('/returnDocumentsByTag', 'DocumentController@ReturnDocumentsByTag');
+
+// new doc manager utilizing dropbox
+Route::get('/dropbox/documents', 'DocumentController@documents');
 
 /*
  * employee management routes

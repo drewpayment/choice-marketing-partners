@@ -62,6 +62,12 @@ return [
             'bucket' => 'your-bucket',
         ],
 
+	    'dropbox' => [
+	        'driver' => 'dropbox',
+		    'accessToken' => 'fK5kKfG6QhAAAAAAAAAAP2s436jsY0wSJG-Ja4eIVu9o55g6tBlnyPshpDc9FHIa',
+		    'clientIdentifier' => 'qwyjt0c9h58uvj6'
+	    ],
+
     ],
 
 ];

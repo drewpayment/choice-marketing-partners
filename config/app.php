@@ -179,7 +179,7 @@ $results = [
 	    Collective\Html\HtmlServiceProvider::class,
 	    Conner\Tagging\Providers\TaggingServiceProvider::class,
 	    Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
-
+	    App\Providers\DropboxServiceProvider::class,
 
     ],
 
@@ -231,6 +231,7 @@ $results = [
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
 	    'PDF' => Meneses\LaravelMpdf\Facades\LaravelMpdf::class,
+	    'Dropbox' => Spatie\FlysystemDropbox\DropboxAdapter::class,
 
     ],
 

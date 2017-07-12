@@ -13,7 +13,8 @@
         "barryvdh/laravel-debugbar": "^2.3",
         "sofa/eloquence": "5.3",
         "mpdf/mpdf": "^6.1",
-        "carlos-meneses/laravel-mpdf": "^1.1"
+        "carlos-meneses/laravel-mpdf": "^1.1",
+        "spatie/flysystem-dropbox": "^1.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

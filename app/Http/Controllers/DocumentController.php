@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Document;
+use App\Employee;
 use App\Services\UploadsManager;
 use Carbon\Carbon;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
+use GrahamCampbell\Dropbox\Facades\Dropbox;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,10 +15,14 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
+use League\Flysystem\Filesystem;
+use Spatie\Dropbox\Client;
+use Spatie\FlysystemDropbox\DropboxAdapter;
 
 class DocumentController extends Controller
 {
 	protected $manager;
+	protected $fs, $c, $a;
 
 
 	/**
@@ -28,7 +34,27 @@ class DocumentController extends Controller
 	{
 		$this->manager = $manager;
 		$this->middleware('auth');
+
+		$this->c = new Client('fK5kKfG6QhAAAAAAAAAAP2s436jsY0wSJG-Ja4eIVu9o55g6tBlnyPshpDc9FHIa');
+		$this->a = new DropboxAdapter($this->c);
+		$this->fs = new Filesystem($this->a);
 	}
+
+
+	public function documents()
+	{
+		$documents = $this->fs->listContents('/', true);
+		$thisUser = Employee::find(Auth::user()->id);
+		$admin = $thisUser->is_admin;
+
+		$documents = collect($documents);
+
+		return view('doc_manager.documents', [
+			'documents' => $documents,
+			'admin' => $admin
+		]);
+	}
+
 
 	public function index()
 	{
