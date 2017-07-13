@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Payroll;
+use App\Vendor;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -84,18 +85,43 @@ class DashboardController extends Controller
 		}, null, true)->values()->all();
 		$dates = collect($dates);
 		$date = (is_null($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
-		$employees = Payroll::payDate($date)->paidFirst()->orderByName()->get();
+		$vendors = Vendor::all();
 
-		return view('dashboard.payrollinfo', ['dates' => $dates, 'employees' => $employees]);
+		$employees = Payroll::payDate($date)->vendor(-1)->paidFirst()->orderByName()->get();
+
+
+		return view('dashboard.payrollinfo',
+			[
+				'dates' => $dates,
+			    'employees' => $employees,
+			    'vendors' => $vendors
+			]);
 	}
 
 
 	public function refreshPayrollInfo(Request $request)
 	{
 		$date = $request->date;
+
 		$employees = Payroll::payDate($date)->paidFirst()->orderByName()->get();
 
 		return view('dashboard.payrollTableRowData', ['employees' => $employees]);
+	}
+
+
+	public function refreshPayrollTracking(Request $request)
+	{
+		if(!$request->ajax()) return false;
+
+		$data = $request->all();
+		$vendor = $data['vendor'];
+		$date = $data['date'];
+
+		$employees = Payroll::payDate($date)->vendor($vendor)->paidFirst()->orderByName()->get();
+
+		$vendors = Vendor::all();
+
+		return view('dashboard.payrollTableRowData', ['employees' => $employees, 'vendors' => $vendors]);
 	}
 
 

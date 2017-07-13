@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('Paystub Detail')
+@section('title', 'Paystub Detail')
 
 @section('content')
 
@@ -9,9 +9,9 @@
 
 		<form id="pdfForm" action="{{url('payroll/printable')}}" method="POST">
 			<input type="hidden" name="_token" value="{{csrf_token()}}" />
-			<input type="hidden" name="agent" value="{{$emp->id}}" />
-			<input type="hidden" name="vendor" value="{{$vendorId}}" />
-			<input type="hidden" name="date" value="{{$invoiceDt}}" />
+			<input type="hidden" id="agent" name="agent" value="{{$emp->id}}" />
+			<input type="hidden" id="vendor" name="vendor" value="{{$vendorId}}" />
+			<input type="hidden" id="date" name="date" value="{{$invoiceDt}}" />
 
 			<button type="button" class="btn btn-default display-inline" onclick="history.back()">
 				<i class="fa fa-arrow-circle-left"></i> Back
@@ -19,6 +19,11 @@
 			<button type="submit" class="btn btn-default display-inline" id="generatePdf" formtarget="_blank">
 				<i class="fa fa-print"></i> Print Version
 			</button>
+			@if($isAdmin)
+				<button type="button" class="btn btn-default display-inline" id="editPaystub">
+					<i class="fa fa-pencil"></i> Edit Invoice
+				</button>
+			@endif
 		</form>
 	</div>
 </div>
@@ -142,5 +147,27 @@
 		</div>
 	</div>
 </div>
+
+@endsection
+
+@section('scripts')
+
+	<script type="text/javascript">
+
+		var elem = $('#editPaystub');
+		if(elem.length){
+		    var agentId = $('#agent').val();
+		    var vendorId = $('#vendor').val();
+		    var rawDate = $('#date').val();
+		    var date = moment(rawDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+
+		    var url = '/invoices/show-invoice/' + agentId + '/' + vendorId + '/' + date;
+
+		    elem.on('click', function(){
+		        window.location.href = url;
+			});
+		}
+
+	</script>
 
 @endsection

@@ -9,7 +9,7 @@
                 <h3 id="employee" data-id="{{$employee->id}}">{{$employee->name}} <small id="vendor" data-vendor="{{$campaign->id}}">{{$campaign->name}}</small></h3>
             </li>
             <li>
-                <h4 id="issueDate" data-date="{{$invoiceDate}}">Issued: {{$issueDate}}</h4>
+                <h4 id="issueDate" data-date="{{$invoiceDate}}">Issued Date: {{$issueDate}}</h4>
             </li>
             <li>
                 <h4 id="wkendDate" data-weekending="{{$weekEnding}}">Weekending: {{$weekEnding}}</h4>

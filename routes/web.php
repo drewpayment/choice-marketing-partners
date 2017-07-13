@@ -124,6 +124,7 @@ Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');
 // payroll info routes
 Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');
 Route::get('/dashboards/refreshPayrollInfo', 'DashboardController@refreshPayrollInfo');
+Route::get('/refreshPayrollTracking', 'DashboardController@refreshPayrollTracking');
 Route::get('/overrides', 'OverrideController@overrides');
 Route::get('/overrides/detail/{id}', 'OverrideController@detail');
 Route::get('/overrides/refresh-detail/{id}', 'OverrideController@refreshDetail');

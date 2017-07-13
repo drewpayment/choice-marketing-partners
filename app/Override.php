@@ -9,6 +9,7 @@ class Override extends Model
 
 	protected $fillable = [
 		'id',
+		'vendor_id',
 		'name',
 		'sales',
 		'commission',
@@ -39,6 +40,18 @@ class Override extends Model
 		}
 
 		return $query->where('agentid', $id);
+	}
+
+
+	/**
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeVendorId($query, $id)
+	{
+		return $query->where('vendor_id', $id);
 	}
 
 

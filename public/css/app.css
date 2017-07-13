@@ -142,6 +142,9 @@ a.unstyled {
 .mt-neg-10 {
   margin-top: -10px !important;
 }
+.mr-30 {
+  margin: 30px !important;
+}
 .p-0 {
   padding: 0 !important;
 }

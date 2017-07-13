@@ -131,11 +131,11 @@
                                         <i class="fa fa-calculator"></i> Payroll Tracking
                                     </a>
                                 </li>
-                                <li class="mobile-hidden">
-                                    <a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">
-                                        <i class="fa fa-edit"></i> Edit Invoice
-                                    </a>
-                                </li>
+                                {{--<li class="mobile-hidden">--}}
+                                    {{--<a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">--}}
+                                        {{--<i class="fa fa-edit"></i> Edit Invoice--}}
+                                    {{--</a>--}}
+                                {{--</li>--}}
                                 <li>
                                     <a href="{{url('/vendors')}}">
                                         <i class="fa fa-building"></i> Campaigns

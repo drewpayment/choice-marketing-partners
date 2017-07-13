@@ -18,7 +18,7 @@ class Expense extends Model
     /**
      * mass assignable fields
      */
-    protected $fillable = ['expid', 'type', 'amount', 'notes', 'agentid', 'issue_date', 'wkending'];
+    protected $fillable = ['expid', 'vendor_id', 'type', 'amount', 'notes', 'agentid', 'issue_date', 'wkending'];
 
 
     /**
@@ -40,6 +40,18 @@ class Expense extends Model
 
 	    return $query->where('agentid', $id);
     }
+
+
+	/**
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeVendorId($query, $id)
+	{
+		return $query->where('vendor_id', $id);
+	}
 
 
     /**

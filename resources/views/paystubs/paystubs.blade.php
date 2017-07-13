@@ -1,3 +1,14 @@
+{{--  params available  --}}
+{{--    isAdmin,        --}}
+{{--    emps,           --}}
+{{--    paystubs,       --}}
+{{--    agents,         --}}
+{{--    issueDates,     --}}
+{{--    vendors,        --}}
+{{--    rows,           --}}
+{{--    overrides,      --}}
+{{--    expenses        --}}
+
 @extends('layouts.app')
 
 @section('title', 'Paystubs')
@@ -92,6 +103,7 @@
 @section('scripts')
 
     <script type="text/javascript">
+
         (function(){
 
             var inputParams = {

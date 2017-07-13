@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Invoice Detail')
+
 @section('topCSS')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.css">

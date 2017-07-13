@@ -1,10 +1,31 @@
+{{--  params available  --}}
+{{--    paystubs        --}}
+{{--    agents          --}}
+{{--    vendors         --}}
+{{--    isAdmin         --}}
+
 @php
 
-function returnTotals($id, $rows, $overrides, $expenses)
+function returnTotals($id, $rows, $overrides, $expenses, $vendor)
 {
-    $rowTotal = $rows->where('agentid', $id)->sum('amount');
-    $ovrTotal = $overrides->where('agentid', $id)->sum('total');
-    $expTotal = $expenses->where('agentid', $id)->sum('amount');
+    $rowTotal = $rows->filter(function($item) use ($vendor){
+        return $item->vendor == $vendor;
+    })->filter(function($item) use ($id){
+        return $item->agentid == $id;
+    })->sum('amount');
+
+    $ovrTotal = $overrides->filter(function($item) use ($vendor){
+        return $item->vendor_id == $vendor;
+    })->filter(function($item) use ($id){
+        return $item->agentid == $id;
+    })->sum('total');
+
+    $expTotal = $expenses->filter(function($item) use ($vendor){
+        return $item->vendor_id == $vendor;
+    })->filter(function($item) use ($id){
+        return $item->agentid == $id;
+    })->sum('amount');
+
     $total = $rowTotal + $ovrTotal + $expTotal;
 
     return $total;
@@ -25,9 +46,9 @@ function returnTotals($id, $rows, $overrides, $expenses)
                     <input type="hidden" name="agent" id="agent">
                 </form>
             </td>
-            <td>{{$vendors->first(function($v, $k)use($p){return $v->id = (int)$p->vendor;})->name}}</td>
+            <td>{{$vendors->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})->name}}</td>
             <td>
-                ${{returnTotals($p->agentid, $rows, $overrides, $expenses)}}
+                ${{returnTotals($p->agentid, $rows, $overrides, $expenses, (int)$p->vendor)}}
             </td>
         </tr>
     @endforeach

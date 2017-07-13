@@ -15,7 +15,7 @@ class Payroll extends Model
 	/**
 	 * mass assignable fields on the model
 	 */
-	protected $fillable = ['agent_id', 'agent_name', 'amount', 'is_paid', 'pay_date'];
+	protected $fillable = ['agent_id', 'agent_name', 'amount', 'is_paid', 'vendor_id', 'pay_date'];
 
 	/**
 	 * scope query to order by name
@@ -29,6 +29,15 @@ class Payroll extends Model
 	}
 
 	/**
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeOrderByDate($query)
+	{
+		return $query->orderBy('pay_date', 'desc');
+	}
+
+	/**
 	 * scope query to filter by pay date
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query
@@ -38,6 +47,22 @@ class Payroll extends Model
 	public function scopePayDate($query, $date)
 	{
 		return $query->where('pay_date', $date);
+	}
+
+	/**
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param string
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeVendor($query, $vendor)
+	{
+		if($vendor == -1) {
+			return $query;
+		}
+		else
+		{
+			return $query->where('vendor_id', $vendor);
+		}
 	}
 
 	/**
