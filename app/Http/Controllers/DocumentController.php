@@ -128,7 +128,7 @@ class DocumentController extends Controller
 
 	public function download($filename)
 	{
-		$file_path = storage_path() . '/app/uploads/' . $filename;
+		$file_path = public_path() . '/uploads/' . $filename;
 		if(file_exists($file_path))
 		{
 			return response()->file($file_path);
@@ -142,7 +142,7 @@ class DocumentController extends Controller
 
 	public function delete($id, $filename)
 	{
-		$file_path = storage_path() . '/app/uploads/' . $filename;
+		$file_path = public_path() . '/uploads/' . $filename;
 		File::delete($file_path);
 
 		if(file_exists($file_path))
