@@ -21,16 +21,12 @@ elixir(function(mix) {
         'pdfwrapper.less'
     ], 'assets/pdfs/wrapper.css');
 
-    mix.sass('app.scss');
-    mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
-
     mix.styles([
         '../../../public/css/*/*.css'
-        // '../../../public/css/user.css',
-        // '../../../public/css/normalize.css',
-        // '../../../public/css/app.css',
-        // '../../../public/css/custom.css'
     ]);
+
+    mix.sass('app.scss');
+    mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
 
     mix.less([
         'custom.less',
