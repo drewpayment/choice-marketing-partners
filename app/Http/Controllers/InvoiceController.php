@@ -783,8 +783,8 @@ class InvoiceController extends Controller
 			$s->sale_date = date('m-d-Y', $s->sale_date);
 		}
 
-		$overrides = Override::agentId($agentId)->issueDate($date)->get();
-		$expenses = Expense::agentId($agentId)->issueDate($date)->get();
+		$overrides = Override::agentId($agentId)->issueDate($sqlDate)->get();
+		$expenses = Expense::agentId($agentId)->issueDate($sqlDate)->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
