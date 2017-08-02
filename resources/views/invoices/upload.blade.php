@@ -74,11 +74,11 @@
 <div class="row pt-10">
 	<div class="col-xs-12">
 		<ul class="list-inline">
-			<li class="hidden" id="overrides">
+			<li id="overrides" style="display:none;">
 				<h3>Overrides</h3>
 				<div id="overridesTable" class="overridesTable" data-parent="true"></div>
 			</li>
-			<li class="hidden" id="expenses">
+			<li id="expenses" style="display:none;">
 				<h3>Expenses</h3>
 				<div id="expensesTable" class="overridesTable" data-parent="true"></div>
 			</li>
@@ -88,7 +88,7 @@
 <div class="row pt-20">
 	<div class="col-xs-11">
 		<div class="pull-right">
-			<button class="btn btn-primary" data-tag="1" data-vero="button"><i class="fa fa-save"></i> Save</button>
+			<button class="btn btn-primary" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
 		</div>
 	</div>
 </div>
@@ -99,6 +99,9 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script type="text/javascript">
+var overrides = false,
+	expenses = false;
+
 $(function(){
 	$('#wkendDate').datepicker();
 
@@ -106,20 +109,26 @@ $(function(){
 	    var el = $(this);
 	    if(el.find('i').hasClass('fa-plus')){
             el.find('i').removeClass('fa-plus').addClass('fa-minus');
+            overrides = true;
 		} else {
 	        el.find('i').removeClass('fa-minus').addClass('fa-plus');
+	        overrides = false;
 		}
-	   	$('#overrides').toggleClass('hidden');
+	   	$('#overrides').fadeToggle();
+		overHot.render();
 	});
 
 	$(document).on('click', '#addExpenses', function(){
         var el = $(this);
         if(el.find('i').hasClass('fa-plus')){
             el.find('i').removeClass('fa-plus').addClass('fa-minus');
+            expenses = true;
         } else {
             el.find('i').removeClass('fa-minus').addClass('fa-plus');
+            expenses = false;
         }
-	   	$('#expenses').toggleClass('hidden');
+	   	$('#expenses').fadeToggle();
+        expHot.render();
 	});
 });
 
@@ -235,6 +244,71 @@ var expHot = new Handsontable(expenseContainer, {
 		},
         {data: 'notes'}
     ]
+});
+
+
+/*
+* handles when the user clicks save!
+*
+ */
+$(document).on('click', '#saveInvoice', function(){
+    setCommonUserInfo();
+
+    var indSalesArr = [],
+		overridesArr = [],
+		expensesArr = [];
+
+	var individualRows = cleanArray(paystubHot.getData(), paystubHot),
+		overrideRows, expenseRows;
+
+	if(overrides) overrideRows = cleanArray(overHot.getData(), overHot);
+	if(expenses) expenseRows = cleanArray(expHot.getData(), expHot);
+
+	$.each(individualRows, function(i, o){
+		if(o !== null && o !== undefined){
+		    indSalesArr.push(setNewSale(o));
+		}
+	});
+
+	$.each(overrideRows, function(i, o){
+	   	if(o !== null && o !== undefined){
+	   	    overridesArr.push(setNewOverride(o));
+		}
+	});
+
+	$.each(expenseRows, function(i, o){
+	    if(o !== null && o !== undefined){
+	        expensesArr.push(setNewExpense(o));
+		}
+	});
+
+    var input = {
+        individual: indSalesArr,
+        hasOverrides: overrides,
+        hasExpenses: expenses,
+		overrides: overridesArr,
+		expenses: expensesArr
+    };
+
+    var options = {
+        url: '/upload/save-invoice',
+		type: 'POST',
+		dataType: 'JSON',
+		data: input,
+		afterData: afterData
+	};
+
+	fireAjaxRequest(options);
+
+	function afterData(data){
+	    if(data){
+	        setMessageContainer('Success!');
+	        console.dir(data);
+		} else {
+	        setMessageContainer('Utoh! Something went wrong...', null, 'danger');
+		}
+	}
+
 });
 
 </script>

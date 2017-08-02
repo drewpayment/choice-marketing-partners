@@ -14,23 +14,24 @@ var MODAL_ELEM = $('#modal_layout'),
     vendor;
 
 var setNewSale = function (s){
-    var amt = sanitizeCurrency(s[7]);
+    var amt = sanitizeCurrency(s[6]);
+
+    var currentDate = moment(currentIssueDt);
 
     return {
-        id: s[0],
-        date: s[1],
+        date: s[0],
         name: {
-            first: s[2],
-            last: s[3]
+            first: s[1],
+            last: s[2]
         },
-        address: s[4],
-        city: s[5],
-        status: s[6],
+        address: s[3],
+        city: s[4],
+        status: s[5],
         amount: amt,
-        agentid: null,
-        issueDate: null,
-        wkending: null,
-        vendor: null
+        agentid: currentAgentId,
+        issueDate: currentDate,
+        wkending: currentWkEnding,
+        vendor: vendor
     };
 };
 

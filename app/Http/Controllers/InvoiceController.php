@@ -174,6 +174,23 @@ class InvoiceController extends Controller
 
 
 	/**
+	 * Save invoice via ajax
+	 *
+	 */
+	public function SaveInvoice(Request $request)
+	{
+		if(!$request->ajax())
+		{
+			return response()->json(false);
+		}
+
+		$input = Input::all();
+
+		return response()->json($input);
+	}
+
+
+	/**
 	 * Upload invoice from handsontable
 	 */
 	public function UploadInvoice(Request $request)
