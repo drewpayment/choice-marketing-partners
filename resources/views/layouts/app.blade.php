@@ -219,9 +219,9 @@
     <!-- moment js plugin for dates -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
     {{-- jscrollpane --}}
-    <script src="{{url('assets/jscrollpane/jquery.mousewheel.js')}}"></script>
-    <script src="{{url('assets/jscrollpane/mwheelintent.js')}}"></script>
-    <script src="{{url('assets/jscrollpane/jquery.jscrollpane.js')}}"></script>
+    {{--<script src="{{url('assets/jscrollpane/jquery.mousewheel.js')}}"></script>--}}
+    {{--<script src="{{url('assets/jscrollpane/mwheelintent.js')}}"></script>--}}
+    {{--<script src="{{url('assets/jscrollpane/jquery.jscrollpane.js')}}"></script>--}}
     {{--jquery scroll to plugin--}}
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
     {{-- http://selectize.github.io/selectize.js/ --}}

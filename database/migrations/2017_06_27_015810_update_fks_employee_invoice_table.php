@@ -30,7 +30,7 @@ class UpdateFksEmployeeInvoiceTable extends Migration
     public function down()
     {
         Schema::table('employee_invoice', function(Blueprint $table){
-	        $table->dropPrimary('PRIMARY');
+	        $table->dropPrimary();
 	        $table->dropForeign('employee_invoice_employee_id_foreign');
 	        $table->dropForeign('employee_invoice_invoice_id_foreign');
         });
