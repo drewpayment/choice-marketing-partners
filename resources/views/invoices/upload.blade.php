@@ -202,17 +202,20 @@ var overHot = new Handsontable(overrideContainer, {
 		},
         {
             data: 'total',
-			renderer: function(hot, td, row, col, prop, value, cellProperties){
-                var sales = hot.getDataAtCell(row, 1);
-                var comm = hot.getDataAtCell(row, 2);
-
-                if(sales !== undefined && comm !== undefined && sales > 0 && comm > 0){
-                    var result = sales * comm;
-                    td.innerHTML = '<span class="pull-right">$'+ result.toFixed(2) +'</span>';
-				} else {
-                    td.innerHTML = '<span class="pull-right"></span>';
-				}
-			}
+			className: 'htRight',
+			type: 'numeric',
+			format: '0.00'
+//			renderer: function(hot, td, row, col, prop, value, cellProperties){
+//                var sales = hot.getDataAtCell(row, 1);
+//                var comm = hot.getDataAtCell(row, 2);
+//
+//                if(sales !== undefined && comm !== undefined && sales > 0 && comm > 0){
+//                    var result = sales * comm;
+//                    td.innerHTML = result.toFixed(2);
+//				} else {
+//                    td.innerHTML = '<span class="pull-right"></span>';
+//				}
+//			}
         }
     ]
 });
@@ -247,6 +250,15 @@ var expHot = new Handsontable(expenseContainer, {
 });
 
 
+var prepareDataArrays = function(data, hot){
+    var result = [];
+	$.each(data, function(i, o){
+	    if(!hot.isEmptyRow(i)) result.push(o);
+	});
+	return result;
+};
+
+
 /*
 * handles when the user clicks save!
 *
@@ -258,11 +270,11 @@ $(document).on('click', '#saveInvoice', function(){
 		overridesArr = [],
 		expensesArr = [];
 
-	var individualRows = cleanArray(paystubHot.getData(), paystubHot),
+	var individualRows = prepareDataArrays(paystubHot.getData(), paystubHot),
 		overrideRows, expenseRows;
 
-	if(overrides) overrideRows = cleanArray(overHot.getData(), overHot);
-	if(expenses) expenseRows = cleanArray(expHot.getData(), expHot);
+	if(overrides) overrideRows = prepareDataArrays(overHot.getData(), overHot);
+	if(expenses) expenseRows = prepareDataArrays(expHot.getData(), expHot);
 
 	$.each(individualRows, function(i, o){
 		if(o !== null && o !== undefined){
@@ -287,7 +299,11 @@ $(document).on('click', '#saveInvoice', function(){
         hasOverrides: overrides,
         hasExpenses: expenses,
 		overrides: overridesArr,
-		expenses: expensesArr
+		expenses: expensesArr,
+		vendorId: $('#vendor').val(),
+		employeeId: $('#employee').val(),
+		date: moment($('#issueDate').val(), 'MM-DD-YYYY').format('YYYY-MM-DD'),
+		endDate: moment($('#wkendDate').val(), 'MM-DD-YYYY').format('YYYY-MM-DD')
     };
 
     var options = {
@@ -301,11 +317,11 @@ $(document).on('click', '#saveInvoice', function(){
 	fireAjaxRequest(options);
 
 	function afterData(data){
-	    if(data){
-	        setMessageContainer('Success!');
-	        console.dir(data);
+	    if(data.status){
+	        setMessageContainer(data.message);
+	        resetHOT();
 		} else {
-	        setMessageContainer('Utoh! Something went wrong...', null, 'danger');
+	        setMessageContainer(data.message, null, 'danger');
 		}
 	}
 

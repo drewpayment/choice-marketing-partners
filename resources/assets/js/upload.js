@@ -16,8 +16,6 @@ var MODAL_ELEM = $('#modal_layout'),
 var setNewSale = function (s){
     var amt = sanitizeCurrency(s[6]);
 
-    var currentDate = moment(currentIssueDt);
-
     return {
         date: s[0],
         name: {
@@ -27,42 +25,30 @@ var setNewSale = function (s){
         address: s[3],
         city: s[4],
         status: s[5],
-        amount: amt,
-        agentid: currentAgentId,
-        issueDate: currentDate,
-        wkending: currentWkEnding,
-        vendor: vendor
+        amount: amt
     };
 };
 
 
 var setNewOverride = function (o){
-    var amt = sanitizeCurrency(o[4]);
+    var amt = sanitizeCurrency(o[3]);
 
     return {
-        id: o[0],
-        name: o[1],
-        numOfSales: o[2],
-        commission: o[3],
-        total: amt,
-        agentid: currentAgentId,
-        issueDate: currentIssueDt,
-        wkending: currentWkEnding
+        name: o[0],
+        numOfSales: o[1],
+        commission: o[2],
+        total: amt
     };
 };
 
 
 var setNewExpense = function (e){
-    var issue = new Date(currentIssueDt);
     var amt = sanitizeCurrency(e[1]);
 
     return {
         type: e[0],
         amount: amt,
-        notes: e[2],
-        agentid: currentAgentId,
-        issueDate: issue.toLocaleDateString(),
-        wkending: currentWkEnding
+        notes: e[2]
     }
 };
 

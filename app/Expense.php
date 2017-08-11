@@ -18,7 +18,7 @@ class Expense extends Model
     /**
      * mass assignable fields
      */
-    protected $fillable = ['expid', 'vendor_id', 'type', 'amount', 'notes', 'agentid', 'issue_date', 'wkending'];
+    protected $fillable = ['vendor_id', 'type', 'amount', 'notes', 'agentid', 'issue_date', 'wkending'];
 
 
     /**

@@ -157,14 +157,11 @@ class InvoiceHelper
 	public function checkForExistingInvoice($agentId, $vendor, $date)
 	{
 		$dt = Carbon::parse($date)->format('Y-m-d');
-		$invoices = DB::table('invoices')
-					->where([
-						['vendor', '=', $vendor],
-						['agentid', '=', $agentId],
-						['issue_date', '=', $dt]
-					])->get();
+		$invoices = Invoice::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
+		$overrides = Override::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
+		$expenses = Expense::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
 
-		if($invoices->count() > 0){
+		if($invoices->count() > 0 || $overrides->count() > 0 || $expenses->count() > 0){
 			return true;
 		} else {
 			return false;
