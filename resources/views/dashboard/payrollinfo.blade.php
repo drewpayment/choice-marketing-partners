@@ -54,10 +54,22 @@
                     </tr>
                 @else
                     @foreach($employees as $e)
-                        <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}" data-parent="true" data-parentid="{{$e->id}}">
-                            <td>{{$e->agent_name}}</td>
+                        <?php $vendor = $vendors->first(function($v, $k)use($e){return $v->id == $e->vendor_id;}) ?>
+                        <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}"
+                            data-parent="true"
+                            data-parentid="{{$e->id}}">
+                            <td>
+                                <a href="#" class="employee-row-btn text-info">{{$e->agent_name}}</a>
+                                <form method="post" id="form" action="/paystubs/pdf-detail">
+                                    <input type="hidden" name="_token" value="{{csrf_token()}}">
+                                    <input type="hidden" name="vendor" id="vendor" value="{{$vendor->id}}">
+                                    <input type="hidden" name="date" id="date" />
+                                    <input type="hidden" name="agent" id="agent" value="{{$e->agent_id}}">
+                                </form>
+                            </td>
                             <td>${{$e->amount}}</td>
-                            <td>{{$vendors->first(function($v, $k)use($e){return $v->id == $e->vendor_id;})->name}}</td>
+                            <td>
+                                {{$vendor->name}}</td>
                             <td>
                                 <input type="checkbox" id="paid-confirm" value="{{$e->is_paid}}" {{($e->is_paid == 1) ? "checked" : ""}}/>
                             </td>
@@ -75,6 +87,14 @@
 @section('scripts')
 
     <script type="text/javascript">
+        $(document.body).on('click', '.employee-row-btn', function(){
+            var form = $(this).closest('tr').find('#form'),
+                selectedDate = moment($('#datepicker').val(), 'MM-DD-YYYY').format('YYYY-MM-DD');
+
+            form.find('#date').val(selectedDate);
+            form.submit();
+        });
+
         $(document.body).on('click', '#paid-confirm', function(){
             $(this).parent().parent().toggleClass('success');
 

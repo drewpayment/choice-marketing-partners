@@ -7,6 +7,7 @@ use App\Expense;
 use App\Helpers\InvoiceHelper;
 use App\Invoice;
 use App\Override;
+use App\Payroll;
 use App\Services\DbHelper;
 use App\Vendor;
 use Carbon\Carbon;
@@ -192,8 +193,8 @@ class InvoiceController extends Controller
 		$employeeId = $input['employeeId'];
 		$date = $input['date'];
 		$endDate = $input['endDate'];
-		$overrides = ($hasOverrides === true) ? $input['overrides'] : [];
-		$expenses = ($hasExpenses === true) ? $input['expenses'] : [];
+		$overrides = ($hasOverrides == true) ? $input['overrides'] : [];
+		$expenses = ($hasExpenses == true) ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
 		if($existingInvoice === true) return response()->json([
@@ -205,6 +206,12 @@ class InvoiceController extends Controller
 		$formattedSales = [];
 		$formattedOverrides = [];
 		$formattedExpenses = [];
+
+		$payrollTotal = (
+			collect($sales)->pluck('amount')->sum() +
+			collect($overrides)->pluck('total')->sum() +
+			collect($expenses)->pluck('amount')->sum()
+		);
 
 		foreach($sales as $s)
 		{
@@ -304,6 +311,15 @@ class InvoiceController extends Controller
 					]);
 				}
 			}
+
+			Payroll::create([
+				'agent_id' => $employeeId,
+				'agent_name' => Employee::agentId($employeeId)->first()->name,
+				'amount' => $payrollTotal,
+				'is_paid' => 0,
+				'vendor_id' => $vendorId,
+				'pay_date' => $date
+			]);
 
 			DB::commit();
 		} catch (\mysqli_sql_exception $e) {

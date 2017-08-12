@@ -26,40 +26,44 @@
 
 <div class="row pt-20 pb-10">
 	<div class="col-xs-12">
-		<div class="form-inline">
-			<div class="form-group">
-				<label for="vendor"></label>
-				<select class="selectpicker" id="vendor" data-mobile="true">
-					<option value="-1" selected>Select Vendor</option>
-					@foreach($vendors as $v)
-						<option value="{{$v->id}}">{{$v->name}}</option>
-					@endforeach
-				</select>
-			</div>
-			<div class="form-group">
-				<label for="employee">Agent: </label>
-				<select class="selectpicker" id="employee" data-live-search="true">
-					<?php $i = 0; ?>
-					@foreach($emps as $emp)
-						<option value="{{$emp->id}}" @if($i == 0) selected @endif>{{$emp->name}}</option>
-						<?php $i++; ?>
-					@endforeach
-				</select>
-			</div>
-			<div class="form-group">
-				<label for="issueDate">Issued: </label>
-				<select class="selectpicker" id="issueDate" data-mobile="true">
-					<?php $n = 0; ?>
-					<option value="-1" selected>Pick One</option>
-					@foreach($weds as $wed)
-						<option value="{{$wed}}">{{$wed}}</option>
-						<?php $n++; ?>
-					@endforeach
-				</select>
-			</div>
-			<div class="form-group">
-				<label for="wkendDate">Wkending: </label>
-				<input type="text" class="form-control datepicker-hot" id="wkendDate">
+		<div class="box box-default">
+			<div class="box-content">
+				<div class="form-inline">
+					<div class="form-group pl-5 pr-5">
+						<label for="vendor"></label>
+						<select class="selectpicker" id="vendor">
+							<option value="-1" selected>Select Vendor</option>
+							@foreach($vendors as $v)
+								<option value="{{$v->id}}">{{$v->name}}</option>
+							@endforeach
+						</select>
+					</div>
+					<div class="form-group pl-5 pr-5">
+						<select class="selectpicker" id="employee" data-live-search="true" data-size="8">
+							<option value="-1" data-content="<span>Select Agent</span>"
+									selected
+									disabled></option>
+							<?php $i = 0; ?>
+							@foreach($emps as $emp)
+								<option value="{{$emp->id}}">{{$emp->name}}</option>
+								<?php $i++; ?>
+							@endforeach
+						</select>
+					</div>
+					<div class="form-group pl-5 pr-5">
+						<select class="selectpicker" id="issueDate" data-mobile="true">
+							<?php $n = 0; ?>
+							<option value="-1" selected>Issue Date</option>
+							@foreach($weds as $wed)
+								<option value="{{$wed}}">{{$wed}}</option>
+								<?php $n++; ?>
+							@endforeach
+						</select>
+					</div>
+					<div class="form-group pl-5 pr-5">
+						<input class="form-control datepicker-hot" id="wkendDate" placeholder="Weekending Date">
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -67,29 +71,41 @@
 
 <div class="row">
 	<div class="col-xs-12">
-		<meta name="csrf-token" content="{{ csrf_token() }}" />
-		<div id="invoiceTable"></div>
+		<div class="box box-default">
+			<div class="box-title bg-primary text-center">
+				<h3 class="mt-0 mb-0">Sales</h3>
+			</div>
+			<div class="box-content">
+				<div id="invoiceTable"></div>
+			</div>
+		</div>
 	</div>
 </div>
 <div class="row pt-10">
-	<div class="col-xs-12">
-		<ul class="list-inline">
-			<li id="overrides" style="display:none;">
-				<h3>Overrides</h3>
+	<div class="col-xs-6">
+		<div class="box box-default" id="overrides" style="display:none;">
+			<div class="box-title bg-primary text-center">
+				<h3 class="mt-0 mb-0">Overrides</h3>
+			</div>
+			<div class="box-content">
 				<div id="overridesTable" class="overridesTable" data-parent="true"></div>
-			</li>
-			<li id="expenses" style="display:none;">
-				<h3>Expenses</h3>
+			</div>
+		</div>
+	</div>
+	<div class="col-xs-6">
+		<div class="box box-default" id="expenses" style="display:none;">
+			<div class="box-title bg-primary text-center">
+				<h3 class="mt-0 mb-0">Expenses</h3>
+			</div>
+			<div class="box-content">
 				<div id="expensesTable" class="overridesTable" data-parent="true"></div>
-			</li>
-		</ul>
+			</div>
+		</div>
 	</div>
 </div>
 <div class="row pt-20">
-	<div class="col-xs-11">
-		<div class="pull-right">
-			<button class="btn btn-primary" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
-		</div>
+	<div class="col-xs-8 col-xs-offset-2">
+		<button class="btn btn-primary btn-block" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
 	</div>
 </div>
 
@@ -103,10 +119,12 @@ var overrides = false,
 	expenses = false;
 
 $(function(){
+    var saveBtn = $('#saveInvoice');
 	$('#wkendDate').datepicker();
 
 	$(document).on('click', '#addOverrides', function(){
-	    var el = $(this);
+	    var el = $(this),
+			$ovr = $('#overrides');
 	    if(el.find('i').hasClass('fa-plus')){
             el.find('i').removeClass('fa-plus').addClass('fa-minus');
             overrides = true;
@@ -114,12 +132,33 @@ $(function(){
 	        el.find('i').removeClass('fa-minus').addClass('fa-plus');
 	        overrides = false;
 		}
-	   	$('#overrides').fadeToggle();
-		overHot.render();
+
+		if(expenses){
+	        $ovr.fadeToggle({
+				done: function(){
+				    overHot.render();
+				}
+			});
+		} else {
+            saveBtn.fadeToggle({
+                done: function(){
+                    $ovr.fadeToggle({
+                        done: function(){
+                            saveBtn.fadeToggle();
+                            overHot.render();
+                        }
+                    });
+                }
+            });
+		}
+
+
 	});
 
 	$(document).on('click', '#addExpenses', function(){
-        var el = $(this);
+        var el = $(this),
+			$exp = $('#expenses');
+
         if(el.find('i').hasClass('fa-plus')){
             el.find('i').removeClass('fa-plus').addClass('fa-minus');
             expenses = true;
@@ -127,8 +166,26 @@ $(function(){
             el.find('i').removeClass('fa-minus').addClass('fa-plus');
             expenses = false;
         }
-	   	$('#expenses').fadeToggle();
-        expHot.render();
+
+        if(overrides){
+            $exp.fadeToggle({
+				done: function(){
+				    expHot.render();
+				}
+			});
+		} else {
+            saveBtn.fadeToggle({
+                done: function(){
+                    $exp.fadeToggle({
+                        done: function(){
+                            saveBtn.fadeToggle();
+                            expHot.render();
+                        }
+                    });
+                }
+            });
+		}
+
 	});
 });
 
@@ -144,7 +201,7 @@ var paystubHot = new Handsontable(paystubContainer, {
 		'Sale Date', 'First Name', 'Last Name', 'Address', 'City', 'Sale Status', 'Amount'
 	],
 	colWidths: [
-		120, 140, 160, 220, 150, 100, 100
+		120, 140, 160, 270, 150, 100, 100
 	],
 	contextMenu: true,
 	allowInsertColumn: false,
@@ -226,7 +283,7 @@ var expHot = new Handsontable(expenseContainer, {
     maxRows: 10,
     rowHeaders: true,
     colHeaders: ['Type', 'Amount', 'Notes'],
-    colWidths: ['140', '100', '275'],
+    colWidths: ['140', '100', '240'],
     contextMenu: true,
     allowInsertColumn: false,
     allowRemoveColumn: false,
