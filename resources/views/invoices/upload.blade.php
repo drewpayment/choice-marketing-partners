@@ -15,55 +15,71 @@
 @section('content')
 
 <div class="row pt-10">
-	<div class="col-xs-8">
-		<h2>New Invoice</h2>
-	</div>
-	<div class="col-xs-4 pull-right">
-		<button class="btn btn-default" id="addOverrides"><i class="fa fa-plus"></i> Overrides</button>
-		<button class="btn btn-default" id="addExpenses"><i class="fa fa-plus"></i> Expenses</button>
-	</div>
-</div>
-
-<div class="row pt-20 pb-10">
 	<div class="col-xs-12">
 		<div class="box box-default">
+			<div class="box-title bg-primary">
+				<h2 class="mt-0 mb-0">New Invoice
+					<span class="pull-right">
+						<button class="btn btn-default" id="addOverrides"><i class="fa fa-plus"></i> Overrides</button>
+						<button class="btn btn-default" id="addExpenses"><i class="fa fa-plus"></i> Expenses</button>
+					</span>
+				</h2>
+			</div>
 			<div class="box-content">
-				<div class="form-inline">
-					<div class="form-group pl-5 pr-5">
-						<label for="vendor"></label>
-						<select class="selectpicker" id="vendor">
-							<option value="-1" selected>Select Vendor</option>
-							@foreach($vendors as $v)
-								<option value="{{$v->id}}">{{$v->name}}</option>
-							@endforeach
-						</select>
-					</div>
-					<div class="form-group pl-5 pr-5">
-						<select class="selectpicker" id="employee" data-live-search="true" data-size="8">
-							<option value="-1" data-content="<span>Select Agent</span>"
-									selected
-									disabled></option>
-							<?php $i = 0; ?>
-							@foreach($emps as $emp)
-								<option value="{{$emp->id}}">{{$emp->name}}</option>
-								<?php $i++; ?>
-							@endforeach
-						</select>
-					</div>
-					<div class="form-group pl-5 pr-5">
-						<select class="selectpicker" id="issueDate" data-mobile="true">
-							<?php $n = 0; ?>
-							<option value="-1" selected>Issue Date</option>
-							@foreach($weds as $wed)
-								<option value="{{$wed}}">{{$wed}}</option>
-								<?php $n++; ?>
-							@endforeach
-						</select>
-					</div>
-					<div class="form-group pl-5 pr-5">
-						<input class="form-control datepicker-hot" id="wkendDate" placeholder="Weekending Date">
-					</div>
-				</div>
+                <ul class="list-inline">
+                    <li>
+                        <div class="box box-default b-0 mb-0">
+                            <div class="box-content pt-5">
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Vendor</h6>
+                                <select class="selectpicker" id="vendor">
+                                    <option value="-1" selected>Select Vendor</option>
+                                    @foreach($vendors as $v)
+                                        <option value="{{$v->id}}">{{$v->name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="box box-default b-0 mb-0">
+                            <div class="box-content pt-5">
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Agent</h6>
+                                <select class="selectpicker" id="employee" data-live-search="true" data-size="8">
+                                    <option value="-1" selected>Select Agent</option>
+		                            <?php $i = 0; ?>
+                                    @foreach($emps as $emp)
+                                        <option value="{{$emp->id}}">{{$emp->name}}</option>
+			                            <?php $i++; ?>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="box box-default b-0 mb-0">
+                            <div class="box-content pt-5">
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Issue Date</h6>
+                                <select class="selectpicker" id="issueDate">
+		                            <?php $n = 0; ?>
+                                    <option value="-1" selected>Issue Date</option>
+                                    @foreach($weds as $wed)
+                                        <option value="{{$wed}}">{{$wed}}</option>
+			                            <?php $n++; ?>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="box box-default b-0 mb-0">
+                            <div class="box-content pt-5">
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Week Ending</h6>
+                                <input class="form-control datepicker-hot w-220" id="wkendDate"
+                                       placeholder="Weekending Date">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
 			</div>
 		</div>
 	</div>
@@ -72,8 +88,8 @@
 <div class="row">
 	<div class="col-xs-12">
 		<div class="box box-default">
-			<div class="box-title bg-primary text-center">
-				<h3 class="mt-0 mb-0">Sales</h3>
+			<div class="box-title bg-primary">
+				<h2 class="mt-0 mb-0">Sales</h2>
 			</div>
 			<div class="box-content">
 				<div id="invoiceTable"></div>
@@ -84,8 +100,8 @@
 <div class="row pt-10">
 	<div class="col-xs-6">
 		<div class="box box-default" id="overrides" style="display:none;">
-			<div class="box-title bg-primary text-center">
-				<h3 class="mt-0 mb-0">Overrides</h3>
+			<div class="box-title bg-primary">
+				<h2 class="mt-0 mb-0">Overrides</h2>
 			</div>
 			<div class="box-content">
 				<div id="overridesTable" class="overridesTable" data-parent="true"></div>
@@ -94,8 +110,8 @@
 	</div>
 	<div class="col-xs-6">
 		<div class="box box-default" id="expenses" style="display:none;">
-			<div class="box-title bg-primary text-center">
-				<h3 class="mt-0 mb-0">Expenses</h3>
+			<div class="box-title bg-primary">
+				<h2 class="mt-0 mb-0">Expenses</h2>
 			</div>
 			<div class="box-content">
 				<div id="expensesTable" class="overridesTable" data-parent="true"></div>
@@ -104,8 +120,8 @@
 	</div>
 </div>
 <div class="row pt-20">
-	<div class="col-xs-8 col-xs-offset-2">
-		<button class="btn btn-primary btn-block" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
+	<div class="col-xs-10 col-xs-offset-1">
+		<button class="btn btn-primary btn-lg btn-block" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
 	</div>
 </div>
 
@@ -262,17 +278,6 @@ var overHot = new Handsontable(overrideContainer, {
 			className: 'htRight',
 			type: 'numeric',
 			format: '0.00'
-//			renderer: function(hot, td, row, col, prop, value, cellProperties){
-//                var sales = hot.getDataAtCell(row, 1);
-//                var comm = hot.getDataAtCell(row, 2);
-//
-//                if(sales !== undefined && comm !== undefined && sales > 0 && comm > 0){
-//                    var result = sales * comm;
-//                    td.innerHTML = result.toFixed(2);
-//				} else {
-//                    td.innerHTML = '<span class="pull-right"></span>';
-//				}
-//			}
         }
     ]
 });
@@ -371,7 +376,23 @@ $(document).on('click', '#saveInvoice', function(){
 		afterData: afterData
 	};
 
-	fireAjaxRequest(options);
+    /*
+    * check to make sure that the end user has submitted either: sales, overrides or expenses AND
+    * filled out the required form fields to ensure that the invoice can be saved
+    */
+    if(input.individual.length || input.hasOverrides || input.hasExpenses &&
+		input.vendorId > -1 &&
+		input.employeeId > 0 &&
+		input.date.length &&
+		input.endDate.length) {
+
+        console.dir([input.hasOverrides, input.hasExpenses]);
+        fireAjaxRequest(options);
+	} else {
+        var errorMsg = 'Sorry, you need to fill out the form before you can submit the invoice.';
+        setMessageContainer(errorMsg, null, 'danger');
+	}
+
 
 	function afterData(data){
 	    if(data.status){

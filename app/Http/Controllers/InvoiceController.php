@@ -193,8 +193,8 @@ class InvoiceController extends Controller
 		$employeeId = $input['employeeId'];
 		$date = $input['date'];
 		$endDate = $input['endDate'];
-		$overrides = ($hasOverrides == true) ? $input['overrides'] : [];
-		$expenses = ($hasExpenses == true) ? $input['expenses'] : [];
+		$overrides = ($hasOverrides === 'true') ? $input['overrides'] : [];
+		$expenses = ($hasExpenses === 'true') ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
 		if($existingInvoice === true) return response()->json([
