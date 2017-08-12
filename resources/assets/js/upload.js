@@ -14,54 +14,41 @@ var MODAL_ELEM = $('#modal_layout'),
     vendor;
 
 var setNewSale = function (s){
-    var amt = sanitizeCurrency(s[7]);
+    var amt = sanitizeCurrency(s[6]);
 
     return {
-        id: s[0],
-        date: s[1],
+        date: s[0],
         name: {
-            first: s[2],
-            last: s[3]
+            first: s[1],
+            last: s[2]
         },
-        address: s[4],
-        city: s[5],
-        status: s[6],
-        amount: amt,
-        agentid: null,
-        issueDate: null,
-        wkending: null,
-        vendor: null
+        address: s[3],
+        city: s[4],
+        status: s[5],
+        amount: amt
     };
 };
 
 
 var setNewOverride = function (o){
-    var amt = sanitizeCurrency(o[4]);
+    var amt = sanitizeCurrency(o[3]);
 
     return {
-        id: o[0],
-        name: o[1],
-        numOfSales: o[2],
-        commission: o[3],
-        total: amt,
-        agentid: currentAgentId,
-        issueDate: currentIssueDt,
-        wkending: currentWkEnding
+        name: o[0],
+        numOfSales: o[1],
+        commission: o[2],
+        total: amt
     };
 };
 
 
 var setNewExpense = function (e){
-    var issue = new Date(currentIssueDt);
     var amt = sanitizeCurrency(e[1]);
 
     return {
         type: e[0],
         amount: amt,
-        notes: e[2],
-        agentid: currentAgentId,
-        issueDate: issue.toLocaleDateString(),
-        wkending: currentWkEnding
+        notes: e[2]
     }
 };
 

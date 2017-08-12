@@ -3,7 +3,6 @@ html {
 }
 body {
   min-height: 100%;
-  background: -webkit-linear-gradient(top, #e9e9e9 0%, #f0f0f0 100%);
   background: linear-gradient(to bottom, #e9e9e9 0%, #f0f0f0 100%);
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -20,6 +19,8 @@ body {
   background-color: #ECECEC;
   display: -webkit-box;
   display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
   flex-flow: column;
   -webkit-box-align: center;
   align-items: center;
@@ -124,6 +125,9 @@ a.unstyled {
 .m-0 {
   margin: 0 !important;
 }
+.mt-0 {
+  margin-top: 0 !important;
+}
 .mb-0 {
   margin-bottom: 0 !important;
 }
@@ -148,6 +152,12 @@ a.unstyled {
 .p-0 {
   padding: 0 !important;
 }
+.pl-0 {
+  padding-left: 0 !important;
+}
+.pr-0 {
+  padding-right: 0 !important;
+}
 .pb-0 {
   padding-bottom: 0 !important;
 }
@@ -157,6 +167,33 @@ a.unstyled {
 .p-1 {
   padding: 1px !important;
 }
+.pt-1 {
+  padding-top: 1px !important;
+}
+.pb-1 {
+  padding-bottom: 1px !important;
+}
+.pr-1 {
+  padding-right: 1px !important;
+}
+.pl-1 {
+  padding-left: 1px !important;
+}
+.p-3 {
+  padding: 3px !important;
+}
+.pt-3 {
+  padding-top: 3px !important;
+}
+.pb-3 {
+  padding-bottom: 3px !important;
+}
+.pr-3 {
+  padding-right: 3px !important;
+}
+.pl-3 {
+  padding-left: 3px !important;
+}
 .p-5 {
   padding: 5px !important;
 }
@@ -165,6 +202,12 @@ a.unstyled {
 }
 .pt-5 {
   padding-top: 5px !important;
+}
+.pl-5 {
+  padding-left: 5px !important;
+}
+.pr-5 {
+  padding-right: 5px !important;
 }
 .pb-10 {
   padding-bottom: 10px !important;
@@ -217,14 +260,20 @@ a.unstyled {
 .pt-100 {
   padding-top: 100px !important;
 }
-.pl-0 {
-  padding-left: 0 !important;
+.p-10 {
+  padding: 10px !important;
 }
-.pr-0 {
-  padding-right: 0 !important;
+.pl-10 {
+  padding-left: 10px !important;
 }
 .pr-10 {
   padding-right: 10px !important;
+}
+.pb-10 {
+  padding-bottom: 10px !important;
+}
+.pt-10 {
+  padding-top: 10px !important;
 }
 .pr-25 {
   padding-right: 25px !important;
@@ -276,6 +325,9 @@ a.unstyled {
 }
 .w-200 {
   width: 200px !important;
+}
+.w-220 {
+  width: 220px !important;
 }
 .w-600 {
   width: 600px !important;
@@ -356,6 +408,9 @@ a.unstyled {
   padding-top: 25px;
   padding-bottom: 25px;
 }
+.b-0 {
+  border: 0 !important;
+}
 .b-all {
   border: 1px solid #000000;
 }
@@ -409,7 +464,6 @@ hr.paystub-title-break {
   border-collapse: separate;
   border-radius: 5px;
   background-color: #006DCC;
-  background-image: -webkit-linear-gradient(top, #00abff, #006DCC);
   background-image: linear-gradient(to bottom, #00abff, #006DCC);
   color: white;
 }
@@ -1225,8 +1279,6 @@ td i .fa-circle-o-notch {
   text-shadow: 0 1px 0 rgba(0, 51, 83, 0.3);
   border-radius: 3px;
   background-color: #1b9dec;
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#1da7ee), to(#178ee9));
-  background-image: -webkit-linear-gradient(top, #1da7ee, #178ee9);
   background-image: linear-gradient(to bottom, #1da7ee, #178ee9);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff1da7ee', endColorstr='#ff178ee9', GradientType=0);
@@ -1234,8 +1286,6 @@ td i .fa-circle-o-notch {
 }
 .selectize-control.multi .selectize-input [data-value].active {
   background-color: #0085d4;
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#008fd8), to(#0075cf));
-  background-image: -webkit-linear-gradient(top, #008fd8, #0075cf);
   background-image: linear-gradient(to bottom, #008fd8, #0075cf);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff008fd8', endColorstr='#ff0075cf', GradientType=0);

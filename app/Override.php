@@ -8,7 +8,6 @@ class Override extends Model
 {
 
 	protected $fillable = [
-		'id',
 		'vendor_id',
 		'name',
 		'sales',
@@ -16,9 +15,7 @@ class Override extends Model
 		'total',
 		'agentid',
 		'issue_date',
-		'wkending',
-		'created_at',
-		'updated_at'
+		'wkending'
 	];
 
 

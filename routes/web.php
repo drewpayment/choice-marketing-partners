@@ -40,6 +40,7 @@ Route::get('/payroll-dispute', function(){
  */
 Route::get('/upload-invoice', 'InvoiceController@index');
 Route::post('/upload/invoice', 'InvoiceController@UploadInvoice');
+Route::post('/upload/save-invoice', 'InvoiceController@SaveInvoice');
 Route::get('/historical-invoice-data', 'InvoiceController@historical');
 Route::get('/getissuedates', 'InvoiceController@returnIssueDates');
 Route::post('/getpaystub', 'InvoiceController@returnPaystub');
