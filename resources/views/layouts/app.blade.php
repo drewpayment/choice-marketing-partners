@@ -230,7 +230,7 @@
         // opt-in to bootstrap tooltips
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-usescroll="true"]').jScrollPane();
+//            $('[data-usescroll="true"]').jScrollPane();
 
             var dt = new Date();
             var footerCopyrightText = "Choice Marketing Partners © " + dt.getFullYear();

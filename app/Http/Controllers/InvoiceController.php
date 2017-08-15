@@ -57,120 +57,181 @@ class InvoiceController extends Controller
 	}
 
 
-	public function HandleEditExistingInvoice(Request $request)
+	public function HandleEditInvoice(Request $request)
 	{
-		$salesInput = $request->sales;
-		$overrideInput = $request->overrides;
-		$expenseInput = $request->expenses;
-		$payrollData = $request->payrollData;
-		$salesArr = [];
-		$overArr = [];
-		$expArr = [];
-		$exception = null;
-		$payDetail = [];
-
-		$vendor = $salesInput[0]['vendor'];
-
-		if(!is_null($salesInput))
+		if(!$request->ajax())
 		{
-			$payDetail['id'] = $salesInput[0]['agentid'];
-			$payDetail['payDate'] = $salesInput[0]['issueDate'];
-
-			foreach($salesInput as $invoice)
-			{
-				if(!empty($invoice['issueDate']))
-				{
-					$salesArr[] = [
-						'id' => $invoice['id'],
-						'vendor' => $invoice['vendor'],
-						'sale_date' => DateTime::createFromFormat('m-d-Y', $invoice['date']),
-						'first_name' => $invoice['name']['first'],
-						'last_name' => $invoice['name']['last'],
-						'address' => $invoice['address'],
-						'city' => $invoice['city'],
-						'status' => $invoice['status'],
-						'amount' => $invoice['amount'],
-						'agentid' => $invoice['agentid'],
-						'issue_date' => new DateTime($invoice['issueDate']),
-						'wkending' => DateTime::createFromFormat('m-d-Y', $invoice['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
-			}
+			return response()->json(false);
 		}
 
+		$input = Input::all();
+		$hasExpenses = $input['hasExpenses'];
+		$hasOverrides = $input['hasOverrides'];
+		$sales = (isset($input['individual'])) ? $input['individual'] : [];
+		$vendorId = $input['vendorId'];
+		$employeeId = $input['employeeId'];
+		$date = $input['date'];
+		$endDate = $input['endDate'];
+		$overrides = ($hasOverrides === 'true') ? $input['overrides'] : [];
+		$expenses = ($hasExpenses === 'true') ? $input['expenses'] : [];
 
-		if(!is_null($overrideInput))
-		{
-			$payDetail['id'] = (!is_null($payDetail['id'])) ? $overrideInput[0]['agentid'] : $payDetail['id'];
-			$payDetail['payDate'] = (!is_null($overrideInput[0]['issueDate'])) ? $overrideInput[0]['issueDate'] : $payDetail['payDate'];
+		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
+		if($existingInvoice === true) {
 
-			foreach($overrideInput as $ovr)
-			{
-				if(!empty($ovr['issueDate']))
-				{
-					$overArr[] = [
-						'id' => $ovr['id'],
-						'vendor_id' => $vendor,
-						'name' => $ovr['name'],
-						'sales' => $ovr['numOfSales'],
-						'commission' => $ovr['commission'],
-						'total' => $ovr['total'],
-						'agentid' => $ovr['agentid'],
-						'issue_date' => new DateTime($ovr['issueDate']),
-						'wkending' => DateTime::createFromFormat('m-d-Y', $ovr['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
+			DB::beginTransaction();
+			try{
+				Invoice::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+
+				if($hasOverrides) Override::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+				if($hasExpenses) Expense::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+
+				DB::commit();
+			} catch (\mysqli_sql_exception $e) {
+				DB::rollback();
+
+				return response()->json([
+					'status' => false,
+					'message' => 'A SQL error has occurred, please try again. If the problem persists, please email your development team.'
+				]);
 			}
+
 		}
 
+		// create empty arrays to fill that match database objects
+		$formattedSales = [];
+		$formattedOverrides = [];
+		$formattedExpenses = [];
 
-		if(!is_null($expenseInput))
+		$payrollTotal = (
+			collect($sales)->pluck('amount')->sum() +
+			collect($overrides)->pluck('total')->sum() +
+			collect($expenses)->pluck('amount')->sum()
+		);
+
+		foreach($sales as $s)
 		{
-			$payDetail['id'] = (!is_null($payDetail['id'])) ? $expenseInput[0]['agentid'] : $payDetail['id'];
-			$payDetail['payDate'] = (!is_null($expenseInput[0]['issueDate'])) ? $expenseInput[0]['issueDate'] : $payDetail['payDate'];
-
-			foreach($expenseInput as $exp)
-			{
-				if(!empty($exp['issueDate']))
-				{
-					$expArr[] = [
-						'vendor_id' => $vendor,
-						'type' => $exp['type'],
-						'amount' => $exp['amount'],
-						'notes' => $exp['notes'],
-						'agentid' => $exp['agentid'],
-						'issue_date' => new DateTime($exp['issueDate']),
-						'wkending' => DateTime::createFromFormat('m-d-Y', $exp['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
-			}
+			$formattedSales[] = [
+				'vendor' => $vendorId,
+				'sale_date' => Carbon::createFromFormat('m-d-Y', $s['date']),
+				'first_name' => $s['name']['first'],
+				'last_name' => $s['name']['last'],
+				'address' => $s['address'],
+				'city' => $s['city'],
+				'status' => $s['status'],
+				'amount' => $s['amount'],
+				'agentid' => $employeeId,
+				'issue_date' => $date,
+				'wkending' => $endDate
+			];
 		}
 
-		$payDetailData = $this->invoiceHelper->setPayrollData($salesArr, $overArr, $expArr, $payrollData['agentID'], $vendor);
+		$hasSales = (count($sales) > 0);
 
-		$dbHelper = new DbHelper;
+		foreach($overrides as $o)
+		{
+			$formattedOverrides[] = [
+				'vendor_id' => $vendorId,
+				'name' => $o['name'],
+				'sales' => $o['numOfSales'],
+				'commission' => $o['commission'],
+				'total' => $o['total'],
+				'agentid' => $employeeId,
+				'issue_date' => $date,
+				'wkending' => $endDate
+			];
+		}
+
+		foreach($expenses as $e)
+		{
+			$formattedExpenses[] = [
+				'vendor_id' => $vendorId,
+				'type' => $e['type'],
+				'amount' => $e['amount'],
+				'notes' => $e['notes'],
+				'agentid' => $employeeId,
+				'issue_date' => $date,
+				'wkending' => $endDate
+			];
+		}
+
 		DB::beginTransaction();
-		try {
-			$dbHelper->RemoveCurrentSalesData($payrollData);
-			$dbHelper->InsertSalesArray($salesArr);
-			$dbHelper->InsertOverridesArray($overArr);
-			$dbHelper->InsertExpensesArray($expArr);
-			$dbHelper->RemoveCurrentPayDetailData($payrollData);
-			$dbHelper->InsertPayDetailData($payDetailData);
+
+		try{
+			if($hasSales){
+				foreach($formattedSales as $s)
+				{
+					Invoice::create([
+						'vendor' => $s['vendor'],
+						'sale_date' => $s['sale_date'],
+						'first_name' => $s['first_name'],
+						'last_name' => $s['last_name'],
+						'address' => $s['address'],
+						'city' => $s['city'],
+						'status' => $s['status'],
+						'amount' => $s['amount'],
+						'agentid' => $s['agentid'],
+						'issue_date' => $s['issue_date'],
+						'wkending' => $s['wkending']
+					]);
+				}
+			}
+
+			if($hasOverrides){
+				foreach($formattedOverrides as $o)
+				{
+					Override::create([
+						'vendor_id' => $o['vendor_id'],
+						'name' => $o['name'],
+						'sales' => $o['sales'],
+						'commission' => $o['commission'],
+						'total' => $o['total'],
+						'agentid' => $o['agentid'],
+						'issue_date' => $o['issue_date'],
+						'wkending' => $o['wkending']
+					]);
+				}
+			}
+
+			if($hasExpenses){
+				foreach($formattedExpenses as $e)
+				{
+					Expense::create([
+						'vendor_id' => $e['vendor_id'],
+						'type' => $e['type'],
+						'amount' => $e['amount'],
+						'notes' => $e['notes'],
+						'agentid' => $e['agentid'],
+						'issue_date' => $e['issue_date'],
+						'wkending' => $e['wkending']
+					]);
+				}
+			}
+
+			Payroll::create([
+				'agent_id' => $employeeId,
+				'agent_name' => Employee::agentId($employeeId)->first()->name,
+				'amount' => $payrollTotal,
+				'is_paid' => 0,
+				'vendor_id' => $vendorId,
+				'pay_date' => $date
+			]);
+
 			DB::commit();
-		} catch(\Exception $e) {
+		} catch (\mysqli_sql_exception $e) {
+
 			DB::rollback();
 
-			return response()->json([false, $e]);
+			return response()->json([
+				'status' => false,
+				'message' => 'A SQL error has occurred, please try again. If the problem persists, please email your development team.'
+			]);
 		}
 
-		return response()->json(true);
+
+		return response()->json([
+			'status' => true,
+			'message' => 'Your invoice information has been successfully stored and processed.'
+		]);
 	}
 
 
@@ -712,9 +773,8 @@ class InvoiceController extends Controller
 
 		$invoiceDate = new DateTime($invoices->first()->issue_date);
 		$weekEnding = new DateTime($invoices->first()->wkending);
-		$issueDate = $invoiceDate->format('F jS, Y');
+		$issueDate = $invoiceDate->format('m-d-Y');
 		$weekEnding = $weekEnding->format('m-d-Y');
-		$invoiceDate = $invoiceDate->format('Y-m-d');
 
 		$invoices = json_encode($invoices);
 		$overrides = json_encode($overrides);
@@ -727,8 +787,13 @@ class InvoiceController extends Controller
 			 'overrides' => $overrides,
 			 'expenses' => $expenses,
 			 'issueDate' => $issueDate,
-			 'weekEnding' => $weekEnding,
-			 'invoiceDate' => $invoiceDate]);
+			 'weekEnding' => $weekEnding]);
+	}
+
+
+	function formatDateCollectionSeparators($date, $currentFormat, $desiredFormat)
+	{
+		return Carbon::createFromFormat($currentFormat, $date)->format($desiredFormat);
 	}
 
 
