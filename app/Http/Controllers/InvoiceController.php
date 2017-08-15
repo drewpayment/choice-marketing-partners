@@ -804,7 +804,7 @@ class InvoiceController extends Controller
 	 */
 	public function paystubs()
 	{
-		$thisUser = Auth::user()->employee()->first();
+		$thisUser = Auth::user()->employee;
 		$admin = $thisUser->is_admin;
 
 		$isAdmin = ($admin == 1);
@@ -814,7 +814,11 @@ class InvoiceController extends Controller
 		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
 						->get()->unique('issue_date')->pluck('issue_date');
 
+		$vendors = Vendor::active()->get();
 
+		/**
+		 * ADMIN USERS
+		 */
 		if($isAdmin){
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
 			$rows = Invoice::vendorId($vendor)
@@ -837,11 +841,12 @@ class InvoiceController extends Controller
 			                   ->issueDate($date)
 			                   ->get();
 
-
 		} else {
 			$list = $thisUser->permissions()->active()->get();
 
-			// not admin, but has agents roll to them
+			/**
+			 * MANAGERS
+			 */
 			if(count($list) > 0){
 				$empsResult = Employee::agentId($list->pluck('emp_id')->all())->get();
 				$empsResult[] = $thisUser;
@@ -862,7 +867,12 @@ class InvoiceController extends Controller
 				$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 				$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 
-			} else { // agent w/no roll up employees
+			}
+			/**
+			 * AGENTS
+			 */
+			else
+			{
 				$rows = Invoice::vendorId($vendor)
 				                   ->issueDate($date)
 				                   ->agentId($thisUser->id)
@@ -879,6 +889,12 @@ class InvoiceController extends Controller
 
 				$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 				$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+
+				$issueDates = Invoice::latest('issue_date')->agentId($agents['id'])
+				                     ->get()->unique('issue_date')->pluck('issue_date');
+
+				$vendors = Invoice::latest('issue_date')->agentId($agents['id'])->get()->unique('vendor');
+				$vendors = collect($vendors);
 			}
 		}
 
@@ -887,7 +903,9 @@ class InvoiceController extends Controller
 		$paystubs = collect($paystubs);
 		$agents = collect($agents);
 		$emps = Employee::active()->get();
-		$vendors = Vendor::active()->get();
+
+		$vendorDictionary = Vendor::all();
+		$vendorDictionary = collect($vendorDictionary);
 
 		return view('paystubs.paystubs',
 			['isAdmin' => $isAdmin,
@@ -896,6 +914,7 @@ class InvoiceController extends Controller
 			 'agents' => $agents,
 			 'issueDates' => $issueDates,
 			 'vendors' => $vendors,
+			 'vendorDictionary' => $vendorDictionary,
 			 'rows' => $rows,
 			 'overrides' => $overrides,
 			 'expenses' => $expenses]);

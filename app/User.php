@@ -40,10 +40,10 @@ class User extends Authenticatable
     /**
      * Get employee related to logged in user
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function employee()
     {
-    	return $this->belongsToMany(Employee::class, 'employee_user', 'user_id', 'employee_id');
+    	return $this->belongsTo(Employee::class, 'id');
     }
 }

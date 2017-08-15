@@ -41,18 +41,28 @@
                                 <label for="vendorList"><i class="fa fa-pencil-square-o"></i> Campaigns</label><br>
                                 <select id="vendorList" class="selectpicker">
                                     <option value="-1">All</option>
-                                    <option value="1">Palmco</option>
-                                    <option value="2">AEP</option>
-                                    <option value="3">Santanna</option>
+                                    @if($isAdmin)
+                                        @foreach($vendors as $v)
+                                            <option value="{{$v->id}}">{{$v->name}}</option>
+                                        @endforeach
+                                    @else
+                                        @foreach($vendors as $v)
+                                            <option value="{{$v->vendor}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val->id == $v->vendor; })->name}}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </li>
                             <li>
                                 <label for="agentList"><i class="fa fa-male"></i> Agents</label><br>
                                 <select id="agentList" class="selectpicker" data-live-search="true">
-                                    <option value="-1">All Agents</option>
+                                    @if($isAdmin)
                                     @foreach($agents as $a)
+                                        <option value="-1">All Agents</option>
                                         <option value="{{$a->id}}">{{$a->name}}</option>
                                     @endforeach
+                                    @else
+                                        <option value="{{$agents['id']}}">{{$agents['name']}}</option>
+                                    @endif
                                 </select>
                             </li>
                             <li>

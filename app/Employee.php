@@ -49,6 +49,17 @@ class Employee extends Model
 
 
 	/**
+	 * get user that this employee record owns
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasOne
+	 */
+	public function user()
+	{
+		return $this->hasOne(User::class, 'id', 'id');
+	}
+
+
+	/**
 	 * scope query to filter managers
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query
