@@ -81,6 +81,7 @@ class InvoiceController extends Controller
 			DB::beginTransaction();
 			try{
 				Invoice::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+				Payroll::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
 
 				if($hasOverrides) Override::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
 				if($hasExpenses) Expense::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();

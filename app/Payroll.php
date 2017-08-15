@@ -88,4 +88,59 @@ class Payroll extends Model
 		return $query->orderBy('is_paid', 'desc');
 	}
 
+	/**
+	 * Scope query to filter by agent id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeAgentId($query, $id)
+	{
+		if(!is_object($id) && $id == -1) {
+			return $query;
+		}
+		else if (is_array($id))
+		{
+			return $query->whereIn('agent_id', $id);
+		}
+
+		return $query->where('agent_id', $id);
+	}
+
+
+	/**
+	 * Scope query to filter by issue date
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param date
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeIssueDate($query, $date)
+	{
+		if(!is_object($date) && $date == -1) return $query;
+
+		return $query->where('pay_date', $date);
+	}
+
+
+	/**
+	 * scope query filter by vendor id
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param int
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeVendorId($query, $id)
+	{
+		if($id == -1)
+		{
+			$vendors = Vendor::all();
+			$ids = $vendors->pluck('id')->all();
+			return $query->whereIn('vendor_id', $ids);
+		}
+
+		return $query->where('vendor_id', $id);
+	}
+
 }
