@@ -41,7 +41,7 @@
                                 <label for="vendorList"><i class="fa fa-pencil-square-o"></i> Campaigns</label><br>
                                 <select id="vendorList" class="selectpicker">
                                     <option value="-1">All</option>
-                                    @if($isAdmin)
+                                    @if($isAdmin || $isManager)
                                         @foreach($vendors as $v)
                                             <option value="{{$v->id}}">{{$v->name}}</option>
                                         @endforeach
@@ -55,7 +55,7 @@
                             <li>
                                 <label for="agentList"><i class="fa fa-male"></i> Agents</label><br>
                                 <select id="agentList" class="selectpicker" data-live-search="true">
-                                    @if($isAdmin)
+                                    @if($isAdmin || $isManager)
                                     @foreach($agents as $a)
                                         <option value="-1">All Agents</option>
                                         <option value="{{$a->id}}">{{$a->name}}</option>

@@ -806,6 +806,7 @@ class InvoiceController extends Controller
 	{
 		$thisUser = Auth::user()->employee;
 		$admin = $thisUser->is_admin;
+		$isManager = ($thisUser->is_mgr == 1);
 
 		$isAdmin = ($admin == 1);
 		$vendor = -1;
@@ -909,6 +910,7 @@ class InvoiceController extends Controller
 
 		return view('paystubs.paystubs',
 			['isAdmin' => $isAdmin,
+			 'isManager' => $isManager,
 			 'emps' => $emps,
 			 'paystubs' => $paystubs,
 			 'agents' => $agents,
