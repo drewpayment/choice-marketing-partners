@@ -1,3 +1,4 @@
+@import 'overrides.less';
 
 @black: #000000;
 @gray-light: #ECECEC;
@@ -400,6 +401,8 @@ a.unstyled {
 
 .mh-230 {max-height: 230px !important;}
 
+.mh-500{max-height:500px !important;}
+
 
 
 .line-break-50 {
@@ -610,6 +613,13 @@ ul .dropdown-menu{
   box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
 }
 
+td .cursor-clickable {
+
+  &:hover{
+    background-color: #ddd;
+  }
+}
+
 .box {
   margin-bottom: 20px;
   background-color: #fff;
@@ -620,6 +630,12 @@ ul .dropdown-menu{
 
 .box-content {
   padding: 15px;
+
+  .box-content-title {
+    min-height: 50px;
+    padding-top: 5px;
+    padding-bottom: 20px;
+  }
 }
 
 .box-default {

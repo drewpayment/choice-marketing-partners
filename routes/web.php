@@ -49,7 +49,7 @@ Route::post('/pdfs/makepdf', 'InvoiceController@makePdf');                      
 Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');                                   // invoices.search
 Route::get('/invoices/show-invoice/{agentID}/{vendorID}/{issueDate}', 'InvoiceController@editInvoice');     // invoices.edit
 Route::post('/getSearchResults', 'InvoiceController@getSearchResults');                                     // invoices._searchResults
-Route::post('/invoices/handle-edit-invoice', 'InvoiceController@HandleEditInvoice');
+Route::post('/invoices/handle-edit-invoice', 'InvoiceController@HandleEditInvoice');                        //
 
 
 /*
@@ -58,18 +58,8 @@ Route::post('/invoices/handle-edit-invoice', 'InvoiceController@HandleEditInvoic
  *
  */
 Auth::routes();
-Route::get('/logout', 'Auth\LoginController@logout');
-//Route::get('getlogin', 'LoginController@showLoginForm');
-//Route::post('login', 'LoginController@login');
-//Route::get('logout', function(){
-//	Auth::logout();
-//	return redirect('/');
-//});
-////Route::get('/', 'HomeController@authenticated');
+Route::get('/logout', 'Auth\LoginController@logout');                                                       //
 Route::get('/dashboard', 'HomeController@index'); //webuipopover menu                                       // home
-//Route::get('/dashboard', 'HomeController@index');
-//Route::get('/home', 'HomeController@index');
-//Route::get('/password/reset', 'Auth\PasswordController@sendForgotPasswordLink');
 
 
 /*
@@ -106,6 +96,12 @@ Route::post('/editemployee', 'EmpManagerController@getEmployeeEditModal');      
 Route::post('/update-employee', 'EmpManagerController@update');                                             //
 Route::post('/employee/update/salesid', 'EmpManagerController@updateEmployeeSalesID');                      //
 Route::get('/returnEmployeeRowData', 'EmpManagerController@returnEmployeeRowData');                         // emp_manager._emp
+
+/*
+ * Agent Management --- will replace EmpManagerController
+ */
+Route::get('/agents', 'EmployeeController@index');                                                          // employees.index
+Route::post('/agents', 'EmployeeController@store');
 
 /*
  * admin dashboard routes

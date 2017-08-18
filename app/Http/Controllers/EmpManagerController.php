@@ -32,8 +32,7 @@ class EmpManagerController extends Controller
      */
     public function index()
     {
-        $employees = Employee::where('is_active', 1)->get();
-        $employees = $employees->sortBy('name');
+        $employees = Employee::active()->get()->sortBy('name');
 
     	return view('emp_manager.index', ['employees' => $employees]);
     }

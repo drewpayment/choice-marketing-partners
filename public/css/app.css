@@ -1,3 +1,9 @@
+.bg-primary {
+  color: #ffffff;
+  background-color: #337ab7;
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+}
 html {
   height: 100%;
 }
@@ -422,6 +428,9 @@ a.unstyled {
 .mh-230 {
   max-height: 230px !important;
 }
+.mh-500 {
+  max-height: 500px !important;
+}
 .line-break-50 {
   padding-top: 25px;
   padding-bottom: 25px;
@@ -566,6 +575,9 @@ ul .dropdown-menu li {
   border: 1px solid #336699;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
+td .cursor-clickable:hover {
+  background-color: #ddd;
+}
 .box {
   margin-bottom: 20px;
   background-color: #fff;
@@ -574,6 +586,11 @@ ul .dropdown-menu li {
 }
 .box-content {
   padding: 15px;
+}
+.box-content .box-content-title {
+  min-height: 50px;
+  padding-top: 5px;
+  padding-bottom: 20px;
 }
 .box-default {
   border-color: #ddd;
