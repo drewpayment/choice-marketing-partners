@@ -1012,12 +1012,12 @@ class InvoiceController extends Controller
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
-			return $ovrGross + intval($ovr->total);
+			return $ovrGross + floatval($ovr->total);
 		});
 
 		$expGross = $expenses->sum(function($exp){
 			global $expGross;
-			return $expGross + intval($exp->amount);
+			return $expGross + floatval($exp->amount);
 		});
 
 		$gross = array_sum([$gross, $ovrGross, $expGross]);
