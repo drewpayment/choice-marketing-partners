@@ -8,23 +8,41 @@
 
 function returnTotals($id, $rows, $overrides, $expenses, $vendor)
 {
-    $rowTotal = $rows->filter(function($item) use ($vendor){
+    $rowTotal = 0;
+    $ovrTotal = 0;
+    $expTotal = 0;
+    $sales = $rows->filter(function($item) use ($vendor){
         return $item->vendor == $vendor;
     })->filter(function($item) use ($id){
         return $item->agentid == $id;
-    })->sum('amount');
+    })->pluck('amount');
 
-    $ovrTotal = $overrides->filter(function($item) use ($vendor){
+    $overs = $overrides->filter(function($item) use ($vendor){
         return $item->vendor_id == $vendor;
     })->filter(function($item) use ($id){
         return $item->agentid == $id;
-    })->sum('total');
+    })->pluck('total');
 
-    $expTotal = $expenses->filter(function($item) use ($vendor){
+    $exps = $expenses->filter(function($item) use ($vendor){
         return $item->vendor_id == $vendor;
     })->filter(function($item) use ($id){
         return $item->agentid == $id;
-    })->sum('amount');
+    })->pluck('amount');
+
+    foreach($sales as $s)
+    {
+        if(is_numeric($s)) $rowTotal = $rowTotal + $s;
+    }
+
+    foreach($overs as $o)
+    {
+        if(is_numeric($o)) $ovrTotal = $ovrTotal + $o;
+    }
+
+    foreach($exps as $e)
+    {
+        if(is_numeric($e)) $expTotal = $expTotal + $e;
+    }
 
     $total = $rowTotal + $ovrTotal + $expTotal;
 
