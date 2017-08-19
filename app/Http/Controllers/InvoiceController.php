@@ -237,7 +237,7 @@ class InvoiceController extends Controller
 
 
 	/**
-	 * Save invoice via ajax
+	 * Save invoice via ajax --- new module
 	 *
 	 */
 	public function SaveInvoice(Request $request)
@@ -269,30 +269,62 @@ class InvoiceController extends Controller
 		$formattedOverrides = [];
 		$formattedExpenses = [];
 
-		$payrollTotal = (
-			collect($sales)->pluck('amount')->sum() +
-			collect($overrides)->pluck('total')->sum() +
-			collect($expenses)->pluck('amount')->sum()
-		);
+		$salesColl = collect($sales);
+		$overColl = collect($overrides);
+		$expColl = collect($expenses);
 
-		foreach($sales as $s)
-		{
+		$salesAmt = 0;
+		$overAmt = 0;
+		$expAmt = 0;
+		if(is_numeric($salesColl->pluck('amount')->sum())) {
+			$salesAmt = $salesAmt + $salesColl->pluck('amount')->sum();
+		}
+		if(is_numeric($overColl->pluck('total')->sum())) {
+			$overAmt = $overAmt + $overColl->pluck('total')->sum();
+		}
+		if(is_numeric($expColl->pluck('amount')->sum())) {
+			$expAmt = $expAmt + $expColl->pluck('amount')->sum();
+		}
+
+		$payrollTotal = $salesAmt + $overAmt + $expAmt;
+
+
+		if(sizeof($sales) == 0){
 			$formattedSales[] = [
 				'vendor' => $vendorId,
-				'sale_date' => new Carbon($s['date']),
-				'first_name' => $s['name']['first'],
-				'last_name' => $s['name']['last'],
-				'address' => $s['address'],
-				'city' => $s['city'],
-				'status' => $s['status'],
-				'amount' => $s['amount'],
+				'sale_date' => new Carbon($date),
+				'first_name' => '-------',
+				'last_name' => '---------',
+				'address' => '-----',
+				'city' => '-----',
+				'status' => '-----',
+				'amount' => 0,
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
 			];
+		} else {
+
+			foreach($sales as $s)
+			{
+				$formattedSales[] = [
+					'vendor' => $vendorId,
+					'sale_date' => new Carbon($s['date']),
+					'first_name' => $s['name']['first'],
+					'last_name' => $s['name']['last'],
+					'address' => $s['address'],
+					'city' => $s['city'],
+					'status' => $s['status'],
+					'amount' => (is_numeric($s['amount'])) ? $s['amount'] : 0,
+					'agentid' => $employeeId,
+					'issue_date' => $date,
+					'wkending' => $endDate
+				];
+			}
+
 		}
 
-		$hasSales = (count($sales) > 0);
+		$hasSales = (sizeof($formattedSales) > 0);
 
 		foreach($overrides as $o)
 		{
