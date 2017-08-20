@@ -20,9 +20,8 @@ class InvoiceHelper
 	public function searchPaystubData($params)
 	{
 		$params = is_null($params) ? (object)['vendor' => -1, 'agent' => -1, 'date' => -1] : (object)$params;
-		$thisUser = Auth::user()->employee->first();
-		$admin = $thisUser->is_admin;
-		$isAdmin = ($admin == 1);
+		$thisUser = Auth::user()->employee;
+		$isAdmin = ($thisUser->is_admin == 1);
 		$date = ($params->date != -1) ? new Carbon($params->date) : $params->date;
 		$vendor = $params->vendor;
 
@@ -78,6 +77,7 @@ class InvoiceHelper
 					$paystubs = $rows->unique(function($item){
 						return $item['agentid'].$item['vendor'];
 					});
+
 
 					$overrides = Override::agentId($agents->pluck('id')->toArray())
 					                     ->issueDate($date)
