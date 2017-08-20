@@ -3,6 +3,7 @@
 {{--    agents          --}}
 {{--    vendors         --}}
 {{--    isAdmin         --}}
+{{--    isManager       --}}
 
 @php
 
@@ -64,7 +65,9 @@ function returnTotals($id, $rows, $overrides, $expenses, $vendor)
                     <input type="hidden" name="agent" id="agent">
                 </form>
             </td>
-            <td>{{$vendors->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})['name']}}</td>
+            <td>
+                {{$vendorDictionary->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})->name}}
+            </td>
             <td>
                 ${{returnTotals($p->agentid, $rows, $overrides, $expenses, (int)$p->vendor)}}
             </td>

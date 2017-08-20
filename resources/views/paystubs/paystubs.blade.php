@@ -1,5 +1,6 @@
 {{--  params available  --}}
 {{--    isAdmin,        --}}
+{{--    isManager,      --}}
 {{--    emps,           --}}
 {{--    paystubs,       --}}
 {{--    agents,         --}}
@@ -43,11 +44,11 @@
                                     <option value="-1">All</option>
                                     @if($isAdmin || $isManager)
                                         @foreach($vendors as $v)
-                                            <option value="{{$v->id}}">{{$v->name}}</option>
+                                            <option value="{{$v['id']}}">{{$v->name}}</option>
                                         @endforeach
                                     @else
                                         @foreach($vendors as $v)
-                                            <option value="{{$v->vendor}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val->id == $v->vendor; })->name}}</option>
+                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })->name}}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -58,10 +59,10 @@
                                     @if($isAdmin || $isManager)
                                     @foreach($agents as $a)
                                         <option value="-1">All Agents</option>
-                                        <option value="{{$a->id}}">{{$a->name}}</option>
+                                        <option value="{{$a['id']}}">{{$a['name']}}</option>
                                     @endforeach
                                     @else
-                                        <option value="{{$agents['id']}}">{{$agents['name']}}</option>
+                                        <option value="{{$agents[0]['id']}}">{{$agents[0]['name']}}</option>
                                     @endif
                                 </select>
                             </li>
