@@ -26,6 +26,8 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Active</th>
+                                    <th class="text-right">Created</th>
+                                    <th class="text-right">Last Modified</th>
                                 </tr>
                                 </thead>
                                 <tbody id="row-data">
@@ -44,7 +46,7 @@
 @endsection
 
 @section('scripts')
-
+    <script src="/js/conf/all.js"></script>
     <script type="text/javascript">
         $(document).on('click', '[data-id="edit-agent"]', function(){
             alert('clicked agent!');

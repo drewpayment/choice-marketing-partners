@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
@@ -89,6 +90,45 @@ class Employee extends Model
 	public function setPhoneNoAttribute($value)
 	{
 		return preg_replace('[^0-9]', '', $value);
+	}
+
+
+	/**
+	 * Format date helper function.
+	 * @param $date
+	 * @param $format
+	 *
+	 * @return string
+	 */
+	function formatDate($date, $format)
+	{
+		$dt = Carbon::createFromFormat($format, $date);
+
+		return $dt->format('m-d-Y');
+	}
+
+
+	/**
+	 * Sets date on created at attribute.
+	 * @param $value
+	 *
+	 * @return string
+	 */
+	public function getCreatedAtAttribute($value)
+	{
+		return $this->formatDate($value, 'Y-m-d H:i:s');
+	}
+
+
+	/**
+	 * Sets date on updated at attribute.
+	 * @param $value
+	 *
+	 * @return string
+	 */
+	public function getUpdatedAtAttribute($value)
+	{
+		return $this->formatDate($value, 'Y-m-d H:i:s');
 	}
 
 

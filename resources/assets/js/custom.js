@@ -285,12 +285,22 @@ function ajaxSuccessHandler(data){
 function fireAjaxRequest(options){
     if(options === undefined) ajaxErrorHandler("Options object is undefined.");
 
+    var successFn;
+
+    if(options.afterData !== undefined){
+        successFn = options.afterData;
+    } else if (options.success !== undefined){
+        successFn = options.success;
+    } else {
+        successFn = ajaxSuccessHandler();
+    }
+
     var settings = {
         url: (options.url === undefined) ? null : options.url,
         type: (options.type === undefined) ? 'GET' : options.type,
         data: (options.data === undefined) ? {} : options.data,
         dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
-        success: (options.afterData === undefined) ? ajaxSuccessHandler : options.afterData,
+        success: successFn,
         error: (options.errorData === undefined) ? ajaxErrorHandler : options.errorData
     };
 

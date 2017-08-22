@@ -43,7 +43,15 @@ elixir(function(mix) {
         'dashboard.js'
 	]);
 
-    mix.version(['js/all.js', 'css/all.css']);
+    /**
+    * Compiles and minifies abstracted JS into one file.
+    *
+    */
+    mix.scripts([
+        'conf/employee.js'
 
+    ], 'public/js/conf/all.js');
+
+    mix.version(['js/all.js', 'css/all.css', 'js/conf/all.js']);
 
 });
