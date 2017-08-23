@@ -32,7 +32,7 @@
                         <ul class="list-inline list-unstyled">
                             <li>
                                 <label for="issueDates"><i class="fa fa-calendar"></i> Dates </label><br>
-                                <select id="issueDates" class="selectpicker">
+                                <select id="issueDates" class="selectpicker" data-size="8">
                                     @foreach($issueDates as $d)
                                         <option value="{{$d}}">{{\Carbon\Carbon::createFromFormat('Y-m-d', $d)->format('m-d-Y')}}</option>
                                     @endforeach
@@ -40,7 +40,7 @@
                             </li>
                             <li>
                                 <label for="vendorList"><i class="fa fa-pencil-square-o"></i> Campaigns</label><br>
-                                <select id="vendorList" class="selectpicker">
+                                <select id="vendorList" class="selectpicker" data-size="8">
                                     <option value="-1">All</option>
                                     @if($isAdmin || $isManager)
                                         @foreach($vendors as $v)
@@ -55,10 +55,10 @@
                             </li>
                             <li>
                                 <label for="agentList"><i class="fa fa-male"></i> Agents</label><br>
-                                <select id="agentList" class="selectpicker" data-live-search="true">
+                                <select id="agentList" class="selectpicker" data-live-search="true" data-size="8">
                                     @if($isAdmin || $isManager)
-                                    @foreach($agents as $a)
                                         <option value="-1">All Agents</option>
+                                    @foreach($agents as $a)
                                         <option value="{{$a['id']}}">{{$a['name']}}</option>
                                     @endforeach
                                     @else

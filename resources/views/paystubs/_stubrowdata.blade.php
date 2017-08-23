@@ -66,7 +66,7 @@ function returnTotals($id, $rows, $overrides, $expenses, $vendor)
                 </form>
             </td>
             <td>
-                {{$vendorDictionary->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})->name}}
+                {{$vendors->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})->name}}
             </td>
             <td>
                 ${{returnTotals($p->agentid, $rows, $overrides, $expenses, (int)$p->vendor)}}
