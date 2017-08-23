@@ -1,7 +1,7 @@
 
 @if(count($children) > 0 && $children[0] != null)
 @foreach($children as $c)
-    <tr data-parent="true" data-parentid="{{$c->id}}">
+    <tr data-parent="true" data-parentid="{{$c['id']}}">
         <td class="text-center">
             <ul class="list-inline list-unstyled">
                 <li class="cursor-clickable" id="delete-override">
@@ -10,7 +10,7 @@
             </ul>
         </td>
         <td>
-            {{$c->name}}
+            {{$c['name']}}
         </td>
     </tr>
 @endforeach

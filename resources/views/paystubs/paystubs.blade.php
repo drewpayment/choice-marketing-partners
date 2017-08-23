@@ -48,7 +48,7 @@
                                         @endforeach
                                     @else
                                         @foreach($vendors as $v)
-                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })->name}}</option>
+                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })['name']}}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -58,9 +58,9 @@
                                 <select id="agentList" class="selectpicker" data-live-search="true" data-size="8">
                                     @if($isAdmin || $isManager)
                                         <option value="-1">All Agents</option>
-                                    @foreach($agents as $a)
-                                        <option value="{{$a['id']}}">{{$a['name']}}</option>
-                                    @endforeach
+                                        @foreach($agents as $a)
+                                            <option value="{{$a['id']}}">{{$a['name']}}</option>
+                                        @endforeach
                                     @else
                                         <option value="{{$agents[0]['id']}}">{{$agents[0]['name']}}</option>
                                     @endif
