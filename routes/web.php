@@ -101,9 +101,10 @@ Route::get('/returnEmployeeRowData', 'EmpManagerController@returnEmployeeRowData
  * Agent Management --- will replace EmpManagerController
  */
 Route::get('/agents', 'EmployeeController@index');                                                          // employees.index
-Route::post('/agents', 'EmployeeController@store');                                                         //
 Route::get('/getExistingEmployeeModal', 'EmployeeController@getExistingEmployee');                          // employees.partials.existingemployeemodal
-Route::post('/updateExistingEmployeeCRUD', 'EmployeeController@updateExistingEmployee');                    //
+Route::post('/updateExistingEmployee', 'EmployeeController@updateExistingEmployee');                        //
+Route::post('/createNewEmployee', 'EmployeeController@createNewEmployee');                                  //
+Route::get('/refreshEmployees', 'EmployeeController@refreshEmployeeRowData');                               // employees.partials._employeetablerowdata
 
 /*
  * admin dashboard routes

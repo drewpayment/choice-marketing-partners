@@ -34,6 +34,20 @@
 					<label for="emp_address">Address</label>
 					<input type="text" class="form-control" id="emp_address" name="emp_address" value="{{ $emp->address }}">
 				</div>
+				<div class="form-group">
+					<label for="empSalesIdOne">Sales ID #1: </label>
+					<input type="text" class="form-control" id="sales_id1" name="sales_id1" value="{{ $emp->sales_id1 }}" placeholder="Sales ID One" />
+				</div>
+
+				<div class="form-group">
+					<label for="empSalesIdTwo">Sales ID #2: </label>
+					<input type="text" class="form-control" id="sales_id2" name="sales_id2" value="{{ $emp->sales_id2 }}" placeholder="Sales ID Two" />
+				</div>
+
+				<div class="form-group">
+					<label for="empSalesIdThree">Sales ID #3: </label>
+					<input type="text" class="form-control" id="sales_id3" name="sales_id3" value="{{ $emp->sales_id3 }}" placeholder="Sales ID Three" />
+				</div>
 			</form>
 		</div>
 		<div class="modal-footer">

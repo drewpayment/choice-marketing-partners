@@ -183,11 +183,25 @@ class Employee extends Model
 	 * Scope a query to only include active users.
 	 *
 	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 *
 	 * @return \Illuminate\Database\Eloquent\Builder
 	 */
 	public function scopeActive($query)
 	{
 		return $query->where('is_active', 1);
+	}
+
+
+	/**
+	 * Scope a query to show both active/inactive users.
+	 *
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeShowAll($query)
+	{
+		return $query->whereIn('is_active', [0, 1]);
 	}
 
 

@@ -51,31 +51,28 @@ class EmployeeController extends Controller
 		return view('employees.index', ['employees' => $employees]);
 	}
 
-	public function store(Request $request)
-	{
-		$employee = new Employee();
-		$employee->name = $request->name;
-		$employee->email = $request->email;
-		$employee->phone_no = $request->phone_no;
-		$employee->address = $request->address;
-		$employee->sales_id1 = $request->sales_id1;
-		$employee->sales_id2 = $request->sales_id2;
-		$employee->sales_id3 = $request->sales_id3;
-		$employee->is_active = 1;
 
-		DB::beginTransaction();
-		try {
-			$employee->save();
-			$msg = 'Success!';
-			$status = 200;
-			DB::commit();
-		} catch (\mysqli_sql_exception $e) {
-			$msg = 'Error! '.$e;
-			$status = 500;
-			DB::rollback();
+	/**
+	 * Refresh employee row data.
+	 *
+	 * @param Request $request
+	 *
+	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+	 *
+	 */
+	public function refreshEmployeeRowData(Request $request)
+	{
+		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
+
+		$all = Input::all()['showAll'];
+
+		if($all == 'true') {
+			$employees = Employee::showAll()->get()->sortBy('name');
+		} else {
+			$employees = Employee::active()->get()->sortBy('name');
 		}
 
-		return response()->json($msg, $status);
+		return view('employees.partials._employeetablerowdata', ['employees' => $employees]);
 	}
 
 
@@ -110,13 +107,13 @@ class EmployeeController extends Controller
 		$employee = Employee::find($params['id']);
 		$employee->name = $params['name'];
 		$employee->email = $params['email'];
-		$employee->phone_no = $params['phone'];
+		$employee->phone_no = $params['phoneNo'];
 		$employee->address = $params['address'];
-		$employee->sales_id1 = $params['salesOne'];
-		$employee->sales_id2 = $params['salesTwo'];
-		$employee->sales_id3 = $params['salesThree'];
 		$employee->is_active = $params['isActive'];
-		$employee->is_mgr = $params['isManager'];
+		$employee->is_mgr = $params['isMgr'];
+		$employee->sales_id1 = $params['salesId1'];
+		$employee->sales_id2 = $params['salesId2'];
+		$employee->sales_id3 = $params['salesId3'];
 
 		DB::beginTransaction();
 		try {
@@ -131,4 +128,44 @@ class EmployeeController extends Controller
 
 		return response()->json(true);
 	}
+
+
+	/**
+	 * Create new employee from ajax call.
+	 * @param Request $request
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function createNewEmployee(Request $request)
+	{
+		$errors = [];
+		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
+
+		$params = Input::all();
+		$e = new Employee([
+			'name' => $params['name'],
+			'email' => $params['email'],
+			'phone_no' => $params['phoneNo'],
+			'address' => $params['address'],
+			'is_active' => 1,
+			'is_mgr' => $params['isMgr'],
+			'sales_id1' => $params['salesId1'],
+			'sales_id2' => $params['salesId2'],
+			'sales_id3' => $params['salesId3']
+		]);
+
+		DB::beginTransaction();
+		try {
+			$e->save();
+			DB::commit();
+		} catch (\mysqli_sql_exception $e){
+			DB::rollback();
+			$errors[] = $e;
+		}
+
+		if(count($errors) > 0) return response()->json($errors, 500);
+
+		return response()->json(true);
+	}
+
 }

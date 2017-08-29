@@ -13,8 +13,8 @@
                 </div>
                 <div class="box-content">
                     <div class="box-content-title">
-                        <button type="button" class="btn btn-primary"><i class="fa fa-eye"></i> All</button>
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#create-employee-modal"><i class="fa fa-plus"></i> Agent</button>
+                        <button type="button" class="btn btn-primary" data-toggle="button" id="show-all-employees"><i class="fa fa-eye"></i> All</button>
+                        <button type="button" class="btn btn-primary" data-action="create-employee-modal"><i class="fa fa-plus"></i> Agent</button>
                     </div>
 
                     <div class="row">
@@ -47,10 +47,5 @@
 
 @section('scripts')
     <script src="/js/conf/all.js"></script>
-    <script type="text/javascript">
-        $(document).on('click', '[data-id="edit-agent"]', function(){
-            alert('clicked agent!');
-        });
-    </script>
 
 @endsection
