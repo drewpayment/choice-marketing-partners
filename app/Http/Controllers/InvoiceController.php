@@ -793,7 +793,7 @@ class InvoiceController extends Controller
 	public function editInvoice($agentID, $vendorID, $issueDate)
 	{
 		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
-		$overrides = Override::agentId($agentID)->issueDate($issueDate)->get();
+		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$expenses = Expense::agentId($agentID)->issueDate($issueDate)->get();
 		$employee = Employee::find($invoices->first()->agentid);
 		$campaign = Vendor::find($invoices->first()->vendor);
