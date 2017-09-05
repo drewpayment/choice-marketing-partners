@@ -906,6 +906,23 @@ class InvoiceController extends Controller
 		 */
 		else
 		{
+			$agents = collect(array(Auth::user()->employee));
+			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
+			                     ->get()->unique('issue_date')->pluck('issue_date');
+
+			if(count($issueDates) > 0)
+			{
+				$today = Carbon::now();
+				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0]);
+				$release = $nextIssue->previous(Carbon::TUESDAY)->setTime(22, 0, 0);
+
+				if($today->lt($release))
+				{
+					$date = $issueDates[1];
+					$issueDates = $issueDates->slice(1);
+				}
+			}
+
 			$rows = Invoice::vendorId($vendor)
 			               ->issueDate($date)
 			               ->agentId($thisUser->id)
@@ -918,13 +935,9 @@ class InvoiceController extends Controller
 				return $item['agentid'].$item['vendor'];
 			});
 
-			$agents = collect(array(Auth::user()->employee));
 
 			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
 			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-
-			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
-			                     ->get()->unique('issue_date')->pluck('issue_date');
 
 			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
 			$vendors = collect($vendors);
