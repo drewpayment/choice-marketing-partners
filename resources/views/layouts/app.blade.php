@@ -109,8 +109,8 @@
                             </li>
                             <li>
                                 {{--removed to launch new paystub module--}}
-                                {{--<a href="/historical-invoice-data"><i class="ion ion-social-usd"></i> Paystubs</a>--}}
-                                <a href="/paystubs"><i class="fa fa-dollar"></i> Paystubs</a>
+                                <a href="/historical-invoice-data"><i class="ion ion-social-usd"></i> Paystubs</a>
+                                {{--<a href="/paystubs"><i class="fa fa-dollar"></i> Paystubs</a>--}}
                             </li>
                             @if(session('authenticatedUserIsAdmin'))
                                 <li>
