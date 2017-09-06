@@ -848,6 +848,8 @@ class InvoiceController extends Controller
 						->get()->unique('issue_date')->pluck('issue_date');
 
 		$vendors = Vendor::active()->get();
+		$vendorDictionary = Vendor::all();
+		$vendorDictionary = collect($vendorDictionary);
 
 		/**
 		 * ADMIN USERS
@@ -912,14 +914,14 @@ class InvoiceController extends Controller
 
 			if(count($issueDates) > 0)
 			{
-				$today = Carbon::now();
-				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0]);
-				$release = $nextIssue->previous(Carbon::TUESDAY)->setTime(22, 0, 0);
+				$today = Carbon::now()->tz('America/Detroit');
+				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+				$release = $nextIssue->subDay()->setTime(20, 0, 0);
 
-				if($today->lt($release))
+				if($today < $release)
 				{
-					$date = $issueDates[1];
 					$issueDates = $issueDates->slice(1);
+					$date = (!isset($issueDates[0])) ? Carbon::createFromFormat('Y-m-d', $date)->previous(Carbon::WEDNESDAY)->toDateTimeString() : $issueDates[0];
 				}
 			}
 
@@ -941,6 +943,14 @@ class InvoiceController extends Controller
 
 			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
 			$vendors = collect($vendors);
+
+			foreach($vendors as $v)
+			{
+				$name = $vendorDictionary->first(function($value, $k)use($v){
+					return $v->vendor == $value->id;
+				});
+				$v['name'] = $name->name;
+			}
 		}
 
 		$issueDates = collect($issueDates);
@@ -948,8 +958,6 @@ class InvoiceController extends Controller
 		$agents = collect($agents);
 		$emps = Employee::active()->get();
 
-		$vendorDictionary = Vendor::all();
-		$vendorDictionary = collect($vendorDictionary);
 
 		return view('paystubs.paystubs',
 			['isAdmin' => $isAdmin,

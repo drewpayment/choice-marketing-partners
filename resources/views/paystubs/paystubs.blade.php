@@ -48,7 +48,8 @@
                                         @endforeach
                                     @else
                                         @foreach($vendors as $v)
-                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })['name']}}</option>
+{{--                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })['name']}}</option>--}}
+                                            <option value="{{$v->vendor}}">{{$v->name}}</option>
                                         @endforeach
                                     @endif
                                 </select>
