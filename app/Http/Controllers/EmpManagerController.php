@@ -79,6 +79,7 @@ class EmpManagerController extends Controller
 
     public function handleAddNewEmployee(Request $request)
     {
+
     	$rules = [
 		    'data.name' => 'required',
 		    'data.email' => 'required|email',
