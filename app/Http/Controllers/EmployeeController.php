@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -40,6 +41,25 @@ class EmployeeController extends Controller
 
 		return $return;
 	}
+
+
+	/**
+	 * Updates user record to reflect employee active status
+	 * @param $userId
+	 * @param $isActive
+	 */
+	public function updateUserRecord($userId, $isActive)
+	{
+		if($isActive == 'true')
+		{
+			User::userId($userId)->first()->delete();
+		}
+		else
+		{
+			User::withTrashed()->userId($userId)->first()->restore();
+		}
+	}
+
 
 	/**
 	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -109,7 +129,6 @@ class EmployeeController extends Controller
 		$employee->email = $params['email'];
 		$employee->phone_no = $params['phoneNo'];
 		$employee->address = $params['address'];
-		$employee->is_active = $params['isActive'];
 		$employee->is_mgr = $params['isMgr'];
 		$employee->sales_id1 = $params['salesId1'];
 		$employee->sales_id2 = $params['salesId2'];
@@ -139,7 +158,7 @@ class EmployeeController extends Controller
 	public function createNewEmployee(Request $request)
 	{
 		$errors = [];
-		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
+		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
 
 		$params = Input::all();
 		$e = new Employee([
@@ -164,6 +183,53 @@ class EmployeeController extends Controller
 		}
 
 		if(count($errors) > 0) return response()->json($errors, 500);
+
+		$randomPass = substr(str_shuffle("abcdefghijklmnopqrstuvwxyz01234567890"), 0, 8);
+
+		$user = new User();
+		$user->id = $e->id;
+		$user->name = $e->name;
+		$user->email = $e->email;
+		$user->password = bcrypt($randomPass);
+
+		DB::beginTransaction();
+		try{
+			$user->save();
+			DB::commit();
+		} catch (\mysqli_sql_exception $err){
+			DB::rollback();
+			$errors[] = $err;
+		}
+
+		if(count($errors) > 0) return response()->json($errors, 500);
+
+		return response()->json(true);
+	}
+
+
+	public function updateEmployeeActiveStatus(Request $request)
+	{
+		$errors = [];
+		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
+
+		$params = Input::all();
+		$e = Employee::agentId($params['id'])->first();
+		$activeStatus = ($params['active'] == 'true') ? 1 : 0;
+		$e->is_active = $activeStatus;
+
+		DB::beginTransaction();
+		try {
+			$e->save();
+			DB::commit();
+		} catch (\mysqli_sql_exception $err){
+			DB::rollback();
+			$errors[] = $err;
+		}
+
+		if(count($errors) > 0) return response()->json($errors, 500);
+
+		$this->updateUserRecord($e->id, $activeStatus);
+
 
 		return response()->json(true);
 	}

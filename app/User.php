@@ -2,12 +2,18 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, SoftDeletes;
+
+    /**
+     * dates used by the model
+     */
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
 	/**
 	 * table used by model
@@ -46,4 +52,15 @@ class User extends Authenticatable
     {
     	return $this->belongsTo(Employee::class, 'id');
     }
+
+	/**
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param $id int
+	 *
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeUserId($query, $id)
+	{
+		return $query->where('id', $id);
+	}
 }

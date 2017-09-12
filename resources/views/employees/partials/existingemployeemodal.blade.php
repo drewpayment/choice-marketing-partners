@@ -19,16 +19,8 @@
 					<input type="text" class="form-control" id="emp_phone" name="emp_phone" value="{{ $emp->phone_no }}" placeholder="Phone Number">
 				</div>
 				<div class="form-group">
-					<ul class="list-inline">
-						<li>
-							<label for="emp_active">Active</label>
-							<input type="checkbox" class="form-control" id="emp_active" name="emp_active" @if($emp->is_active == 1) checked @endif />
-						</li>
-						<li>
-							<label for="is_mgr">Manager</label>
-							<input type="checkbox" class="form-control" id="is_mgr" name="is_mgr" @if($emp->is_mgr == 1) checked @endif @if($emp->id == 1) disabled @endif />
-						</li>
-					</ul>
+					<label for="is_mgr">Manager</label>
+					<input type="checkbox" class="form-control" id="is_mgr" name="is_mgr" @if($emp->is_mgr == 1) checked @endif @if($emp->id == 1) disabled @endif />
 				</div>
 				<div class="form-group">
 					<label for="emp_address">Address</label>

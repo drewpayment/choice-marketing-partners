@@ -6,7 +6,7 @@
         <td>{{$e->email}}</td>
         <td>{{$e->phone_no}}</td>
         <td class="text-center">
-            <input type="checkbox" <?php echo ($e->is_active) ? 'checked' : ''; ?> />
+            <input id="emp_active" type="checkbox" <?php echo ($e->is_active) ? 'checked' : ''; ?> />
         </td>
         <td class="text-right">{{$e->created_at}}</td>
         <td class="text-right">{{$e->updated_at}}</td>

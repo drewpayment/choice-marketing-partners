@@ -19,9 +19,11 @@ $(document).on('click', '[data-action="edit-agent"]', function(){
     function afterData(data){
         var modal = $('#modal_layout');
         modal.html(data);
-        modal.on('hidden.bs.modal', function(){
+        modal.on('hidden.bs.modal', function(e){
+            e.stopPropagation();
+            $(document).off('click', '[data-action="save-employee-changes"]'); // unregister event handler for updating employee
 
-            modal.html('');
+            modal.html('').off();
             refreshEmployees();
 
         }).on('shown.bs.modal', function(){
@@ -40,17 +42,19 @@ var registerSaveEmployeeEditHandler = function(){
     var modal = $('#modal_layout');
 
     $(document).on('click', '[data-action="save-employee-changes"]', function(){
+        var form = modal.find('form');
+
         var params = {
-            id: $('#emp_id').data('parentid'),
-            name: $('#emp_name').val(),
-            email: $('#emp_email').val(),
-            phoneNo: $('#emp_phone').val(),
-            address: $('#emp_address').val(),
-            isActive: $('#emp_active').is(':checked') ? 1 : 0,
-            isMgr: $('#is_mgr').is(':checked') ? 1 : 0,
-            salesId1: $('#sales_id1').val(),
-            salesId2: $('#sales_id2').val(),
-            salesId3: $('#sales_id3').val()
+            id: form.data('parentid'),
+            name: form.find('#emp_name').val(),
+            email: form.find('#emp_email').val(),
+            phoneNo: form.find('#emp_phone').val(),
+            address: form.find('#emp_address').val(),
+            isActive: form.find('#emp_active').is(':checked') ? 1 : 0,
+            isMgr: form.find('#is_mgr').is(':checked') ? 1 : 0,
+            salesId1: form.find('#sales_id1').val(),
+            salesId2: form.find('#sales_id2').val(),
+            salesId3: form.find('#sales_id3').val()
         };
 
         var options = {
@@ -74,9 +78,15 @@ var registerSaveEmployeeEditHandler = function(){
     });
 };
 
+/*
+ * Show modal to create new employee
+ */
 $(document).on('click', '[data-action="create-employee-modal"]', function(){
     var modal = $('#create-employee-modal');
+
     modal.on('hidden.bs.modal', function(){
+        modal.off();
+        $(document).off('click', '[data-action="save-new-employee"]');
         refreshEmployees();
     }).on('shown.bs.modal', function(){
         registerSaveEmployeeCreateHandler();
@@ -151,6 +161,38 @@ var refreshEmployees = function(){
     }
 };
 
-
+/**
+ * Toggle show all employees button
+ */
 $(document).on('click', '#show-all-employees', refreshEmployees);
+
+
+$(document).on('click', '#emp_active', function(){
+    var elem = $(this);
+
+    var params = {
+        id: elem.closest('[data-parent="true"]').data('parentid'),
+        active: elem.is(':checked')
+    };
+
+    var options = {
+        url: '/updateEmployeeStatus',
+        type: 'POST',
+        dataType: 'json',
+        data: params,
+        afterData: afterData
+    };
+
+    fireAjaxRequest(options);
+
+    function afterData(data){
+        if(data){
+            setMessageContainer('This employee has been updated.');
+        }
+    }
+});
+
+
+
+
 //# sourceMappingURL=all.js.map

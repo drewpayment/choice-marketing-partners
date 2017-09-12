@@ -105,6 +105,7 @@ Route::get('/getExistingEmployeeModal', 'EmployeeController@getExistingEmployee'
 Route::post('/updateExistingEmployee', 'EmployeeController@updateExistingEmployee');                        //
 Route::post('/createNewEmployee', 'EmployeeController@createNewEmployee');                                  //
 Route::get('/refreshEmployees', 'EmployeeController@refreshEmployeeRowData');                               // employees.partials._employeetablerowdata
+Route::post('/updateEmployeeStatus', 'EmployeeController@updateEmployeeActiveStatus');                      //
 
 /*
  * admin dashboard routes
