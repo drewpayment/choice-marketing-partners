@@ -114,7 +114,7 @@
                             </li>
                             @if(session('authenticatedUserIsAdmin'))
                                 <li>
-                                    <a href="/agents"><i class="fa fa-users"></i> Employees</a>
+                                    <a href="/agents"><i class="fa fa-users"></i> Agents</a>
                                 </li>
                                 <li>
                                     <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
