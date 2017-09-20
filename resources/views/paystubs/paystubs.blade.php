@@ -94,10 +94,20 @@
                         </tr>
                         </thead>
                         <tbody id="paystub_row_data">
-                            @include('paystubs._stubrowdata', [
-                            'paystubs' => $paystubs,
-                            'agents' => $agents,
-                            'vendors' => $vendors])
+                            @if(isset($paystubs) && count($paystubs) > 0)
+                                @include('paystubs._stubrowdata', [
+                                'paystubs' => $paystubs,
+                                'agents' => $agents,
+                                'vendors' => $vendors])
+                            @else
+                                <tr>
+                                    <td colspan="3">
+                                        <h2 class="text-center">
+                                            <i class="fa fa-arrow-circle-up"></i> Select Campaign and Agents
+                                        </h2>
+                                    </td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -126,13 +136,17 @@
 
 
             /**
-             * filter list of paystubs
-             *
+             * Event fired when you click the filter button. Returns
+             * a list of paystubs based on the input params.
              */
             $('#filterBtn').on('click', function(){
                 inputParams.date = $('#issueDates').val();
                 inputParams.vendor = $('#vendorList').val();
                 inputParams.agent = $('#agentList').val();
+
+                var loading = '<tr><td colspan="3" class="text-center"><i class="fa fa-spinner fa-spin fa-5x"></i></td></tr>';
+
+                $('#paystub_row_data').html(loading);
 
                 filterPaystubs();
             });

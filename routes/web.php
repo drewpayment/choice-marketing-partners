@@ -44,6 +44,7 @@ Route::post('/paystubs/pdf-detail', 'InvoiceController@showPaystub');           
 Route::post('/payroll/printable', 'InvoiceController@printablePaystub');                                    // pdf.template
 Route::post('/pdfs/paystubs/delete', 'InvoiceController@deletePaystubPdf');                                 //
 Route::post('/pdfs/makepdf', 'InvoiceController@makePdf');                                                  // pdf.template
+Route::get('/payroll', 'InvoiceController@payrollViewer');                                                  // paystubs.paystubs
 
 // edit invoices
 Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');                                   // invoices.search

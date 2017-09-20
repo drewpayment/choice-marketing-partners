@@ -22,6 +22,7 @@ class InvoiceHelper
 		$params = is_null($params) ? (object)['vendor' => -1, 'agent' => -1, 'date' => -1] : (object)$params;
 		$thisUser = Auth::user()->employee;
 		$isAdmin = ($thisUser->is_admin == 1);
+		$isManager = ($thisUser->is_mgr == 1);
 		$date = ($params->date != -1) ? new Carbon($params->date) : $params->date;
 		$vendor = $params->vendor;
 
@@ -145,7 +146,9 @@ class InvoiceHelper
 			'vendors' => $vendors,
 			'rows' => $rows,
 			'overrides' => $overrides,
-			'expenses' => $expenses
+			'expenses' => $expenses,
+			'isAdmin' => $isAdmin,
+			'isManager' => $isManager
 		];
 	}
 

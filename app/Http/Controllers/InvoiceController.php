@@ -830,6 +830,68 @@ class InvoiceController extends Controller
 	}
 
 
+	/**
+	 * The main landing page for the paystub module.
+	 *
+	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+	 */
+	public function payrollViewer()
+	{
+		$sessionUser = Auth::user()->employee;
+		$isAdmin = ($sessionUser->is_admin == 1);
+		$isManager = ($sessionUser->is_mgr == 1);
+
+		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
+								->get()->unique('issue_date')->pluck('issue_date');
+
+		$vendors = Vendor::active()->get();
+		$vendorDictionary = Vendor::all();
+
+		if($isAdmin)
+		{
+			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+
+		}
+		else if($isManager)
+		{
+			$rollList = $sessionUser->permissions()->active()->get();
+			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
+			$agents[] = $sessionUser;
+			$agents = collect($agents);
+		}
+		else
+		{
+			$agents = collect(array(Auth::user()->employee));
+			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
+			                     ->get()->unique('issue_date')->pluck('issue_date');
+
+			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
+			$vendors = collect($vendors);
+
+			foreach($vendors as $v)
+			{
+				$name = $vendorDictionary->first(function($value, $k)use($v){
+					return $v->vendor == $value->id;
+				});
+				$v['name'] = $name->name;
+			}
+		}
+
+		$issueDates = collect($issueDates);
+		$agents = collect($agents);
+		$emps = Employee::active()->get();
+
+		return view('paystubs.paystubs',
+			['isAdmin' => $isAdmin,
+			 'isManager' => $isManager,
+			 'emps' => $emps,
+			 'agents' => $agents,
+			 'issueDates' => $issueDates,
+			 'vendors' => $vendors,
+			 'vendorDictionary' => $vendorDictionary]);
+	}
+
+
 	/*
 	 * new paystubs module to support paystub searching and returning all employees
 	 *
@@ -997,7 +1059,9 @@ class InvoiceController extends Controller
 			'vendors' => $results->vendors,
 			'rows' => $results->rows,
 			'overrides' => $results->overrides,
-			'expenses' => $results->expenses
+			'expenses' => $results->expenses,
+			'isAdmin' => $results->isAdmin,
+			'isManager' => $results->isManager
 		]);
 	}
 
