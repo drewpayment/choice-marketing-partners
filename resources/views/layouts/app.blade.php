@@ -108,8 +108,8 @@
                                 <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
                             </li>
                             <li>
-                                <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>
-                                {{--<a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>--}}
+                                {{--  <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>  --}}
+                                <a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>
                             </li>
                             @if(session('authenticatedUserIsAdmin'))
                                 <li>
