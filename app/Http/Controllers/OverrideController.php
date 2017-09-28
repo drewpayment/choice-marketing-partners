@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Employee;
 use App\Override;
 use App\Permission;
+use App\Services\OverrideService;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -13,12 +14,24 @@ use Illuminate\Support\Facades\Input;
 
 class OverrideController extends Controller
 {
+
+	/**
+	 *
+	 *
+	 * @var OverrideService
+	 */
+	protected $OverrideService;
+
 	/**
 	 * Middleware
+	 *
+	 * @param OverrideService $override_service
 	 */
-	public function __construct()
+	public function __construct(OverrideService $override_service)
 	{
 		$this->middleware('auth');
+
+		$this->OverrideService = $override_service;
 	}
 
 	public function OverrideController(Request $request)
@@ -34,12 +47,12 @@ class OverrideController extends Controller
 	/*
 	 * url: /overrides
 	 *
-	 *
+	 * Shows all currently active managers
 	 *
 	 */
 	public function overrides()
 	{
-		$managers = Employee::managersOnly(true)->get();
+		$managers = Employee::managersOnly(true)->active()->get();
 
 		return view('overrides.overrides', ['managers' => $managers]);
 	}
@@ -47,17 +60,10 @@ class OverrideController extends Controller
 
 	public function detail($id)
 	{
-		$employees = Employee::all();
+		$employees = Employee::where('is_mgr', 0)->where('is_admin', 0)->active()->get();
 		$manager = Employee::find($id);
-		$permissions = Employee::find($id)->permissions;
-		$children = [];
 
-		foreach($permissions as $p)
-		{
-			$children[] = $employees->first(function($val, $key) use ($p){
-				return $val->id == $p->emp_id && $p->is_active == 1;
-			});
-		}
+		$children = $this->OverrideService->GetEmployeesByManagerId($id);
 
 		return view('overrides.detail', ['manager' => $manager, 'children' => $children, 'employees' => $employees]);
 	}
@@ -65,16 +71,7 @@ class OverrideController extends Controller
 
 	public function refreshDetail($id)
 	{
-		$employees = Employee::all();
-		$permissions = Employee::find($id)->permissions;
-		$children = [];
-
-		foreach($permissions as $p)
-		{
-			$children[] = $employees->first(function($val, $key) use ($p){
-				return $val->id == $p->emp_id;
-			});
-		}
+		$children = $this->OverrideService->GetEmployeesByManagerId($id);
 
 		return view('overrides._detailRowData', ['children' => $children]);
 	}
@@ -106,61 +103,29 @@ class OverrideController extends Controller
 
 	public function handleAddAgentOverride(Request $request)
 	{
-		if(request()->ajax())
-		{
-			$agent = Input::get('agentId');
-			$mgr = Input::get('mgrId');
-
-			$permission = Permission::where('emp_id', $agent)->first();
-			$manager = Employee::find($mgr);
-
-			try{
-				DB::beginTransaction();
-
-				$manager->permissions()->attach($permission);
-				DB::commit();
-
-				return response()->json(true);
-			} catch(\Exception $e){
-
-				DB::rollback();
-
-				return response()->json(false);
-			}
-		} else {
-
+		if(!request()->ajax())
 			return response()->json(false);
 
-		}
+		$agent = Input::get('agentId');
+		$mgr = Input::get('mgrId');
+
+		$result = $this->OverrideService->AddEmployeeOverride($agent, $mgr);
+
+		return response()->json($result);
 	}
 
 
 	public function handleDeleteAgentOverride(Request $request)
 	{
-		if(request()->ajax())
-		{
-			$agent = Input::get('agentId');
-			$mgr = Input::get('mgrId');
-
-			$permission = Permission::where('emp_id', $agent)->first();
-			$manager = Employee::find($mgr);
-
-			try{
-				DB::beginTransaction();
-
-				$manager->permissions()->detach($permission);
-				DB::commit();
-
-				return response()->json(true);
-			} catch (\Exception $e) {
-
-				DB::rollback();
-
-				return response()->json(false);
-			}
-		} else {
+		if(!request()->ajax())
 			return response()->json(false);
-		}
+
+		$agent = Input::get('agentId');
+		$mgr = Input::get('mgrId');
+
+		$result = $this->OverrideService->DeleteEmployeeOverride($agent, $mgr);
+
+		return response()->json($result);
 	}
 
 }

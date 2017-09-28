@@ -8,13 +8,12 @@
         <div class="col-xs-8 col-xs-offset-2">
             <div class="panel panel-default">
                 <div class="panel-title text-center">
-                    <h2 data-manager="true" data-managerid="{{$manager->id}}">{{$manager->name}}'s Agents</h2>
-                    <p>Search for an agent below and add them to the list to give the manager access to their sales/payroll information.</p>
+                    <h2 data-manager="true" data-managerid="{{$manager->id}}">Override Management [{{$manager->name}}]</h2>
                 </div>
                 <div class="panel-body">
                     <div class="row">
-                        <div class="col-xs-6 col-xs-offset-3">
-                            <label for="employeeList"></label>
+                        <div class="col-xs-8 col-xs-offset-2">
+                            <p class="text-center">Add agents that roll to {{$manager->name}} by selecting an agent below:</p>
                             <input class="contact selectize" type="text" id="employeeList" autocomplete="on" placeholder="Search for Agent" />
                         </div>
                     </div>
@@ -22,7 +21,7 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr class="active">
-                                <th class="w-10 text-center">Actions</th>
+                                <th class="w-10 text-center"></th>
                                 <th>Agent Name</th>
                             </tr>
                             </thead>
@@ -49,7 +48,7 @@
         @foreach($employees as $e)
             emps.push({!! $e !!});
         @endforeach
-        $('#employeeList').selectize({
+        var $select = $('#employeeList').selectize({
             persist: false,
             maxItems: 1,
             valueField: 'id',
@@ -74,6 +73,9 @@
                     confirmationBox(value);
 
                     managerId = $('[data-manager="true"]').data('managerid');
+
+                    var selectize = $select[0].selectize;
+                    selectize.clear();
                 }
             }
         });
@@ -100,8 +102,9 @@
                             var agentId = $el.data('parentid');
                             addAgentOverride(agentId);
                             modal.modal('hide');
+                            $(this).off();
 
-                        });
+                        })
 
                     }).on('hidden.bs.modal', function(){
 

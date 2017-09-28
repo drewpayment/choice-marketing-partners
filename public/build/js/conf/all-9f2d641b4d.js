@@ -50,7 +50,6 @@ var registerSaveEmployeeEditHandler = function(){
             email: form.find('#emp_email').val(),
             phoneNo: form.find('#emp_phone').val(),
             address: form.find('#emp_address').val(),
-            isActive: form.find('#emp_active').is(':checked') ? 1 : 0,
             isMgr: form.find('#is_mgr').is(':checked') ? 1 : 0,
             salesId1: form.find('#sales_id1').val(),
             salesId2: form.find('#sales_id2').val(),

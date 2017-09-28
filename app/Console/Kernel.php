@@ -2,7 +2,10 @@
 
 namespace App\Console;
 
+use App\Helpers\Tasker;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
@@ -16,7 +19,7 @@ class Kernel extends ConsoleKernel
         //
     ];
 
-    /**
+	/**
      * Define the application's command schedule.
      *
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
@@ -24,8 +27,26 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+//		/**
+//		 * Runs task to populate invoices that aren't indexed yet.
+//		 *
+//		 * Access cron jobs with cli: crontab -e
+//		 */
+//    	$schedule->call(function(){
+//			Tasker::processInvoiceData();
+//		})->weekdays()
+//			->everyMinute()
+//			->unlessBetween('22:00', '06:00')
+//			->withoutOverlapping();
+//
+//    	/**
+//    	 * Task to index tables in mysql.
+//    	 */
+//    	$schedule->call(function(){
+//    		// need to run task to index database tables
+//	    })->sundays()
+//		    ->daily()
+//		    ->withoutOverlapping();
     }
 
     /**

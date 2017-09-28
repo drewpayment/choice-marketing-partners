@@ -1,16 +1,18 @@
 
-@if(count($children) > 0 && $children[0] != null)
+@if(count($children) > 0)
 @foreach($children as $c)
     <tr data-parent="true" data-parentid="{{$c['id']}}">
         <td class="text-center">
             <ul class="list-inline list-unstyled">
-                <li class="cursor-clickable" id="delete-override">
-                    <i class="fa fa-trash fa-fw"></i>
+                <li>
+                    <button id="delete-override" type="button" class="btn btn-danger btn-sm">
+                        <i class="fa fa-trash fa-fw"></i>
+                    </button>
                 </li>
             </ul>
         </td>
         <td>
-            {{$c['name']}}
+            <h4>{{$c['name']}}</h4>
         </td>
     </tr>
 @endforeach

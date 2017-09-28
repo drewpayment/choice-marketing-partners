@@ -1,7 +1,5 @@
 var elixir = require('laravel-elixir');
 
-require('laravel-elixir-livereload');
-
 /*
  |--------------------------------------------------------------------------
  | Elixir Asset Management
@@ -15,7 +13,7 @@ require('laravel-elixir-livereload');
 
 elixir(function(mix) {
 
-    mix.livereload();
+    // mix.livereload();
 
     mix.less([
         'pdfwrapper.less'
