@@ -16,8 +16,8 @@ class Tasker {
 
 	public static function processInvoiceData()
 	{
-//		$today = new Carbon();
-//		$nextPaydate = $today->next(Carbon::WEDNESDAY);
+		$today = new Carbon();
+		$nextPaydate = $today->next(Carbon::WEDNESDAY);
 	}
 
 }

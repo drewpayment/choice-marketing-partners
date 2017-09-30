@@ -1,3 +1,8 @@
+<?php
+
+$container = isset($containerClass) ? $containerClass : 'container';
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -171,7 +176,7 @@
 
         <div class="alert alert-info pt-10 hidden" id="js_msgs"></div>
 
-        <div class="container">
+        <div class="{{$container}}">
             @yield('content')
         </div>
 

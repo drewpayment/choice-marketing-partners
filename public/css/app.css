@@ -128,6 +128,9 @@ a.unstyled {
 .opac-100 {
   opacity: 1 !important;
 }
+.mt-neg-60 {
+  margin-top: -60px;
+}
 .m-0 {
   margin: 0 !important;
 }
@@ -415,6 +418,9 @@ a.unstyled {
 }
 .h-270 {
   height: 270px !important;
+}
+.h-450 {
+  height: 450px !important;
 }
 .h-470 {
   height: 470px !important;
