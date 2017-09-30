@@ -852,8 +852,6 @@ class InvoiceController extends Controller
 			'vendorId' => $vendorId
 		])->render();
 
-		return $view;
-
 		$pdf = LaravelMpdf::loadHTML('');
 		$pdf->getMpdf()->WriteHTML($view);
 
