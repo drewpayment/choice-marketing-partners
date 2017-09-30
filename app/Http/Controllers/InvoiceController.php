@@ -804,10 +804,12 @@ class InvoiceController extends Controller
 		$sqlDate = $date->format('Y-m-d');
 		$gross = 0;
 		$invoiceDt = $date->format('m-d-Y');
-		$stubs = Invoice::agentId($agentId)->issueDate($sqlDate)->get();
+
 		$emp = Employee::find($agentId);
 		$vendorId = $inputParams['vendor'];
 		$vendorName = Vendor::find($vendorId)->name;
+
+		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($sqlDate)->get();
 
 		foreach($stubs as $s)
 		{
@@ -820,8 +822,8 @@ class InvoiceController extends Controller
 			$s->sale_date = date('m-d-Y', $s->sale_date);
 		}
 
-		$overrides = Override::agentId($agentId)->issueDate($sqlDate)->get();
-		$expenses = Expense::agentId($agentId)->issueDate($sqlDate)->get();
+		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($sqlDate)->get();
+		$expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($sqlDate)->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
@@ -849,6 +851,8 @@ class InvoiceController extends Controller
 			'expgross' => $expGross,
 			'vendorId' => $vendorId
 		])->render();
+
+		return $view;
 
 		$pdf = LaravelMpdf::loadHTML('');
 		$pdf->getMpdf()->WriteHTML($view);
