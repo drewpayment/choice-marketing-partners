@@ -34,9 +34,7 @@ class InvoiceHelper
 				$rows = Paystub::vendorId($vendor)
 								->issueDate($date)
 								->agentId($agents->pluck('id')->toArray())
-								->latest('issue_date')
-								->latest('agent_id')
-								->latest('vendor_id')
+								->orderBy('agent_name')
 								->get();
 
 			} else {
@@ -59,9 +57,7 @@ class InvoiceHelper
 					$rows = Paystub::vendorId($params->vendor)
 					               ->issueDate($date)
 					               ->agentId($agents->pluck('id')->all())
-					               ->latest('issue_date')
-					               ->latest('agent_id')
-					               ->latest('vendor_id')
+								   ->orderBy('agent_name')
 					               ->get();
 				}
 				else
@@ -70,8 +66,7 @@ class InvoiceHelper
 					$rows = Paystub::vendorId($params->vendor)
 					               ->issueDate($date)
 					               ->agentId($thisUser->id)
-					               ->latest('issue_date')
-					               ->latest('vendor_id')
+								   ->orderBy('agent_name')
 					               ->get();
 				}
 			}
@@ -82,9 +77,7 @@ class InvoiceHelper
 			$rows = Paystub::vendorId($params->vendor)
 			               ->issueDate($date)
 			               ->agentId($params->agent)
-			               ->latest('issue_date')
-			               ->latest('agent_id')
-			               ->latest('vendor_id')
+						   ->orderBy('agent_name')
 			               ->get();
 		}
 

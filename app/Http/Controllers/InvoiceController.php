@@ -661,7 +661,7 @@ class InvoiceController extends Controller
 	}
 
 
-	/*
+	/**
 	 * new paystubs module to support paystub searching and returning all employees
 	 *
 	 */
@@ -815,6 +815,14 @@ class InvoiceController extends Controller
 	}
 
 
+	/**
+	 * Fired from "filter" button on /payroll view. Takes date, vendor and agent params
+	 * and get paystub data for the params.
+	 *
+	 * @param Request $request
+	 *
+	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\JsonResponse|\Illuminate\View\View
+	 */
 	public function filterPaystubs(Request $request)
 	{
 		if(!$request->ajax()) return response()->json(false);
