@@ -206,6 +206,11 @@ class InvoiceService {
 		$result['status'] = true;
 		$result['message'] = 'Your invoice information has been successfully stored and processed.';
 
+		if($result['status'] && !is_null($date))
+		{
+			$this->paystubService->processPaystubJob($date);
+		}
+
 		return $result;
 	}
 
