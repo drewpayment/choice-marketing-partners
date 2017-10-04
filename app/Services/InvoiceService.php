@@ -21,15 +21,17 @@ use Illuminate\Support\Facades\DB;
 class InvoiceService {
 
 	protected $invoiceHelper;
+	protected $paystubService;
 
 	/**
 	 * InvoiceService constructor. Used to inject helpers.
 	 *
 	 * @param InvoiceHelper $invoice_helper
 	 */
-	public function __construct(InvoiceHelper $invoice_helper)
+	public function __construct(InvoiceHelper $invoice_helper, PaystubService $paystub_service)
 	{
 		$this->invoiceHelper = $invoice_helper;
+		$this->paystubService = $paystub_service;
 	}
 
 	/**
@@ -392,6 +394,11 @@ class InvoiceService {
 		{
 			$result['status'] = true;
 			$result['message'] = 'Your invoice information has been successfully stored and processed.';
+		}
+
+		if($result['status'] && !is_null($date))
+		{
+			$this->paystubService->processPaystubJob($date);
 		}
 
 		return $result;

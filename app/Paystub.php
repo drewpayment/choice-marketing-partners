@@ -40,6 +40,19 @@ class Paystub extends Model
 	}
 
 
+	public function scopeVendorId($query, $id)
+	{
+		if($id == -1)
+		{
+			$vendors = Vendor::all();
+			$ids = $vendors->pluck('id')->all();
+			return $query->whereIn('vendor_id', $ids);
+		}
+
+		return $query->where('vendor_id', $id);
+	}
+
+
 	/**
 	 * Scope query to the issue date passed.
 	 *
@@ -51,5 +64,18 @@ class Paystub extends Model
 	public function scopeIssueDate($query, $date)
 	{
 		return $query->where('issue_date', $date);
+	}
+
+
+	/**
+	 * Scope query to active
+	 *
+	 * @param $query
+	 *
+	 * @return mixed
+	 */
+	public function scopeActive($query)
+	{
+		return $query->where('active', 1);
 	}
 }

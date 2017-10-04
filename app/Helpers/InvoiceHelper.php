@@ -6,6 +6,7 @@ namespace App\Helpers;
 use App\Expense;
 use App\Invoice;
 use App\Override;
+use App\Paystub;
 use App\Vendor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,99 @@ class InvoiceHelper
 {
 
 	public function searchPaystubData($params)
+	{
+		$params = is_null($params) ? (object)['vendor' => -1, 'agent' => -1, 'date' => -1] : (object)$params;
+		$thisUser = Auth::user()->employee;
+		$isAdmin = ($thisUser->is_admin == 1);
+		$isManager = ($thisUser->is_mgr == 1);
+		$date = ($params->date != -1) ? new Carbon($params->date) : $params->date;
+		$vendor = $params->vendor;
+
+		if($params->agent == -1)
+		{
+			if($isAdmin){
+				$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+				$rows = Paystub::vendorId($vendor)
+								->issueDate($date)
+								->agentId($agents->pluck('id')->toArray())
+								->latest('issue_date')
+								->latest('agent_id')
+								->latest('vendor_id')
+								->get();
+
+			} else {
+				$list = $thisUser->permissions()->active()->get();
+				if(count($list) > 0)
+				{
+					$empsResult = [];
+					$empsResult[] = $thisUser;
+					$rolls = Employee::agentId($list->pluck('emp_id')->all())->get();
+					if($rolls->count() > 1)
+					{
+						$empsResult = array_merge($empsResult, $rolls->toArray());
+					}
+					else
+					{
+						$empsResult[] = $rolls->first();
+					}
+					$agents = collect($empsResult);
+
+					$rows = Paystub::vendorId($params->vendor)
+					               ->issueDate($date)
+					               ->agentId($agents->pluck('id')->all())
+					               ->latest('issue_date')
+					               ->latest('agent_id')
+					               ->latest('vendor_id')
+					               ->get();
+				}
+				else
+				{
+					$agents = Auth::user()->employee;
+					$rows = Paystub::vendorId($params->vendor)
+					               ->issueDate($date)
+					               ->agentId($thisUser->id)
+					               ->latest('issue_date')
+					               ->latest('vendor_id')
+					               ->get();
+				}
+			}
+		}
+		else
+		{
+			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+			$rows = Paystub::vendorId($params->vendor)
+			               ->issueDate($date)
+			               ->agentId($params->agent)
+			               ->latest('issue_date')
+			               ->latest('agent_id')
+			               ->latest('vendor_id')
+			               ->get();
+		}
+
+		$paystubs = collect($rows);
+		$agents = collect($agents);
+		$vendors = Vendor::all();
+
+		return (object)[
+			'stubs' => $paystubs,
+			'agents' => $agents,
+			'vendors' => $vendors,
+			'rows' => $rows,
+			'isAdmin' => $isAdmin,
+			'isManager' => $isManager
+		];
+	}
+
+
+	/**
+	 * BACKUP --- BEING REPLACED FOR NEWER VERSION THAT USES PAYSTUB MODEL
+	 * Used to search paystub information
+	 *
+	 * @param $params
+	 *
+	 * @return object
+	 */
+	public function searchPaystubDataBACKUP($params)
 	{
 		$params = is_null($params) ? (object)['vendor' => -1, 'agent' => -1, 'date' => -1] : (object)$params;
 		$thisUser = Auth::user()->employee;

@@ -5,59 +5,12 @@
 {{--    isAdmin         --}}
 {{--    isManager       --}}
 
-@php
-
-function returnTotals($id, $rows, $overrides, $expenses, $vendor)
-{
-    $rowTotal = 0;
-    $ovrTotal = 0;
-    $expTotal = 0;
-    $sales = $rows->filter(function($item) use ($vendor){
-        return $item->vendor == $vendor;
-    })->filter(function($item) use ($id){
-        return $item->agentid == $id;
-    })->pluck('amount');
-
-    $overs = $overrides->filter(function($item) use ($vendor){
-        return $item->vendor_id == $vendor;
-    })->filter(function($item) use ($id){
-        return $item->agentid == $id;
-    })->pluck('total');
-
-    $exps = $expenses->filter(function($item) use ($vendor){
-        return $item->vendor_id == $vendor;
-    })->filter(function($item) use ($id){
-        return $item->agentid == $id;
-    })->pluck('amount');
-
-    foreach($sales as $s)
-    {
-        if(is_numeric($s)) $rowTotal = $rowTotal + $s;
-    }
-
-    foreach($overs as $o)
-    {
-        if(is_numeric($o)) $ovrTotal = $ovrTotal + $o;
-    }
-
-    foreach($exps as $e)
-    {
-        if(is_numeric($e)) $expTotal = $expTotal + $e;
-    }
-
-    $total = $rowTotal + $ovrTotal + $expTotal;
-
-    return $total;
-}
-
-@endphp
-
 
 @if(count($paystubs) > 0)
     @foreach($paystubs as $p)
-        <tr class="cursor-clickable" data-stub="true" data-vid="{{$p['vendor']}}" data-aid="{{$p['agentid']}}">
+        <tr class="cursor-clickable" data-stub="true" data-vid="{{$p['vendor_id']}}" data-aid="{{$p['agent_id']}}">
             <td>
-                {{$agents->first(function($v, $k)use($p){return $v['id'] == $p['agentid'];})['name']}}
+                {{$p['agent_name']}}
                 <form method="post" id="form" action="/paystubs/pdf-detail">
                     <input type="hidden" name="_token" value="{{csrf_token()}}">
                     <input type="hidden" name="date" id="date">
@@ -66,14 +19,10 @@ function returnTotals($id, $rows, $overrides, $expenses, $vendor)
                 </form>
             </td>
             <td>
-                @if($isAdmin == true || $isManager == true)
-                    {{$vendors->first(function($v, $k)use($p){return $v->id == (int)$p->vendor;})['name']}}
-                @else
-                    {{$vendors->first(function($v, $k)use($p){return $v->vendor == (int)$p->vendor;})['name']}}
-                @endif
+                {{$p['vendor_name']}}
             </td>
             <td>
-                ${{returnTotals($p->agentid, $rows, $overrides, $expenses, (int)$p->vendor)}}
+                ${{$p['amount']}}
             </td>
         </tr>
     @endforeach

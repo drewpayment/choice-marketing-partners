@@ -25,7 +25,7 @@ class CreatePaystubsTable extends Migration
             $table->integer('modified_by');
             $table->timestamps();
 
-            $table->unique(['agent_id', 'issue_date']);
+            $table->unique(['agent_id', 'issue_date', 'vendor_id']);
         });
     }
 

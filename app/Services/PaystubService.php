@@ -25,6 +25,20 @@ class PaystubService {
 
 
 	/**
+	 * Takes a list of dates and processes paystub inserts into sql
+	 *
+	 * @param $dates
+	 */
+	public function batchPaystubProcessing($dates)
+	{
+		foreach($dates as $d)
+		{
+			$this->processPaystubJob($d->issue_date);
+		}
+	}
+
+
+	/**
 	 * This function should fire off any necessary events to create new paystub
 	 * records for the employees based on the issue date passed to the function.
 	 * If no issue date is passed, we will try to assume the issue date based on records returned
@@ -83,21 +97,21 @@ class PaystubService {
 		{
 			$weekendDate = $invoices->first()->wkending;
 			$total += $invoices->sum('amount');
-			$iVendors = $allVendors->whereIn('vendor', $invoices->pluck('vendor')->unique()->values()->all())->all();
+			$iVendors = $allVendors->whereIn('id', $invoices->pluck('vendor')->unique()->values()->all())->all();
 			$vendorArrs[] = $iVendors;
 		}
 
 		if($hasOverrides)
 		{
 			$total += $overrides->sum('total');
-			$oVendors = $allVendors->whereIn('vendor', $overrides->pluck('vendor_id')->unique()->values()->all())->all();
+			$oVendors = $allVendors->whereIn('id', $overrides->pluck('vendor_id')->unique()->values()->all())->all();
 			$vendorArrs[] = $oVendors;
 		}
 
 		if($hasExpenses)
 		{
 			$total += $expenses->sum('amount');
-			$eVendors = $allVendors->whereIn('vendor', $expenses->pluck('vendor_id')->unique()->values()->all())->all();
+			$eVendors = $allVendors->whereIn('id', $expenses->pluck('vendor_id')->unique()->values()->all())->all();
 			$vendorArrs[] = $eVendors;
 		}
 
@@ -109,7 +123,7 @@ class PaystubService {
 				$vendors[] = $v;
 			}
 		}
-		$vendors = collect($vendors)->unique('vendor_id')->values();
+		$vendors = collect($vendors)->unique('id')->values();
 
 		foreach($vendors as $v)
 		{
@@ -134,8 +148,6 @@ class PaystubService {
 				DB::rollback();
 			}
 		}
-
-		// vendors are not being created correctly
 	}
 
 }
