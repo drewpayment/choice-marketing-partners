@@ -515,11 +515,17 @@ class InvoiceController extends Controller
 		$vendors = Vendor::active()->get();
 		$vendorDictionary = Vendor::all();
 
+		/**
+		 * ADMIN USERS
+		 */
 		if($isAdmin)
 		{
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
 
 		}
+		/**
+		 * MANAGER USERS
+		 */
 		else if($isManager)
 		{
 			$rollList = $sessionUser->permissions()->active()->get();
@@ -527,11 +533,28 @@ class InvoiceController extends Controller
 			$agents[] = $sessionUser;
 			$agents = collect($agents);
 		}
+		/**
+		 * NON-ADMIN USERS
+		 */
 		else
 		{
 			$agents = collect(array(Auth::user()->employee));
 			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
 			                     ->get()->unique('issue_date')->pluck('issue_date');
+
+			// checks to see if we can release this week's paystub information
+			// to non-admin users yet.
+			if(count($issueDates) > 0)
+			{
+				$today = Carbon::now()->tz('America/Detroit');
+				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+
+				if($today < $release)
+				{
+					$issueDates = $issueDates->slice(1);
+				}
+			}
 
 			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
 			$vendors = collect($vendors);

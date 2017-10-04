@@ -56,9 +56,9 @@
 <div class="row section-features" id="incentives">
     <div class="col-md-4 col-md-offset-1">
         <h2>Agent Incentives</h2>
-        <p>
+        <h4 class="text-justify" style="line-height:1.4em;">
             Beyond normal salaries and commission opportunities, Choice Marketing Partners strives to be one of the most competitive compensatory energy affiliates in the industry. We believe that if we share profits with our people, they will work harder and be more likely to invest themselves in the organization. We regularly award Agents with daily cash incentives, weekly bonus opportunities through exceptional sales and customer service interactions, and big award contests like all-expense paid vacations, cars and even houses!
-        </p>
+        </h4>
     </div>
     <div class="col-md-7">
         <div id="carousel" class="h-200 m-10">
@@ -155,14 +155,16 @@
         </section>
     </div>
 </div>
-<section id="clients">
-    <div class="container">
-        <div class="row">
-            <div class="box box-default b-all">
-                <div class="box-title">
-                    <h2 class="text-center">Clients We Work With</h2>
-                </div>
-                <div class="box-content">
+<div class="row bg-primary">
+    <div class="col-md-12">
+        <h2 class="text-center text-uppercase">Partners</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 pt-10">
+        <section id="clients">
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
                     <div class="row">
                         <div class="col-md-4 text-center hp-100">
                             <a href="https://santannaenergyservices.com/">
@@ -199,9 +201,9 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
-</section>
+</div>
 @endsection
 
 @section('scripts')
