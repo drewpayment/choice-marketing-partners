@@ -25,6 +25,20 @@ class PaystubService {
 
 
 	/**
+	 * Gets all unique dates in sql and returns them as an array.
+	 * Use the returned array from this function to pass into the batch process
+	 * when cleaning up issues in sql for paystubs.
+	 *
+	 * @return array|mixed
+	 */
+	public function getUniqueInvoiceDates()
+	{
+		$dates = Invoice::all()->unique('issue_date')->values()->all();
+
+		return $dates;
+	}
+
+	/**
 	 * Takes a list of dates and processes paystub inserts into sql
 	 *
 	 * @param $dates
@@ -91,26 +105,21 @@ class PaystubService {
 		$vendorArrs = [];
 		$weekendDate = null;
 
-		$total = 0;
-
 		if($hasInvoices)
 		{
 			$weekendDate = $invoices->first()->wkending;
-			$total += $invoices->sum('amount');
 			$iVendors = $allVendors->whereIn('id', $invoices->pluck('vendor')->unique()->values()->all())->all();
 			$vendorArrs[] = $iVendors;
 		}
 
 		if($hasOverrides)
 		{
-			$total += $overrides->sum('total');
 			$oVendors = $allVendors->whereIn('id', $overrides->pluck('vendor_id')->unique()->values()->all())->all();
 			$vendorArrs[] = $oVendors;
 		}
 
 		if($hasExpenses)
 		{
-			$total += $expenses->sum('amount');
 			$eVendors = $allVendors->whereIn('id', $expenses->pluck('vendor_id')->unique()->values()->all())->all();
 			$vendorArrs[] = $eVendors;
 		}
@@ -127,6 +136,18 @@ class PaystubService {
 
 		foreach($vendors as $v)
 		{
+			$total = 0;
+			DB::beginTransaction();
+
+			if($hasInvoices)
+				$total += $invoices->where('vendor', $v['id'])->values()->sum('amount');
+
+			if($hasOverrides)
+				$total += $overrides->where('vendor_id', $v['id'])->values()->sum('total');
+
+			if($hasExpenses)
+				$total += $expenses->where('vendor_id', $v['id'])->values()->sum('amount');
+
 			$paystub = new Paystub;
 			$paystub->agent_id = $agent->id;
 			$paystub->agent_name = $agent->name;
@@ -137,7 +158,6 @@ class PaystubService {
 			$paystub->weekend_date = is_null($weekendDate) ? $issueDate : $weekendDate;
 			$paystub->modified_by = $modifiedBy;
 
-			DB::beginTransaction();
 			try
 			{
 				$paystub->save();
