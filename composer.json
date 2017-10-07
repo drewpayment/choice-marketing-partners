@@ -13,7 +13,8 @@
         "barryvdh/laravel-debugbar": "^2.3",
         "sofa/eloquence": "5.3",
         "mpdf/mpdf": "^6.1",
-        "carlos-meneses/laravel-mpdf": "^1.1"
+        "carlos-meneses/laravel-mpdf": "^1.1",
+        "barryvdh/laravel-ide-helper": "^2.4"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
@@ -48,6 +49,8 @@
         ],
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
+            "php artisan ide-helper:generate",
+            "php artisan ide-helper:meta",
             "php artisan optimize"
         ]
     },

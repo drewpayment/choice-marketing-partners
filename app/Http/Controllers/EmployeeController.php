@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
+use App\Services\EmployeeService;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,12 +11,18 @@ use Illuminate\Support\Facades\Input;
 
 class EmployeeController extends Controller
 {
+
+	protected $employeeService;
+
+
 	/**
 	 * Middleware
 	 */
-	public function __construct()
+	public function __construct(EmployeeService $employee_service)
 	{
 		$this->middleware('auth');
+
+		$this->employeeService = $employee_service;
 	}
 
 
@@ -184,6 +191,8 @@ class EmployeeController extends Controller
 
 		if(count($errors) > 0) return response()->json($errors, 500);
 
+		$newEmpId = $e->id;
+
 		$randomPass = substr(str_shuffle("abcdefghijklmnopqrstuvwxyz01234567890"), 0, 8);
 
 		$user = new User();
@@ -202,6 +211,10 @@ class EmployeeController extends Controller
 		}
 
 		if(count($errors) > 0) return response()->json($errors, 500);
+
+		$result = $this->employeeService->registerPermissionableUser($newEmpId);
+
+		if(!$result) return response()->json(false, 500);
 
 		return response()->json(true);
 	}
