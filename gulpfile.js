@@ -1,4 +1,5 @@
 var elixir = require('laravel-elixir');
+var path = require('path');
 
 /*
  |--------------------------------------------------------------------------
@@ -49,6 +50,8 @@ elixir(function(mix) {
         'conf/employee.js'
 
     ], 'public/js/conf/all.js');
+
+    mix.webpack('./vue/app.js', require('./webpack.config.js'), 'public/build/vue', 'resources/assets/js/vue');
 
     mix.version(['js/all.js', 'css/all.css', 'js/conf/all.js']);
 

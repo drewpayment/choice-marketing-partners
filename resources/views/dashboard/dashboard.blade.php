@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['containerClass' => 'container-fluid'])
 
 @section('title', 'Admin Dashboard')
 
@@ -6,35 +6,55 @@
 
 
     <div class="row">
-        <div class="col-xs-12">
-            <blockquote>
-                <h2>"Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time." <small>Thomas Edison</small></h2>
-            </blockquote>
-        </div>
-    </div>
-    <div>
-        <div class="col-md-6">
-            <div class="panel panel-primary overflow-scroll">
-                <div class="panel-heading">
-                    <button type="button" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#admin_body"><i class="ion ion-close-round" id="close-icon"></i></button>
-                    <div class="panel-title">Administration</div>
+        <div class="col-md-2">
+            <div class="box box-default">
+                <div class="box-title bg-primary">
+                    <h3>{{Carbon\Carbon::now()->format('F j, Y')}}</h3>
                 </div>
-
-                <div id="admin_body" class="list-group collapse in">
-                    <a class="list-group-item" href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue dates."><i class="ion ion-clipboard"></i> Payroll Tracking</a>
-                    <a class="list-group-item" href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice."><i class="ion ion-edit"></i> Edit Invoice</a>
-                    <a class="list-group-item" href="#">&nbsp;</a>
+                <div class="box-content">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li>
+                            <a href="{{url('/')}}"><i class="fa fa-home"></i> Home</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
+                        </li>
+                        <li>
+                            {{--  <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>  --}}
+                            <a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>
+                        </li>
+                        <li>
+                            <a href="/agents"><i class="fa fa-users"></i> Agents</a>
+                        </li>
+                        <li>
+                            <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="{{url('/overrides')}}"><i class="fa fa-cog"></i> Overrides</a>
+                        </li>
+                        <li>
+                            <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
+                                <i class="fa fa-calculator"></i> Payroll Tracking
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{url('/vendors')}}">
+                                <i class="fa fa-building"></i> Campaigns
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Sales by Week</h3>
+        <div class="col-md-10">
+            <div class="box box-default">
+                <div class="box-title bg-primary">
+                    <h2>My Dashboard <i class="fa fa-dashboard"></i></h2>
                 </div>
-                <div class="panel-body" id="salesByWeek">
-                    <div class="jsdata">{{$jsdata}}</div>
+                <div class="box-content">
+                    <div id="vue-app"></div>
                 </div>
             </div>
         </div>
@@ -45,15 +65,6 @@
 
 
 @section('scripts')
-
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <script type="text/javascript">
-        $('#admin_body').on('shown.bs.collapse', function(){
-            $('#close-icon').removeClass('ion ion-plus-round').addClass('ion ion-close-round');
-        }).on('hidden.bs.collapse', function(){
-            $('#close-icon').removeClass('ion ion-close-round').addClass('ion ion-plus-round');
-        });
-    </script>
+    // this need to bring in VueJS router and pages...
 
 @endsection
