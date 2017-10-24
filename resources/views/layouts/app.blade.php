@@ -174,6 +174,22 @@ $container = isset($containerClass) ? $containerClass : 'container';
             </div>
         @endif
 
+        @if(isset($messages) && $messages->any())
+            <div class="alert alert-info pt-10">
+                @foreach($messages->all() as $message)
+                    {{$message}}
+                @endforeach
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger pt-10">
+                @foreach($errors->all() as $error)
+                    {{$error}}
+                @endforeach
+            </div>
+        @endif
+
         <div class="alert alert-info pt-10 hidden" id="js_msgs"></div>
 
         <div class="{{$container}}">

@@ -136,3 +136,52 @@ Route::post('/vendors/handleAddVendor', 'VendorController@handleAddVendor');    
 Route::get('/vendors/returnAddModal', 'VendorController@returnAddModal');                                   // vendors._addModal
 Route::get('/vendors/refreshVendorRowData', 'VendorController@refreshVendorRowData');                       // vendors._vendorRowData
 Route::post('/vendors/handleVendorActive', 'VendorController@handleVendorActive');                          //
+
+
+/**
+ * ************* BLOG ROUTES --- NEW ****************
+ * URL ---> /blog/{restofstuffhere}
+ */
+Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
+
+	Route::get('/', 'PostController@index');
+	Route::get('/home', ['as' => 'home', 'uses' => 'PostController@index']);
+
+	// show new post form
+	Route::get('new-post', 'PostController@create');
+
+	// save new post
+	Route::post('new-post', 'PostController@store');
+
+	// edit post form
+	Route::get('edit/{slug}', 'PostController@edit');
+
+	// update post
+	Route::post('update', 'PostController@update');
+
+	// delete post
+	Route::get('delete/{id}', 'PostController@destroy');
+
+	// display all user's posts
+	Route::get('my-all-posts', 'UserController@userAllPosts');
+
+	// user drafts
+	Route::get('my-drafts', 'UserController@userPostsDrafts');
+
+	// add comment
+	Route::post('comment/add', 'CommentController@store');
+
+	// delete comment
+	Route::post('comment/delete/{id}', 'CommentController@destroy');
+
+	// users profile
+	Route::get('user/{id}', 'UserController@blogProfile')->where('id', '[0-9]+');
+
+	// display list of posts
+	Route::get('user/{id}/posts', 'UserController@userPosts')->where('id', '[0-9]+');
+
+	// disply single post
+	Route::get('/{slug}', ['as' => 'post', 'uses' => 'PostController@show'])->where('slug', '[A-Za-z0-9-_]+');
+
+});
+
