@@ -528,6 +528,18 @@ class InvoiceController extends Controller
 			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
 			$agents[] = $sessionUser;
 			$agents = collect($agents);
+
+			if(count($issueDates) > 0)
+			{
+				$today = Carbon::now()->tz('America/Detroit');
+				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+
+				if($today < $release)
+				{
+					$issueDates = $issueDates->slice(1);
+				}
+			}
 		}
 		else
 		{
