@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Payroll;
+use App\PayrollRestriction;
 use App\Vendor;
 use Exception;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Input;
 
 class DashboardController extends Controller
 {
@@ -27,9 +29,9 @@ class DashboardController extends Controller
 	 */
 	public function index()
 	{
+		$time = PayrollRestriction::find(1);
 
-
-		return view('dashboard.dashboard');
+		return view('dashboard.dashboard', ['time' => $time]);
 	}
 
 
@@ -102,6 +104,32 @@ class DashboardController extends Controller
 		}
 
 		return response()->json('true');
+	}
+
+
+	public function savePaystubRestriction(Request $request)
+	{
+		if(!$request->ajax()) response()->json(false, 500);
+
+		$input = Input::all();
+		$hour = $input['hour'];
+		$min = $input['min'];
+
+		$restrict = PayrollRestriction::find(1);
+		$restrict->hour = $hour;
+		$restrict->minute = $min;
+		$restrict->modified_by = auth()->user()->id;
+
+		DB::beginTransaction();
+		try {
+			$restrict->save();
+			DB::commit();
+		} catch (\mysqli_sql_exception $e) {
+			DB::rollback();
+			return response()->json(false, 500);
+		}
+
+		return response()->json(true, 200);
 	}
 
 }

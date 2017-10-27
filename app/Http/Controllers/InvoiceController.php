@@ -8,6 +8,7 @@ use App\Helpers\InvoiceHelper;
 use App\Invoice;
 use App\Override;
 use App\Payroll;
+use App\PayrollRestriction;
 use App\Paystub;
 use App\Services\DbHelper;
 use App\Services\InvoiceService;
@@ -518,6 +519,8 @@ class InvoiceController extends Controller
 		$vendors = Vendor::active()->get();
 		$vendorDictionary = Vendor::all();
 
+		$limit = PayrollRestriction::find(1);
+
 		if($isAdmin)
 		{
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
@@ -533,7 +536,7 @@ class InvoiceController extends Controller
 			{
 				$today = Carbon::now()->tz('America/Detroit');
 				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+				$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 
 				if($today < $release)
 				{
@@ -551,7 +554,7 @@ class InvoiceController extends Controller
 			{
 				$today = Carbon::now()->tz('America/Detroit');
 				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+				$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 
 				if($today < $release)
 				{
@@ -593,228 +596,228 @@ class InvoiceController extends Controller
 	 *
 	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
 	 */
-	public function payrollViewerBACKUP()
-	{
-		$sessionUser = Auth::user()->employee;
-		$isAdmin = ($sessionUser->is_admin == 1);
-		$isManager = ($sessionUser->is_mgr == 1);
-
-		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
-								->get()->unique('issue_date')->pluck('issue_date');
-
-		$vendors = Vendor::active()->get();
-		$vendorDictionary = Vendor::all();
-
-		/**
-		 * ADMIN USERS
-		 */
-		if($isAdmin)
-		{
-			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
-
-		}
-		/**
-		 * MANAGER USERS
-		 */
-		else if($isManager)
-		{
-			$rollList = $sessionUser->permissions()->active()->get();
-			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
-			$agents[] = $sessionUser;
-			$agents = collect($agents);
-		}
-		/**
-		 * NON-ADMIN USERS
-		 */
-		else
-		{
-			$agents = collect(array(Auth::user()->employee));
-			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
-			                     ->get()->unique('issue_date')->pluck('issue_date');
-
-			// checks to see if we can release this week's paystub information
-			// to non-admin users yet.
-			if(count($issueDates) > 0)
-			{
-				$today = Carbon::now()->tz('America/Detroit');
-				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-				$release = $nextIssue->subDay()->setTime(20, 0, 0);
-
-				if($today < $release)
-				{
-					$issueDates = $issueDates->slice(1);
-				}
-			}
-
-			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
-			$vendors = collect($vendors);
-
-			foreach($vendors as $v)
-			{
-				$name = $vendorDictionary->first(function($value, $k)use($v){
-					return $v->vendor == $value->id;
-				});
-				$v['name'] = $name->name;
-			}
-		}
-
-		$issueDates = collect($issueDates);
-		$agents = collect($agents);
-		$emps = Employee::active()->get();
-
-		return view('paystubs.paystubs',
-			['isAdmin' => $isAdmin,
-			 'isManager' => $isManager,
-			 'emps' => $emps,
-			 'agents' => $agents,
-			 'issueDates' => $issueDates,
-			 'vendors' => $vendors,
-			 'vendorDictionary' => $vendorDictionary]);
-	}
+//	public function payrollViewerBACKUP()
+//	{
+//		$sessionUser = Auth::user()->employee;
+//		$isAdmin = ($sessionUser->is_admin == 1);
+//		$isManager = ($sessionUser->is_mgr == 1);
+//
+//		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
+//								->get()->unique('issue_date')->pluck('issue_date');
+//
+//		$vendors = Vendor::active()->get();
+//		$vendorDictionary = Vendor::all();
+//
+//		/**
+//		 * ADMIN USERS
+//		 */
+//		if($isAdmin)
+//		{
+//			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+//
+//		}
+//		/**
+//		 * MANAGER USERS
+//		 */
+//		else if($isManager)
+//		{
+//			$rollList = $sessionUser->permissions()->active()->get();
+//			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
+//			$agents[] = $sessionUser;
+//			$agents = collect($agents);
+//		}
+//		/**
+//		 * NON-ADMIN USERS
+//		 */
+//		else
+//		{
+//			$agents = collect(array(Auth::user()->employee));
+//			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
+//			                     ->get()->unique('issue_date')->pluck('issue_date');
+//
+//			// checks to see if we can release this week's paystub information
+//			// to non-admin users yet.
+//			if(count($issueDates) > 0)
+//			{
+//				$today = Carbon::now()->tz('America/Detroit');
+//				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+//				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+//
+//				if($today < $release)
+//				{
+//					$issueDates = $issueDates->slice(1);
+//				}
+//			}
+//
+//			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
+//			$vendors = collect($vendors);
+//
+//			foreach($vendors as $v)
+//			{
+//				$name = $vendorDictionary->first(function($value, $k)use($v){
+//					return $v->vendor == $value->id;
+//				});
+//				$v['name'] = $name->name;
+//			}
+//		}
+//
+//		$issueDates = collect($issueDates);
+//		$agents = collect($agents);
+//		$emps = Employee::active()->get();
+//
+//		return view('paystubs.paystubs',
+//			['isAdmin' => $isAdmin,
+//			 'isManager' => $isManager,
+//			 'emps' => $emps,
+//			 'agents' => $agents,
+//			 'issueDates' => $issueDates,
+//			 'vendors' => $vendors,
+//			 'vendorDictionary' => $vendorDictionary]);
+//	}
 
 
 	/**
 	 * new paystubs module to support paystub searching and returning all employees
 	 *
 	 */
-	public function paystubs()
-	{
-		$thisUser = Auth::user()->employee;
-		$admin = $thisUser->is_admin;
-		$isManager = ($thisUser->is_mgr == 1);
-
-		$isAdmin = ($admin == 1);
-		$vendor = -1;
-		$date = Invoice::latest('issue_date')->first()->issue_date;
-
-		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
-						->get()->unique('issue_date')->pluck('issue_date');
-
-		$vendors = Vendor::active()->get();
-		$vendorDictionary = Vendor::all();
-		$vendorDictionary = collect($vendorDictionary);
-
-		/**
-		 * ADMIN USERS
-		 */
-		if($isAdmin){
-			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
-			$rows = Invoice::vendorId($vendor)
-							->issueDate($date)
-							->agentId($agents->pluck('id')->toArray())
-							->latest('issue_date')
-							->latest('agentid')
-							->latest('vendor')
-							->withActiveAgent()
-							->get();
-
-			$paystubs = $rows->unique(function($item){
-				return $item['agentid'].$item['vendor'];
-			});
-
-			$overrides = Override::agentId($agents->pluck('id')->toArray())
-                               ->issueDate($date)
-                               ->get();
-			$expenses = Expense::agentId($agents->pluck('id')->toArray())
-			                   ->issueDate($date)
-			                   ->get();
-
-		}
-		/**
-		 * MANAGERS
-		 */
-		else if ($isManager)
-		{
-			$list = $thisUser->permissions()->active()->get();
-
-			$empsResult = Employee::agentId($list->pluck('emp_id')->all())->get();
-			$empsResult[] = $thisUser;
-			$agents = collect($empsResult);
-
-			$rows = Invoice::vendorId($vendor)
-			               ->issueDate($date)
-			               ->agentId($agents->pluck('id')->all())
-			               ->latest('issue_date')
-			               ->latest('agentid')
-			               ->latest('vendor')
-			               ->withActiveAgent()
-			               ->get();
-			$paystubs = $rows->unique(function($item){
-				return $item['agentid'].$item['vendor'];
-			});
-
-			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-		}
-		/**
-		 * AGENTS
-		 */
-		else
-		{
-			$agents = collect(array(Auth::user()->employee));
-			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
-			                     ->get()->unique('issue_date')->pluck('issue_date');
-
-			if(count($issueDates) > 0)
-			{
-				$today = Carbon::now()->tz('America/Detroit');
-				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-				$release = $nextIssue->subDay()->setTime(20, 0, 0);
-
-				if($today < $release)
-				{
-					$issueDates = $issueDates->slice(1);
-					$date = (!isset($issueDates[0])) ? Carbon::createFromFormat('Y-m-d', $date)->previous(Carbon::WEDNESDAY)->toDateTimeString() : $issueDates[0];
-				}
-			}
-
-			$rows = Invoice::vendorId($vendor)
-			               ->issueDate($date)
-			               ->agentId($thisUser->id)
-			               ->latest('issue_date')
-			               ->latest('vendor')
-			               ->withActiveAgent()
-			               ->get();
-
-			$paystubs = $rows->unique(function($item){
-				return $item['agentid'].$item['vendor'];
-			});
-
-
-			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-
-			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
-			$vendors = collect($vendors);
-
-			foreach($vendors as $v)
-			{
-				$name = $vendorDictionary->first(function($value, $k)use($v){
-					return $v->vendor == $value->id;
-				});
-				$v['name'] = $name->name;
-			}
-		}
-
-		$issueDates = collect($issueDates);
-		$paystubs = collect($paystubs);
-		$agents = collect($agents);
-		$emps = Employee::active()->get();
-
-
-		return view('paystubs.paystubs',
-			['isAdmin' => $isAdmin,
-			 'isManager' => $isManager,
-			 'emps' => $emps,
-			 'paystubs' => $paystubs,
-			 'agents' => $agents,
-			 'issueDates' => $issueDates,
-			 'vendors' => $vendors,
-			 'vendorDictionary' => $vendorDictionary,
-			 'rows' => $rows,
-			 'overrides' => $overrides,
-			 'expenses' => $expenses]);
-	}
+//	public function paystubs()
+//	{
+//		$thisUser = Auth::user()->employee;
+//		$admin = $thisUser->is_admin;
+//		$isManager = ($thisUser->is_mgr == 1);
+//
+//		$isAdmin = ($admin == 1);
+//		$vendor = -1;
+//		$date = Invoice::latest('issue_date')->first()->issue_date;
+//
+//		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
+//						->get()->unique('issue_date')->pluck('issue_date');
+//
+//		$vendors = Vendor::active()->get();
+//		$vendorDictionary = Vendor::all();
+//		$vendorDictionary = collect($vendorDictionary);
+//
+//		/**
+//		 * ADMIN USERS
+//		 */
+//		if($isAdmin){
+//			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
+//			$rows = Invoice::vendorId($vendor)
+//							->issueDate($date)
+//							->agentId($agents->pluck('id')->toArray())
+//							->latest('issue_date')
+//							->latest('agentid')
+//							->latest('vendor')
+//							->withActiveAgent()
+//							->get();
+//
+//			$paystubs = $rows->unique(function($item){
+//				return $item['agentid'].$item['vendor'];
+//			});
+//
+//			$overrides = Override::agentId($agents->pluck('id')->toArray())
+//                               ->issueDate($date)
+//                               ->get();
+//			$expenses = Expense::agentId($agents->pluck('id')->toArray())
+//			                   ->issueDate($date)
+//			                   ->get();
+//
+//		}
+//		/**
+//		 * MANAGERS
+//		 */
+//		else if ($isManager)
+//		{
+//			$list = $thisUser->permissions()->active()->get();
+//
+//			$empsResult = Employee::agentId($list->pluck('emp_id')->all())->get();
+//			$empsResult[] = $thisUser;
+//			$agents = collect($empsResult);
+//
+//			$rows = Invoice::vendorId($vendor)
+//			               ->issueDate($date)
+//			               ->agentId($agents->pluck('id')->all())
+//			               ->latest('issue_date')
+//			               ->latest('agentid')
+//			               ->latest('vendor')
+//			               ->withActiveAgent()
+//			               ->get();
+//			$paystubs = $rows->unique(function($item){
+//				return $item['agentid'].$item['vendor'];
+//			});
+//
+//			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+//			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+//		}
+//		/**
+//		 * AGENTS
+//		 */
+//		else
+//		{
+//			$agents = collect(array(Auth::user()->employee));
+//			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
+//			                     ->get()->unique('issue_date')->pluck('issue_date');
+//
+//			if(count($issueDates) > 0)
+//			{
+//				$today = Carbon::now()->tz('America/Detroit');
+//				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+//				$release = $nextIssue->subDay()->setTime(20, 0, 0);
+//
+//				if($today < $release)
+//				{
+//					$issueDates = $issueDates->slice(1);
+//					$date = (!isset($issueDates[0])) ? Carbon::createFromFormat('Y-m-d', $date)->previous(Carbon::WEDNESDAY)->toDateTimeString() : $issueDates[0];
+//				}
+//			}
+//
+//			$rows = Invoice::vendorId($vendor)
+//			               ->issueDate($date)
+//			               ->agentId($thisUser->id)
+//			               ->latest('issue_date')
+//			               ->latest('vendor')
+//			               ->withActiveAgent()
+//			               ->get();
+//
+//			$paystubs = $rows->unique(function($item){
+//				return $item['agentid'].$item['vendor'];
+//			});
+//
+//
+//			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+//			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
+//
+//			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
+//			$vendors = collect($vendors);
+//
+//			foreach($vendors as $v)
+//			{
+//				$name = $vendorDictionary->first(function($value, $k)use($v){
+//					return $v->vendor == $value->id;
+//				});
+//				$v['name'] = $name->name;
+//			}
+//		}
+//
+//		$issueDates = collect($issueDates);
+//		$paystubs = collect($paystubs);
+//		$agents = collect($agents);
+//		$emps = Employee::active()->get();
+//
+//
+//		return view('paystubs.paystubs',
+//			['isAdmin' => $isAdmin,
+//			 'isManager' => $isManager,
+//			 'emps' => $emps,
+//			 'paystubs' => $paystubs,
+//			 'agents' => $agents,
+//			 'issueDates' => $issueDates,
+//			 'vendors' => $vendors,
+//			 'vendorDictionary' => $vendorDictionary,
+//			 'rows' => $rows,
+//			 'overrides' => $overrides,
+//			 'expenses' => $expenses]);
+//	}
 
 
 	function array_insert($array, $var, $position)

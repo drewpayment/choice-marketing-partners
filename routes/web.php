@@ -38,7 +38,7 @@ Route::get('/paystub/delete/confirm',  function(){                              
 Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');                                   //
 
 // new paystub module (do not implement on production)
-Route::get('/paystubs', 'InvoiceController@paystubs');                                                      // paystubs.paystubs
+//Route::get('/paystubs', 'InvoiceController@paystubs');                                                      // paystubs.paystubs
 Route::post('/paystubs/filter-paystubs', 'InvoiceController@filterPaystubs');                               // paystubs._stubrowdata
 Route::post('/paystubs/pdf-detail', 'InvoiceController@showPaystub');                                       // pdf.paystub
 Route::post('/payroll/printable', 'InvoiceController@printablePaystub');                                    // pdf.template
@@ -114,6 +114,7 @@ Route::post('/updateEmployeeStatus', 'EmployeeController@updateEmployeeActiveSta
  */
 Route::get('/dashboards/dashboard', 'DashboardController@index');                                           // dashboard.dashboard
 Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');                                  // dashboard.payrollinfo
+Route::post('/savePaystubRestriction', 'DashboardController@savePaystubRestriction');
 // payroll info routes
 Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');                    //
 Route::get('/dashboards/refreshPayrollInfo', 'DashboardController@refreshPayrollInfo');                     // dashboard.payrollTableRowData
