@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PostFormRequest;
 use App\Post;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class PostController extends Controller
 {
@@ -20,7 +22,7 @@ class PostController extends Controller
 	    $posts = Post::latest('created_at')->where('active', 1)->paginate(5);
 
 	    // page heading
-	    $title = 'Latest Posts';
+	    $title = '<i class="fa fa-quote-right"></i> &nbsp;Recent Posts';
 
 	    // return home.blade.php template from resources/blog/views folder
 	    return view('blog.home', ['posts' => $posts, 'title' => $title]);
@@ -38,7 +40,7 @@ class PostController extends Controller
     	// can user post
 	    if($request->user()->can_post())
 	    {
-	    	return view('blog.posts.create');
+	    	return view('blog.create');
 	    }
 	    else
 	    {
@@ -49,17 +51,17 @@ class PostController extends Controller
 	/**
 	 * Store post and return confirmation message.
 	 *
-	 * @param PostFormRequest $request
+	 * @param Request $request
 	 *
 	 * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
 	 */
-	public function store(PostFormRequest $request)
+	public function store(Request $request)
     {
     	$post = new Post;
-    	$post->title = $request->get('title');
-    	$post->body = $request->get('body');
+    	$post->title = $request->title;
+    	$post->body = $request->body;
     	$post->slug = str_slug($post->title);
-    	$post->author_id = $request->user()->id;
+    	$post->author_id = auth()->user()->id;
 
     	if($request->has('save'))
 	    {
@@ -72,9 +74,15 @@ class PostController extends Controller
 	    	$message = 'Post published successfully';
 	    }
 
-	    $post->save();
+	    try {
+		    $post->save();
+	    } catch (QueryException $e) {
+    		Session::flash('alert', 'A duplicate named post already exists. Please try again.');
 
-    	return redirect('edit/'.$post->slug, ['message' => $message]);
+    		return redirect()->back()->withInput();
+	    }
+
+    	return redirect()->action('PostController@edit', ['slug' => $post->slug])->with('message', $message);
     }
 
 	/**
@@ -90,30 +98,36 @@ class PostController extends Controller
 
     	if(!$post)
 	    {
-	    	return redirect('/', ['errors' => 'request page not found.']);
+	    	return redirect('blog', ['errors' => 'request page not found.']);
 	    }
 
 	    $comments = $post->comments;
 
-    	return view('blog.posts.show', ['post' => $post, 'comments' => $comments]);
+    	return view('blog.show', ['post' => $post, 'comments' => $comments]);
     }
 
 	/**
 	 * View existing post in order to edit.
 	 *
-	 * @param Request $request
 	 * @param $slug
 	 *
+	 * @param $message
+	 *
 	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|\Illuminate\View\View
+	 * @internal param Request $request
 	 */
-	public function edit(Request $request, $slug)
+	public function edit($slug)
     {
     	$post = Post::where('slug', $slug)->first();
 
-    	if($post && ($request->user()->id == $post->author_id || $request->user()->is_admin()))
-    		return view('blog.posts.edit', ['post' => $post]);
+    	if($post && (auth()->user()->id == $post->author_id || auth()->user()->is_admin()))
+    		return view('blog.edit', [
+    			'post' => $post,
+			    'message' => request()->get('message'),
+			    'title' => 'Edit Post'
+		    ]);
 
-    	return redirect('/', ['errors' => 'You do not have sufficient permissions.']);
+    	return redirect('blog', ['errors' => 'You do not have sufficient permissions.']);
     }
 
 	/**
@@ -138,7 +152,9 @@ class PostController extends Controller
 		    {
 		    	if($duplicate->id != $post_id)
 			    {
-			    	return redirect('edit/'.$post->slug, ['errors' => 'Title already exists.'])->withInput();
+			    	Session::flash('errors', 'Title already exists.');
+
+			    	return redirect()->action('PostController@edit', ['slug' => $post->slug])->withInput();
 			    }
 			    else
 			    {
@@ -153,17 +169,22 @@ class PostController extends Controller
 		    {
 		    	$post->active = 0;
 		    	$message = 'Post saved successfully';
-		    	$landing = 'edit/'.$post->slug;
 		    }
 		    else
 		    {
 		    	$post->active = 1;
 		    	$message = 'Post updated successfully';
-		    	$landing = $post->slug;
 		    }
 
-		    $post->save();
-	    	return redirect($landing, ['message' => $message]);
+		    try {
+			    $post->save();
+		    } catch (QueryException $e) {
+	    		Session::flash('alert', 'We were unable to save your post. Please try again. If the issue persists, please contact your administrator.');
+
+	    		return redirect()->back()->withInput();
+		    }
+
+	    	return redirect()->action('PostController@edit', ['slug' => $post->slug])->with('message', $message);
 	    }
 	    else
 	    {
@@ -192,6 +213,6 @@ class PostController extends Controller
 	    	$data['errors'] = 'Invalid operation. You do not have sufficient permission';
 	    }
 
-	    return redirect('/')->with($data);
+	    return redirect('/blog')->with($data);
     }
 }

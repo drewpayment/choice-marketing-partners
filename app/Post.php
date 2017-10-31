@@ -17,6 +17,11 @@ class Post extends Model
 	protected $table = 'posts';
 
 	/**
+	 * mass assignable columns
+	 */
+	protected $fillable = ['id', 'author_id', 'title', 'body', 'slug', 'active'];
+
+	/**
 	 * Post has many comments
 	 * Returns all comments for the post
 	 *
@@ -34,6 +39,6 @@ class Post extends Model
 	 */
 	public function author()
 	{
-		return $this->belongsTo(User::class, 'author_id');
+		return $this->belongsTo(User::class, 'author_id', 'id');
 	}
 }

@@ -163,22 +163,22 @@ Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 	Route::get('delete/{id}', 'PostController@destroy');
 
 	// display all user's posts
-	Route::get('my-all-posts', 'UserController@userAllPosts');
+	Route::get('my-all-posts', 'BlogUserController@user_posts');
 
 	// user drafts
-	Route::get('my-drafts', 'UserController@userPostsDrafts');
+	Route::get('my-drafts', 'BlogUserController@user_posts_draft');
 
 	// add comment
 	Route::post('comment/add', 'CommentController@store');
 
 	// delete comment
-	Route::post('comment/delete/{id}', 'CommentController@destroy');
+	Route::get('comment/delete/{id}', 'CommentController@destroy');
 
 	// users profile
-	Route::get('user/{id}', 'UserController@blogProfile')->where('id', '[0-9]+');
+	Route::get('user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+');
 
 	// display list of posts
-	Route::get('user/{id}/posts', 'UserController@userPosts')->where('id', '[0-9]+');
+	Route::get('user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
 
 	// disply single post
 	Route::get('/{slug}', ['as' => 'post', 'uses' => 'PostController@show'])->where('slug', '[A-Za-z0-9-_]+');

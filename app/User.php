@@ -71,7 +71,7 @@ class User extends Authenticatable
 	 */
 	public function posts()
 	{
-		return $this->hasMany(Post::class, 'author_id');
+		return $this->hasMany(Post::class, 'author_id', 'id');
 	}
 
 	/**
@@ -81,7 +81,7 @@ class User extends Authenticatable
 	 */
 	public function comments()
 	{
-		return $this->hasMany(Comment::class, 'from_user');
+		return $this->hasMany(Comment::class, 'from_user', 'id');
 	}
 
 	public function can_post()

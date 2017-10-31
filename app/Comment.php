@@ -25,6 +25,14 @@ class Comment extends Model
 	 */
 	public function author()
     {
-    	return $this->belongsTo(User::class, 'from_user');
+    	return $this->belongsTo(Employee::class, 'from_user');
+    }
+
+	/**
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+	 */
+	public function post()
+    {
+    	return $this->belongsTo(Post::class, 'on_post');
     }
 }

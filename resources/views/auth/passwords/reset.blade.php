@@ -4,10 +4,13 @@
 <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Reset Password</div>
+            <div class="box box-default">
+                <div class="box-title bg-primary">Password Reset</div>
 
-                <div class="panel-body">
+                <div class="box-content">
+                    <div class="box-cotent-title">
+                        <p>Need help? First time signing in? Just enter the email address you provided during registration and we'll help you get started.</p>
+                    </div>
                     <form class="form-horizontal" role="form" method="POST" action="{{ url('/password/reset') }}">
                         {{ csrf_field() }}
 

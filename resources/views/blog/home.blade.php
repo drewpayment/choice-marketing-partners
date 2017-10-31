@@ -1,39 +1,47 @@
-@extends('blog.layout')
+@extends('blog.layout', ['container' => 'container-fluid'])
 
 @section('blog_title')
-    {{$title}}
+    {!! $title !!}
 @endsection
 
-@section('blog-content)
+@section('blog-content')
 
-    @if(!$posts->count())
-        There are no posts yet. Write one now!
-    @else
-        @foreach($posts as $post)
-            <div class="list-group">
-                <div class="list-group-item">
-                    <h3>
-                        <a href="{{url('/'.$post->slug)}}">{{$post->title}}</a>
-                        @if(!Auth::guest() && ($post->author_id == Auth::user()->id || Auth::user()->is_admin()))
-                            @if($post->active == 1)
-                                <a href="'edit/{{$post->slug}}" class="btn pull-right">Edit Post</a>
-                            @else
-                                <a href="edit/{{$post->slug}}" class="btn pull-right">Edit Draft</a>
-                            @endif
-                        @endif
-                    </h3>
-                    <p>
-                        {{$post->created_at->format('M d,Y \a\t h:i a')}} By <a href="{{url('/user/'.$post->author_id)}}">{{$post->author->name}}</a>
-                    </p>
-                </div>
-                <div class="list-group-item">
-                    <article>
-                        {!! str_limit($post->body, $limit = 1500, $end = '...<a href='.url("/".$post->slug).'>[Read More]</a>') !!}
-                    </article>
+    <div class="row">
+        <div class="col-md-2">
+            <div class="box box-default">
+                <div class="box-content">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li>
+                            <a href="{{url('/blog')}}"><i class="fa fa-home"></i> Home</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="{{url('/blog/user/'.Auth::user()->id)}}"><i class="fa fa-user"></i> Profile</a>
+                        </li>
+                        <li>
+                            <a href="{{url('/blog/new-post')}}"><i class="fa fa-pencil"></i> Compose</a>
+                        </li>
+                        <li>
+                            <a href="{{url('/blog/my-all-posts')}}"><i class="fa fa-th-list"></i> My Posts</a>
+                        </li>
+                        <li>
+                            <a href="{{url('/blog/my-drafts')}}"><i class="fa fa-clipboard"></i> My Drafts</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        @endforeach
-        {!! $posts->render() !!}
-    @endif
+        </div>
+        <div class="col-md-10">
+            <div class="box box-default">
+                <div class="box-content">
+                    @if(!$posts->count())
+                        There are no posts yet. Write one now!
+                    @else
+                        @include('blog.feed', ['posts' => $posts])
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endsection

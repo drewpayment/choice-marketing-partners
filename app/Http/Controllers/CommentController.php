@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Comment;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -24,9 +25,39 @@ class CommentController extends Controller
 
 		$slug = $request->input('slug');
 
-		Comment::create($input);
+		try {
 
-		return redirect($slug, ['message' => 'Comment published']);
+			Comment::create($input);
+
+		} catch (QueryException $e) {
+
+			Session::flash('alert', 'We were unable to save your comment. Please try again later.');
+
+			return redirect()->back()->withInput();
+		}
+
+		return redirect()->action('PostController@show', ['slug' => $slug]);
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return \Illuminate\Http\RedirectResponse
+	 */
+	public function destroy($id)
+	{
+		$comment = Comment::find($id);
+		if($comment && ($comment->from_user == auth()->user()->id || auth()->user()->role == 'admin'))
+		{
+			$comment->delete();
+			$data['message'] = 'Comment deleted successfully';
+		}
+		else
+		{
+			$data['alert'] = 'Invalid operation. You do not have sufficient permissons.';
+		}
+
+		return redirect()->back()->with($data);
 	}
 
 }
