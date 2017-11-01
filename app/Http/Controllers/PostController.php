@@ -38,7 +38,7 @@ class PostController extends Controller
 	public function create(Request $request)
     {
     	// can user post
-	    if($request->user()->can_post())
+	    if(auth()->user()->can_post())
 	    {
 	    	return view('blog.create');
 	    }
@@ -142,7 +142,7 @@ class PostController extends Controller
     	$post_id = $request->input('post_id');
     	$post = Post::find($post_id);
 
-    	if($post && ($post->author_id == $request->user()->id || $request->user()->is_admin()))
+    	if($post && ($post->author_id == auth()->user()->id || auth()->user()->is_admin()))
 	    {
 	    	$title = $request->input('title');
 	    	$slug = str_slug($title);
@@ -188,7 +188,7 @@ class PostController extends Controller
 	    }
 	    else
 	    {
-	    	return redirect('/', ['errors' => 'You do not have sufficient permission']);
+	    	return redirect()->back()->with(['alert' => 'You do not have sufficient permission']);
 	    }
     }
 
@@ -203,7 +203,7 @@ class PostController extends Controller
 	public function destroy(Request $request, $id)
     {
     	$post = Post::find($id);
-    	if($post && ($post->author_id == $request->user()->id || $request->user()->is_admin()))
+    	if($post && ($post->author_id == auth()->user()->id || auth()->user()->is_admin()))
 	    {
 	    	$post->delete();
 	    	$data['message'] = 'Post deleted successfully';

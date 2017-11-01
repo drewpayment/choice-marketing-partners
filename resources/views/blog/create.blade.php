@@ -19,7 +19,7 @@
                 <div class="box-content">
                     <ul class="nav nav-pills nav-stacked">
                         <li>
-                            <a href="{{url('/blog')}}"><i class="fa fa-home"></i> Home</a>
+                            <a href="{{url('/blog')}}"><i class="fa fa-home"></i> All Posts</a>
                         </li>
                         <li class="divider"></li>
                         <li>
@@ -41,7 +41,7 @@
         <div class="col-md-10">
             <div class="box box-default">
                 <div class="box-content">
-                    <form action="/blog/new-post" method="POST">
+                    <form action="{{url('/blog/new-post')}}" method="POST">
                         <input type="hidden" name="_token" value="{{csrf_token()}}">
                         <div class="form-group">
                             <input value="{{old('title')}}" placeholder="Enter title here" type="text" name="title" class="form-control" required />

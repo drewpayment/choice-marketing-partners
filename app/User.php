@@ -84,10 +84,27 @@ class User extends Authenticatable
 		return $this->hasMany(Comment::class, 'from_user', 'id');
 	}
 
+	/**
+	 * User can post
+	 *
+	 * @return bool
+	 */
 	public function can_post()
 	{
 		$role = $this->role;
 
 		return ($role == 'author' || $role == 'admin');
+	}
+
+	/**
+	 * User is admin
+	 *
+	 * @return bool
+	 */
+	public function is_admin()
+	{
+		$role = $this->role;
+
+		return ($role == 'admin');
 	}
 }

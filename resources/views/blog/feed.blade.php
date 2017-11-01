@@ -17,8 +17,8 @@
                 {{$post->created_at->format("M d, Y")}} By <a href="{{url("blog/user/".$post->author_id)}}">{{$post->author->name}}</a>
             </p>
         </div>
-        <div class="box-content">
-            <article>
+        <div class="box-content overflow-hidden">
+            <article style="overflow:hidden;">
                 {!! str_limit($post->body, $limit = 500, $end = "...<a href=".url('blog/'.$post->slug).">[Read More]</a>") !!}
             </article>
         </div>

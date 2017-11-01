@@ -29,7 +29,7 @@
             <h4>Leave a Comment</h4>
         </div>
         @if(Auth::guest())
-            <p>Login to leave a comment</p>
+            <p><a href="{{url('/login')}}">Login</a> to leave a comment</p>
         @else
             <div class="panel-body">
                 <form method="POST" action="{{url('blog/comment/add')}}">
@@ -52,7 +52,7 @@
                                 <div class="list-group-item p-0 pl-10">
                                     <h4>{{$comment->author->name}}
                                         <small>{{$comment->created_at->format('M d, Y g:i:sa')}}</small>
-                                        @if(Auth::user()->id == $post->author_id || Auth::user()->employee->is_admin == 1)
+                                        @if(Auth::check() && (Auth::user()->id == $post->author_id || Auth::user()->employee->is_admin == 1))
                                             <a href="#" data-href="{{url('/blog/comment/delete/'.$comment->id)}}" id="delete-btn" class="btn btn-danger btn-xs pull-right mr-5"><i class="fa fa-trash"></i></a>
                                         @endif
                                     </h4>

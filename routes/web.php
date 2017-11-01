@@ -138,14 +138,15 @@ Route::get('/vendors/refreshVendorRowData', 'VendorController@refreshVendorRowDa
 Route::post('/vendors/handleVendorActive', 'VendorController@handleVendorActive');                          //
 
 
+
 /**
  * ************* BLOG ROUTES --- NEW ****************
  * URL ---> /blog/{restofstuffhere}
  */
 Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 
-	Route::get('/', 'PostController@index');
-	Route::get('/home', ['as' => 'home', 'uses' => 'PostController@index']);
+//	Route::get('/', 'PostController@index');
+//	Route::get('/home', ['as' => 'home', 'uses' => 'PostController@index']);
 
 	// show new post form
 	Route::get('new-post', 'PostController@create');
@@ -163,7 +164,7 @@ Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 	Route::get('delete/{id}', 'PostController@destroy');
 
 	// display all user's posts
-	Route::get('my-all-posts', 'BlogUserController@user_posts');
+	Route::get('my-all-posts', ['as' => 'my-all-posts', 'uses' => 'BlogUserController@user_posts']);
 
 	// user drafts
 	Route::get('my-drafts', 'BlogUserController@user_posts_draft');
@@ -172,16 +173,23 @@ Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 	Route::post('comment/add', 'CommentController@store');
 
 	// delete comment
-	Route::get('comment/delete/{id}', 'CommentController@destroy');
+	Route::post('comment/delete/{id}', 'CommentController@destroy');
 
-	// users profile
-	Route::get('user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+');
-
-	// display list of posts
-	Route::get('user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
+//	// users profile
+//	Route::get('user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+');
+//
+//	// display list of posts
+//	Route::get('user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
 
 	// disply single post
-	Route::get('/{slug}', ['as' => 'post', 'uses' => 'PostController@show'])->where('slug', '[A-Za-z0-9-_]+');
+//	Route::get('/{slug}', ['as' => 'post', 'uses' => 'PostController@show'])->where('slug', '[A-Za-z0-9-_]+');
 
 });
 
+Route::get('blog', 'PostController@index');
+Route::get('blog/{slug}', ['as' => 'post', 'uses' => 'PostController@show'])->where('slug', '[A-Za-z0-9-_]+');
+// users profile
+Route::get('blog/user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+');
+
+// display list of posts
+Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');

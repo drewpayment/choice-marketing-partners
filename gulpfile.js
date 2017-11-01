@@ -39,7 +39,8 @@ elixir(function(mix) {
     	'employees.js',
         'upload.js',
         'custom.js',
-        'dashboard.js'
+        'dashboard.js',
+        'home.js'
 	]);
 
     /**
@@ -48,10 +49,9 @@ elixir(function(mix) {
     */
     mix.scripts([
         'conf/employee.js'
-
     ], 'public/js/conf/all.js');
 
-    mix.webpack('./vue/app.js', require('./webpack.config.js'), 'public/build/vue', 'resources/assets/js/vue');
+    // mix.webpack('./vue/app.js', require('./webpack.config.js'), 'public/build/vue', 'resources/assets/js/vue');
 
     mix.version(['js/all.js', 'css/all.css', 'js/conf/all.js']);
 

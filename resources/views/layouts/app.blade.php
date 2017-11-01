@@ -246,6 +246,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{url('js/bootstrap.min.js')}}"></script>
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
     <script src="{{ elixir('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
