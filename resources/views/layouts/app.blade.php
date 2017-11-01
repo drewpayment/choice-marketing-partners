@@ -116,6 +116,11 @@ $container = isset($containerClass) ? $containerClass : 'container';
                                 {{--  <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>  --}}
                                 <a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>
                             </li>
+                            @if(Auth::user()->is_admin() || Auth::user()->can_post())
+                            <li>
+                                <a href="{{url('/blog')}}"><i class="fa fa-newspaper-o"></i> Blog</a>
+                            </li>
+                            @endif
                             @if(session('authenticatedUserIsAdmin'))
                                 <li>
                                     <a href="/agents"><i class="fa fa-users"></i> Agents</a>
