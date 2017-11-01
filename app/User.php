@@ -63,4 +63,48 @@ class User extends Authenticatable
 	{
 		return $query->where('id', $id);
 	}
+
+	/**
+	 * User has many posts
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 */
+	public function posts()
+	{
+		return $this->hasMany(Post::class, 'author_id', 'id');
+	}
+
+	/**
+	 * User has many comments
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 */
+	public function comments()
+	{
+		return $this->hasMany(Comment::class, 'from_user', 'id');
+	}
+
+	/**
+	 * User can post
+	 *
+	 * @return bool
+	 */
+	public function can_post()
+	{
+		$role = $this->role;
+
+		return ($role == 'author' || $role == 'admin');
+	}
+
+	/**
+	 * User is admin
+	 *
+	 * @return bool
+	 */
+	public function is_admin()
+	{
+		$role = $this->role;
+
+		return ($role == 'admin');
+	}
 }

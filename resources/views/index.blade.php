@@ -34,7 +34,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4 col-md-push-7 get-it b-l-1">
-                <h2>Weekly Comma Club</h2>
+                <h2 class="text-center">Weekly Comma Club</h2>
                 <div class="text-center">
                     <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="4000">$4,000+</a></p>
                     <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="3000">$3,000</a></p>
@@ -42,12 +42,26 @@
                     <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="1000">$1,000</a></p>
                     <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="500">$500</a></p>
                 </div>
+                <br />
+                <div class="text-center">
+                    <p>
+                        Interested in becoming a part of Choice Marketing Partners?
+                        <a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner">
+                            <i class="fa fa-users"></i> Apply Now
+                        </a>
+                    </p>
+                </div>
+
             </div>
-            <div class="col-md-6 col-md-pull-3 get-it">
-                <h2>Marketing Strategists</h2>
-                <p class="mb-10">You can have everything in life you want, if you will just help other people get what they want.</p>
-                <p class="text-right">- Zig Ziglar</p>
-                <p><a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner"><i class="fa fa-users"></i> Apply Now</a></p>
+            <div class="col-md-6 col-md-pull-3">
+                <h2 class="hero-font get-it mb-0">Our News</h2>
+                {{--<p class="mb-10">You can have everything in life you want, if you will just help other people get what they want.</p>--}}
+                {{--<p class="text-right">- Zig Ziglar</p>--}}
+                <div class="box box-default h-400 overflow-scroll landing-blog">
+                    <div class="box-content overflow-hidden">
+                        @include('blog.feed', $posts)
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -204,104 +218,4 @@
         </section>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-    <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
-    <script type="text/javascript">
-        var drawerOpen = false;
-        $('#menu-drawer').on('click', function(){
-            var $this = $(this);
-            var $holder = $('#drawer-holder');
-            drawerOpen = !drawerOpen;
-
-            var arrowElem = $this.find('i');
-            if(drawerOpen){
-                $holder.removeClass('mt-neg-60');
-                $holder.animate({
-                    'margin-top': '-15px'
-                });
-                arrowElem.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            } else {
-                $holder.animate({
-                    'margin-top': '-60px'
-                });
-                arrowElem.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-            }
-        });
-
-        $('#pill_menu').find('a').on('click', function(e){
-            e.preventDefault();
-
-            $('html, body').animate({
-                scrollTop: $($.attr(this, 'href')).offset().top
-            }, 500);
-        });
-
-        $(function(){
-            $('#carousel').slick({
-                autoplay: true,
-                autoplaySpeed: 3000,
-                appendArrows: $('.carousel-arrows'),
-                prevArrow: $('#prevArrow'),
-                nextArrow: $('#nextArrow')
-            });
-        });
-
-        $('#modal').on('hidden.bs.modal', function(){
-            $('#modal').removeData();
-        }).on('show.bs.modal', function(e){
-            var button = $(e.relatedTarget);
-            var modalType = button.data('modaltype');
-
-            var modal = $(this);
-            modal.find('.modal-title').text('Become our ' + modalType + ' today!');
-        });
-
-        $(document).on('click', '#sender-btn', function(e){
-            e.stopPropagation();
-            var modalForm = getModalForm();
-
-            var options = {
-                url: '/sendmodal',
-                type: 'POST',
-                dataType: 'JSON',
-                data: {
-                    form: modalForm
-                },
-                afterData: afterData
-            };
-
-            fireAjaxRequest(options);
-
-            function afterData(data){
-                if(data){
-                    setMessageContainer('Sent!');
-                    $('#modal').modal('hide');
-                } else {
-                    setMessageContainer('Something went wrong!');
-                    $('#modal').modal('hide');
-                }
-            }
-        });
-
-        var getModalForm = function(){
-            var form = $('#EMAIL_FORM');
-            return {
-                name: form.find('#sender-name').val(),
-                phone: form.find('#sender-phone').val(),
-                email: form.find('#sender-email').val(),
-                message: form.find('#sender-msg').val()
-            }
-        };
-
-        function commaImageError(img){
-
-            img.onerror = '';
-            img.src = '/images/nouserimage.png';
-            return true;
-        }
-
-    </script>
-
 @endsection

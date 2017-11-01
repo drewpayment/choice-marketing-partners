@@ -163,14 +163,49 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <div class="site-content">
 
         @if(Session::has('alert'))
-            <div class="alert alert-danger pt-10" id="display_msgs">
-                {{ Session::get('alert') }}
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div class="alert alert-danger pt-10">
+                        <div class="display-inline display_msgs">{{Session::get('alert')}}</div>
+                        <span class="display-inline cursor-clickable pull-right" id="msg-close">
+                            <i class="fa fa-times"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
         @endif
 
         @if(Session::has('message'))
-            <div class="alert alert-info pt-10" id="display_msgs">
-                {{ Session::get('message') }}
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div class="alert alert-info pt-10" id="display_msgs">
+                        {{ Session::get('message') }}
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(isset($messages) && $messages->any())
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div class="alert alert-info pt-10 system-msgs">
+                        @foreach($messages->all() as $message)
+                            {{$message}}
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(isset($errors) && $errors->any())
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div class="alert alert-danger pt-10 system-msgs">
+                        @foreach($errors->all() as $error)
+                            {{$error}}
+                        @endforeach
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -211,6 +246,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{url('js/bootstrap.min.js')}}"></script>
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
     <script src="{{ elixir('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
@@ -254,6 +290,12 @@ $container = isset($containerClass) ? $containerClass : 'container';
                 }, 500);
                 return false;
             });
+
+            // check to see if there are messages shown on the page and fade them out if applicable
+            var $messages = $('.system-msgs');
+            if($messages.length){
+                $messages.fadeOut(6000);
+            }
         });
 
         $(document).ready(function(){
@@ -308,7 +350,11 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     </script>
     <script type="text/javascript">
-        $('#display_msgs').fadeOut(3000);
+        // entire system messages
+//        $('#display_msgs').fadeOut(6000);
+        $(document).on('click', '#msg-close', function(){
+            $(this).parent().hide();
+        });
 
         $(function(){
             var h = $('.wrapper').height()+20;

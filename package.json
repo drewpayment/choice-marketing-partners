@@ -1,8 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "prod": "gulp --production",
-    "dev watch": "gulp watch"
+    "build": "gulp",
+    "build:prod": "gulp --production",
+    "build:watch": "gulp watch"
   },
   "devDependencies": {
     "autoprefixer-loader": "^3.2.0",
