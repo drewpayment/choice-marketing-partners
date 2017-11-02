@@ -1122,6 +1122,17 @@ $(function(){
         nextArrow: $('#nextArrow')
     });
 
+    $('#agent-carousel').slick({
+        dots: true,
+        adaptiveHeight: true
+    });
+
+    $('#customer-carousel').slick({
+        dots: true,
+        adaptiveHeight: true
+    });
+
+
     $('#modal').on('hidden.bs.modal', function(){
         $('#modal').removeData();
     }).on('show.bs.modal', function(e){

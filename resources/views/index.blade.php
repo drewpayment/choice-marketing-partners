@@ -123,8 +123,8 @@
                                 <div class="box-title">
                                     <h2 class="text-primary text-center m-0">Agents</h2>
                                 </div>
-                                <div class="box-content h-450 overflow-scroll">
-                                    <ul class="row list-unstyled">
+                                <div class="box-content">
+                                    <ul class="row list-unstyled" id="agent-carousel">
                                         @foreach($agents as $key => $a)
                                             <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
                                             <li class="col-xs-12">
@@ -149,8 +149,8 @@
                                 <div class="box-title">
                                     <h2 class="text-primary text-center m-0">Customers</h2>
                                 </div>
-                                <div class="box-content h-450 overflow-scroll">
-                                    <ul class="row list-unstyled">
+                                <div class="box-content">
+                                    <ul class="row list-unstyled" id="customer-carousel">
                                         @foreach($customers as $key => $c)
                                             <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
                                             <li class="col-xs-12">
