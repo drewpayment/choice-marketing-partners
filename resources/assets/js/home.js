@@ -2,7 +2,7 @@
  * JS USED ON ROUTE '/'
  */
 
-$(document).ready(function(){
+$(function(){
 
     var drawerOpen = false;
     $('#menu-drawer').on('click', function(){
@@ -34,8 +34,6 @@ $(document).ready(function(){
     });
 
     $('#carousel').slick({
-        autoplay: true,
-        autoplaySpeed: 3000,
         appendArrows: $('.carousel-arrows'),
         prevArrow: $('#prevArrow'),
         nextArrow: $('#nextArrow')

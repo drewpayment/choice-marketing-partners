@@ -53,10 +53,7 @@
                 </div>
 
             </div>
-            <div class="col-md-6 col-md-pull-3">
-                <h2 class="hero-font get-it mb-0">Our News</h2>
-                {{--<p class="mb-10">You can have everything in life you want, if you will just help other people get what they want.</p>--}}
-                {{--<p class="text-right">- Zig Ziglar</p>--}}
+            <div class="col-md-8 col-md-pull-5 pt-70">
                 <div class="box box-default h-400 overflow-scroll landing-blog">
                     <div class="box-content overflow-hidden">
                         @include('blog.feed', $posts)
@@ -116,106 +113,110 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6">
-        <section class="testimonials" id="agent_testimonials">
-            <div class="box box-default b-all">
-                <div class="box-title bg-primary">
-                    <h2 class="text-center pb-5">Agents</h2>
-                </div>
-                <div class="box-content h-450 overflow-scroll">
-                    <ul class="row list-unstyled">
-                        @foreach($agents as $key => $a)
-                            <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
-                            <li class="col-xs-12">
-                                <div class="box box-default">
-                                    <div class="box-content">
-                                        <blockquote  class="{{$blockquoteClass}}">
-                                            <p>{{$a->content}}</p>
-                                            <footer>{{$a->location}}</footer>
-                                        </blockquote>
-                                    </div>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="col-md-6">
-        <section class="testimonials" id="customer_testimonials">
-            <div class="box box-default b-all">
-                <div class="box-title bg-primary">
-                    <h2 class="text-center pb-5">Customers</h2>
-                </div>
-                <div class="box-content h-450 overflow-scroll">
-                    <ul class="row list-unstyled">
-                        @foreach($customers as $key => $c)
-                            <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
-                            <li class="col-xs-12">
-                                <div class="box box-default">
-                                    <div class="box-content">
-                                        <blockquote class="{{$blockquoteClass}}">
-                                            <p>{{$c->content}}</p>
-                                            <footer>{{$c->location}}</footer>
-                                        </blockquote>
-                                    </div>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        </section>
-    </div>
-</div>
-<div class="row bg-primary">
     <div class="col-md-12">
-        <h2 class="text-center text-uppercase">Partners</h2>
+        <div class="box box-default">
+            <div class="box-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <section class="testimonials" id="agent_testimonials">
+                            <div class="box box-default landing-blog">
+                                <div class="box-title">
+                                    <h2 class="text-primary text-center m-0">Agents</h2>
+                                </div>
+                                <div class="box-content h-450 overflow-scroll">
+                                    <ul class="row list-unstyled">
+                                        @foreach($agents as $key => $a)
+                                            <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
+                                            <li class="col-xs-12">
+                                                <div class="box box-default">
+                                                    <div class="box-content">
+                                                        <blockquote  class="{{$blockquoteClass}}">
+                                                            <p>{{$a->content}}</p>
+                                                            <footer>{{$a->location}}</footer>
+                                                        </blockquote>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="col-md-6">
+                        <section class="testimonials" id="customer_testimonials">
+                            <div class="box box-default landing-blog">
+                                <div class="box-title">
+                                    <h2 class="text-primary text-center m-0">Customers</h2>
+                                </div>
+                                <div class="box-content h-450 overflow-scroll">
+                                    <ul class="row list-unstyled">
+                                        @foreach($customers as $key => $c)
+                                            <?php $blockquoteClass = ($key % 2 == 0) ? "blockquote-reverse" : "" ?>
+                                            <li class="col-xs-12">
+                                                <div class="box box-default">
+                                                    <div class="box-content">
+                                                        <blockquote class="{{$blockquoteClass}}">
+                                                            <p>{{$c->content}}</p>
+                                                            <footer>{{$c->location}}</footer>
+                                                        </blockquote>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-12 pt-10">
-        <section id="clients">
-            <div class="row">
-                <div class="col-md-10 col-md-offset-1">
-                    <div class="row">
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://santannaenergyservices.com/">
-                                <img src="{{url('/images/clients/santanna.jpeg')}}" class="img">
-                            </a>
-                        </div>
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://continuumenergyservices.com/">
-                                <img src="{{url('/images/clients/continuum.jpg')}}" class="img">
-                            </a>
-                        </div>
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://palmcoenergy.com/">
-                                <img src="{{url('/images/clients/palmco.jpeg')}}" class="img">
-                            </a>
-                        </div>
+        <div class="box box-default">
+            <div class="box-content">
+                <div class="box-content-title">
+                    <h3 class="text-primary text-center m-0">Partnerships</h3>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <a href="https://santannaenergyservices.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/santanna.jpeg')}}" class="img-responsive">
+                        </a>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://www.att.com/">
-                                <img src="{{url('/images/clients/att.png')}}" class="img">
-                            </a>
-                        </div>
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://www.spectrum.com/">
-                                <img src="{{url('/images/clients/charter.png')}}" class="img">
-                            </a>
-                        </div>
-                        <div class="col-md-4 text-center hp-100">
-                            <a href="https://www.directv.com/">
-                                <img src="{{url('/images/clients/directv.png')}}" class="img">
-                            </a>
-                        </div>
+                    <div class="col-md-2">
+                        <a href="https://continuumenergyservices.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/continuum.jpg')}}" class="img-responsive">
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="https://palmcoenergy.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/palmco.jpeg')}}" class="img-responsive">
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="https://www.att.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/att.png')}}" class="img-responsive">
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="https://www.spectrum.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/charter.png')}}" class="img-responsive">
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="https://www.directv.com/" class="thumbnail">
+                            <img src="{{url('/images/clients/directv.png')}}" class="img-responsive">
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </div>
 </div>
 @endsection
