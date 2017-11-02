@@ -19,7 +19,8 @@
         </div>
         <div class="box-content overflow-hidden">
             <article style="overflow:hidden;">
-                {!! str_limit($post->body, $limit = 500, $end = '...<a href='.url('blog/'.$post->slug).'>[Read More]</a>') !!}
+                <?php $readLink = '<a href="'. url('blog/'.$post->slug) .'">[Read More]</a>'; ?>
+                {!! str_limit($post->body, $limit = 500, $end = $readLink) !!}
             </article>
         </div>
     </div>
