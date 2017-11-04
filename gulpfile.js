@@ -40,7 +40,8 @@ elixir(function(mix) {
         'upload.js',
         'custom.js',
         'dashboard.js',
-        'home.js'
+        'home.js',
+        'approvals.js'
 	]);
 
     /**

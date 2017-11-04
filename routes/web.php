@@ -176,6 +176,12 @@ Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 	// delete comment
 	Route::post('comment/delete/{id}', 'CommentController@destroy');
 
+	Route::get('comment-approvals', 'CommentController@pendingComments');
+
+	Route::get('refresh-pending-comments', 'CommentController@refreshCommentApprovals');
+
+	Route::get('comment/{id}/approve', 'CommentController@approveComment');
+
 //	// users profile
 //	Route::get('user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+');
 //

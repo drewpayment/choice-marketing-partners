@@ -34,5 +34,13 @@ class Comment extends Model
 	public function post()
     {
     	return $this->belongsTo(Post::class, 'on_post');
-    }
+	}
+	
+	/**
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function scopeActive($query)
+	{
+		return $query->where('active', 1);
+	}
 }

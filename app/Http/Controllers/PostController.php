@@ -6,6 +6,7 @@ use App\Http\Requests\PostFormRequest;
 use App\Post;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class PostController extends Controller
@@ -94,16 +95,22 @@ class PostController extends Controller
 	 */
 	public function show($slug)
     {
-    	$post = Post::where('slug', $slug)->first();
+    	$data['post'] = Post::where('slug', $slug)->first();
 
-    	if(!$post)
+    	if(!$data['post'])
 	    {
 	    	return redirect('blog', ['errors' => 'request page not found.']);
 	    }
 
-	    $comments = $post->comments;
+	    $data['comments'] = $data['post']->comments->where('active', 1);
 
-    	return view('blog.show', ['post' => $post, 'comments' => $comments]);
+    	if(Auth::check() && auth()->user()->is_admin())
+	    {
+	    	$data['pending_comments'] = $data['post']->comments->where('active', 0)->count();
+	    }
+
+
+	    return view('blog.show', $data);
     }
 
 	/**

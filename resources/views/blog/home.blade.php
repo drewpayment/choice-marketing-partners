@@ -28,6 +28,11 @@
                         <li>
                             <a href="{{url('/blog/my-drafts')}}"><i class="fa fa-clipboard"></i> My Drafts</a>
                         </li>
+                        @if(Auth::check() && Auth::user()->is_admin())
+                            <li>
+                                <a href="{{url('/blog/comment-approvals')}}"><i class="fa fa-thumbs-o-up"></i> Approve Comments</a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>

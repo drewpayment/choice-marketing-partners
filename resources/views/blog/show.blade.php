@@ -25,6 +25,15 @@
         <div class="p-10 b-b pb-20">
             {!! $post->body !!}
         </div>
+        @if(Auth::check() && auth()->user()->is_admin() && $pending_comments > 0)
+            <?php $howManyComments = ($pending_comments > 1) ? "comments" : "comment"; ?>
+            <div class="p-10 b-b">
+                <h4>Admin Todos:</h4>
+                <p>
+                    This post has <a href="{{url('blog/comment-approvals')}}">{{$pending_comments}}</a> pending {{$howManyComments}}.
+                </p>
+            </div>
+        @endif
         <div>
             <h4>Leave a Comment</h4>
         </div>
