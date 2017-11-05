@@ -174,6 +174,7 @@ Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 	Route::post('comment/add', 'CommentController@store');
 
 	// delete comment
+	Route::get('comment/delete/{id}', 'CommentController@destroy');
 	Route::post('comment/delete/{id}', 'CommentController@destroy');
 
 	Route::get('comment-approvals', 'CommentController@pendingComments');

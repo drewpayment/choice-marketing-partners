@@ -4,7 +4,7 @@
     @if($post)
         {{$post->title}}
         @if(!Auth::guest() && ($post->author_id == Auth::user()->id || Auth::user()->is_admin()))
-            <a href="{{url('blog/edit/'.$post->slug)}}" class="btn pull-right">Edit Post</a>
+            <a href="{{url('blog/edit/'.$post->slug)}}" class="btn pull-right color-white">Edit Post</a>
         @endif
     @else
         Page does not exist
