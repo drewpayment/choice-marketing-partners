@@ -1,45 +1,38 @@
-@extends('layouts.app')
+@extends('dashboard.layout', ['container' => 'container-fluid', 'useWrapper' => true])
 
 @section('title', 'Document Manager')
 
-@section('content')
+@section('wrapper-title')
+Document Manager
+@endsection
 
-    <div class="row">
-        <div class="col-xs-12">
-            <h2>Document Manager <small>View/Download Attachments on-the-go</small></h2>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-primary">
-                <div class="panel-heading">Filter documents by tag</div>
-                <div class="panel-body p-0 h-40">
-                    <ol class="breadcrumb">
-                        @foreach($uTags as $t)
-                            <li>
-                                <button type="button" class="btn btn-primary btn-xs" data-button="tag" data-slug="{{$t->slug}}" data-count="{{$t->count}}" data-name="{{$t->name}}">{{$t->name}}</button>
-                            </li>
-                        @endforeach
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-    @if($admin == 1)
-        <div class="row">
-            <div class="col-md-12">
+@section('wrapper-content')
+
+    <div class="box box-default">
+        <div class="box-title">
+            <h3 class="mt-0">Filter documents by tag</h3>
+            <ol class="breadcrumb">
+                @foreach($uTags as $t)
+                    <li>
+                        <button type="button" class="btn btn-primary btn-xs" data-button="tag" data-slug="{{$t->slug}}" data-count="{{$t->count}}" data-name="{{$t->name}}">{{$t->name}}</button>
+                    </li>
+                @endforeach
+            </ol>
+            @if($admin == 1)
                 <div class="addDocumentLink">
                     <a href="#" class="btn btn-primary btn-block" id="addDocumentLink">Add a document <i class="fa fa-plus-circle"></i></a>
                 </div>
+            @endif
+        </div>
+        <div class="box-content">
+
+            <div class="list-group" id="document_list">
+                @include('doc_manager._doc', ['documents' => $documents, 'admin' => $admin, 'tags' => $tags])
             </div>
         </div>
-    @endif
-    <span class="pt-30">&nbsp;</span>
-    <div class="list-group" id="document_list">
-        @include('doc_manager._doc', ['documents' => $documents, 'admin' => $admin, 'tags' => $tags])
     </div>
 
-@stop
+@endsection
 
 @section('scripts')
 

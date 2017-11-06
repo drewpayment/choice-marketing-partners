@@ -1,96 +1,44 @@
-@extends('layouts.app', ['containerClass' => 'container-fluid'])
+@extends('dashboard.layout', ['container' => 'container-fluid', 'useWrapper' => true])
 
 @section('title', 'Admin Dashboard')
 
 @section('topCSS')
-
     <link rel="stylesheet" href="{{url('/css/wickedpicker.min.css')}}" />
-
 @endsection
 
-@section('content')
+@section('wrapper-title', 'Paystub Restriction Time')
 
+@section('wrapper-content')
 
-    <div class="row">
-        <div class="col-md-2">
-            <div class="box box-default">
-                <div class="box-title bg-primary">
-                    <h3>{{Carbon\Carbon::now()->format('F j, Y')}}</h3>
-                </div>
-                <div class="box-content">
-                    <ul class="nav nav-pills nav-stacked">
-                        <li>
-                            <a href="{{url('/')}}"><i class="fa fa-home"></i> Home</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
-                        </li>
-                        <li>
-                            {{--  <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>  --}}
-                            <a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>
-                        </li>
-                        <li>
-                            <a href="/agents"><i class="fa fa-users"></i> Agents</a>
-                        </li>
-                        <li>
-                            <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="{{url('/overrides')}}"><i class="fa fa-cog"></i> Overrides</a>
-                        </li>
-                        <li>
-                            <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
-                                <i class="fa fa-calculator"></i> Payroll Tracking
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{url('/vendors')}}">
-                                <i class="fa fa-building"></i> Campaigns
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-10">
-            <div class="box box-default">
-                <div class="box-title bg-primary">
-                    <h2>My Dashboard <i class="fa fa-dashboard"></i></h2>
-                </div>
-                <div class="box-content">
-                    {{--<div id="vue-app"></div>--}}
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h2>Paystub Restriction Time</h2>
-                            <p>Please use the input below to select a time that the paystubs should be released.</p>
-                            <p>WARNING: The time below immediately affects when all sales agents can see paystubs on each Tuesday of the current week.</p>
-                            <div class="form-group">
-                                <label for="paystubRestriction">Release Paystub After (24-hour format only)</label>
-                                <ul class="list-inline">
-                                    <li data-hours="{{$time->hour}}">
-                                        <select class="form-control" id="time-hours"></select>
-                                    </li>
-                                    <li>
-                                        <h3>:</h3>
-                                    </li>
-                                    <li data-minute="{{$time->minute}}">
-                                        <select class="form-control" id="time-minutes"></select>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="btn btn-primary" id="submitBtn"><i class="fa fa-save"></i> Save</button>
-                                    </li>
-                                    <li id="return-msg"></li>
-                                </ul>
-                            </div>
-                        </div>
+    <div class="box box-default">
+        <div class="box-content">
+            {{--<div id="vue-app"></div>--}}
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>Please use the input below to select a time that the paystubs should be released.</h3>
+                    <h4>WARNING: The time below immediately affects when all sales agents can see paystubs on each Tuesday of the current week.</h4>
+                    <div class="form-group">
+                        <label for="paystubRestriction">Release Paystub After (24-hour format only)</label>
+                        <ul class="list-inline">
+                            <li data-hours="{{$time->hour}}">
+                                <select class="form-control" id="time-hours"></select>
+                            </li>
+                            <li>
+                                <h3>:</h3>
+                            </li>
+                            <li data-minute="{{$time->minute}}">
+                                <select class="form-control" id="time-minutes"></select>
+                            </li>
+                            <li>
+                                <button type="button" class="btn btn-primary" id="submitBtn"><i class="fa fa-save"></i> Save</button>
+                            </li>
+                            <li id="return-msg"></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 
 @endsection
 

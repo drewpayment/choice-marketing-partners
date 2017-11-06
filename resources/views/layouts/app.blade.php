@@ -109,47 +109,28 @@ $container = isset($containerClass) ? $containerClass : 'container';
                                 <a href="{{url('/')}}"><i class="fa fa-home"></i> Home</a>
                             </li>
                             <li class="divider"></li>
-                            <li>
-                                <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
-                            </li>
-                            <li>
-                                {{--  <a href="/historical-invoice-data"><i class="fa fa-dollar"></i> Paystubs</a>  --}}
-                                <a href="/payroll"><i class="fa fa-dollar"></i> Paystubs</a>
-                            </li>
-                            @if(Auth::user()->is_admin() || Auth::user()->can_post())
-                            <li>
-                                <a href="{{url('/blog')}}"><i class="fa fa-newspaper-o"></i> Blog</a>
-                            </li>
-                            @endif
-                            @if(session('authenticatedUserIsAdmin'))
+                            @if(!session('authenticatedUserIsAdmin'))
                                 <li>
-                                    <a href="/agents"><i class="fa fa-users"></i> Agents</a>
+                                    <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
                                 </li>
+                            @endif
+                            <li>
+                                <a href="{{url('/payroll')}}"><i class="fa fa-dollar"></i> Paystubs</a>
+                            </li>
+
+                            @if(session('authenticatedUserIsAdmin'))
+                                <li class="divider"></li>
                                 <li>
                                     <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
                                 </li>
-                                <li class="divider"></li>
                                 <li>
                                     <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-globe"></i> Admin</a>
                                 </li>
-                                <li>
-                                    <a href="{{url('/overrides')}}"><i class="fa fa-cog"></i> Overrides</a>
-                                </li>
-                                <li>
-                                    <a href="{{url('/dashboards/payroll-info')}}" data-toggle="tooltip" title="Track who we have paid by issue date.">
-                                        <i class="fa fa-calculator"></i> Payroll Tracking
-                                    </a>
-                                </li>
-                                {{--<li class="mobile-hidden">--}}
-                                    {{--<a href="{{url('/invoices/edit-invoice')}}" data-toggle="tooltip" title="Edit an existing invoice.">--}}
-                                        {{--<i class="fa fa-edit"></i> Edit Invoice--}}
-                                    {{--</a>--}}
-                                {{--</li>--}}
-                                <li>
-                                    <a href="{{url('/vendors')}}">
-                                        <i class="fa fa-building"></i> Campaigns
-                                    </a>
-                                </li>
+                                @if(Auth::user()->is_admin() || Auth::user()->can_post())
+                                    <li>
+                                        <a href="{{url('/blog')}}"><i class="fa fa-newspaper-o"></i> Blog</a>
+                                    </li>
+                                @endif
                             @endif
                             <li class="divider"></li>
                             <li id="logoutLink">

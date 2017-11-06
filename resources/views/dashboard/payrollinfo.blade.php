@@ -1,18 +1,17 @@
-@extends('layouts.app')
+@extends('dashboard.layout', ['container' => 'container-fluid', 'useWrapper' => true])
 
 @section('title', 'Current Payroll Info')
 
-@section('content')
+@section('wrapper-title')
+Payroll Information <small class="color-white">Next Payday: {{date('F j, Y', strtotime('next wednesday'))}}</small>
+@endsection
 
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="page-header"><h1>Payroll Information <br><small>Next Payday: {{date('F j, Y', strtotime('next wednesday'))}}</small></h1></div>
-        </div>
-    </div>
-    <div class="row pb-10">
-        <div class="col-xs-12">
-            <ul class="list-inline list-unstyled">
-                <li>
+@section('wrapper-content')
+
+    <div class="box box-default">
+        <div class="box-title">
+            <div class="form-inline">
+                <div class="form-group">
                     <label for="datepicker">Pay Date</label>
                     <select class="selectpicker" id="datepicker">
                         @if(count($dates) == 0)
@@ -23,8 +22,8 @@
                             @endforeach
                         @endif
                     </select>
-                </li>
-                <li>
+                </div>
+                <div class="form-group">
                     <label for="vendorpicker">Campaign</label>
                     <select class="selectpicker" id="vendorpicker">
                         <option value="-1">All Campaigns</option>
@@ -32,52 +31,54 @@
                             <option value="{{$v->id}}">{{$v->name}}</option>
                         @endforeach
                     </select>
-                </li>
-            </ul>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-8">
-            <table class="table">
-                <thead>
-                <tr class="bg-primary">
-                    <th>Employee Name</th>
-                    <th>Amount Owed</th>
-                    <th>Campaign</th>
-                    <th>Paid</th>
-                </tr>
-                </thead>
-                <tbody id="TABLE_ROWDATA">
-                @if(count($employees) == 0)
-                    <tr class="bg-white">
-                        <td colspan="3" class="text-center"><i class="ion ion-sad"></i> No Results Found</td>
-                    </tr>
-                @else
-                    @foreach($employees as $e)
-                        <?php $vendor = $vendors->first(function($v, $k)use($e){return $v->id == $e->vendor_id;}) ?>
-                        <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}"
-                            data-parent="true"
-                            data-parentid="{{$e->id}}">
-                            <td>
-                                <a href="#" class="employee-row-btn text-info">{{$e->agent_name}}</a>
-                                <form method="post" id="form" action="/paystubs/pdf-detail">
-                                    <input type="hidden" name="_token" value="{{csrf_token()}}">
-                                    <input type="hidden" name="vendor" id="vendor" value="{{$vendor->id}}">
-                                    <input type="hidden" name="date" id="date" />
-                                    <input type="hidden" name="agent" id="agent" value="{{$e->agent_id}}">
-                                </form>
-                            </td>
-                            <td>${{$e->amount}}</td>
-                            <td>
-                                {{$vendor->name}}</td>
-                            <td>
-                                <input type="checkbox" id="paid-confirm" value="{{$e->is_paid}}" {{($e->is_paid == 1) ? "checked" : ""}}/>
-                            </td>
+        <div class="box-content">
+            <div class="row">
+                <div class="col-xs-8">
+                    <table class="table">
+                        <thead>
+                        <tr class="bg-primary">
+                            <th>Employee Name</th>
+                            <th>Amount Owed</th>
+                            <th>Campaign</th>
+                            <th>Paid</th>
                         </tr>
-                    @endforeach
-                @endif
-                </tbody>
-            </table>
+                        </thead>
+                        <tbody id="TABLE_ROWDATA">
+                        @if(count($employees) == 0)
+                            <tr class="bg-white">
+                                <td colspan="3" class="text-center"><i class="ion ion-sad"></i> No Results Found</td>
+                            </tr>
+                        @else
+                            @foreach($employees as $e)
+						        <?php $vendor = $vendors->first(function($v, $k)use($e){return $v->id == $e->vendor_id;}) ?>
+                                <tr class="bg-white {{($e->is_paid == 1) ? "success" : ""}}"
+                                    data-parent="true"
+                                    data-parentid="{{$e->id}}">
+                                    <td>
+                                        <a href="#" class="employee-row-btn text-info">{{$e->agent_name}}</a>
+                                        <form method="post" id="form" action="{{url('/paystubs/pdf-detail')}}">
+                                            <input type="hidden" name="_token" value="{{csrf_token()}}">
+                                            <input type="hidden" name="vendor" id="vendor" value="{{$vendor->id}}">
+                                            <input type="hidden" name="date" id="date" />
+                                            <input type="hidden" name="agent" id="agent" value="{{$e->agent_id}}">
+                                        </form>
+                                    </td>
+                                    <td>${{$e->amount}}</td>
+                                    <td>
+                                        {{$vendor->name}}</td>
+                                    <td>
+                                        <input type="checkbox" id="paid-confirm" value="{{$e->is_paid}}" {{($e->is_paid == 1) ? "checked" : ""}}/>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 

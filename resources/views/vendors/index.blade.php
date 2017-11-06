@@ -1,34 +1,29 @@
-@extends('layouts.app')
+@extends('dashboard.layout', ['container' => 'container-fluid', 'useWrapper' => true])
 
 @section('title', 'Campaigns')
 
-@section('content')
+@section('wrapper-title', 'Campaigns')
 
-    <div class="row">
-        <div class="col-xs-10 col-xs-offset-1">
+@section('wrapper-content')
+
+    <div class="box box-default">
+        <div class="box-title">
+            <h4>Manage active campaigns used by Choice Marketing Partners</h4>
+            <p>
+                If a campaign is missing, please <a href="mailto://drew.payment@choice-marketing-partners.com">email</a> support and let them know about your problem.
+            </p>
+        </div>
+        <div class="box-content">
             <div class="row">
-                <div class="col-xs-10 col-xs-offset-1">
+                <div class="col-xs-8">
                     <div class="box box-default">
-                        <div class="box-title pt-0">
-                            <h2 class="page-header mb-0">Campaigns</h2>
-                        </div>
-                        <div class="box-content pt-0">
-                            <h4>Manage active campaigns used by Choice Marketing Partners</h4>
-                            If a campaign is missing, please <a href="mailto://drew.payment@choice-marketing-partners.com">email</a> support and let them know about your problem.
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-8 col-xs-offset-2">
-                            <div class="box box-default">
-                                <div class="box-content">
-                                    <button type="button" id="addVendor" class="btn btn-default btn-sm mb-10">
-                                        <i class="fa fa-plus"></i> Add Vendor
-                                    </button>
-                                    <ul class="list-group" id="rowData">
-                                        @include('vendors._vendorRowData', ['vendors' => $vendors])
-                                    </ul>
-                                </div>
-                            </div>
+                        <div class="box-content">
+                            <button type="button" id="addVendor" class="btn btn-default btn-sm mb-10">
+                                <i class="fa fa-plus"></i> Add Vendor
+                            </button>
+                            <ul class="list-group" id="rowData">
+                                @include('vendors._vendorRowData', ['vendors' => $vendors])
+                            </ul>
                         </div>
                     </div>
                 </div>
