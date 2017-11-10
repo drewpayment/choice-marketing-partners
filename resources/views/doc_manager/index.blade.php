@@ -8,26 +8,29 @@ Document Manager
 
 @section('wrapper-content')
 
-    <div class="box box-default">
-        <div class="box-title">
-            <h3 class="mt-0">Filter documents by tag</h3>
-            <ol class="breadcrumb">
-                @foreach($uTags as $t)
-                    <li>
-                        <button type="button" class="btn btn-primary btn-xs" data-button="tag" data-slug="{{$t->slug}}" data-count="{{$t->count}}" data-name="{{$t->name}}">{{$t->name}}</button>
-                    </li>
-                @endforeach
-            </ol>
-            @if($admin == 1)
-                <div class="addDocumentLink">
-                    <a href="#" class="btn btn-primary btn-block" id="addDocumentLink">Add a document <i class="fa fa-plus-circle"></i></a>
+    <div class="row">
+        <div class="col-md-9">
+            <div class="box box-default">
+                <div class="box-title">
+                    <h3 class="mt-0">Filter documents by tag</h3>
+                    <ol class="breadcrumb">
+                        @foreach($uTags as $t)
+                            <li>
+                                <button type="button" class="btn btn-primary btn-xs" data-button="tag" data-slug="{{$t->slug}}" data-count="{{$t->count}}" data-name="{{$t->name}}">{{$t->name}}</button>
+                            </li>
+                        @endforeach
+                    </ol>
+                    @if($admin == 1)
+                        <div class="addDocumentLink">
+                            <a href="#" class="btn btn-primary btn-block" id="addDocumentLink">Add a document <i class="fa fa-plus-circle"></i></a>
+                        </div>
+                    @endif
                 </div>
-            @endif
-        </div>
-        <div class="box-content">
-
-            <div class="list-group" id="document_list">
-                @include('doc_manager._doc', ['documents' => $documents, 'admin' => $admin, 'tags' => $tags])
+                <div class="box-content">
+                    <div class="list-group" id="document_list">
+                        @include('doc_manager._doc', ['documents' => $documents, 'admin' => $admin, 'tags' => $tags])
+                    </div>
+                </div>
             </div>
         </div>
     </div>

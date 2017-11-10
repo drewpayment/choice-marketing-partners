@@ -29,10 +29,13 @@ $useWrapper = isset($useWrapper) ? (boolean)$useWrapper : false;
                                         <div class="box-content">
                                             <ul class="nav nav-pills nav-stacked">
                                                 <li>
+                                                    <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-cogs"></i> Dashboard</a>
+                                                </li>
+                                                <li>
                                                     <a href="{{url('/agents')}}"><i class="fa fa-users"></i> Agents</a>
                                                 </li>
                                                 <li>
-                                                    <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-clock-o"></i> Paystub Restriction</a>
+                                                    <a href="{{url('/dashboards/release-restriction')}}"><i class="fa fa-clock-o"></i> Paystub Restriction</a>
                                                 </li>
                                                 <li>
                                                     <a href="{{url('/dashboards/payroll-info')}}"><i class="fa fa-credit-card"></i> Payroll Tracking</a>

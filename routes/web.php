@@ -114,6 +114,7 @@ Route::post('/updateEmployeeStatus', 'EmployeeController@updateEmployeeActiveSta
  */
 Route::get('/dashboards/dashboard', 'DashboardController@index');                                           // dashboard.dashboard
 Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');                                  // dashboard.payrollinfo
+Route::get('/dashboards/release-restriction', 'DashboardController@releaseRestriction');                    // dashboard.restriction
 Route::post('/savePaystubRestriction', 'DashboardController@savePaystubRestriction');
 // payroll info routes
 Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');                    //

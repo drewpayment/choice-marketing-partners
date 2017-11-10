@@ -30,7 +30,7 @@
                     <li>
                         <div class="box box-default b-0 mb-0">
                             <div class="box-content pt-5">
-                                <h6 class="mt-0 mb-0 pb-1 pl-3">Vendor</h6>
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Vendor <small>[<a href="{{url('/vendors')}}">Manage</a>]</small></h6>
                                 <select class="selectpicker" id="vendor">
                                     <option value="-1" selected>Select Vendor</option>
                                     @foreach($vendors as $v)
@@ -43,7 +43,7 @@
                     <li>
                         <div class="box box-default b-0 mb-0">
                             <div class="box-content pt-5">
-                                <h6 class="mt-0 mb-0 pb-1 pl-3">Agent</h6>
+                                <h6 class="mt-0 mb-0 pb-1 pl-3">Agent <small>[<a href="{{url('/agents')}}">Manage</a>]</small></h6>
                                 <select class="selectpicker" id="employee" data-live-search="true" data-size="8">
                                     <option value="-1" selected>Select Agent</option>
 		                            <?php $i = 0; ?>

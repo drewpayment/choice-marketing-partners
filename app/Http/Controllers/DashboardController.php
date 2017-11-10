@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Payroll;
 use App\PayrollRestriction;
+use App\Paystub;
 use App\Vendor;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,9 +30,17 @@ class DashboardController extends Controller
 	 */
 	public function index()
 	{
+
+
+		return view('dashboard.dashboard');
+	}
+
+
+	public function releaseRestriction()
+	{
 		$time = PayrollRestriction::find(1);
 
-		return view('dashboard.dashboard', ['time' => $time]);
+		return view('dashboard.restriction', ['time' => $time]);
 	}
 
 
