@@ -6,6 +6,7 @@ use App\Payroll;
 use App\PayrollRestriction;
 use App\Paystub;
 use App\Vendor;
+use App\User;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -118,7 +119,9 @@ class DashboardController extends Controller
 
 	public function savePaystubRestriction(Request $request)
 	{
-		if(!$request->ajax()) response()->json(false, 500);
+		if(!$request->ajax()) return response()->json(false, 500);
+		$user = User::userId(auth()->user()->id)->first();
+		if($user->employee['is_admin'] != 1) return response()->json(false, 500);
 
 		$input = Input::all();
 		$hour = $input['hour'];

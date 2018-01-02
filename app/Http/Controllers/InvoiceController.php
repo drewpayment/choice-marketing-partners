@@ -521,10 +521,12 @@ class InvoiceController extends Controller
 
 		$limit = PayrollRestriction::find(1);
 
+		// This employee is an admin user
 		if($isAdmin)
 		{
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
 		}
+		// This employee is a manager
 		else if($isManager)
 		{
 			$rollList = $sessionUser->permissions()->active()->get();
@@ -544,6 +546,7 @@ class InvoiceController extends Controller
 				}
 			}
 		}
+		// This is a normal user
 		else
 		{
 			$agents = collect(array(Auth::user()->employee));
