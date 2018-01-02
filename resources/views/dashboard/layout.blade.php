@@ -28,6 +28,7 @@ $useWrapper = isset($useWrapper) ? (boolean)$useWrapper : false;
                                     <div class="box box-default">
                                         <div class="box-content">
                                             <ul class="nav nav-pills nav-stacked">
+						@if(session('authenticatedUserIsAdmin'))
                                                 <li>
                                                     <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-cogs"></i> Dashboard</a>
                                                 </li>
@@ -40,15 +41,18 @@ $useWrapper = isset($useWrapper) ? (boolean)$useWrapper : false;
                                                 <li>
                                                     <a href="{{url('/dashboards/payroll-info')}}"><i class="fa fa-credit-card"></i> Payroll Tracking</a>
                                                 </li>
+						@endif
                                                 <li>
                                                     <a href="{{url('/documents')}}"><i class="fa fa-paperclip"></i> Document Manager</a>
                                                 </li>
+						@if(session('authenticatedUserIsAdmin'))
                                                 <li>
                                                     <a href="{{url('/overrides')}}"><i class="fa fa-cog"></i> Overrides</a>
                                                 </li>
                                                 <li>
                                                     <a href="{{url('/vendors')}}"><i class="fa fa-building"></i> Campaigns</a>
                                                 </li>
+						@endif
                                             </ul>
                                         </div>
                                     </div>
