@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Payroll;
 use App\PayrollRestriction;
 use App\Paystub;
+use App\Services\PaystubService;
 use App\Vendor;
 use App\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -17,12 +19,17 @@ use Illuminate\Support\Facades\Input;
 class DashboardController extends Controller
 {
 
+	protected $paystubService;
+
 	/**
 	 * Middleware --- THIS IS AN ADMIN ONLY PAGE
+	 *
+	 * @param $PAYSTUB_SERVICE
 	 */
-	public function __construct()
+	public function __construct(PaystubService $PAYSTUB_SERVICE)
 	{
 		$this->middleware('auth');
+		$this->paystubService = $PAYSTUB_SERVICE;
 	}
 
 
@@ -31,9 +38,18 @@ class DashboardController extends Controller
 	 */
 	public function index()
 	{
+		$dates = Paystub::all()->unique('issue_date');
 
+		$dates = $dates->values()->sortByDesc(function($d) {
+			return $d->issue_date;
+		});
 
-		return view('dashboard.dashboard');
+		foreach($dates as $d)
+		{
+			$d['display_date'] = Carbon::parse($d->issue_date)->format('m-d-Y');
+		}
+
+		return view('dashboard.dashboard', ['dates' => $dates]);
 	}
 
 
@@ -142,6 +158,21 @@ class DashboardController extends Controller
 		}
 
 		return response()->json(true, 200);
+	}
+
+
+	public function reprocessPaystubDates($date)
+	{
+		DB::beginTransaction();
+		try {
+			$this->paystubService->processPaystubJob($date);
+			DB::commit();
+			return response()->json(true);
+		} catch (\mysqli_sql_exception $e) {
+			DB::rollback();
+			return response()->json(false, 500);
+		}
+
 	}
 
 }

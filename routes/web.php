@@ -116,6 +116,8 @@ Route::get('/dashboards/dashboard', 'DashboardController@index');               
 Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');                                  // dashboard.payrollinfo
 Route::get('/dashboards/release-restriction', 'DashboardController@releaseRestriction');                    // dashboard.restriction
 Route::post('/savePaystubRestriction', 'DashboardController@savePaystubRestriction');
+Route::get('/process-payroll/{date}', 'DashboardController@reprocessPaystubDates');
+
 // payroll info routes
 Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');                    //
 Route::get('/dashboards/refreshPayrollInfo', 'DashboardController@refreshPayrollInfo');                     // dashboard.payrollTableRowData
