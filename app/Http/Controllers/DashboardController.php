@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Employee;
 use App\Payroll;
 use App\PayrollRestriction;
 use App\Paystub;
@@ -163,6 +164,8 @@ class DashboardController extends Controller
 
 	public function reprocessPaystubDates($date)
 	{
+		if(Employee::find(auth()->user()->id)->is_admin != 1) return response()->json(false, 405);
+
 		DB::beginTransaction();
 		try {
 			$this->paystubService->processPaystubJob($date);
