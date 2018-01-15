@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="row p-10">
+<div class="row p-10" id="paystub-controls">
 	<div class="col-xs-5">
 
 		<form id="pdfForm" action="{{url('payroll/printable')}}" method="POST">
@@ -22,6 +22,9 @@
 			@if($isAdmin)
 				<button type="button" class="btn btn-default display-inline" id="editPaystub">
 					<i class="fa fa-pencil"></i> Edit Invoice
+				</button>
+				<button type="button" class="btn btn-danger display-inline" data-toggle="modal" data-target="#deleteModal">
+					<i class="fa fa-remove"></i> Delete Invoice
 				</button>
 			@endif
 		</form>
@@ -148,25 +151,71 @@
 	</div>
 </div>
 
+<div class="wp-100 text-center fade" id="delete-success-msg">
+	<h2 class="bold">Successfully deleted!</h2>
+	<h4 class="text-muted">(You will be redirected momentarily.)</h4>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="deleteModal">
+	<div class="modal-dialog modal-sm" role="document">
+		<div class="modal-content">
+			<div class="modal-body text-center">
+				<h3 class="bold">Are you sure you want to do this?</h3>
+				<p class="text-muted">(This action cannot be done.)</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-danger" id="confirmDelete">
+					<i class="fa fa-remove"></i> Delete
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 @endsection
 
 @section('scripts')
 
 	<script type="text/javascript">
 
-		var elem = $('#editPaystub');
-		if(elem.length){
-		    var agentId = $('#agent').val();
-		    var vendorId = $('#vendor').val();
-		    var rawDate = $('#date').val();
-		    var date = moment(rawDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+		$(function(){
+            var elem = $('#editPaystub');
+            var agentId = $('#agent').val();
+            var vendorId = $('#vendor').val();
+            var rawDate = $('#date').val();
+            var date = moment(rawDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+            if(elem.length){
+                var url = '/invoices/show-invoice/' + agentId + '/' + vendorId + '/' + date;
 
-		    var url = '/invoices/show-invoice/' + agentId + '/' + vendorId + '/' + date;
+                elem.on('click', function(){
+                    window.location.href = url;
+                });
+            }
 
-		    elem.on('click', function(){
-		        window.location.href = url;
-			});
-		}
+            $('#confirmDelete').on('click', function(){
+                fireAjaxRequest({
+                    url: '/paystub/delete/submit',
+					type: 'POST',
+					data: {
+                        id: agentId,
+						vendor: vendorId,
+						date: rawDate
+					},
+					success: function() {
+                        $('#delete-success-msg').addClass('in');
+                        $('#deleteModal').modal('hide');
+                        $('.paystub-wrapper').hide();
+                        $('#paystub-controls').hide();
+                        setMessageContainer('Your invoice has been successfully deleted.');
+
+                        setTimeout(function(){
+                            window.location.href = '/payroll';
+                        }, 2000);
+					}
+                });
+            });
+		});
 
 	</script>
 

@@ -241,24 +241,27 @@ class InvoiceController extends Controller
 	 * @param Request $request
 	 *
 	 * @return \Illuminate\Http\JsonResponse
+	 * @throws \Illuminate\Support\Facades\Exception
 	 */
 	public function deletePaystub(Request $request)
 	{
 		$params = $request->all();
 		$id = $params["id"];
+		$vendor = $params["vendor"];
 		$date = $params["date"];
 		$date = date_create_from_format('m-d-Y', $date);
 		$date = $date->format('Y-m-d');
 
 		DB::beginTransaction();
 		try{
-			Invoice::agentId($id)->issueDate($date)->delete();
-			Expense::agentId($id)->issueDate($date)->delete();
-			Override::agentId($id)->issueDate($date)->delete();
+			Invoice::agentId($id)->vendorId($vendor)->issueDate($date)->delete();
+			Expense::agentId($id)->vendorId($vendor)->issueDate($date)->delete();
+			Override::agentId($id)->vendorId($vendor)->issueDate($date)->delete();
+			Paystub::agentId($id)->vendorId($vendor)->issueDate($date)->delete();
 
 			DB::commit();
 			$result = true;
-		} catch (MysqliException $e)
+		} catch (\mysqli_sql_exception $e)
 		{
 			DB::rollback();
 			$result = false;
