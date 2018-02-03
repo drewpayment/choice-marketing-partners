@@ -299,6 +299,7 @@ function fireAjaxRequest(options){
         url: (options.url === undefined) ? null : options.url,
         type: (options.type === undefined) ? 'GET' : options.type,
         data: (options.data === undefined) ? {} : options.data,
+        processData: (options.processData === undefined),
         dataType: (options.dataType === undefined) ? 'JSON' : options.dataType,
         success: successFn,
         error: (options.errorData === undefined) ? ajaxErrorHandler : options.errorData

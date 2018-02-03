@@ -381,7 +381,10 @@
                 url: '/invoices/handle-edit-invoice',
                 type: 'POST',
                 dataType: 'JSON',
-                data: input,
+                processData: false,
+                data: {
+                    input: JSON.stringify(input)
+                },
                 afterData: afterData
             };
 

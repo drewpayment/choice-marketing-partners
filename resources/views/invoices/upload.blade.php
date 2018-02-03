@@ -372,7 +372,8 @@ $(document).on('click', '#saveInvoice', function(){
         url: '/upload/save-invoice',
 		type: 'POST',
 		dataType: 'JSON',
-		data: input,
+		processData: false,
+		data: { input: JSON.stringify(input) },
 		afterData: afterData
 	};
 
@@ -386,7 +387,6 @@ $(document).on('click', '#saveInvoice', function(){
 		input.date.length &&
 		input.endDate.length) {
 
-        console.dir([input.hasOverrides, input.hasExpenses]);
         fireAjaxRequest(options);
 	} else {
         var errorMsg = 'Sorry, you need to fill out the form before you can submit the invoice.';

@@ -40,22 +40,23 @@ class InvoiceService {
 	 * @param $input
 	 *
 	 * @return array
+	 * @throws \Illuminate\Support\Facades\Exception
 	 */
 	public function editInvoice($input)
 	{
 		$result = [];
 		$hasExpenses = $input['hasExpenses'];
 		$hasOverrides = $input['hasOverrides'];
-		$sales = (isset($input['individual'])) ? $input['individual'] : [];
+		$sales = isset($input['individual']) ? $input['individual'] : [];
 		$vendorId = $input['vendorId'];
 		$employeeId = $input['employeeId'];
 		$date = $input['date'];
 		$endDate = $input['endDate'];
-		$overrides = ($hasOverrides === 'true') ? $input['overrides'] : [];
-		$expenses = ($hasExpenses === 'true') ? $input['expenses'] : [];
+		$overrides = $hasOverrides ? $input['overrides'] : [];
+		$expenses = $hasExpenses ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
-		if($existingInvoice === true) {
+		if($existingInvoice) {
 
 			DB::beginTransaction();
 			try{
@@ -88,7 +89,7 @@ class InvoiceService {
 
 		foreach($sales as $s)
 		{
-			$formattedSales[] = [
+			$formattedSales[] = new Invoice([
 				'vendor' => $vendorId,
 				'sale_date' => Carbon::createFromFormat('m-d-Y', $s['date']),
 				'first_name' => $s['name']['first'],
@@ -100,14 +101,14 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		}
 
 		$hasSales = (count($sales) > 0);
 
 		foreach($overrides as $o)
 		{
-			$formattedOverrides[] = [
+			$formattedOverrides[] = new Override([
 				'vendor_id' => $vendorId,
 				'name' => $o['name'],
 				'sales' => $o['numOfSales'],
@@ -116,12 +117,12 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		}
 
 		foreach($expenses as $e)
 		{
-			$formattedExpenses[] = [
+			$formattedExpenses[] = new Expense([
 				'vendor_id' => $vendorId,
 				'type' => $e['type'],
 				'amount' => $e['amount'],
@@ -129,65 +130,20 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		}
 
 		DB::beginTransaction();
 
 		try{
-			if($hasSales){
-				foreach($formattedSales as $s)
-				{
-					Invoice::create([
-						'vendor' => $s['vendor'],
-						'sale_date' => $s['sale_date'],
-						'first_name' => $s['first_name'],
-						'last_name' => $s['last_name'],
-						'address' => $s['address'],
-						'city' => $s['city'],
-						'status' => $s['status'],
-						'amount' => $s['amount'],
-						'agentid' => $s['agentid'],
-						'issue_date' => $s['issue_date'],
-						'wkending' => $s['wkending']
-					]);
-				}
-			}
-
-			if($hasOverrides){
-				foreach($formattedOverrides as $o)
-				{
-					Override::create([
-						'vendor_id' => $o['vendor_id'],
-						'name' => $o['name'],
-						'sales' => $o['sales'],
-						'commission' => $o['commission'],
-						'total' => $o['total'],
-						'agentid' => $o['agentid'],
-						'issue_date' => $o['issue_date'],
-						'wkending' => $o['wkending']
-					]);
-				}
-			}
-
-			if($hasExpenses){
-				foreach($formattedExpenses as $e)
-				{
-					Expense::create([
-						'vendor_id' => $e['vendor_id'],
-						'type' => $e['type'],
-						'amount' => $e['amount'],
-						'notes' => $e['notes'],
-						'agentid' => $e['agentid'],
-						'issue_date' => $e['issue_date'],
-						'wkending' => $e['wkending']
-					]);
-				}
-			}
+			$emp = Employee::agentId($employeeId)->first();
+			if($hasSales) $emp->invoices()->saveMany($formattedSales);
+			if($hasOverrides) $emp->overrides()->saveMany($formattedOverrides);
+			if($hasExpenses) $emp->expenses()->saveMany($formattedExpenses);
 
 			Payroll::create([
 				'agent_id' => $employeeId,
-				'agent_name' => Employee::agentId($employeeId)->first()->name,
+				'agent_name' => $emp->name,
 				'amount' => $payrollTotal,
 				'is_paid' => 0,
 				'vendor_id' => $vendorId,
@@ -225,11 +181,11 @@ class InvoiceService {
 		$employeeId = $input['employeeId'];
 		$date = $input['date'];
 		$endDate = $input['endDate'];
-		$overrides = ($hasOverrides === 'true') ? $input['overrides'] : [];
-		$expenses = ($hasExpenses === 'true') ? $input['expenses'] : [];
+		$overrides = $hasOverrides ? $input['overrides'] : [];
+		$expenses = $hasExpenses ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
-		if($existingInvoice === true)
+		if($existingInvoice)
 		{
 			$result['status'] = false;
 			$result['message'] = 'An existing invoice has already been created for this employee, matching this date and vendor codes.';
@@ -261,7 +217,7 @@ class InvoiceService {
 
 
 		if(sizeof($sales) == 0){
-			$formattedSales[] = [
+			$formattedSales[] = new Invoice([
 				'vendor' => $vendorId,
 				'sale_date' => new Carbon($date),
 				'first_name' => '-------',
@@ -273,12 +229,12 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		} else {
 
 			foreach($sales as $s)
 			{
-				$formattedSales[] = [
+				$formattedSales[] = new Invoice([
 					'vendor' => $vendorId,
 					'sale_date' => new Carbon($s['date']),
 					'first_name' => $s['name']['first'],
@@ -290,7 +246,7 @@ class InvoiceService {
 					'agentid' => $employeeId,
 					'issue_date' => $date,
 					'wkending' => $endDate
-				];
+				]);
 			}
 
 		}
@@ -299,7 +255,7 @@ class InvoiceService {
 
 		foreach($overrides as $o)
 		{
-			$formattedOverrides[] = [
+			$formattedOverrides[] = new Override([
 				'vendor_id' => $vendorId,
 				'name' => $o['name'],
 				'sales' => $o['numOfSales'],
@@ -308,12 +264,12 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		}
 
 		foreach($expenses as $e)
 		{
-			$formattedExpenses[] = [
+			$formattedExpenses[] = new Expense([
 				'vendor_id' => $vendorId,
 				'type' => $e['type'],
 				'amount' => $e['amount'],
@@ -321,61 +277,17 @@ class InvoiceService {
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
-			];
+			]);
 		}
 
 		DB::beginTransaction();
 
 		try{
-			if($hasSales){
-				foreach($formattedSales as $s)
-				{
-					Invoice::create([
-						'vendor' => $s['vendor'],
-						'sale_date' => $s['sale_date'],
-						'first_name' => $s['first_name'],
-						'last_name' => $s['last_name'],
-						'address' => $s['address'],
-						'city' => $s['city'],
-						'status' => $s['status'],
-						'amount' => $s['amount'],
-						'agentid' => $s['agentid'],
-						'issue_date' => $s['issue_date'],
-						'wkending' => $s['wkending']
-					]);
-				}
-			}
+			$emp = Employee::agentId($employeeId)->first();
 
-			if($hasOverrides){
-				foreach($formattedOverrides as $o)
-				{
-					Override::create([
-						'vendor_id' => $o['vendor_id'],
-						'name' => $o['name'],
-						'sales' => $o['sales'],
-						'commission' => $o['commission'],
-						'total' => $o['total'],
-						'agentid' => $o['agentid'],
-						'issue_date' => $o['issue_date'],
-						'wkending' => $o['wkending']
-					]);
-				}
-			}
-
-			if($hasExpenses){
-				foreach($formattedExpenses as $e)
-				{
-					Expense::create([
-						'vendor_id' => $e['vendor_id'],
-						'type' => $e['type'],
-						'amount' => $e['amount'],
-						'notes' => $e['notes'],
-						'agentid' => $e['agentid'],
-						'issue_date' => $e['issue_date'],
-						'wkending' => $e['wkending']
-					]);
-				}
-			}
+			if($hasSales) $emp->invoices()->saveMany($formattedSales);
+			if($hasOverrides) $emp->overrides()->saveMany($formattedOverrides);
+			if($hasExpenses) $emp->expenses()->saveMany($formattedExpenses);
 
 			Payroll::create([
 				'agent_id' => $employeeId,

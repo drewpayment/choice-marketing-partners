@@ -155,6 +155,28 @@ class Employee extends Model
 
 
 	/**
+	 * Get overrides associated with the employee
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 */
+	public function overrides()
+	{
+		return $this->hasMany(Override::class, 'agentid', 'id');
+	}
+
+
+	/**
+	 * Get expenses associated with the employee
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 */
+	public function expenses()
+	{
+		return $this->hasMany(Expense::class, 'agentid', 'id');
+	}
+
+
+	/**
 	 * get user that this employee record owns
 	 *
 	 * @return \Illuminate\Database\Eloquent\Relations\HasOne

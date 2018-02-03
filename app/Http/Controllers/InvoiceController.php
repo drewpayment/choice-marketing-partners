@@ -70,10 +70,9 @@ class InvoiceController extends Controller
 
 	public function HandleEditInvoice()
 	{
-		if(!request()->ajax())
-			return response()->json(false);
+		if(!request()->ajax()) return response()->json(false);
 
-		$input = Input::all();
+		$input = json_decode(Input::all()['input'], true);
 		$result = $this->invoiceService->editInvoice($input);
 
 		return response()->json($result);
@@ -89,7 +88,7 @@ class InvoiceController extends Controller
 		if(!request()->ajax())
 			return response()->json(false);
 
-		$input = Input::all();
+		$input = json_decode(Input::all()['input'], true);
 		$result = $this->invoiceService->saveInvoice($input);
 
 		return response()->json($result);
@@ -102,6 +101,7 @@ class InvoiceController extends Controller
 	 * @param Request $request
 	 *
 	 * @return \Illuminate\Http\JsonResponse
+	 * @throws \Illuminate\Support\Facades\Exception
 	 */
 	public function UploadInvoice(Request $request)
 	{
@@ -903,7 +903,6 @@ class InvoiceController extends Controller
 
 		$loggedUser = Employee::find(Auth::user()->id);
 		$isAdmin = ($loggedUser->is_admin == 1);
-
 
 		return view('pdf.paystub', [
 			'stubs' => $stubs,

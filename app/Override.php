@@ -19,6 +19,12 @@ class Override extends Model
 	];
 
 
+	public function employee()
+	{
+		return $this->belongsToMany(Employee::class, 'employees');
+	}
+
+
 	/**
 	 * scope query to filter by agent id
 	 *
