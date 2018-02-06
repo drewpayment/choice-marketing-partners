@@ -137,9 +137,9 @@ class InvoiceService {
 
 		try{
 			$emp = Employee::agentId($employeeId)->first();
-			if($hasSales) $emp->invoices()->saveMany($formattedSales);
-			if($hasOverrides) $emp->overrides()->saveMany($formattedOverrides);
-			if($hasExpenses) $emp->expenses()->saveMany($formattedExpenses);
+			if(count($formattedSales) > 0) $emp->invoices()->saveMany($formattedSales);
+			if(count($formattedOverrides) > 0) $emp->overrides()->saveMany($formattedOverrides);
+			if(count($formattedExpenses) > 0) $emp->expenses()->saveMany($formattedExpenses);
 
 			Payroll::create([
 				'agent_id' => $employeeId,
