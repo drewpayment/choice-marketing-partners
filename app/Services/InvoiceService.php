@@ -87,21 +87,40 @@ class InvoiceService {
 			collect($expenses)->pluck('amount')->sum()
 		);
 
-		foreach($sales as $s)
+		if(sizeof($sales) == 0) 
 		{
 			$formattedSales[] = new Invoice([
 				'vendor' => $vendorId,
-				'sale_date' => Carbon::createFromFormat('m-d-Y', $s['date']),
-				'first_name' => $s['name']['first'],
-				'last_name' => $s['name']['last'],
-				'address' => $s['address'],
-				'city' => $s['city'],
-				'status' => $s['status'],
-				'amount' => $s['amount'],
+				'sale_date' => new Carbon($date),
+				'first_name' => '-------',
+				'last_name' => '---------',
+				'address' => '-----',
+				'city' => '-----',
+				'status' => '-----',
+				'amount' => 0,
 				'agentid' => $employeeId,
 				'issue_date' => $date,
 				'wkending' => $endDate
 			]);
+		}
+		else 
+		{
+			foreach($sales as $s)
+			{
+				$formattedSales[] = new Invoice([
+					'vendor' => $vendorId,
+					'sale_date' => Carbon::createFromFormat('m-d-Y', $s['date']),
+					'first_name' => $s['name']['first'],
+					'last_name' => $s['name']['last'],
+					'address' => $s['address'],
+					'city' => $s['city'],
+					'status' => $s['status'],
+					'amount' => $s['amount'],
+					'agentid' => $employeeId,
+					'issue_date' => $date,
+					'wkending' => $endDate
+				]);
+			}
 		}
 
 		$hasSales = (count($sales) > 0);
