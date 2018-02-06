@@ -47,7 +47,7 @@
 					</div>
 					<div class="col-xs-4">&nbsp;</div>
 					<div class="col-xs-4">
-						<strong>Weekending: </strong> {{date('m-d-Y', strtotime($stubs->first()->wkending))}} <br>
+						<!-- <strong>Weekending: </strong> {{date('m-d-Y', strtotime($stubs->first()->wkending))}} <br> -->
 						<strong>Invoice Date: </strong> {{$invoiceDt}} <br>
 						<br>
 						<strong>Payable To: </strong> {{$emp->name}}
