@@ -54,6 +54,44 @@ elixir(function(mix) {
 
     // mix.webpack('./vue/app.js', require('./webpack.config.js'), 'public/build/vue', 'resources/assets/js/vue');
 
-    mix.version(['js/all.js', 'css/all.css', 'js/conf/all.js']);
+    /**
+     * For each view's JS, we are going to mix and then version then, so that the browser downloads cached versions everytime. 
+     */
+    mix.scripts([
+        'views/invoices/edit.js'
+    ], 'public/js/views/invoices/edit.js');
+    mix.scripts([
+        'views/invoices/historical.js'
+    ], 'public/js/views/invoices/historical.js');
+    mix.scripts([
+        'views/invoices/search.js'
+    ], 'public/js/views/invoices/search.js');
+    mix.scripts([
+        'views/invoices/upload.js'
+    ], 'public/js/views/invoices/upload.js');
+    mix.scripts([
+        'views/overrides/detail.js'
+    ], 'public/js/views/overrides/detail.js');
+    mix.scripts([
+        'views/paystubs/paystubs.js'
+    ], 'public/js/views/paystubs/paystubs.js');
+
+    mix.version([
+        'js/all.js', 
+        'css/all.css', 
+        'js/conf/all.js', 
+
+        // views/invoices 
+        'js/views/invoices/edit.js',
+        'js/views/invoices/historical.js',
+        'js/views/invoices/search.js',
+        'js/views/invoices/upload.js',
+
+        // views/overrides
+        'js/views/overrides/detail.js',
+
+        // views/paystubs
+        'js/views/paystubs/paystubs.js'
+    ]);
 
 });

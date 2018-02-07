@@ -73,7 +73,7 @@ class DashboardController extends Controller
 		}, null, true)->values()->all();
 		$dates = collect($dates);
 		$date = (is_null($dates->first())) ? date(strtotime('now')) : $dates->first()->pay_date;
-		$vendors = Vendor::all();
+		$vendors = Vendor::active()->get();
 
 		$employees = Payroll::payDate($date)->vendor(-1)->paidFirst()->orderByName()->get();
 

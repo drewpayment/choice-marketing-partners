@@ -54,10 +54,10 @@ class InvoiceController extends Controller
 	public function index()
 	{
 		$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
-		$vendors = Vendor::all();
+		$vendors = Vendor::active()->get();
 		$wedArr = [];
 
-		for($i = 0; $i < 3; $i++){
+		for($i = 0; $i < 6; $i++){
 			$dt = Carbon::parse('this wednesday');
 			$tmpDt = $dt->addWeek($i);
 			$wedArr[] = $tmpDt->format('m-d-Y');
