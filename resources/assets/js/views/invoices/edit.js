@@ -96,6 +96,16 @@ $(document).ready(function() {
 
         $(document).on('click', 'button', handleClick);
 
+        var lengthValidator = function(value, callback) {
+            setTimeout(function() {
+                if(value.length == 40 || value.length < 40){
+                    callback(true);
+                } else {
+                    callback(false);
+                }
+            }, 1000);
+        }
+
 
         var paystubContainer = document.getElementById('invoiceTable');
         var paystubHot = new Handsontable(paystubContainer, {
@@ -127,7 +137,7 @@ $(document).ready(function() {
                 {data: 'last_name'},
                 {data: 'address'},
                 {data: 'city'},
-                {data: 'status'},
+                {data: 'status', validator: lengthValidator},
                 {data: 'amount'}
             ]
         });
