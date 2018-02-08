@@ -239,8 +239,9 @@ $(document).on('click', '#saveInvoice', function(){
         url: '/upload/save-invoice',
 		type: 'POST',
 		dataType: 'JSON',
-		processData: false,
-		data: { input: JSON.stringify(input) },
+		data: { 
+			input: JSON.stringify(input) 
+		},
 		afterData: afterData
 	};
 

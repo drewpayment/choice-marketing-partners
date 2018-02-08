@@ -1,4 +1,5 @@
-var overrideTblElem = $('#overridesTable'),
+$(document).ready(function() {
+    var overrideTblElem = $('#overridesTable'),
             expenseTblElem = $('#expensesTable'),
             invoiceData = JSON.parse($('#invoiceTable').text()),
             overrideData = JSON.parse(overrideTblElem.text()),
@@ -260,7 +261,6 @@ var overrideTblElem = $('#overridesTable'),
                 url: '/invoices/handle-edit-invoice',
                 type: 'POST',
                 dataType: 'JSON',
-                processData: false,
                 data: {
                     input: JSON.stringify(input)
                 },
@@ -293,3 +293,4 @@ var overrideTblElem = $('#overridesTable'),
             }
 
         });
+});
