@@ -74,6 +74,21 @@ $(function(){
 
 $(document).on('click', 'button', handleClick);
 
+var formValid = {
+	status: true,
+	saleDate: true
+}
+var lengthValidator = function(value, callback) {
+	setTimeout(function() {
+		if(value.length == 40 || value.length < 40){
+			formValid.status = true;
+			callback(true);
+		} else {
+			formValid.status = false;
+			callback(false);
+		}
+	}, 1000);
+}
 
 var paystubContainer = document.getElementById('invoiceTable');
 var paystubHot = new Handsontable(paystubContainer, {
@@ -105,7 +120,7 @@ var paystubHot = new Handsontable(paystubContainer, {
 		{data: 'custName.last'},
 		{data: 'address'},
 		{data: 'city'},
-		{data: 'status'},
+		{data: 'status', validator: lengthValidator},
 		{data: 'amount'}
 	]
 });
@@ -255,7 +270,16 @@ $(document).on('click', '#saveInvoice', function(){
 		input.date.length &&
 		input.endDate.length) {
 
-        fireAjaxRequest(options);
+		if(formValid.status) {
+			fireAjaxRequest(options);
+		} else {
+			setMessageContainer(
+				'Please check the fields highlighted red in the status column. Max value is 40 characters.',
+				null,
+				'danger'
+			);
+		}
+        
 	} else {
         var errorMsg = 'Sorry, you need to fill out the form before you can submit the invoice.';
         setMessageContainer(errorMsg, null, 'danger');
