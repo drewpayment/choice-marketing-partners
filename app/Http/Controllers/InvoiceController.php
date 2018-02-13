@@ -543,7 +543,10 @@ class InvoiceController extends Controller
 				{
 					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
 					$nextWednesday = new Carbon('next wednesday');
-					if($issueDate > $nextWednesday) $issueDates = $issueDates->slice(1);
+					if($issueDate > $nextWednesday) {
+						$issueDates = $issueDates->slice(1);
+						$issueDates = array_values($issueDates);
+					}
 				}
 
 				$today = Carbon::now()->tz('America/Detroit');
