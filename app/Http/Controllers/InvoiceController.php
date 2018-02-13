@@ -552,7 +552,7 @@ class InvoiceController extends Controller
 				for($i = 0; $i < count($issueDates); $i++)
 				{
 					$issueDate = $issueDates[$i];
-					if($issueDate > $releaseProtect) array_splice($issueDates, $issueDates[$i]);
+					if($issueDate > $releaseProtect) array_splice($issueDates, $i);
 				}
 			}
 		}
