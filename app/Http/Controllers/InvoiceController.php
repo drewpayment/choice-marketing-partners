@@ -547,6 +547,13 @@ class InvoiceController extends Controller
 				{
 					$issueDates = $issueDates->slice(1);
 				}
+
+				$releaseProtect = $release->addDay();
+				for($i = 0; $i < count($issueDates); $i++)
+				{
+					$issueDate = $issueDates[$i];
+					if($issueDate > $releaseProtect) array_splice($issueDates, $issueDates[$i]);
+				}
 			}
 		}
 		// This is a normal user
