@@ -539,6 +539,13 @@ class InvoiceController extends Controller
 
 			if(count($issueDates) > 0)
 			{
+				foreach($issueDates as $issueDate)
+				{
+					$firstIssueDate = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
+					$nextWednesday = new Carbon('next wednesday');
+					if($firstIssueDate > $nextWednesday) $issueDates = $issueDates->slice(1);
+				}
+
 				$today = Carbon::now()->tz('America/Detroit');
 				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
 				$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
@@ -546,13 +553,6 @@ class InvoiceController extends Controller
 				if($today < $release)
 				{
 					$issueDates = $issueDates->slice(1);
-				}
-
-				$releaseProtect = $release->addDay();
-				for($i = 0; $i < count($issueDates); $i++)
-				{
-					$issueDate = $issueDates[$i];
-					if($issueDate > $releaseProtect) unset($issueDates[$i]);
 				}
 			}
 		}
