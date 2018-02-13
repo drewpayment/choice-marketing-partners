@@ -543,7 +543,7 @@ class InvoiceController extends Controller
 				{
 					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
 					$nextWednesday = new Carbon('next wednesday');
-					if(($key = array_search($issueDate, $issueDates)) !== false)
+					if(($key = array_search($issueDate, (array)$issueDates)) !== false)
 					{
 						if($issueDate > $nextWednesday) unset($issueDates[$key]);
 					}
