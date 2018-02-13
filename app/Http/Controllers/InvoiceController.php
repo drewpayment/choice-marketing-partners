@@ -545,7 +545,7 @@ class InvoiceController extends Controller
 					$nextWednesday = new Carbon('next wednesday');
 					if($issueDate > $nextWednesday) {
 						$issueDates = $issueDates->slice(1);
-						$issueDates = array_values($issueDates);
+						$issueDates = array_values((array)$issueDates);
 					}
 				}
 
