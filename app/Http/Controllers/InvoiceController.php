@@ -539,6 +539,8 @@ class InvoiceController extends Controller
 
 			if(count($issueDates) > 0)
 			{
+				$today = Carbon::now()->tz('America/Detroit');
+
 				foreach($issueDates as $key => &$issueDate)
 				{
 					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
@@ -548,16 +550,17 @@ class InvoiceController extends Controller
 						// $issueDates = $issueDates->slice(1);
 						// $issueDates = array_values((array)$issueDates);
 					}
-				}
-
-				$today = Carbon::now()->tz('America/Detroit');
-				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-				$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
-
-				if($today < $release)
-				{
-					unset($issueDates[0]);
-					// $issueDates = $issueDates->slice(1);
+					else
+					{
+						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key], 'America/Detroit');
+						$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
+	
+						if($today < $release)
+						{
+							unset($issueDates[$key]);
+							// $issueDates = $issueDates->slice(1);
+						}
+					}
 				}
 			}
 		}
