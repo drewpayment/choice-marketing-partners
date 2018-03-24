@@ -78,7 +78,7 @@
                                 <td style="padding:5px;">{{$over->name}}</td>
                                 <td style="padding:5px;">&nbsp;</td>
                                 <td style="padding:5px;">{{$over->sales}}</td>
-                                <td style="padding:5px;">{{$over->commission}}</td>
+                                <td style="padding:5px;">{{number_format($over->commission, 2)}}</td>
                                 <td class="text-right" style="padding:5px;">$ {{number_format($over->total, 2)}}</td>
                             </tr>
                         @endforeach

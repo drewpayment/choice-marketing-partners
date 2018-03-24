@@ -22,7 +22,7 @@
                 {{$p['vendor_name']}}
             </td>
             <td>
-                ${{$p['amount']}}
+                ${{number_format($p['amount'], 2)}}
             </td>
         </tr>
     @endforeach

@@ -1,3 +1,5 @@
+{{--DEPRECATED--}}
+
 <div class="paystub-wrapper">
 	<div class="row p-10">
 		<div class="col-xs-12">
@@ -69,7 +71,7 @@
 								<td>{{$over->name}}</td>
 								<td>&nbsp;</td>
 								<td>{{$over->sales}}</td>
-								<td>{{$over->commission}}</td>
+								<td>{{number_format($over->commission, 2)}}</td>
 								<td class="text-right">$ {{number_format($over->total, 2)}}</td>
 							</tr>
 						@endforeach

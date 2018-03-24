@@ -161,7 +161,42 @@ var overHot = new Handsontable(overrideContainer, {
 			type: 'numeric',
 			format: '0.00'
         }
-    ]
+    ],
+	afterChange: function(changes, source) {
+    	if(changes != null && changes.length === 0 || source != 'edit') return false;
+
+    	let change = {
+    		row: changes[0][0],
+			prop: changes[0][1],
+			oldVal: changes[0][2],
+			newVal: changes[0][3]
+		};
+		let numSales, commission;
+
+		switch(change.prop) {
+			case 'sales':
+				numSales = change.newVal;
+				commission = overHot.getDataAtCell(change.row, 2);
+				break;
+			case 'commission':
+				commission = change.newVal;
+				numSales = overHot.getDataAtCell(change.row, 1);
+				break;
+			default:
+				break;
+		}
+
+		numSales = +numSales;
+		commission = +commission;
+
+		if(numSales === 0 && commission === 0) {
+			overHot.setDataAtCell(change.row, 3, null, 'calculation');
+		} else if(change.prop === 'total') {
+			overHot.setDataAtCell(change.row, 3, change.newVal, 'calculation');
+		} else {
+            overHot.setDataAtCell(change.row, 3, (numSales * commission), 'calculation');
+		}
+    }
 });
 
 var expenseContainer = document.getElementById('expensesTable');
