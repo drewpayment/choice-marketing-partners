@@ -66,7 +66,7 @@ Payroll Information <small class="color-white">Next Payday: {{date('F j, Y', str
                                             <input type="hidden" name="agent" id="agent" value="{{$e->agent_id}}">
                                         </form>
                                     </td>
-                                    <td>${{$e->amount}}</td>
+                                    <td>${{number_format($e->amount, 2)}}</td>
                                     <td>
                                         {{$vendor->name}}</td>
                                     <td>
