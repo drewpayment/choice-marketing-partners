@@ -127,32 +127,58 @@ class EmployeeController extends Controller
 	 */
 	public function updateExistingEmployee(Request $request)
 	{
-		$errors = [];
+		$success = false;
 		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
 
-		$params = Input::all();
-		$employee = Employee::find($params['id']);
-		$employee->name = $params['name'];
-		$employee->email = $params['email'];
-		$employee->phone_no = $params['phoneNo'];
-		$employee->address = $params['address'];
-		$employee->is_mgr = $params['isMgr'];
-		$employee->sales_id1 = $params['salesId1'];
-		$employee->sales_id2 = $params['salesId2'];
-		$employee->sales_id3 = $params['salesId3'];
+		$ee = Employee::agentId($request->id)->first();
+		$hasChanges = false;
 
-		DB::beginTransaction();
-		try {
-			$employee->save();
-			DB::commit();
-		} catch (\mysqli_sql_exception $e) {
-			DB::rollback();
-			$errors[] = $e;
+		if($ee->name != $request->name) {
+			$ee->name = $request->name;
+			$hasChanges = true;
+		}
+		if($ee->email != $request->email) {
+			$ee->email = $request->email;
+			$hasChanges = true;
+		}
+		if($ee->phone_no != $request->phoneNo) {
+			$ee->phone_no = $request->phoneNo;
+			$hasChanges = true;
+		}
+		if($ee->address != $request->address) {
+			$ee->address = $request->address;
+			$hasChanges = true;
+		}
+		if($ee->is_mgr != $request->isMgr) {
+			$ee->is_mgr = $request->isMgr;
+			$hasChanges = true;
+		}
+		if($ee->sales_id1 != $request->salesId1) {
+			$ee->sales_id1 = $request->salesId1;
+			$hasChanges = true;
+		}
+		if($ee->sales_id2 != $request->salesId2) {
+			$ee->sales_id2 = $request->salesId2;
+			$hasChanges = true;
+		}
+		if($ee->sales_id3 != $request->salesId3) {
+			$ee->sales_id3 = $request->salesId3;
+			$hasChanges = true;
 		}
 
-		if(count($errors) > 0) return response()->json($errors, 500);
+		if($hasChanges)
+			$success = $ee->save();
 
-		return response()->json(true);
+		if(!$success) return response()->json(false, 500);
+
+		$user = User::where('id', $ee->id)->first();
+
+		if($user->email != $ee->email) {
+			$user->email = $ee->email;
+			$success = $user->save();
+		}
+
+		return response()->json($success, $success ? 200 : 500);
 	}
 
 
