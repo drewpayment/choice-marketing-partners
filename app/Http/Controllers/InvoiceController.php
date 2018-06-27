@@ -116,6 +116,9 @@ class InvoiceController extends Controller
 
 		$vendorId = $salesInput[0]['vendor'];
 
+		// if the vendor id isn't properly set, we will just bail out and make the user try again.
+		if($vendorId < 1) return response()->json(false, 500);
+
 		$hasExistingInvoice = $this->invoiceHelper->checkForExistingInvoice($salesInput[0]['agentid'], $salesInput[0]['vendor'], $salesInput[0]['issueDate']);
 
 		if($hasExistingInvoice === true) return response()->json(false);
@@ -468,6 +471,7 @@ class InvoiceController extends Controller
 
 	public function editInvoice($agentID, $vendorID, $issueDate)
 	{
+		if($vendorID < 1) return response()->json(false, 500);
 		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$expenses = Expense::agentId($agentID)->issueDate($issueDate)->get();
