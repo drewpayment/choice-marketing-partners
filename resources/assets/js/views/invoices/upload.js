@@ -128,7 +128,7 @@ var paystubHot = new Handsontable(paystubContainer, {
 var overrideContainer = document.getElementById('overridesTable');
 var overHot = new Handsontable(overrideContainer, {
     minRows: 3,
-    maxRows: 15,
+    maxRows: 50,
     rowHeaders: true,
     colHeaders: ['Name', '# of Sales', 'Commission', 'Total'],
     colWidths: ['140', '100', '120', '100'],
