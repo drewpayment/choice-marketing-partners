@@ -2,10 +2,10 @@
   "css/all.css": "css/all-9b9e903ee5.css",
   "js/all.js": "js/all-1a5ce4e695.js",
   "js/conf/all.js": "js/conf/all-9f2d641b4d.js",
-  "js/views/invoices/edit.js": "js/views/invoices/edit-7b9cfcac74.js",
+  "js/views/invoices/edit.js": "js/views/invoices/edit-151078cd77.js",
   "js/views/invoices/historical.js": "js/views/invoices/historical-256b46b2a0.js",
   "js/views/invoices/search.js": "js/views/invoices/search-93b301c0de.js",
-  "js/views/invoices/upload.js": "js/views/invoices/upload-a99d73ecf6.js",
+  "js/views/invoices/upload.js": "js/views/invoices/upload-741ac03c75.js",
   "js/views/overrides/detail.js": "js/views/overrides/detail-136bd1bd14.js",
   "js/views/paystubs/paystubs.js": "js/views/paystubs/paystubs-6ea9d516b9.js"
 }
