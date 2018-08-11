@@ -602,17 +602,8 @@ class InvoiceController extends Controller
 				}
 			}
 
-			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
-			$vendors = collect($vendors);
-
-			foreach($vendors as $v)
-			{
-				$name = $vendorDictionary->first(function($value, $k)use($v){
-					return $v->vendor == $value->id;
-				});
-				$v['name'] = $name->name;
-			}
-
+			$invoiceVendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor')->pluck('vendor');
+			$vendors = $vendors->whereIn('id', $invoiceVendors);
 		}
 
 		$issueDates = collect($issueDates);

@@ -44,12 +44,11 @@
                                     <option value="-1">All</option>
                                     @if($isAdmin || $isManager)
                                         @foreach($vendors as $v)
-                                            <option value="{{$v['id']}}">{{$v->name}}</option>
+                                            <option value="{{$v->id}}">{{$v->name}}</option>
                                         @endforeach
                                     @else
                                         @foreach($vendors as $v)
-{{--                                            <option value="{{$v['vendor']}}">{{$vendorDictionary->first(function($val, $k) use ($v){ return $val['id'] == $v['vendor']; })['name']}}</option>--}}
-                                            <option value="{{$v->vendor}}">{{$v->name}}</option>
+                                            <option value="{{$v->id}}">{{$v->name}}</option>
                                         @endforeach
                                     @endif
                                 </select>

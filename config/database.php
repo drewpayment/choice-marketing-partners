@@ -28,6 +28,9 @@ return [
 
     'default' => env('DB_CONNECTION', 'mysql'),
 
+	// uncomment this to use remote db configured from .env
+//	'default' => env('REMOTE_DB_CONNECTION', 'mysql-remote'),
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections
@@ -65,6 +68,20 @@ return [
             'strict' => true,
             'engine' => null,
         ],
+
+	    'mysql-remote' => [
+	    	'driver' => 'mysql',
+		    'host' => env('REMOTE_DB_HOST', 'localhost'),
+		    'port' => env('REMOTE_DB_PORT', '13306'),
+		    'database' => env('REMOTE_DB_DATABASE', 'choice'),
+		    'username' => env('REMOTE_DB_USERNAME', 'root'),
+		    'password' => env('REMOTE_DB_PASSWORD', ''),
+		    'charset' => 'utf8',
+		    'collation' => 'utf8_unicode_ci',
+		    'prefix' => '',
+		    'strict' => true,
+		    'engine' => null,
+	    ],
 
         'pgsql' => [
             'driver' => 'pgsql',
