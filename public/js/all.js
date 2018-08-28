@@ -1,32 +1,4 @@
 
-/** VARS
-   All defined variables used in welcome.js
- */
-
-
-
-
-/** FUNCTIONS
- All defined functions used in welcome.js
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/** PAGE LOAD FUNCTIONS
- Page load functions defined in welcome.js
- */
-
 
 App = (function(){
 
@@ -34,6 +6,8 @@ App = (function(){
 
     var init = function() {
         $(commaClubLinks).on('click', function(){
+            console.log('works');
+
             var id = $(this).data('value');
 
             var options = {

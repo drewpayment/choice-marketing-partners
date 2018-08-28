@@ -53,6 +53,7 @@ class PublicController extends Controller
 				break;
 			case 2000;
 				$agents = [
+					['Tiffany R', url('images/camera/'), 'tiffany_rider_20180825.jpg'],
 					['Tony R', $hostedURL . 'TonyR.jpg'],
 					['James G', $hostedURL . '8boosu6s7nmxsm1/JamesG.jpg?dl=0'],
 					['James N', $hostedURL . 'cttfhld33lq8cm4/JamesN.jpg?dl=0'],
