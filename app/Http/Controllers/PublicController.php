@@ -42,6 +42,7 @@ class PublicController extends Controller
 				break;
 			case 3000:
 				$agents = [
+                    ['Tiffany Rider', url('images/camera/tiffany_rider_102018.JPG')],
 					['Tony R', $hostedURL . 'TonyR.jpg'],
 					['James G', $hostedURL . '8boosu6s7nmxsm1/JamesG.jpg?dl=0'],
 					['James N', $hostedURL . 'cttfhld33lq8cm4/JamesN.jpg?dl=0'],
@@ -68,6 +69,7 @@ class PublicController extends Controller
 				break;
 			case 1000:
 				$agents = [
+                    ['Donald Carter Jr.', url('images/camera/donald_carter_jr_102018.JPG')],
 					['Tony R', $hostedURL . 'TonyR.jpg'],
 					['James G', $hostedURL . '8boosu6s7nmxsm1/JamesG.jpg?dl=0'],
 					['James N', $hostedURL . 'cttfhld33lq8cm4/JamesN.jpg?dl=0'],
@@ -84,7 +86,7 @@ class PublicController extends Controller
 					['Damien J', $hostedURL . '27uovt5l33i9usw/DamienJ.JPG?dl=0', 90],
 					['Josh T', $hostedURL . '28ggzit3nrxbiz5/JoshuaT.png?dl=0'],
 					['Matt S', $hostedURL . '2bxi2c3gauxe0j8/MathewS.jpg?dl=0'],
-					['Tyler T', $hostedURL . 'lqauohqux28stk7/TylerT.jpg?dl=0']
+					['Tyler T', $hostedURL . 'lqauohqux28stk7/TylerT.jpg?dl=0'],
 				];
 				$title = '$1,000';
 				break;
