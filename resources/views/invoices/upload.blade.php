@@ -75,7 +75,7 @@
                             <div class="box-content pt-5">
                                 <h6 class="mt-0 mb-0 pb-1 pl-3">Week Ending</h6>
                                 <input class="form-control datepicker-hot w-220" id="wkendDate"
-                                       placeholder="Weekending Date">
+                                       placeholder="Weekending Date" autocomplete="off" />
                             </div>
                         </div>
                     </li>
@@ -121,7 +121,7 @@
 </div>
 <div class="row pt-20">
 	<div class="col-xs-10 col-xs-offset-1">
-		<button class="btn btn-primary btn-lg btn-block" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
+		<button class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem !important;" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
 	</div>
 </div>
 
