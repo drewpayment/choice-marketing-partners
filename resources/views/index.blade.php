@@ -33,33 +33,55 @@
 <section class="jumbotron hero" id="hero">
     <div class="container">
         <div class="row">
-            <div class="col-md-4 col-md-push-7 get-it b-l-1">
-                <h2 class="text-center">Weekly Comma Club</h2>
-                <div class="text-center">
-                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="4000">$4,000+</a></p>
-                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="3000">$3,000</a></p>
-                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="2000">$2,000</a></p>
-                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="1000">$1,000</a></p>
-                    <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="500">$500</a></p>
-                </div>
-                <br />
-                <div class="text-center">
-                    <p>
-                        Interested in becoming a part of Choice Marketing Partners?
-                        <a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner">
-                            <i class="fa fa-users"></i> Apply Now
-                        </a>
-                    </p>
-                </div>
-
-            </div>
-            <div class="col-md-8 col-md-pull-5 pt-70">
-                <div class="box box-default h-400 overflow-scroll landing-blog">
-                    <div class="box-content overflow-hidden">
-                        @include('blog.feed', $posts)
+            @if(Auth::user())
+                <div class="col-md-4 col-md-push-7 get-it b-l-1">
+                    <h2 class="text-center">Weekly Comma Club</h2>
+                    <div class="text-center">
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="4000">$4,000+</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="3000">$3,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="2000">$2,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="1000">$1,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="500">$500</a></p>
+                    </div>
+                    <br />
+                    <div class="text-center">
+                        <p>
+                            Interested in becoming a part of Choice Marketing Partners?
+                            <a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner">
+                                <i class="fa fa-users"></i> Apply Now
+                            </a>
+                        </p>
                     </div>
                 </div>
-            </div>
+                <div class="col-md-8 col-md-pull-5 pt-70">
+                    <div class="box box-default h-400 overflow-scroll landing-blog">
+                        <div class="box-content overflow-hidden">
+                            @include('blog.feed', $posts)
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="col-md-6 get-it pt-100">
+                    <div class="text-center">
+                        <p>
+                            Interested in becoming a part of Choice Marketing Partners?
+                            <a class="btn btn-primary btn-lg" role="button" href="#" data-toggle="modal" data-target="#modal" data-modaltype="Partner">
+                                <i class="fa fa-users"></i> Apply Now
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6 get-it b-l-1">
+                    <h2 class="text-center">Weekly Comma Club</h2>
+                    <div class="text-center">
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="4000">$4,000+</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="3000">$3,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="2000">$2,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="1000">$1,000</a></p>
+                        <p class="p-0 mb-0"><a href="#" class="icon-link" data-commalink="true" data-value="500">$500</a></p>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </section>
