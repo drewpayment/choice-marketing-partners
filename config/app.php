@@ -177,8 +177,9 @@ $results = [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
-	    Conner\Tagging\Providers\TaggingServiceProvider::class,
-	    Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
+        Conner\Tagging\Providers\TaggingServiceProvider::class,
+        App\Http\View\Composers\ViewServiceProvider::class,
+	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
 
 
     ],

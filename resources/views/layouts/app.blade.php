@@ -52,6 +52,9 @@ $container = isset($containerClass) ? $containerClass : 'container';
         }
     </style>
 
+    @foreach ($styles as $s)
+        <link rel="styleshset" href="{{$s['path']}}" />
+    @endforeach
     <!-- jsPDF -->
     <script src="{{url('js/jspdf.js')}}"></script>
     <!-- jsPDF plugin Autotable: https://github.com/simonbengtsson/jsPDF-AutoTable -->
@@ -369,6 +372,13 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     @yield('scripts')
 
+    @foreach ($file_paths as $fp)
+        @if ($fp['is_es5'])
+            <script src="{{$fp['path']}}" nomodule defer></script>
+        @else
+            <script src="{{$fp['path']}}" type="module"></script>
+        @endif
+    @endforeach
 
 </body>
 </html>
