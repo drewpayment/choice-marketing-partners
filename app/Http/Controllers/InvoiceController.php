@@ -873,7 +873,7 @@ class InvoiceController extends Controller
 	{
 		if(!$request->ajax()) return response()->json(false);
 
-		$params = Input::all()['inputParams'];
+        $params = $request->all()['inputParams'];
 		$results = $this->invoiceHelper->searchPaystubData($params);
 
 		return view('paystubs._stubrowdata', [
@@ -889,7 +889,6 @@ class InvoiceController extends Controller
 
 	public function showPaystub(Request $request)
 	{
-
 		$inputParams = $request->all();
 		$agentId = $inputParams['agent'];
 		$vendorId = $inputParams['vendor'];
@@ -898,7 +897,7 @@ class InvoiceController extends Controller
 		$invoiceDt = $date->format('m-d-Y');
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
-		$vendorName = Vendor::find($vendorId)->name;
+        $vendorName = Vendor::find($vendorId)->name;
 
 		foreach($stubs as $s)
 		{
