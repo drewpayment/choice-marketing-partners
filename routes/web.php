@@ -204,3 +204,13 @@ Route::get('blog/user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+'
 
 // display list of posts
 Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
+
+
+/**
+ * 
+ * ANGULAR HYBRID API CALLS
+ * These do not use the Laravel API token methods, but rely on the normal laravel session token 
+ * and the csrf tokens.
+ * 
+ */
+Route::get('/account/user-info', 'HomeController@getUserInfo')->middleware('auth');

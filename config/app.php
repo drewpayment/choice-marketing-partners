@@ -179,6 +179,8 @@ $results = [
 	    Collective\Html\HtmlServiceProvider::class,
         Conner\Tagging\Providers\TaggingServiceProvider::class,
         App\Http\View\Composers\ViewServiceProvider::class,
+        App\Providers\JsonResponseServiceProvider::class,
+        App\Plugins\PDFServiceProvider::class,
 	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
 
 

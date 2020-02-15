@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Results\OpResult;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -36,6 +37,15 @@ class HomeController extends Controller
     	$admin = DB::table('employees')->where('is_admin', 1)->get();
 
     	return view('home', ['admin' => $admin, 'currentUser' => Auth::user()]);
+    }
+
+    public function getUserInfo(Request $request)
+    {
+        $result = new OpResult();
+
+        return $result->trySetData(function() {
+            return auth()->user();
+        })->getResponse();
     }
 
 }

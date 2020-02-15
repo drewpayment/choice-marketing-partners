@@ -106,5 +106,15 @@ class User extends Authenticatable
 		$role = $this->role;
 
 		return ($role == 'admin');
-	}
+    }
+    
+    public function getApiTokenAttribute()
+    {
+        return json_decode($this->attributes['api_token']);
+    }
+
+    public function setApiTokenAttribute($value)
+    {
+        $this->attributes['api_token'] = json_encode($value);
+    }
 }

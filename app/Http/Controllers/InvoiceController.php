@@ -2,31 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Employee;
+use DateTime;
+use Exception;
+use App\Vendor;
 use App\Expense;
-use App\Helpers\InvoiceHelper;
 use App\Invoice;
-use App\Override;
 use App\Payroll;
-use App\PayrollRestriction;
 use App\Paystub;
+use App\Employee;
+use App\Override;
+use Carbon\Carbon;
 use App\Services\DbHelper;
+use App\PayrollRestriction;
+use Illuminate\Http\Request;
+use Illuminate\Mail\Mailable;
+use App\Helpers\InvoiceHelper;
+use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
-use App\Vendor;
-use Carbon\Carbon;
-use DateTime;
-use Doctrine\DBAL\Driver\Mysqli\MysqliException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
-use Meneses\LaravelMpdf\Facades\LaravelMpdf;
-use mPDF;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Storage;
+use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 
 class InvoiceController extends Controller
 {
@@ -68,11 +68,11 @@ class InvoiceController extends Controller
 	}
 
 
-	public function HandleEditInvoice()
+	public function HandleEditInvoice(Request $request)
 	{
 		if(!request()->ajax()) return response()->json(false);
 
-		$input = json_decode(Input::all()['input'], true);
+		$input = json_decode($request->all()['input'], true);
 		$result = $this->invoiceService->editInvoice($input);
 
 		return response()->json($result);
@@ -83,12 +83,12 @@ class InvoiceController extends Controller
 	 * Save invoice via ajax --- new module
 	 *
 	 */
-	public function SaveInvoice()
+	public function SaveInvoice(Request $request)
 	{
 		if(!request()->ajax())
 			return response()->json(false);
 
-		$input = json_decode(Input::all()['input'], true);
+		$input = json_decode($request->all()['input'], true);
 		$result = $this->invoiceService->saveInvoice($input);
 
 		return response()->json($result);
@@ -547,7 +547,7 @@ class InvoiceController extends Controller
 
 				foreach($issueDates as $key => &$issueDate)
 				{
-					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
+					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate);
 					$nextWednesday = new Carbon('next wednesday');
 					if($issueDate > $nextWednesday) {
 						unset($issueDates[$key]);
@@ -556,7 +556,7 @@ class InvoiceController extends Controller
 					}
 					else
 					{
-						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key], 'America/Detroit');
+						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key]);
 						$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 	
 						if($today < $release)
@@ -581,7 +581,7 @@ class InvoiceController extends Controller
 
 				foreach($issueDates as $key => &$issueDate)
 				{
-					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
+					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate);
 					$nextWednesday = new Carbon('next wednesday');
 					if($issueDate > $nextWednesday) {
 						unset($issueDates[$key]);
@@ -590,7 +590,7 @@ class InvoiceController extends Controller
 					}
 					else
 					{
-						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key], 'America/Detroit');
+						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key]);
 						$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 	
 						if($today < $release)
@@ -894,7 +894,8 @@ class InvoiceController extends Controller
 		$vendorId = $inputParams['vendor'];
 		$date = new Carbon($inputParams['date']);
 		$gross = 0;
-		$invoiceDt = $date->format('m-d-Y');
+        $invoiceDt = $date->format('m-d-Y');
+        $issueDate = $date->format('Y-m-d');
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
         $vendorName = Vendor::find($vendorId)->name;
@@ -903,7 +904,7 @@ class InvoiceController extends Controller
          * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
          * the one record they did have and it needs to be recreated for the pages to work properly. 
          */
-        if (count($stubs < 1) || is_null($stubs)) 
+        if (count($stubs) < 1 || is_null($stubs)) 
         {
             $this->insertBlankStub($agentId, $vendorId, $date);
         }
@@ -917,10 +918,10 @@ class InvoiceController extends Controller
 
 			$s->sale_date = strtotime($s->sale_date);
 			$s->sale_date = date('m-d-Y', $s->sale_date);
-		}
+        }
 
-		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($date)->get();
-		$expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($date)->get();
+		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
+        $expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
@@ -1018,8 +1019,9 @@ class InvoiceController extends Controller
 
 
 		$path = strtolower($emp->name . '_' . $vendorName . '_' . $date->format('Ymd') . '.pdf');
-		$view = View::make('pdf.template', [
-			'stubs' => $stubs,
+        
+        $pdf = PDF::loadView('pdf.template', [
+            'stubs' => $stubs,
 			'emp' => $emp,
 			'gross' => $gross,
 			'invoiceDt' => $invoiceDt,
@@ -1029,12 +1031,9 @@ class InvoiceController extends Controller
 			'ovrgross' => $ovrGross,
 			'expgross' => $expGross,
 			'vendorId' => $vendorId
-		])->render();
+        ]);
 
-		$pdf = LaravelMpdf::loadHTML('');
-		$pdf->getMpdf()->WriteHTML($view);
-
-		return response($pdf->stream($path));
+		return $pdf->stream($path);
 	}
 
 
@@ -1055,14 +1054,10 @@ class InvoiceController extends Controller
 			curl_close($ch);
 		}
 
-		$mpdf = new mPdf();
-		$mpdf->useSubstitutions = true;
-		$mpdf->CSSselectMedia = 'mpdf';
-		$mpdf->setBasePath($url);
-		$mpdf->WriteHTML($html);
+        $pdf = PDF::loadHTML($html);
 
-		$path = strtolower(str_replace(' ', '', Auth::user()->employee()->name)) . '_' . strtotime(Carbon::now());
-		$stream = $mpdf->Output($path, 'I');
+        $path = strtolower(str_replace(' ', '', Auth::user()->employee->name)) . '_' . strtotime(Carbon::now());
+        $stream = $pdf->output($path);
 
 		return view('pdf.template', ['html' => $stream]);
 	}
@@ -1071,23 +1066,15 @@ class InvoiceController extends Controller
 	public function deletePaystubPdf(Request $request)
 	{
 		if(!$request->ajax()){
-
-			$msg = "Someone attempted to navigate to the delete PDF link without AJAX. Please inspect for attempted hacking.";
-
-			Mail::to('drew.payment@choice-marketing-partners.com')
-				->send($msg);
-
-			return response()->json(false);
+            return response()->json(false);
 		}
 		else
 		{
-			$pdf = Input::all()['pdf'];
+			$pdf = $request->all()['pdf'];
 			$sto = new Storage;
 			$sto->delete('/public/pdfs/' . $pdf);
 			return response()->json(true);
 		}
-
-
 	}
 
 
