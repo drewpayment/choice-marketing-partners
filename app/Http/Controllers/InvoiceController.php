@@ -898,6 +898,15 @@ class InvoiceController extends Controller
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
         $vendorName = Vendor::find($vendorId)->name;
+        
+        /**
+         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
+         * the one record they did have and it needs to be recreated for the pages to work properly. 
+         */
+        if (count($stubs < 1) || is_null($stubs)) 
+        {
+            $this->insertBlankStub($agentId, $vendorId, $date);
+        }
 
 		foreach($stubs as $s)
 		{
@@ -943,6 +952,25 @@ class InvoiceController extends Controller
 		]);
 	}
 
+    private function insertBlankStub($agentId, $vendorId, $date)
+    {
+        $dt = Carbon::createFromFormat('Y-m-d', $date);
+        $blankInvoice = new Invoice([
+            'vendor' => $vendorId,
+            'sale_date' => $date,
+            'first_name' => '-------',
+            'last_name' => '---------', 
+            'address' => '-----', 
+            'city' => '-----',
+            'status' => '-----', 
+            'amount' => 0,
+            'agentid' => $agentId,
+            'issue_date' => $date,
+            'wkending' => $dt->subDays(11)->format('Y-m-d')
+        ]);
+
+        $blankInvoice->save();
+    }
 
 	public function printablePaystub(Request $request)
 	{
