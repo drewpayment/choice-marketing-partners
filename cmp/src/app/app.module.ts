@@ -5,9 +5,13 @@ import { AppComponent } from './app.component';
 import { PayrollModule } from './payroll/payroll.module';
 import { CreateInvoiceComponent } from './payroll/invoices/create-invoice/create-invoice.component';
 import { HttpClientModule } from '@angular/common/http';
+import { PaystubsListComponent } from './payroll/paystubs-list/paystubs-list.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MaterialModule } from './shared/material/material.module';
 
 const entryPoints = [
-    CreateInvoiceComponent
+    CreateInvoiceComponent,
+    PaystubsListComponent
 ];
 
 @NgModule({
@@ -18,8 +22,11 @@ const entryPoints = [
         BrowserModule,
         HttpClientModule,
         ReactiveFormsModule,
+        MaterialModule,
 
-        PayrollModule
+        PayrollModule,
+
+        BrowserAnimationsModule
     ],
     providers: [],
     //   bootstrap: []

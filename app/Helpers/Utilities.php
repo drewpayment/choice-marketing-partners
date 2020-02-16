@@ -1,23 +1,12 @@
 <?php
 
-namespace App\Plugins;
+namespace App\Helpers;
 
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Routing\ResponseFactory as BaseResponseFactory;
 
-class JsonResponseFactory extends BaseResponseFactory
+class Utilities 
 {
-    public function __construct($arg1, $arg2)
-    {
-        parent::__construct($arg1, $arg2);
-    }
-
-    public function json($data = array(), $status = 200, array $headers = array(), $options = 0)
-    {
-        $json = $this->encodeJson($data);
-        return parent::json($json, $status, $headers, $options);
-    }
 
     /**
      * Encode a value to camelCase JSON
@@ -55,4 +44,5 @@ class JsonResponseFactory extends BaseResponseFactory
         }
         return $newArray;
     }
+
 }

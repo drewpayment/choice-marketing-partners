@@ -1,0 +1,58 @@
+
+<div class="row">
+    <div class="col-xs-10 col-xs-offset-1">
+        <div class="box box-default">
+            <div class="box-title"><h2 class="page-header m-0 mt-5"><i class="fa fa-bank"></i> Paystubs</h2></div>
+            <div class="box-content">
+                <div class="panel">
+                    <div class="panel-heading" style="padding: 16px;">
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Dates</mat-label>
+                                    <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" />
+                                    <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate">
+                                        <mat-option *ngFor="let date of filteredDates | async" [value]="date">
+                                            {{ date | date:'shortDate' }}
+                                        </mat-option>
+                                    </mat-autocomplete>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Campaigns</mat-label>
+                                    <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
+                                    <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign">
+                                        <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
+                                            {{ campaign.name }}
+                                        </mat-option>
+                                    </mat-autocomplete>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="col-xs-3">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Agents</mat-label>
+                                    <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
+                                    <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent">
+                                        <mat-option *ngFor="let a of filteredAgents | async" [value]="a">
+                                            {{ a.name }}
+                                        </mat-option>
+                                    </mat-autocomplete>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="col-xs-3" style="padding: 8px;">
+                                <button type="button" mat-raised-button>
+                                    <mat-icon>search</mat-icon>
+                                    <span>Search</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

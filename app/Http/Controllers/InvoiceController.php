@@ -17,6 +17,7 @@ use App\PayrollRestriction;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Mailable;
 use App\Helpers\InvoiceHelper;
+use App\Helpers\Utilities;
 use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
@@ -608,16 +609,22 @@ class InvoiceController extends Controller
 
 		$issueDates = collect($issueDates);
 		$agents = collect($agents);
-		$emps = Employee::active()->get();
+        $emps = Employee::active()
+            ->select('id', 'name', 'is_active', 'is_admin', 'is_mgr')
+            ->get();
+        
+        $u = new Utilities();
+        $viewData = [
+            'isAdmin' => $isAdmin,
+            'isManager' => $isManager,
+            'emps' => json_encode($u->encodeJson($emps)),
+            // 'agents' => json_encode($u->encodeJson($agents)),
+            'issueDates' => json_encode($u->encodeJson($issueDates)),
+            'vendors' => json_encode($u->encodeJson($vendors)),
+            'vendorDictionary' => json_encode($u->encodeJson($vendorDictionary))
+        ];
 
-		return view('paystubs.paystubs',
-			['isAdmin' => $isAdmin,
-			 'isManager' => $isManager,
-			 'emps' => $emps,
-			 'agents' => $agents,
-			 'issueDates' => $issueDates,
-			 'vendors' => $vendors,
-			 'vendorDictionary' => $vendorDictionary]);
+		return view('paystubs.paystubs', $viewData);
 	}
 
 
