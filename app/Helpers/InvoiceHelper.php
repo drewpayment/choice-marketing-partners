@@ -104,7 +104,7 @@ class InvoiceHelper
      * @param integer $employeeId
      * @return OpResult
      */
-    public function hasAccessToEmployee(Employee $user, int $employeeId)
+    public function hasAccessToEmployee(Employee $user, $employeeId)
     {
         $result = new OpResult();
         $childUsers = $user->permissions->pluck('emp_id');
