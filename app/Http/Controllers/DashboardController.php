@@ -140,7 +140,7 @@ class DashboardController extends Controller
 		$user = User::userId(auth()->user()->id)->first();
 		if($user->employee['is_admin'] != 1) return response()->json(false, 500);
 
-		$input = Input::all();
+		$input = $request->all();
 		$hour = $input['hour'];
 		$min = $input['min'];
 

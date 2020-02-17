@@ -27,7 +27,7 @@ class VendorController extends Controller
 	{
 		if(!$request->ajax()) return response()->json(false);
 
-		$data = Input::all()['inputParams'];
+		$data = $request->all()['inputParams'];
 		$id = $data['id'];
 		$isActive = $data['isActive'];
 
@@ -52,7 +52,7 @@ class VendorController extends Controller
 	{
 		if(!$request->ajax()) return response()->json(false);
 
-		$data = Input::all()['inputParams'];
+		$data = $request->all()['inputParams'];
 
 		$vendor = Vendor::firstOrNew(['name' => $data['name']]);
 		if(!property_exists($vendor, 'id'))

@@ -159,9 +159,9 @@ class DocumentController extends Controller
 	}
 
 
-	public function HandleNewTagCRUD()
+	public function HandleNewTagCRUD(Request $request)
 	{
-		$data = Input::all();
+		$data = $request->all();
 
 		$doc = Document::find($data['docId']);
 
@@ -177,9 +177,9 @@ class DocumentController extends Controller
 	}
 
 
-	public function HandleTagDocument()
+	public function HandleTagDocument(Request $request)
 	{
-		$data = Input::all();
+		$data = $request->all();
 		$doc = Document::find($data['docId']);
 
 		try
@@ -194,9 +194,9 @@ class DocumentController extends Controller
 	}
 
 
-	public function HandleUntagDocument()
+	public function HandleUntagDocument(Request $request)
 	{
-		$data = Input::all();
+		$data = $request->all();
 		$doc = Document::find($data['docId']);
 
 		try
