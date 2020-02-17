@@ -4,6 +4,7 @@ import { CreateInvoiceComponent } from './invoices/create-invoice/create-invoice
 import { HttpClientModule } from '@angular/common/http';
 import { PaystubsListComponent } from './paystubs-list/paystubs-list.component';
 import { MaterialModule } from '../shared/material/material.module';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 
@@ -15,6 +16,7 @@ import { MaterialModule } from '../shared/material/material.module';
     imports: [
         CommonModule,
         HttpClientModule,
+        ReactiveFormsModule,
         MaterialModule
     ],
     exports: [

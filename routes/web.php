@@ -214,3 +214,5 @@ Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id',
  * 
  */
 Route::get('/account/user-info', 'HomeController@getUserInfo')->middleware('auth');
+Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'InvoiceController@getPaystubs');
+Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');

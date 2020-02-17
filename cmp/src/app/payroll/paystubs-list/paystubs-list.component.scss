@@ -1,0 +1,45 @@
+.search-card {
+    background-color: #fff;
+    color: #333;
+
+    * {
+        color: #333;
+    }
+
+    .mat-raised-button {
+        color: #fff;
+
+        * {
+            color: #fff;
+        }
+    }
+}
+
+.mat-card-subtitle {
+    padding-top: 16px;
+
+    .mat-form-field {
+        padding: 8px;
+    }
+}
+
+.search-container {
+    margin-bottom: 16px;
+}
+
+.mat-table {
+    background-color: #fff;
+}
+
+.mat-row:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+.mat-header-row {
+    background-color: #333;
+
+    * {
+        color: #fff;
+    }
+}

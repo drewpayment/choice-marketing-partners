@@ -2,16 +2,20 @@
 
 namespace App\Http\Results;
 
+use App\Helpers\Utilities;
+
 class OpResult 
 {
     protected $data;
     protected $status = StatusType::Success;
     protected $httpStatus = HttpSTatus::Ok;
     protected $messages = [];
+    protected $utilities;
 
     public function __construct($data = null)
     {
         $this->data = $data;
+        $this->utilities = new Utilities();
     }
 
     public function mergeInto(OpResult &$op)
@@ -45,7 +49,7 @@ class OpResult
 
     public function setData($value)
     {
-        $this->data = $value;
+        $this->data = $this->utilities->encodeJson($value);
 
         if ($this->data != null)
         {
@@ -83,6 +87,11 @@ class OpResult
         $this->httpStatus = HttpStatus::Ok;
         $this->status = StatusType::Success;
         return $this;
+    }
+
+    public function hasError()
+    {
+        return $this->status != StatusType::Success;
     }
 }
 

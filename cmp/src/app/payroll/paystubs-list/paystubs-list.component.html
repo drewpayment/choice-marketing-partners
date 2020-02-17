@@ -1,58 +1,95 @@
 
-<div class="row">
-    <div class="col-xs-10 col-xs-offset-1">
-        <div class="box box-default">
-            <div class="box-title"><h2 class="page-header m-0 mt-5"><i class="fa fa-bank"></i> Paystubs</h2></div>
-            <div class="box-content">
-                <div class="panel">
-                    <div class="panel-heading" style="padding: 16px;">
-                        <div class="row">
-                            <div class="col-xs-3">
-                                <mat-form-field appearance="outline">
-                                    <mat-label>Dates</mat-label>
-                                    <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" />
-                                    <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate">
-                                        <mat-option *ngFor="let date of filteredDates | async" [value]="date">
-                                            {{ date | date:'shortDate' }}
-                                        </mat-option>
-                                    </mat-autocomplete>
-                                </mat-form-field>
-                            </div>
+<div class="row search-container" [formGroup]="f">
+    <div class="col-xs-12 col-lg-10 col-lg-offset-1">
+        <mat-card class="search-card">
+            <mat-card-header>
+                <div mat-card-avatar>
+                    <!-- <i class="fa fa-bank"></i> -->
+                    <mat-icon>account_balance</mat-icon>
+                </div>
+                <mat-card-title>Paystubs</mat-card-title>
+                <mat-card-subtitle>
+                    <!-- <div class="row">
+                        <div class="col-xs-3"> -->
+                            <mat-form-field appearance="outline">
+                                <mat-label>Dates</mat-label>
+                                <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" />
+                                <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate" autoActiveFirstOption>
+                                    <mat-option *ngFor="let date of filteredDates | async" [value]="date">
+                                        {{ date | date:'shortDate' }}
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        <!-- </div>
+    
+                        <div class="col-xs-3"> -->
+                            <mat-form-field appearance="outline">
+                                <mat-label>Campaigns</mat-label>
+                                <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
+                                <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign" autoActiveFirstOption>
+                                    <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
+                                        {{ campaign.name }}
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        <!-- </div>
+    
+                        <div class="col-xs-3"> -->
+                            <mat-form-field appearance="outline">
+                                <mat-label>Agents</mat-label>
+                                <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
+                                <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent" autoActiveFirstOption>
+                                    <mat-option *ngFor="let a of filteredAgents | async" [value]="a">
+                                        {{ a.name }}
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        <!-- </div>
+    
+                        <div class="col-xs-3" style="padding: 8px;"> -->
+                            <button type="button" mat-raised-button (click)="search()">
+                                <mat-icon>search</mat-icon>
+                                <span>Search</span>
+                            </button>
+                        <!-- </div>
+                    </div> -->
+                </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <ng-container *ngIf="(paystubs$ | async)?.length > 0; else noPaystubs">
+                    <mat-table matSort class="mat-elevation-z2" [dataSource]="paystubs" (matSortChange)="sortPaystubs($event)">
+                        <ng-container matColumnDef="name">
+                            <mat-header-cell *matHeaderCellDef mat-sort-header>Agent Name</mat-header-cell>
+                            <mat-cell *matCellDef="let item">{{ item.agentName }}</mat-cell>
+                        </ng-container>
 
-                            <div class="col-xs-3">
-                                <mat-form-field appearance="outline">
-                                    <mat-label>Campaigns</mat-label>
-                                    <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
-                                    <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign">
-                                        <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
-                                            {{ campaign.name }}
-                                        </mat-option>
-                                    </mat-autocomplete>
-                                </mat-form-field>
-                            </div>
+                        <ng-container matColumnDef="vendor">
+                            <mat-header-cell *matHeaderCellDef mat-sort-header>Campaign</mat-header-cell>
+                            <mat-cell *matCellDef="let item">{{ item.vendorName }}</mat-cell>
+                        </ng-container>
 
-                            <div class="col-xs-3">
-                                <mat-form-field appearance="outline">
-                                    <mat-label>Agents</mat-label>
-                                    <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
-                                    <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent">
-                                        <mat-option *ngFor="let a of filteredAgents | async" [value]="a">
-                                            {{ a.name }}
-                                        </mat-option>
-                                    </mat-autocomplete>
-                                </mat-form-field>
-                            </div>
+                        <ng-container matColumnDef="amount">
+                            <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>
+                            <mat-cell *matCellDef="let item">{{ item.amount | currency }}</mat-cell>
+                        </ng-container>
 
-                            <div class="col-xs-3" style="padding: 8px;">
-                                <button type="button" mat-raised-button>
-                                    <mat-icon>search</mat-icon>
-                                    <span>Search</span>
-                                </button>
-                            </div>
+                        <ng-container matColumnDef="date">
+                            <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+                            <mat-cell *matCellDef="let item">{{ item.issueDate | date:'shortDate' }}</mat-cell>
+                        </ng-container>
+
+                        <mat-header-row *matHeaderRowDef="['name', 'vendor', 'amount', 'date']"></mat-header-row>
+                        <mat-row class="clickable" *matRowDef="let row; columns: ['name', 'vendor', 'amount', 'date']" (click)="showPaystubDetail(row)"></mat-row>
+                    </mat-table>
+                </ng-container>
+                <ng-template #noPaystubs>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h3>No Paystubs</h3>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </ng-template>
+            </mat-card-content>
+        </mat-card>
     </div>
 </div>

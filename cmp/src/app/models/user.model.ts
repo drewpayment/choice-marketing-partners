@@ -7,8 +7,8 @@ export interface User {
     password: string;
     apiToken: string;
     rememberToken: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
+    deletedAt?: string;
     role: string;
 }

@@ -12,6 +12,6 @@ export interface Agent {
     salesId1: string;
     salesId2: string;
     salesId3: string;
-    createdAt: Date | Moment | string;
-    updatedAt: Date | Moment | string;
+    createdAt?: Date | Moment | string;
+    updatedAt?: Date | Moment | string;
 }
