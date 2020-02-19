@@ -44,7 +44,8 @@ class OpResult
 
     public function getResponse()
     {
-        return response()->json($this->data, $this->httpStatus);
+        $body = is_null($this->data) ? $this->messages : $this->data;
+        return response()->json($body, $this->httpStatus);
     }
 
     public function setData($value)
