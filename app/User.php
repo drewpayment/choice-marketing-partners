@@ -2,9 +2,11 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\EmployeePermission;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -23,7 +25,7 @@ class User extends Authenticatable
 	/**
 	 * primary key used by model
 	 */
-	protected $primaryKey = 'uid';
+	protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -51,6 +53,16 @@ class User extends Authenticatable
     public function employee()
     {
     	return $this->belongsTo(Employee::class, 'id');
+    }
+
+    /**
+     * Returns active employee IDs this user has access to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function employeePermissions()
+    {
+        return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
     }
 
 	/**

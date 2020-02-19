@@ -49,6 +49,12 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
             ? JSON.parse(elem.attributes['[issueDates]'].value) : null;
         this.vendors = elem.attributes['[vendors]'] && elem.attributes['[vendors]'].value
             ? JSON.parse(elem.attributes['[vendors]'].value) : null;
+
+        this.issueDates = typeof this.issueDates === 'object' && this.issueDates !== null
+            ? Object.values(this.issueDates) : this.issueDates;
+
+        this.vendors = typeof this.vendors === 'object' && this.vendors !== null 
+            ? Object.values(this.vendors) : this.vendors;
     }
 
     ngOnInit(): void {
@@ -57,18 +63,22 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
         }
 
         if (this.vendors && this.vendors.length) {
-            this.vendors.unshift({
-                id: -1,
-                name: 'All Campaigns'
-            } as Vendor);
+            if (this.vendors.length > 1) {
+                this.vendors.unshift({
+                    id: -1,
+                    name: 'All Campaigns'
+                } as Vendor);
+            } 
             this.f.get('campaign').setValue(this.vendors[0]);
         }
 
         if (this.employees && this.employees.length) {
-            this.employees.unshift({
-                id: -1,
-                name: 'All Agents'
-            } as Agent);
+            if (this.employees.length > 1) {
+                this.employees.unshift({
+                    id: -1,
+                    name: 'All Agents'
+                } as Agent);
+            }
             this.f.get('agent').setValue(this.employees[0]);
         }
 

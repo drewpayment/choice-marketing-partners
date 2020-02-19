@@ -88,12 +88,7 @@ class InvoiceHelper
 		$vendors = Vendor::all();
 
 		return (object)[
-			// 'stubs' => $paystubs,
-			// 'agents' => $agents,
-			// 'vendors' => $vendors,
 			'rows' => $rows,
-			// 'isAdmin' => $isAdmin,
-			// 'isManager' => $isManager
 		];
     }
     
@@ -107,11 +102,14 @@ class InvoiceHelper
     public function hasAccessToEmployee(Employee $user, int $employeeId)
     {
         $result = new OpResult();
+
+        if ($user->id == $employeeId) return $result->setToSuccess();
+
         $childUsers = $user->permissions->pluck('emp_id');
         $isManager = $user->is_mgr == 1;
         $isAdmin = $user->is_admin == 1;
             
-        return $isAdmin || ($childUsers->contains($employeeId) && $isManager)
+        return $employeeId == -1 && ($isAdmin || $isManager) || $isAdmin || ($childUsers->contains($employeeId) && $isManager)
             ? $result->setToSuccess()
             : $result->setToFail('User does not have permission to access employee');
     }

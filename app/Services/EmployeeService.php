@@ -9,8 +9,11 @@
 namespace App\Services;
 
 
+use App\User;
+use App\Paystub;
 use App\Employee;
 use App\Permission;
+use App\EmployeePermission;
 use Illuminate\Support\Facades\DB;
 
 class EmployeeService {
@@ -35,6 +38,6 @@ class EmployeeService {
 		}
 
 		return $result;
-	}
+    }
 
 }

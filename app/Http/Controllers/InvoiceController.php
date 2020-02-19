@@ -22,6 +22,7 @@ use App\Http\Results\OpResult;
 use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
+use App\Services\SessionUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -37,6 +38,7 @@ class InvoiceController extends Controller
     protected $invoiceHelper;
     protected $invoiceService;
     protected $paystubService;
+    protected $session;
 
 	/**
 	 * Middleware and helpers wiring
@@ -44,12 +46,13 @@ class InvoiceController extends Controller
 	 * @param InvoiceHelper $_invoiceHelper
 	 * @param InvoiceService $invoice_service
 	 */
-	public function __construct(InvoiceHelper $_invoiceHelper, InvoiceService $invoice_service, PaystubService $paystub_service)
+	public function __construct(InvoiceHelper $_invoiceHelper, InvoiceService $invoice_service, PaystubService $paystub_service, SessionUtil $_session)
 	{
 		$this->middleware('auth');
 		$this->invoiceHelper = $_invoiceHelper;
 		$this->invoiceService = $invoice_service;
-		$this->paystubService = $paystub_service;
+        $this->paystubService = $paystub_service;
+        $this->session = $_session;
 	}
 
 
@@ -519,13 +522,6 @@ class InvoiceController extends Controller
         $this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
 
         if ($result->hasError()) return $result->getResponse();
-
-        // $isAdmin = ($user->is_admin == 1);
-        // $isManager = ($user->is_mgr == 1);
-        // $childUsers = $user->permissions->pluck('emp_id');
-
-        // if (!$childUsers->contains($employeeId) && $isManager && !$isAdmin) 
-        //     return $result->setToFail('You do not have permission to this user.');
         
         $args = [
             'vendor' => $vendorId,
@@ -570,12 +566,9 @@ class InvoiceController extends Controller
 		// This employee is a manager
 		else if($isManager)
 		{
-			$rollList = $sessionUser->permissions()->active()->get();
-			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
-			$agents[] = $sessionUser;
-			$agents = collect($agents);
-
-			if(count($issueDates) > 0)
+			$agents = $this->session->getUserSubordinates($sessionUser->id);
+            
+			if($issueDates->isNotEmpty())
 			{
 				$today = Carbon::now()->tz('America/Detroit');
 
@@ -605,13 +598,13 @@ class InvoiceController extends Controller
 		// This is a normal user
 		else
 		{
-			$agents = collect(array(Auth::user()->employee));
-			$issueDates = Paystub::latest('issue_date')->agentId($agents[0]['id'])
-									->get()->unique('issue_date')->pluck('issue_date');
+            $agents = collect([$sessionUser]);
+			$issueDates = Paystub::latest('issue_date')->agentId($sessionUser->id)
+                                    ->get()->unique('issue_date')->pluck('issue_date');
 
-			if(count($issueDates) > 0)
+			if($issueDates->isNotEmpty())
 			{
-				$today = Carbon::now()->tz('America/Detroit');
+				$today = Carbon::now();
 
 				foreach($issueDates as $key => &$issueDate)
 				{
@@ -634,24 +627,20 @@ class InvoiceController extends Controller
 						}
 					}
 				}
-			}
+            }
+            
 
-			$invoiceVendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor')->pluck('vendor');
-			$vendors = $vendors->whereIn('id', $invoiceVendors);
+            $invoiceVendors = Invoice::latest('issue_date')->agentId($sessionUser->id)->get()
+                ->unique('vendor')->pluck('vendor');
+                
+            $vendors = $vendors->whereIn('id', $invoiceVendors);
 		}
-
-		$issueDates = collect($issueDates);
-		$agents = collect($agents);
-        $emps = Employee::active()
-            ->select('id', 'name', 'is_active', 'is_admin', 'is_mgr')
-            ->get();
         
         $u = new Utilities();
         $viewData = [
             'isAdmin' => $isAdmin,
             'isManager' => $isManager,
-            'emps' => json_encode($u->encodeJson($emps)),
-            // 'agents' => json_encode($u->encodeJson($agents)),
+            'emps' => json_encode($u->encodeJson($agents)),
             'issueDates' => json_encode($u->encodeJson($issueDates)),
             'vendors' => json_encode($u->encodeJson($vendors)),
             'vendorDictionary' => json_encode($u->encodeJson($vendorDictionary))
