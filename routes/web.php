@@ -1,5 +1,10 @@
 <?php
 
+// https://stackoverflow.com/questions/48343557/count-parameter-must-be-an-array-or-an-object-that-implements-countable
+if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
+    error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+}
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
