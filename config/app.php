@@ -233,7 +233,7 @@ $results = [
         'View' => Illuminate\Support\Facades\View::class,
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
-	    'PDF' => Meneses\LaravelMpdf\Facades\LaravelMpdf::class,
+	    'PDF' => App\Plugins\Facade\PDF::class,
 
     ],
 
