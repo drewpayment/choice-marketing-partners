@@ -29,8 +29,10 @@ class UpdateEmployeeUserTable extends Migration
      */
     public function down()
     {
-	    $table->dropPrimary('PRIMARY');
-	    $table->dropForeign('employee_user_employee_id_foreign');
-	    $table->dropForeign('employee_user_user_id_foreign');
+	    Schema::table('employee_user', function (Blueprint $table) {
+            $table->dropPrimary(['employee_id', 'user_id']);
+            $table->dropForeign(['employee_id']);
+            $table->dropForeign(['user_id']);
+        });
     }
 }

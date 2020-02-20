@@ -25,9 +25,8 @@ class UpdatePermissionsTable extends Migration
         });
 
         Schema::create('employee_permission', function(Blueprint $table){
-
-        	$table->integer('employee_id')->unsigned();
-        	$table->integer('permission_id')->unsigned();
+        	$table->unsignedInteger('employee_id');
+        	$table->unsignedInteger('permission_id');
 
         	$table->primary(['employee_id', 'permission_id']);
         	$table->foreign('employee_id')->references('id')->on('employees');
@@ -44,7 +43,9 @@ class UpdatePermissionsTable extends Migration
      */
     public function down()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('permission');
         Schema::dropIfExists('employee_permission');
+        Schema::enableForeignKeyConstraints();
     }
 }

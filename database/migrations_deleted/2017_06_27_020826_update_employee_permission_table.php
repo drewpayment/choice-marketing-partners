@@ -29,10 +29,12 @@ class UpdateEmployeePermissionTable extends Migration
      */
     public function down()
     {
+        Schema::disableForeignKeyConstraints();
     	Schema::table('employee_permission', function(Blueprint $table){
-		    $table->dropPrimary('PRIMARY');
-		    $table->dropForeign('employee_permission_employee_id_foreign');
-		    $table->dropForeign('employee_permission_permission_id_foreign');
-	    });
+		    $table->dropPrimary(['employee_id', 'permission_id']);
+		    $table->dropForeign(['employee_id']);
+		    $table->dropForeign(['permission_id']);
+        });
+        Schema::enableForeignKeyConstraints();
     }
 }
