@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
 {
-
+    protected $primaryKey = 'id';
 
 	/**
 	 * table that model references
@@ -150,7 +150,7 @@ class Employee extends Model
 	 */
 	public function invoices()
 	{
-		return $this->belongsToMany(Invoice::class, 'employee_invoice', 'employee_id');
+        return $this->hasMany(Invoice::class, 'agentid');
 	}
 
 

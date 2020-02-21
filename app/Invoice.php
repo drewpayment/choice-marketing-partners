@@ -29,7 +29,7 @@ class Invoice extends Model
 	 */
 	public function agent()
 	{
-		return $this->belongsToMany(Employee::class, 'employee_invoice', 'invoice_id', 'employee_id');
+        return $this->belongsTo(Employee::class, 'agentid', 'id');
 	}
 
 
