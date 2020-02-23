@@ -177,8 +177,11 @@ $results = [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 	    Collective\Html\HtmlServiceProvider::class,
-	    Conner\Tagging\Providers\TaggingServiceProvider::class,
-	    Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
+        Conner\Tagging\Providers\TaggingServiceProvider::class,
+        App\Http\View\Composers\ViewServiceProvider::class,
+        App\Providers\JsonResponseServiceProvider::class,
+        App\Plugins\PDFServiceProvider::class,
+	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
 
 
     ],
@@ -230,7 +233,7 @@ $results = [
         'View' => Illuminate\Support\Facades\View::class,
 	    'Form' => Collective\Html\FormFacade::class,
 	    'Html' => Collective\Html\HtmlFacade::class,
-	    'PDF' => Meneses\LaravelMpdf\Facades\LaravelMpdf::class,
+	    'PDF' => App\Plugins\Facade\PDF::class,
 
     ],
 

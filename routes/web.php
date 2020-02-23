@@ -1,5 +1,10 @@
 <?php
 
+// https://stackoverflow.com/questions/48343557/count-parameter-must-be-an-array-or-an-object-that-implements-countable
+if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
+    error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+}
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,9 +22,7 @@
 Route::get('/', 'PublicController@index');                                                                  // index
 Route::get('/about-us', 'PublicController@aboutus');                                                        // about
 Route::post('/returnCommaClubListByID', 'PublicController@ReturnCommaClubListByID');                        // comma.club
-Route::get('/payroll-dispute', function(){                                                                  // emails.dispute
-	return view('emails.dispute');
-});
+Route::get('/payroll-dispute', 'PayrollController@payrollDispute');
 
 
 /*
@@ -32,9 +35,7 @@ Route::post('/upload/save-invoice', 'InvoiceController@SaveInvoice');           
 Route::get('/historical-invoice-data', 'InvoiceController@historical');                                     // invoices.historical
 Route::get('/getissuedates', 'InvoiceController@returnIssueDates');                                         // invoices.issueDates
 Route::post('/getpaystub', 'InvoiceController@returnPaystub');                                              // invoices.paystub
-Route::get('/paystub/delete/confirm',  function(){                                                          // invoices.deletemodal
-	return view('invoices.deletemodal');
-});
+Route::get('/paystub/delete/confirm', 'PayrollController@confirmDeletePaystub');
 Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');                                   //
 
 // new paystub module (do not implement on production)
@@ -204,3 +205,15 @@ Route::get('blog/user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+'
 
 // display list of posts
 Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
+
+
+/**
+ * 
+ * ANGULAR HYBRID API CALLS
+ * These do not use the Laravel API token methods, but rely on the normal laravel session token 
+ * and the csrf tokens.
+ * 
+ */
+Route::get('/account/user-info', 'HomeController@getUserInfo')->middleware('auth');
+Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'InvoiceController@getPaystubs');
+Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');

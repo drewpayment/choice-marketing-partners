@@ -2,31 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Employee;
+use DateTime;
+use Exception;
+use App\Vendor;
 use App\Expense;
-use App\Helpers\InvoiceHelper;
 use App\Invoice;
-use App\Override;
 use App\Payroll;
-use App\PayrollRestriction;
 use App\Paystub;
+use App\Employee;
+use App\Override;
+use Carbon\Carbon;
 use App\Services\DbHelper;
+use App\PayrollRestriction;
+use Illuminate\Http\Request;
+use Illuminate\Mail\Mailable;
+use App\Helpers\InvoiceHelper;
+use App\Helpers\Utilities;
+use App\Http\Results\OpResult;
+use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
-use App\Vendor;
-use Carbon\Carbon;
-use DateTime;
-use Doctrine\DBAL\Driver\Mysqli\MysqliException;
-use Illuminate\Support\Facades\Auth;
+use App\Services\SessionUtil;
 use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
-use Meneses\LaravelMpdf\Facades\LaravelMpdf;
-use mPDF;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Storage;
+use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 
 class InvoiceController extends Controller
 {
@@ -35,6 +38,7 @@ class InvoiceController extends Controller
     protected $invoiceHelper;
     protected $invoiceService;
     protected $paystubService;
+    protected $session;
 
 	/**
 	 * Middleware and helpers wiring
@@ -42,12 +46,13 @@ class InvoiceController extends Controller
 	 * @param InvoiceHelper $_invoiceHelper
 	 * @param InvoiceService $invoice_service
 	 */
-	public function __construct(InvoiceHelper $_invoiceHelper, InvoiceService $invoice_service, PaystubService $paystub_service)
+	public function __construct(InvoiceHelper $_invoiceHelper, InvoiceService $invoice_service, PaystubService $paystub_service, SessionUtil $_session)
 	{
 		$this->middleware('auth');
 		$this->invoiceHelper = $_invoiceHelper;
 		$this->invoiceService = $invoice_service;
-		$this->paystubService = $paystub_service;
+        $this->paystubService = $paystub_service;
+        $this->session = $_session;
 	}
 
 
@@ -68,11 +73,11 @@ class InvoiceController extends Controller
 	}
 
 
-	public function HandleEditInvoice()
+	public function HandleEditInvoice(Request $request)
 	{
 		if(!request()->ajax()) return response()->json(false);
 
-		$input = json_decode(Input::all()['input'], true);
+		$input = json_decode($request->all()['input'], true);
 		$result = $this->invoiceService->editInvoice($input);
 
 		return response()->json($result);
@@ -83,12 +88,12 @@ class InvoiceController extends Controller
 	 * Save invoice via ajax --- new module
 	 *
 	 */
-	public function SaveInvoice()
+	public function SaveInvoice(Request $request)
 	{
 		if(!request()->ajax())
 			return response()->json(false);
 
-		$input = json_decode(Input::all()['input'], true);
+		$input = json_decode($request->all()['input'], true);
 		$result = $this->invoiceService->saveInvoice($input);
 
 		return response()->json($result);
@@ -507,7 +512,32 @@ class InvoiceController extends Controller
 	function formatDateCollectionSeparators($date, $currentFormat, $desiredFormat)
 	{
 		return Carbon::createFromFormat($currentFormat, $date)->format($desiredFormat);
-	}
+    }
+    
+    public function getPaystubs(Request $request, $employeeId, $vendorId, $issueDate)
+    {
+        $result = new OpResult();
+
+        $user = $request->user()->employee;
+        $this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
+
+        if ($result->hasError()) return $result->getResponse();
+        
+        $args = [
+            'vendor' => $vendorId,
+            'agent' => $employeeId,
+            'date' => $issueDate
+        ];
+
+        $data = $this->invoiceHelper->searchPaystubData($args);
+
+        if (!is_null($data))
+        {
+            $result->setDataOnSuccess($data);
+        }
+
+        return $result->getResponse();
+    }
 
 
 	/**
@@ -536,18 +566,15 @@ class InvoiceController extends Controller
 		// This employee is a manager
 		else if($isManager)
 		{
-			$rollList = $sessionUser->permissions()->active()->get();
-			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
-			$agents[] = $sessionUser;
-			$agents = collect($agents);
-
-			if(count($issueDates) > 0)
+			$agents = $this->session->getUserSubordinates($sessionUser->id);
+            
+			if($issueDates->isNotEmpty())
 			{
 				$today = Carbon::now()->tz('America/Detroit');
 
 				foreach($issueDates as $key => &$issueDate)
 				{
-					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
+					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate);
 					$nextWednesday = new Carbon('next wednesday');
 					if($issueDate > $nextWednesday) {
 						unset($issueDates[$key]);
@@ -556,7 +583,7 @@ class InvoiceController extends Controller
 					}
 					else
 					{
-						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key], 'America/Detroit');
+						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key]);
 						$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 	
 						if($today < $release)
@@ -571,17 +598,17 @@ class InvoiceController extends Controller
 		// This is a normal user
 		else
 		{
-			$agents = collect(array(Auth::user()->employee));
-			$issueDates = Paystub::latest('issue_date')->agentId($agents[0]['id'])
-									->get()->unique('issue_date')->pluck('issue_date');
+            $agents = collect([$sessionUser]);
+			$issueDates = Paystub::latest('issue_date')->agentId($sessionUser->id)
+                                    ->get()->unique('issue_date')->pluck('issue_date');
 
-			if(count($issueDates) > 0)
+			if($issueDates->isNotEmpty())
 			{
-				$today = Carbon::now()->tz('America/Detroit');
+				$today = Carbon::now();
 
 				foreach($issueDates as $key => &$issueDate)
 				{
-					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate, 'America/Detroit');
+					$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate);
 					$nextWednesday = new Carbon('next wednesday');
 					if($issueDate > $nextWednesday) {
 						unset($issueDates[$key]);
@@ -590,7 +617,7 @@ class InvoiceController extends Controller
 					}
 					else
 					{
-						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key], 'America/Detroit');
+						$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[$key]);
 						$release = $nextIssue->subDay()->setTime($limit->hour, $limit->minute, 0);
 	
 						if($today < $release)
@@ -600,255 +627,27 @@ class InvoiceController extends Controller
 						}
 					}
 				}
-			}
+            }
+            
 
-			$invoiceVendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor')->pluck('vendor');
-			$vendors = $vendors->whereIn('id', $invoiceVendors);
+            $invoiceVendors = Invoice::latest('issue_date')->agentId($sessionUser->id)->get()
+                ->unique('vendor')->pluck('vendor');
+                
+            $vendors = $vendors->whereIn('id', $invoiceVendors);
 		}
+        
+        $u = new Utilities();
+        $viewData = [
+            'isAdmin' => $isAdmin,
+            'isManager' => $isManager,
+            'emps' => json_encode($u->encodeJson($agents)),
+            'issueDates' => json_encode($u->encodeJson($issueDates)),
+            'vendors' => json_encode($u->encodeJson($vendors)),
+            'vendorDictionary' => json_encode($u->encodeJson($vendorDictionary))
+        ];
 
-		$issueDates = collect($issueDates);
-		$agents = collect($agents);
-		$emps = Employee::active()->get();
-
-		return view('paystubs.paystubs',
-			['isAdmin' => $isAdmin,
-			 'isManager' => $isManager,
-			 'emps' => $emps,
-			 'agents' => $agents,
-			 'issueDates' => $issueDates,
-			 'vendors' => $vendors,
-			 'vendorDictionary' => $vendorDictionary]);
+		return view('paystubs.paystubs', $viewData);
 	}
-
-
-	/**
-	 * BEING REPLACED BY NEWER VERSION THAT USES NEW PAYSTUB MODEL
-	 * The main landing page for the paystub module.
-	 *
-	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-	 */
-//	public function payrollViewerBACKUP()
-//	{
-//		$sessionUser = Auth::user()->employee;
-//		$isAdmin = ($sessionUser->is_admin == 1);
-//		$isManager = ($sessionUser->is_mgr == 1);
-//
-//		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
-//								->get()->unique('issue_date')->pluck('issue_date');
-//
-//		$vendors = Vendor::active()->get();
-//		$vendorDictionary = Vendor::all();
-//
-//		/**
-//		 * ADMIN USERS
-//		 */
-//		if($isAdmin)
-//		{
-//			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
-//
-//		}
-//		/**
-//		 * MANAGER USERS
-//		 */
-//		else if($isManager)
-//		{
-//			$rollList = $sessionUser->permissions()->active()->get();
-//			$agents = Employee::agentId($rollList->pluck('emp_id')->all())->get();
-//			$agents[] = $sessionUser;
-//			$agents = collect($agents);
-//		}
-//		/**
-//		 * NON-ADMIN USERS
-//		 */
-//		else
-//		{
-//			$agents = collect(array(Auth::user()->employee));
-//			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
-//			                     ->get()->unique('issue_date')->pluck('issue_date');
-//
-//			// checks to see if we can release this week's paystub information
-//			// to non-admin users yet.
-//			if(count($issueDates) > 0)
-//			{
-//				$today = Carbon::now()->tz('America/Detroit');
-//				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-//				$release = $nextIssue->subDay()->setTime(20, 0, 0);
-//
-//				if($today < $release)
-//				{
-//					$issueDates = $issueDates->slice(1);
-//				}
-//			}
-//
-//			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
-//			$vendors = collect($vendors);
-//
-//			foreach($vendors as $v)
-//			{
-//				$name = $vendorDictionary->first(function($value, $k)use($v){
-//					return $v->vendor == $value->id;
-//				});
-//				$v['name'] = $name->name;
-//			}
-//		}
-//
-//		$issueDates = collect($issueDates);
-//		$agents = collect($agents);
-//		$emps = Employee::active()->get();
-//
-//		return view('paystubs.paystubs',
-//			['isAdmin' => $isAdmin,
-//			 'isManager' => $isManager,
-//			 'emps' => $emps,
-//			 'agents' => $agents,
-//			 'issueDates' => $issueDates,
-//			 'vendors' => $vendors,
-//			 'vendorDictionary' => $vendorDictionary]);
-//	}
-
-
-	/**
-	 * new paystubs module to support paystub searching and returning all employees
-	 *
-	 */
-//	public function paystubs()
-//	{
-//		$thisUser = Auth::user()->employee;
-//		$admin = $thisUser->is_admin;
-//		$isManager = ($thisUser->is_mgr == 1);
-//
-//		$isAdmin = ($admin == 1);
-//		$vendor = -1;
-//		$date = Invoice::latest('issue_date')->first()->issue_date;
-//
-//		$issueDates = Invoice::latest('issue_date')->withActiveAgent()
-//						->get()->unique('issue_date')->pluck('issue_date');
-//
-//		$vendors = Vendor::active()->get();
-//		$vendorDictionary = Vendor::all();
-//		$vendorDictionary = collect($vendorDictionary);
-//
-//		/**
-//		 * ADMIN USERS
-//		 */
-//		if($isAdmin){
-//			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
-//			$rows = Invoice::vendorId($vendor)
-//							->issueDate($date)
-//							->agentId($agents->pluck('id')->toArray())
-//							->latest('issue_date')
-//							->latest('agentid')
-//							->latest('vendor')
-//							->withActiveAgent()
-//							->get();
-//
-//			$paystubs = $rows->unique(function($item){
-//				return $item['agentid'].$item['vendor'];
-//			});
-//
-//			$overrides = Override::agentId($agents->pluck('id')->toArray())
-//                               ->issueDate($date)
-//                               ->get();
-//			$expenses = Expense::agentId($agents->pluck('id')->toArray())
-//			                   ->issueDate($date)
-//			                   ->get();
-//
-//		}
-//		/**
-//		 * MANAGERS
-//		 */
-//		else if ($isManager)
-//		{
-//			$list = $thisUser->permissions()->active()->get();
-//
-//			$empsResult = Employee::agentId($list->pluck('emp_id')->all())->get();
-//			$empsResult[] = $thisUser;
-//			$agents = collect($empsResult);
-//
-//			$rows = Invoice::vendorId($vendor)
-//			               ->issueDate($date)
-//			               ->agentId($agents->pluck('id')->all())
-//			               ->latest('issue_date')
-//			               ->latest('agentid')
-//			               ->latest('vendor')
-//			               ->withActiveAgent()
-//			               ->get();
-//			$paystubs = $rows->unique(function($item){
-//				return $item['agentid'].$item['vendor'];
-//			});
-//
-//			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-//			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-//		}
-//		/**
-//		 * AGENTS
-//		 */
-//		else
-//		{
-//			$agents = collect(array(Auth::user()->employee));
-//			$issueDates = Invoice::latest('issue_date')->agentId($agents[0]['id'])
-//			                     ->get()->unique('issue_date')->pluck('issue_date');
-//
-//			if(count($issueDates) > 0)
-//			{
-//				$today = Carbon::now()->tz('America/Detroit');
-//				$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDates[0], 'America/Detroit');
-//				$release = $nextIssue->subDay()->setTime(20, 0, 0);
-//
-//				if($today < $release)
-//				{
-//					$issueDates = $issueDates->slice(1);
-//					$date = (!isset($issueDates[0])) ? Carbon::createFromFormat('Y-m-d', $date)->previous(Carbon::WEDNESDAY)->toDateTimeString() : $issueDates[0];
-//				}
-//			}
-//
-//			$rows = Invoice::vendorId($vendor)
-//			               ->issueDate($date)
-//			               ->agentId($thisUser->id)
-//			               ->latest('issue_date')
-//			               ->latest('vendor')
-//			               ->withActiveAgent()
-//			               ->get();
-//
-//			$paystubs = $rows->unique(function($item){
-//				return $item['agentid'].$item['vendor'];
-//			});
-//
-//
-//			$overrides = Override::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-//			$expenses = Expense::agentId($agents->pluck('id')->all())->issueDate($date)->get();
-//
-//			$vendors = Invoice::latest('issue_date')->agentId($agents[0]['id'])->get()->unique('vendor');
-//			$vendors = collect($vendors);
-//
-//			foreach($vendors as $v)
-//			{
-//				$name = $vendorDictionary->first(function($value, $k)use($v){
-//					return $v->vendor == $value->id;
-//				});
-//				$v['name'] = $name->name;
-//			}
-//		}
-//
-//		$issueDates = collect($issueDates);
-//		$paystubs = collect($paystubs);
-//		$agents = collect($agents);
-//		$emps = Employee::active()->get();
-//
-//
-//		return view('paystubs.paystubs',
-//			['isAdmin' => $isAdmin,
-//			 'isManager' => $isManager,
-//			 'emps' => $emps,
-//			 'paystubs' => $paystubs,
-//			 'agents' => $agents,
-//			 'issueDates' => $issueDates,
-//			 'vendors' => $vendors,
-//			 'vendorDictionary' => $vendorDictionary,
-//			 'rows' => $rows,
-//			 'overrides' => $overrides,
-//			 'expenses' => $expenses]);
-//	}
 
 
 	function array_insert($array, $var, $position)
@@ -873,7 +672,7 @@ class InvoiceController extends Controller
 	{
 		if(!$request->ajax()) return response()->json(false);
 
-		$params = Input::all()['inputParams'];
+        $params = $request->all()['inputParams'];
 		$results = $this->invoiceHelper->searchPaystubData($params);
 
 		return view('paystubs._stubrowdata', [
@@ -889,16 +688,25 @@ class InvoiceController extends Controller
 
 	public function showPaystub(Request $request)
 	{
-
 		$inputParams = $request->all();
 		$agentId = $inputParams['agent'];
 		$vendorId = $inputParams['vendor'];
 		$date = new Carbon($inputParams['date']);
 		$gross = 0;
-		$invoiceDt = $date->format('m-d-Y');
+        $invoiceDt = $date->format('m-d-Y');
+        $issueDate = $date->format('Y-m-d');
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
-		$vendorName = Vendor::find($vendorId)->name;
+        $vendorName = Vendor::find($vendorId)->name;
+        
+        /**
+         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
+         * the one record they did have and it needs to be recreated for the pages to work properly. 
+         */
+        if (count($stubs) < 1 || is_null($stubs)) 
+        {
+            $this->invoiceService->insertBlankStub($agentId, $vendorId, $date);
+        }
 
 		foreach($stubs as $s)
 		{
@@ -909,10 +717,10 @@ class InvoiceController extends Controller
 
 			$s->sale_date = strtotime($s->sale_date);
 			$s->sale_date = date('m-d-Y', $s->sale_date);
-		}
+        }
 
-		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($date)->get();
-		$expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($date)->get();
+		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
+        $expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
 
 		$ovrGross = $overrides->sum(function($ovr){
 			global $ovrGross;
@@ -942,8 +750,33 @@ class InvoiceController extends Controller
 			'vendorId' => $vendorId,
 			'isAdmin' => $isAdmin
 		]);
-	}
+    }
+    
+    public function showPaystubDetailByPaystubId(Request $request, $employeeId, $paystubId)
+    {
+        $result = new OpResult();
 
+        $user = $request->user()->employee;
+        $this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
+
+        if ($result->hasError()) 
+        {
+            return $result->getResponse();
+        }
+
+        $paystub = Paystub::find($paystubId);
+
+        if (is_null($paystub)) 
+        {
+            return $result
+                ->setToFail('Failed to find specified paystub.')
+                ->getResponse();   
+        }
+
+        $issueDate = Carbon::createFromFormat('Y-m-d', $paystub->issue_date);
+
+        return $this->invoiceService->getPaystubView($employeeId, $paystub->vendor_id, $issueDate);
+    }
 
 	public function printablePaystub(Request $request)
 	{
@@ -991,8 +824,9 @@ class InvoiceController extends Controller
 
 
 		$path = strtolower($emp->name . '_' . $vendorName . '_' . $date->format('Ymd') . '.pdf');
-		$view = View::make('pdf.template', [
-			'stubs' => $stubs,
+        
+        $pdf = PDF::loadView('pdf.template', [
+            'stubs' => $stubs,
 			'emp' => $emp,
 			'gross' => $gross,
 			'invoiceDt' => $invoiceDt,
@@ -1002,12 +836,9 @@ class InvoiceController extends Controller
 			'ovrgross' => $ovrGross,
 			'expgross' => $expGross,
 			'vendorId' => $vendorId
-		])->render();
+        ]);
 
-		$pdf = LaravelMpdf::loadHTML('');
-		$pdf->getMpdf()->WriteHTML($view);
-
-		return response($pdf->stream($path));
+		return $pdf->stream($path);
 	}
 
 
@@ -1028,14 +859,10 @@ class InvoiceController extends Controller
 			curl_close($ch);
 		}
 
-		$mpdf = new mPdf();
-		$mpdf->useSubstitutions = true;
-		$mpdf->CSSselectMedia = 'mpdf';
-		$mpdf->setBasePath($url);
-		$mpdf->WriteHTML($html);
+        $pdf = PDF::loadHTML($html);
 
-		$path = strtolower(str_replace(' ', '', Auth::user()->employee()->name)) . '_' . strtotime(Carbon::now());
-		$stream = $mpdf->Output($path, 'I');
+        $path = strtolower(str_replace(' ', '', Auth::user()->employee->name)) . '_' . strtotime(Carbon::now());
+        $stream = $pdf->output($path);
 
 		return view('pdf.template', ['html' => $stream]);
 	}
@@ -1044,23 +871,15 @@ class InvoiceController extends Controller
 	public function deletePaystubPdf(Request $request)
 	{
 		if(!$request->ajax()){
-
-			$msg = "Someone attempted to navigate to the delete PDF link without AJAX. Please inspect for attempted hacking.";
-
-			Mail::to('drew.payment@choice-marketing-partners.com')
-				->send($msg);
-
-			return response()->json(false);
+            return response()->json(false);
 		}
 		else
 		{
-			$pdf = Input::all()['pdf'];
+			$pdf = $request->all()['pdf'];
 			$sto = new Storage;
 			$sto->delete('/public/pdfs/' . $pdf);
 			return response()->json(true);
 		}
-
-
 	}
 
 

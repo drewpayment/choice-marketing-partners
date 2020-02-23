@@ -9,14 +9,16 @@
 namespace App\Services;
 
 
-use App\Employee;
+use App\Vendor;
 use App\Expense;
-use App\Helpers\InvoiceHelper;
 use App\Invoice;
-use App\Override;
 use App\Payroll;
+use App\Employee;
+use App\Override;
 use Carbon\Carbon;
+use App\Helpers\InvoiceHelper;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceService {
 
@@ -338,6 +340,96 @@ class InvoiceService {
 		}
 
 		return $result;
-	}
+    }
+    
+    /**
+     * Gets paystubs view associated with /paystubs/pdf-detail in web.php
+     *
+     * @param int $agentId
+     * @param int $vendorId
+     * @param Carbon $date
+     * @return View
+     */
+    public function getPaystubView($agentId, $vendorId, $date)
+    {
+        $gross = 0;
+        $invoiceDt = $date->format('m-d-Y');
+        $issueDate = $date->format('Y-m-d');
+		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
+		$emp = Employee::find($agentId);
+        $vendorName = Vendor::find($vendorId)->name;
+        
+        /**
+         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
+         * the one record they did have and it needs to be recreated for the pages to work properly. 
+         */
+        if (count($stubs) < 1 || is_null($stubs)) 
+        {
+            $this->insertBlankStub($agentId, $vendorId, $date);
+        }
+
+		foreach($stubs as $s)
+		{
+			if(is_numeric($s->amount))
+			{
+				$gross = $gross + $s->amount;
+			}
+
+			$s->sale_date = strtotime($s->sale_date);
+			$s->sale_date = date('m-d-Y', $s->sale_date);
+        }
+
+		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
+        $expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + floatval($ovr->total);
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + floatval($exp->amount);
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+		$loggedUser = Employee::find(Auth::user()->id);
+		$isAdmin = ($loggedUser->is_admin == 1);
+
+		return view('pdf.paystub', [
+			'stubs' => $stubs,
+			'emp' => $emp,
+			'gross' => $gross,
+			'invoiceDt' => $invoiceDt,
+			'vendor' => $vendorName,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'ovrgross' => $ovrGross,
+			'expgross' => $expGross,
+			'vendorId' => $vendorId,
+			'isAdmin' => $isAdmin
+		]);
+    }
+
+    public function insertBlankStub($agentId, $vendorId, $date)
+    {
+        $dt = Carbon::createFromFormat('Y-m-d', $date);
+        $blankInvoice = new Invoice([
+            'vendor' => $vendorId,
+            'sale_date' => $date,
+            'first_name' => '-------',
+            'last_name' => '---------', 
+            'address' => '-----', 
+            'city' => '-----',
+            'status' => '-----', 
+            'amount' => 0,
+            'agentid' => $agentId,
+            'issue_date' => $date,
+            'wkending' => $dt->subDays(11)->format('Y-m-d')
+        ]);
+
+        $blankInvoice->save();
+    }
 
 }

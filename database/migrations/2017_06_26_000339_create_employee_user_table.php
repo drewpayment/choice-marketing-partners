@@ -14,8 +14,8 @@ class CreateEmployeeUserTable extends Migration
     public function up()
     {
         Schema::create('employee_user', function(Blueprint $table){
-        	$table->integer('employee_id')->unsigned();
-        	$table->integer('user_id')->unsigned();
+        	$table->unsignedInteger('employee_id');
+        	$table->unsignedInteger('user_id');
 
         	$table->primary(['employee_id', 'user_id']);
         	$table->foreign('employee_id')->references('id')->on('employees');
@@ -30,6 +30,8 @@ class CreateEmployeeUserTable extends Migration
      */
     public function down()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('employee_user');
+        Schema::enableForeignKeyConstraints();
     }
 }

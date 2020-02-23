@@ -14,6 +14,8 @@
 
 @section('content')
 
+<!-- <cp-create-invoice></cp-create-invoice> -->
+
 <div class="row pt-10">
 	<div class="col-xs-12">
 		<div class="box box-default">

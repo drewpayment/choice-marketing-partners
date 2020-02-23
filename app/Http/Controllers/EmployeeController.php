@@ -91,7 +91,7 @@ class EmployeeController extends Controller
 	{
 		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
 
-		$all = Input::all()['showAll'];
+		$all = $request->all()['showAll'];
 
 		if($all == 'true') {
 			$employees = Employee::showAll()->get()->sortBy('name');
@@ -113,7 +113,7 @@ class EmployeeController extends Controller
 	public function getExistingEmployee(Request $request)
 	{
 		if(!$request->ajax()) return response()->json(false);
-		$employee = Employee::find(Input::all()['id']);
+		$employee = Employee::find($request->all()['id']);
 
 		return view('employees.partials.existingemployeemodal', ['emp' => $employee]);
 	}
@@ -193,7 +193,7 @@ class EmployeeController extends Controller
 		$errors = [];
 		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
 
-		$params = Input::all();
+		$params = $request->all();
 		$e = new Employee([
 			'name' => $params['name'],
 			'email' => $params['email'],
@@ -251,7 +251,7 @@ class EmployeeController extends Controller
 		$errors = [];
 		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
 
-		$params = Input::all();
+		$params = $request->all();
 		$e = Employee::agentId($params['id'])->first();
 		$activeStatus = ($params['active'] == 'true') ? 1 : 0;
 		$e->is_active = $activeStatus;

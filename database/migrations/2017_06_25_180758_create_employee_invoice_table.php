@@ -14,8 +14,8 @@ class CreateEmployeeInvoiceTable extends Migration
     public function up()
     {
         Schema::create('employee_invoice', function (Blueprint $table) {
-            $table->integer('employee_id')->unsigned();
-            $table->integer('invoice_id')->unsigned();
+            $table->unsignedInteger('employee_id');
+            $table->unsignedInteger('invoice_id');
 
             $table->primary(['employee_id', 'invoice_id']);
             $table->foreign('employee_id')->references('id')->on('employees');
@@ -30,6 +30,8 @@ class CreateEmployeeInvoiceTable extends Migration
      */
     public function down()
     {
-    	Schema::dropIfExists('employee_invoice');
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('employee_invoice');
+        Schema::enableForeignKeyConstraints();
     }
 }

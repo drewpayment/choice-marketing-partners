@@ -67,7 +67,7 @@ class Override extends Model
 	 */
 	public function scopeIssueDate($query, $date)
 	{
-		return $query->where('issue_date', $date);
+		return $query->whereDate('issue_date', $date);
 	}
 
 }

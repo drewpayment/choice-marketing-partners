@@ -3,15 +3,17 @@
 
 namespace App\Helpers;
 
+use App\User;
+use App\Vendor;
 use App\Expense;
 use App\Invoice;
-use App\Override;
 use App\Paystub;
-use App\Vendor;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use App\Employee;
+use App\Http\Results\OpResult;
+use App\Override;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -86,14 +88,31 @@ class InvoiceHelper
 		$vendors = Vendor::all();
 
 		return (object)[
-			'stubs' => $paystubs,
-			'agents' => $agents,
-			'vendors' => $vendors,
 			'rows' => $rows,
-			'isAdmin' => $isAdmin,
-			'isManager' => $isManager
 		];
-	}
+    }
+    
+    /**
+     * Undocumented function
+     *
+     * @param Employee $user
+     * @param integer $employeeId
+     * @return OpResult
+     */
+    public function hasAccessToEmployee(Employee $user, $employeeId)
+    {
+        $result = new OpResult();
+
+        if ($user->id == $employeeId) return $result->setToSuccess();
+
+        $childUsers = $user->permissions->pluck('emp_id');
+        $isManager = $user->is_mgr == 1;
+        $isAdmin = $user->is_admin == 1;
+            
+        return $employeeId == -1 && ($isAdmin || $isManager) || $isAdmin || ($childUsers->contains($employeeId) && $isManager)
+            ? $result->setToSuccess()
+            : $result->setToFail('User does not have permission to access employee');
+    }
 
 
 	/**
