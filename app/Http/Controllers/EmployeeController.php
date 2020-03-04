@@ -284,18 +284,17 @@ class EmployeeController extends Controller
         if (!$isAdmin) 
             return $result->setToFail('Unauthorized.')->getResponse();
             
-        $showAll = boolval($request->query('showall'));
+        $showAll = strtolower($request->query('showall')) === 'true';
+        $size = $request->query('size', 10);
+        $page = $request->query('page');
 
-        return $result->trySetData(function () use ($showAll) {
-            if ($showAll)
-            {
-                return Employee::showAll()->get()->sortBy('name');
-            }
-            else 
-            {
-                return Employee::active()->get()->sortBy('name');
-            }
-        })->getResponse();
+        return $result->trySetData(function ($showAll, $size, $page) {
+            $qry = Employee::orderBy('name');
+
+            return $showAll 
+                ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
+                : $qry->active()->paginate($size, ['*'], 'page', $page);
+        }, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
     }
 
 }

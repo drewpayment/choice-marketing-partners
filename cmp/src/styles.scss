@@ -1,7 +1,15 @@
 @import './styles/material';
+@import './styles/theme';
+@import './styles/utilities';
+// @import '../node_modules/devextreme/dist/css/dx.common.css';
+// @import '../node_modules/devextreme/dist/css/dx.material.blue.light.css';
+// @import './styles/devextreme.material.light.blue';
 
 /* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+.spacer {
+    flex: 1 1 auto;
+}

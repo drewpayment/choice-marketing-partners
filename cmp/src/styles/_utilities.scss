@@ -1,0 +1,41 @@
+
+$amounts: (1, 2, 3, 4, 5);
+$sides: (top, right, bottom, left);
+
+@each $space in $amounts {
+    $amount: map-get((
+        1: 0.5,
+        2: 0.75,
+        3: 1,
+        4: 1.25,
+        5: 1.5
+    ), $space);
+
+    .m-#{$space} {
+        margin: #{$amount}rem !important;
+    }
+
+    .mx-#{$space} {
+        margin-left: #{$amount}rem !important;
+        margin-right: #{$amount}rem !important;
+    }
+
+    .my-#{$space} {
+        margin-top: #{$amount}rem !important;
+        margin-bottom: #{$amount}rem !important;
+    }
+
+    .p-#{$space} {
+        padding: #{$amount}rem !important;
+    }
+
+    .px-#{$space} {
+        padding-left: #{$amount}rem !important;
+        padding-right: #{$amount}rem !important;
+    }
+
+    .py-#{$space} {
+        padding-top: #{$amount}rem !important;
+        padding-bottom: #{$amount}rem !important;
+    }
+}

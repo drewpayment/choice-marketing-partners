@@ -2,7 +2,49 @@
 <mat-toolbar color="primary">
     <mat-toolbar-row>
         <button type="button" mat-raised-button>
-
+            <span class="mx-2">Add</span>
+            <mat-icon>add_box</mat-icon>
         </button>
+
+        <section class="mx-5">
+            <mat-slide-toggle color="accent" (change)="slideToggleValueChange($event)">
+                Show All
+            </mat-slide-toggle>
+        </section>
     </mat-toolbar-row>
 </mat-toolbar>
+
+<ng-container *ngIf="agents$ | async as agents">
+    <mat-table [dataSource]="agents">
+
+        <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+            <mat-cell *matCellDef="let item">{{ item.name }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+            <mat-cell *matCellDef="let item">{{ item.email }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="phone">
+            <mat-header-cell *matHeaderCellDef>Phone</mat-header-cell>
+            <mat-cell *matCellDef="let item">{{ item.phoneNo }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="isActive">
+            <mat-header-cell *matHeaderCellDef>Active</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+                <mat-checkbox [checked]="item.isActive"></mat-checkbox>
+            </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="['name', 'email', 'phone', 'isActive']"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: ['name', 'email', 'phone', 'isActive']"></mat-row>
+    </mat-table>
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" 
+        showFirstLastButtons
+        [length]="paginator?.total"
+        [pageSize]="paginator?.perPage"
+        (page)="paging($event)"></mat-paginator>
+</ng-container>
