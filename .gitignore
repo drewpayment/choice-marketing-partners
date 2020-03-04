@@ -7,3 +7,6 @@ Homestead.yaml
 .env
 /public/uploads/
 cmp/package-lock.json
+public/dist
+cmp/package-lock.json
+public/dist/cmp

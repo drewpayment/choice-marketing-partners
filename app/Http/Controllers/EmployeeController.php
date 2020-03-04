@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
+use App\Http\Results\OpResult;
 use App\Services\EmployeeService;
 use App\User;
 use Illuminate\Http\Request;
@@ -271,6 +272,30 @@ class EmployeeController extends Controller
 
 
 		return response()->json(true);
-	}
+    }
+    
+    public function getAgents(Request $request) 
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin) 
+            return $result->setToFail('Unauthorized.')->getResponse();
+            
+        $showAll = boolval($request->query('showall'));
+
+        return $result->trySetData(function () use ($showAll) {
+            if ($showAll)
+            {
+                return Employee::showAll()->get()->sortBy('name');
+            }
+            else 
+            {
+                return Employee::active()->get()->sortBy('name');
+            }
+        })->getResponse();
+    }
 
 }

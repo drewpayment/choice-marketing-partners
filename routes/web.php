@@ -214,6 +214,10 @@ Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id',
  * and the csrf tokens.
  * 
  */
-Route::get('/account/user-info', 'HomeController@getUserInfo')->middleware('auth');
-Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'InvoiceController@getPaystubs');
-Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');
+Route::group(['middleware' => 'auth'], function() {
+    Route::get('/account/user-info', 'HomeController@getUserInfo');
+    Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'InvoiceController@getPaystubs');
+    Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');
+
+    Route::get('/ng/agents', 'EmployeeController@getAgents');
+});
