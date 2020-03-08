@@ -4,9 +4,12 @@ namespace App;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
+    use SoftDeletes;
+
     protected $primaryKey = 'id';
 
 	/**
@@ -23,7 +26,8 @@ class Employee extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-		'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3'
+        'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
+        'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
     ];
     
     public function toArray()

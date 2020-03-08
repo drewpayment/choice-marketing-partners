@@ -5,6 +5,8 @@ import { Observable, BehaviorSubject, merge, zip, concat, combineLatest } from '
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { switchMap, tap, map, withLatestFrom } from 'rxjs/operators';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { MatDialog } from '@angular/material/dialog';
+import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.component';
 
 @Component({
     selector: 'cp-agents-list',
@@ -20,7 +22,7 @@ export class AgentsListComponent implements OnInit {
     pageSize$ = new BehaviorSubject<number>(10);
     pageIndex$ = new BehaviorSubject<number>(0);
 
-    constructor(private service: AgentsService) { }
+    constructor(private service: AgentsService, private dialog: MatDialog) { }
 
     ngOnInit(): void {
         this.agents$ = combineLatest([this.showAll$, this.paging$])
@@ -45,6 +47,17 @@ export class AgentsListComponent implements OnInit {
 
     paging(event: PaginatorEvent) {
         this.paging$.next(event);
+    }
+
+    showAddAgentDialog() {
+        this.dialog.open(AddAgentDialogComponent, {
+            autoFocus: false,
+            minWidth: '50vw',
+        })
+        .afterClosed()
+        .subscribe(result => {
+            console.dir(result);
+        });
     }
 
 }

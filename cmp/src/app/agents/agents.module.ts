@@ -4,12 +4,14 @@ import { AgentsListComponent } from './agents-list/agents-list.component';
 import { MaterialModule } from '../shared/material/material.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AddAgentDialogComponent } from './add-agent-dialog/add-agent-dialog.component';
 
 
 
 @NgModule({
     declarations: [
-        AgentsListComponent
+        AgentsListComponent,
+        AddAgentDialogComponent
     ],
     imports: [
         CommonModule,
@@ -19,6 +21,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     ],
     exports: [
         AgentsListComponent
+    ],
+    entryComponents: [
+        AddAgentDialogComponent
     ]
 })
 export class AgentsModule { }
