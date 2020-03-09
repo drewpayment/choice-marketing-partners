@@ -5,3 +5,4 @@ export * from './search-paystubs.model';
 export * from './paystub-summary.model';
 export * from './paginator.model';
 export * from './nation-state.model';
+export * from './user-type.enum';

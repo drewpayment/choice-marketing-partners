@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AccountService } from '../../account.service';
-import { Country, State, Agent } from '../../models';
+import { Country, State, Agent, UserType } from '../../models';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { MatSlideToggle, MatSlideToggleChange } from '@angular/material/slide-toggle';
 
 @Component({
     selector: 'cp-add-agent-dialog',
@@ -14,8 +15,13 @@ import { map, tap } from 'rxjs/operators';
 export class AddAgentDialogComponent implements OnInit {
 
     f: FormGroup = this.createForm();
+    fUser: FormGroup = this.createUserForm();
+    isCreatingUser = false;
     countries$: Observable<Country[]>;
     states$: Observable<State[]>;
+    @ViewChild('overridePassword', { static: false }) overridePassword: MatSlideToggle;
+    isPasswordReadonly = true;
+    userTypes = {};
 
     constructor(
         public dialogRef: MatDialogRef<AddAgentDialogComponent>, 
@@ -25,6 +31,8 @@ export class AddAgentDialogComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.userTypes = Object.keys(UserType).filter(k => isNaN(Number(k)) && k.trim().toLowerCase() != 'superadmin');
+        
         this.countries$ = this.account.getCountries
             .pipe(map(result => {
                 const countries = result.Countries;
@@ -44,13 +52,50 @@ export class AddAgentDialogComponent implements OnInit {
                     }
                 })
             );
+
+        this.fUser.valueChanges.subscribe(value => console.dir(value));
     }
 
     saveAgent() {
         // do some work... 
-        console.log('save agent!');
-        // if success 
-        this.dialogRef.close('created agent with id: #');
+        const dto = this.prepareModel();
+        console.dir(dto);
+
+        const isFormAgentValid = this.f.valid;
+        const isFormUserValid = this.f.valid;
+        const isFormsValid = isFormAgentValid && (this.isCreatingUser ? isFormUserValid : true);
+
+        if (isFormsValid) {
+            this.dialogRef.close('created agent with id: #');
+        }
+    }
+
+    getUserTypes(): any[] {
+        return Object.keys(UserType).filter(t => !isNaN(Number(t)) && Number(t) !== 1);
+    }
+
+    getUserTypeValue(key: string): UserType {
+        return UserType[key];
+    }
+
+    getUserTypeDesc(key: number): string {
+        const keys = Object.keys(UserType).filter(k => isNaN(Number(k)));
+        return keys[key];
+    }
+
+    toggleIsCreatingUser() {
+        this.isCreatingUser = !this.isCreatingUser;
+    }
+
+    overridePasswordChange(event: MatSlideToggleChange) {
+        this.isPasswordReadonly = !event.checked;
+        const passwordCtrl = this.fUser.get('password');
+
+        if (event.checked) {
+            passwordCtrl.enable();
+        } else {
+            passwordCtrl.disable();
+        }
     }
 
     private createForm(): FormGroup {
@@ -71,9 +116,10 @@ export class AddAgentDialogComponent implements OnInit {
         });
     }
 
-    private prepareModel(): Agent {
+    private prepareModel(): any {
         const f = this.f.value;
-        return {
+        const fu = this.isCreatingUser ? this.fUser.value : null;
+        const result: any = {
             name: f.name,
             email: f.email,
             phoneNo: f.phone,
@@ -89,6 +135,20 @@ export class AddAgentDialogComponent implements OnInit {
             salesId2: f.id2,
             salesId3: f.id3
         };
+
+        if (this.isCreatingUser) {
+            result.userType = fu.userType;
+            result.password = fu.password;
+        }
+
+        return result;
+    }
+
+    private createUserForm(): FormGroup {
+        return this.fb.group({
+            userType: this.fb.control(UserType.Employee, [Validators.required]),
+            password: this.fb.control({ value: '', disabled: true }, [Validators.required])
+        });
     }
 
 }

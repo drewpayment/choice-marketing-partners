@@ -19,6 +19,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
     imports: [
@@ -42,7 +43,7 @@ import { MatDialogModule } from '@angular/material/dialog';
         MatPaginatorModule,
         MatCheckboxModule,
         MatDialogModule,
-        
+        MatDividerModule,
     ],
     exports: [
         MatFormFieldModule,
@@ -65,6 +66,7 @@ import { MatDialogModule } from '@angular/material/dialog';
         MatPaginatorModule,
         MatCheckboxModule,
         MatDialogModule,
+        MatDividerModule,
     ]
 })
 export class MaterialModule { }
