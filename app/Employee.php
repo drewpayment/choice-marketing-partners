@@ -188,7 +188,7 @@ class Employee extends Model
 	 */
 	public function scopeActive($query)
 	{
-		return $query->where('is_active', 1);
+		return $query->withTrashed()->where('is_active', 1);
 	}
 
 
@@ -201,7 +201,7 @@ class Employee extends Model
 	 */
 	public function scopeShowAll($query)
 	{
-		return $query;
+		return $query->withTrashed();
 	}
 
 

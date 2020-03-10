@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Agent, Paginator } from '../models';
+import { Agent, Paginator, AgentRequest, AgentResult } from '../models';
 
 @Injectable({
     providedIn: 'root'
@@ -18,6 +18,11 @@ export class AgentsService {
                 .append('size', `${size}`)
                 .append('page', `${page + 1}`)
         });
+    }
+
+    saveAgent(agent: AgentRequest): Observable<AgentResult> {
+        const url = `ng/agents`;
+        return this.http.post<AgentResult>(url, agent);
     }
 
 }

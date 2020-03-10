@@ -220,4 +220,5 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');
 
     Route::get('/ng/agents', 'EmployeeController@getAgents');
+    Route::post('/ng/agents', 'EmployeeController@createAgent');
 });

@@ -1,4 +1,6 @@
 import { Moment } from 'moment';
+import { UserType } from './user-type.enum';
+import { User } from './user.model';
 
 export interface Agent {
     id?: number;
@@ -20,4 +22,15 @@ export interface Agent {
     createdAt?: Date | Moment | string;
     updatedAt?: Date | Moment | string;
     deletedAt?: Date | Moment | string;
+}
+
+export interface AgentRequest extends Agent {
+    password?: string;
+    isCreatingUser: boolean;
+    userType: UserType;
+}
+
+export interface AgentResult {
+    agent: Agent;
+    user: User;
 }

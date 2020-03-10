@@ -9,6 +9,7 @@ use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeController extends Controller
 {
@@ -295,6 +296,79 @@ class EmployeeController extends Controller
                 ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
                 : $qry->active()->paginate($size, ['*'], 'page', $page);
         }, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
+    }
+
+    public function createAgent(Request $request)
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin)
+            return $result->setToFail('Unauthorized.')->getResponse();
+
+        $employee = new Employee([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone_no' => $request->phoneNo,
+            'address' => $request->address,
+            'address_2' => $request->address2,
+            'city' => $request->city,
+            'state' => $request->state,
+            'country' => $request->country,
+            'is_active' => true,
+            'is_admin' => false,
+            'sales_id1' => $request->salesId1,
+            'sales_id2' => $request->salesId2, 
+            'sales_id3' => $request->salesId3,
+            'hidden_payroll' => false
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $saved = $employee->save();
+
+            if (!$saved) 
+                return $result->setToFail('Agent save failed.')->getResponse();
+
+            $dto = [
+                'agent' => $employee
+            ];
+                
+            if (boolval($request->isCreatingUser)) {
+                $user = new User([
+                    'id' => $employee->id,
+                    'name' => $request->name,
+                    'user_type' => $request->userType,
+                    'email' => $request->email
+                ]);
+
+                if (is_null($request->password)) {
+                    $random = str_random(10);
+                    $user->password = bcrypt($random);
+                } else {
+                    $user->password = bcrypt($request->password);
+                }
+
+                $userSaved = $user->save();
+
+                if (!$userSaved) 
+                    return $result->setToFail('Agent saved, but failed to save user.')->getResponse();
+
+                $dto['user'] = $user;
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            Log::error($e);
+            DB::rollback();
+
+            return $result->setToFail($e->getMessage())->getResponse();
+        }
+
+        return $result->setData($dto)->getResponse();
     }
 
 }

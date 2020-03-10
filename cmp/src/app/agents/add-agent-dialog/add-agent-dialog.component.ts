@@ -2,10 +2,11 @@ import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AccountService } from '../../account.service';
-import { Country, State, Agent, UserType } from '../../models';
+import { Country, State, Agent, UserType, AgentRequest } from '../../models';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { MatSlideToggle, MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { AgentsService } from '../agents.service';
 
 @Component({
     selector: 'cp-add-agent-dialog',
@@ -27,7 +28,8 @@ export class AddAgentDialogComponent implements OnInit {
         public dialogRef: MatDialogRef<AddAgentDialogComponent>, 
         private fb: FormBuilder,
         private account: AccountService,
-        private cd: ChangeDetectorRef
+        private cd: ChangeDetectorRef,
+        private service: AgentsService
     ) { }
 
     ngOnInit(): void {
@@ -52,8 +54,6 @@ export class AddAgentDialogComponent implements OnInit {
                     }
                 })
             );
-
-        this.fUser.valueChanges.subscribe(value => console.dir(value));
     }
 
     saveAgent() {
@@ -65,9 +65,14 @@ export class AddAgentDialogComponent implements OnInit {
         const isFormUserValid = this.f.valid;
         const isFormsValid = isFormAgentValid && (this.isCreatingUser ? isFormUserValid : true);
 
-        if (isFormsValid) {
-            this.dialogRef.close('created agent with id: #');
+        if (!isFormsValid) {
+            this.dialogRef.close();
         }
+
+        this.service.saveAgent(dto)
+            .subscribe(agent => {
+                this.dialogRef.close(agent);
+            });
     }
 
     getUserTypes(): any[] {
@@ -116,25 +121,26 @@ export class AddAgentDialogComponent implements OnInit {
         });
     }
 
-    private prepareModel(): any {
+    private prepareModel(): AgentRequest {
         const f = this.f.value;
         const fu = this.isCreatingUser ? this.fUser.value : null;
-        const result: any = {
+        const result: AgentRequest = {
             name: f.name,
             email: f.email,
             phoneNo: f.phone,
             address: f.address,
             address2: f.address2,
             city: f.city,
-            state: f.state,
-            country: f.country,
+            state: f.state ? f.state.StateName : null,
+            country: f.country ? f.country.CountryName : null,
             postalCode: f.postalCode,
             isActive: true,
             isMgr: false,
             salesId1: f.id1,
             salesId2: f.id2,
-            salesId3: f.id3
-        };
+            salesId3: f.id3,
+            isCreatingUser: this.isCreatingUser
+        } as AgentRequest;
 
         if (this.isCreatingUser) {
             result.userType = fu.userType;

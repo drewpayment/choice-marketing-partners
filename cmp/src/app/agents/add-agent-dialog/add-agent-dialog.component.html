@@ -11,7 +11,7 @@
             <mat-divider></mat-divider>
             <form [formGroup]="f" class="form-container">
                 <mat-form-field>
-                    <mat-label>Name</mat-label>
+                    <mat-label>Full Name</mat-label>
                     <input type="text" matInput formControlName="name" required />
                     <mat-error *ngIf="f.get('name').hasError('required')">
                         Please enter name.
@@ -44,7 +44,7 @@
         
                 <mat-form-field>
                     <mat-label>Apt/Unit</mat-label>
-                    <input type="text" matInput formControlName="address2" required />
+                    <input type="text" matInput formControlName="address2" />
                     <mat-hint>Optional</mat-hint>
                 </mat-form-field>
         
@@ -135,7 +135,7 @@
     </mat-vertical-stepper>
     
 </mat-dialog-content>
-<mat-dialog-actions>
+<mat-dialog-actions class="py-5">
     <button mat-button mat-dialog-close>
         <mat-icon>clear</mat-icon>
         <span>Cancel</span>
