@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { AgentsService } from '../agents.service';
-import { Agent, Paginator, PaginatorEvent } from '../../models';
+import { Agent, Paginator, PaginatorEvent, User } from '../../models';
 import { Observable, BehaviorSubject, merge, zip, concat, combineLatest } from 'rxjs';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { switchMap, tap, map, withLatestFrom } from 'rxjs/operators';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { MatDialog } from '@angular/material/dialog';
 import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.component';
+import { AccountService } from '../../account.service';
 
 @Component({
     selector: 'cp-agents-list',
@@ -15,6 +16,7 @@ import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.co
 })
 export class AgentsListComponent implements OnInit {
 
+    user: User;
     paginator: Paginator<Agent>;
     agents$: Observable<Agent[]>;
     paging$ = new BehaviorSubject<PaginatorEvent>({ pageIndex: 0, pageSize: 10 } as PaginatorEvent);
@@ -22,9 +24,10 @@ export class AgentsListComponent implements OnInit {
     pageSize$ = new BehaviorSubject<number>(10);
     pageIndex$ = new BehaviorSubject<number>(0);
 
-    constructor(private service: AgentsService, private dialog: MatDialog) { }
+    constructor(private service: AgentsService, private dialog: MatDialog, private account: AccountService) { }
 
     ngOnInit(): void {
+        this.account.getUserInfo.subscribe(u => this.user = u);
         this.agents$ = combineLatest([this.showAll$, this.paging$])
             .pipe(
                 switchMap(value => {
@@ -58,6 +61,20 @@ export class AgentsListComponent implements OnInit {
         .subscribe(result => {
             console.dir(result);
         });
+    }
+
+    disableAgent(agentId: number) {
+        this.service.disableAgent(agentId)
+            .subscribe(result => {
+                if (result) this.showAll$.next(false);
+            });
+    }
+
+    restoreAgent(agentId: number) {
+        this.service.restoreAgent(agentId)
+            .subscribe(result => {
+                if (result) this.showAll$.next(this.showAll$.getValue());
+            });
     }
 
 }

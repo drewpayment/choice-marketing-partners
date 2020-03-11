@@ -25,4 +25,14 @@ export class AgentsService {
         return this.http.post<AgentResult>(url, agent);
     }
 
+    disableAgent(agentId: number): Observable<boolean> {
+        const url = `ng/agents/${agentId}`;
+        return this.http.delete<boolean>(url);
+    }
+
+    restoreAgent(agentId: number): Observable<boolean> {
+        const url = `ng/agents/${agentId}/restore`;
+        return this.http.put<boolean>(url, null);
+    }
+
 }

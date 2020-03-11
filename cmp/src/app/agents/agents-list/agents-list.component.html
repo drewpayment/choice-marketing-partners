@@ -33,9 +33,16 @@
         </ng-container>
 
         <ng-container matColumnDef="isActive">
-            <mat-header-cell *matHeaderCellDef>Active</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
             <mat-cell *matCellDef="let item">
-                <mat-checkbox [checked]="item.isActive"></mat-checkbox>
+                <button type="button" mat-icon-button *ngIf="item.isActive && item.id != user.id" (click)="disableAgent(item.id)"
+                    [matTooltip]="'Disable'" [matTooltipPosition]="'above'">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+                <button type="button" mat-icon-button *ngIf="!item.isActive" (click)="restoreAgent(item.id)"
+                    [matTooltip]="'Restore'" [matTooltipPosition]="'above'">
+                    <mat-icon>cached</mat-icon>
+                </button>
             </mat-cell>
         </ng-container>
 

@@ -17,9 +17,8 @@ export class AccountService {
 
     constructor(private http: HttpClient) { }
 
-    getUserInfo(): Observable<User> {
-        return this.http.get<User>('account/user-info');
-    }
+    getUserInfo: Observable<User> = this.http.get<User>('account/user-info')
+        .pipe(shareReplay());
 
     private _getCountries(): Observable<NationStateResult> {
         const url = `https://raw.githubusercontent.com/sagarshirbhate/Country-State-City-Database/master/Contries.json`;

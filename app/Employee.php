@@ -29,21 +29,6 @@ class Employee extends Model
         'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
         'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
     ];
-    
-    public function toArray()
-    {
-        return [
-            'name' => $this->name,
-            'address' => $this->address,
-            'phoneNo' => $this->phone_no,
-            'email' => $this->email,
-            'isActive' => $this->is_active,
-            'isMgr' => $this->is_mgr,
-            'salesId1' => $this->sales_id1,
-            'salesId2' => $this->sales_id2,
-            'salesId3' => $this->sales_id3
-        ];
-    }
 
 	public function setPhoneNoAttribute($value)
 	{
@@ -188,7 +173,7 @@ class Employee extends Model
 	 */
 	public function scopeActive($query)
 	{
-		return $query->withTrashed()->where('is_active', 1);
+		return $query->where('is_active', 1);
 	}
 
 

@@ -16,7 +16,7 @@ export class NavBarComponent implements OnInit {
     constructor(private accountService: AccountService) { }
 
     ngOnInit(): void {
-        this.user$ = this.accountService.getUserInfo()
+        this.user$ = this.accountService.getUserInfo
             .pipe(tap(u => this.user = u));
     }
 

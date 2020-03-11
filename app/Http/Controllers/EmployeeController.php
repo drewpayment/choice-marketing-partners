@@ -371,4 +371,26 @@ class EmployeeController extends Controller
         return $result->setData($dto)->getResponse();
     }
 
+    public function deleteAgent(Request $request)
+    {
+        $result = new OpResult();
+
+        $deleted = Employee::destroy($request->id) > 0;
+
+        if (!$deleted) $result->setToFail('Failed to disable the agent.');
+
+        return $result->getResponse();
+    }
+
+    public function restoreAgent(Request $request) 
+    {
+        $result = new OpResult();
+
+        $restored = Employee::withTrashed()->where('id', '=', $request->id)->restore();
+
+        if (!$restored) $result->setToFail('Failed to restore agent.');
+
+        return $result->getResponse();
+    }
+
 }
