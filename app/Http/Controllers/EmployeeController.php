@@ -290,7 +290,7 @@ class EmployeeController extends Controller
         $page = $request->query('page');
 
         return $result->trySetData(function ($showAll, $size, $page) {
-            $qry = Employee::orderBy('name');
+            $qry = Employee::with('user')->orderBy('name');
 
             return $showAll 
                 ? $qry->showAll()->paginate($size, ['*'], 'page', $page)

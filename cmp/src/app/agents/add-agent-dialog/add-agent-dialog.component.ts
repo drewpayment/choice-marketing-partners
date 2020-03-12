@@ -35,14 +35,7 @@ export class AddAgentDialogComponent implements OnInit {
     ngOnInit(): void {
         this.userTypes = Object.keys(UserType).filter(k => isNaN(Number(k)) && k.trim().toLowerCase() != 'superadmin');
         
-        this.countries$ = this.account.getCountries
-            .pipe(map(result => {
-                const countries = result.Countries;
-                const usaIndex = countries.findIndex(c => c.CountryName.replace(/\s/g, '').trim().toLowerCase() === 'unitedstates');
-                const usa = countries.splice(usaIndex, 1)[0];
-                countries.unshift(usa);
-                return countries;
-            }));
+        this.countries$ = this.account.getCountries;
 
         this.states$ = this.f.get('country').valueChanges
             .pipe(

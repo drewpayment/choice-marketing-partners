@@ -22,6 +22,7 @@ export interface Agent {
     createdAt?: Date | Moment | string;
     updatedAt?: Date | Moment | string;
     deletedAt?: Date | Moment | string;
+    user?: User;
 }
 
 export interface AgentRequest extends Agent {

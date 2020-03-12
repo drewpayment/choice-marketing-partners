@@ -5,13 +5,17 @@ import { MaterialModule } from '../shared/material/material.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AddAgentDialogComponent } from './add-agent-dialog/add-agent-dialog.component';
+import { EditAgentDialogComponent } from './edit-agent-dialog/edit-agent-dialog.component';
+import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-password-dialog.component';
 
 
 
 @NgModule({
     declarations: [
         AgentsListComponent,
-        AddAgentDialogComponent
+        AddAgentDialogComponent,
+        EditAgentDialogComponent,
+        ResetPasswordDialogComponent
     ],
     imports: [
         CommonModule,
@@ -23,7 +27,9 @@ import { AddAgentDialogComponent } from './add-agent-dialog/add-agent-dialog.com
         AgentsListComponent
     ],
     entryComponents: [
-        AddAgentDialogComponent
+        AddAgentDialogComponent,
+        EditAgentDialogComponent,
+        ResetPasswordDialogComponent
     ]
 })
 export class AgentsModule { }

@@ -8,6 +8,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { MatDialog } from '@angular/material/dialog';
 import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.component';
 import { AccountService } from '../../account.service';
+import { EditAgentDialogComponent } from '../edit-agent-dialog/edit-agent-dialog.component';
+import { ResetPasswordDialogComponent } from '../reset-password-dialog/reset-password-dialog.component';
 
 @Component({
     selector: 'cp-agents-list',
@@ -74,6 +76,35 @@ export class AgentsListComponent implements OnInit {
         this.service.restoreAgent(agentId)
             .subscribe(result => {
                 if (result) this.showAll$.next(this.showAll$.getValue());
+            });
+    }
+
+    editAgent(agent: Agent) {
+        this.dialog
+            .open(EditAgentDialogComponent, {
+                data: agent,
+                minWidth: '50vw'
+            })
+            .afterClosed()
+            .subscribe(result => {
+                // means user canceled the dialog and didn't make changes
+                if (!result) return;
+
+                console.dir(result);
+            });
+    }
+
+    resetPassword(agent: Agent) {
+        this.dialog
+            .open(ResetPasswordDialogComponent, {
+                data: agent.user,
+                minWidth: '30vw'
+            })
+            .afterClosed()
+            .subscribe(result => {
+                if (!result) return;
+
+                console.dir(result);
             });
     }
 
