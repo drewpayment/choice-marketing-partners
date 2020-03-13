@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Employee;
 use App\Http\Results\OpResult;
 use App\Services\EmployeeService;
+use App\Services\SessionUtil;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,17 +15,19 @@ use Illuminate\Support\Facades\Log;
 class EmployeeController extends Controller
 {
 
-	protected $employeeService;
+    protected $employeeService;
+    protected $sessionUtil;
 
 
 	/**
 	 * Middleware
 	 */
-	public function __construct(EmployeeService $employee_service)
+	public function __construct(EmployeeService $employee_service, SessionUtil $session_util)
 	{
 		$this->middleware('auth');
 
-		$this->employeeService = $employee_service;
+        $this->employeeService = $employee_service;
+        $this->sessionUtil = $session_util;
 	}
 
 
@@ -296,6 +299,43 @@ class EmployeeController extends Controller
                 ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
                 : $qry->active()->paginate($size, ['*'], 'page', $page);
         }, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
+    }
+
+    public function updateAgent(Request $req)
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin)
+            return $result->setToFail('Unauthorized.')->getResponse();
+
+        $employeeId = intval($req->id);
+
+        if ($employeeId < 1) 
+            return $result->setToFail('Unable to find a valid employee.')->getResponse();
+
+        $employee = Employee::find($employeeId);
+
+        $data = $req->all();
+        unset($data['id']);
+
+        $data = $this->sessionUtil->fromCamelCase($data);
+
+        foreach ($data as $k => $v)
+        {
+            $employee[$k] = $v;
+        }
+
+        $saved = $employee->save();
+
+        if (!$saved) 
+            return $result
+                ->setToFail('Failed to save the updated employee.')
+                ->getResponse();
+
+        return $result->setData($employee)->getResponse();
     }
 
     public function createAgent(Request $request)

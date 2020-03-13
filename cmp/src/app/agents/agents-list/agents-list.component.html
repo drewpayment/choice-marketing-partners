@@ -50,7 +50,7 @@
                 </button>
 
                 <!-- ENABLE OR DISABLE -->
-                <button type="button" mat-icon-button *ngIf="item.isActive && item.id != user.id" (click)="disableAgent(item.id)"
+                <button type="button" mat-icon-button *ngIf="item && item.isActive && item.id != user.id" (click)="disableAgent(item.id)"
                     [matTooltip]="'Disable'" [matTooltipPosition]="'above'">
                     <mat-icon>remove_circle_outline</mat-icon>
                 </button>

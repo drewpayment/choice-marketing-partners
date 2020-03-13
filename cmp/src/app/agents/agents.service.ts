@@ -35,4 +35,9 @@ export class AgentsService {
         return this.http.put<boolean>(url, null);
     }
 
+    updateAgent(agent: Agent): Observable<Agent> {
+        const url = `ng/agents/${agent.id}`;
+        return this.http.put<Agent>(url, agent);
+    }
+
 }

@@ -21,8 +21,8 @@
 
         <mat-form-field>
             <mat-label>Phone</mat-label>
-            <input type="text" matInput formControlName="phone" required />
-            <mat-error *ngIf="f.get('phone').hasError('required')">
+            <input type="text" matInput formControlName="phoneNo" required />
+            <mat-error *ngIf="f.get('phoneNo').hasError('required')">
                 Please enter a phone number.
             </mat-error>
         </mat-form-field>
@@ -52,7 +52,7 @@
         <ng-container *ngIf="countries$ | async as countries">
             <mat-form-field>
                 <mat-label>Country</mat-label>
-                <mat-select formControlName="country" required>
+                <mat-select formControlName="country" required [compareWith]="selectedCountry">
                     <mat-option *ngFor="let country of countries" [value]="country">
                         {{ country.CountryName }}
                     </mat-option>
@@ -66,7 +66,7 @@
         <ng-container *ngIf="states$ | async as states">
             <mat-form-field>
                 <mat-label>State</mat-label>
-                <mat-select formControlName="state" required>
+                <mat-select formControlName="state" required [compareWith]="selectedState">
                     <mat-option *ngFor="let state of states" [value]="state">
                         {{ state.StateName }}
                     </mat-option>

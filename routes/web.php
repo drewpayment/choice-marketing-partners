@@ -223,4 +223,5 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/ng/agents', 'EmployeeController@createAgent');
     Route::delete('/ng/agents/{id}', 'EmployeeController@deleteAgent');
     Route::put('/ng/agents/{id}/restore', 'EmployeeController@restoreAgent');
+    Route::put('/ng/agents/{id}', 'EmployeeController@updateAgent');
 });
