@@ -21,6 +21,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
     imports: [
@@ -46,6 +47,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         MatDialogModule,
         MatDividerModule,
         MatTooltipModule,
+        MatSnackBarModule,
     ],
     exports: [
         MatFormFieldModule,
@@ -70,6 +72,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         MatDialogModule,
         MatDividerModule,
         MatTooltipModule,
+        MatSnackBarModule,
     ]
 })
 export class MaterialModule { }

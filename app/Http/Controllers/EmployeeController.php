@@ -415,7 +415,11 @@ class EmployeeController extends Controller
     {
         $result = new OpResult();
 
-        $deleted = Employee::destroy($request->id) > 0;
+        $emp = Employee::withTrashed()->where('id', '=', $request->id)->first();
+        $emp->is_active = false;
+        $emp->save();
+        $deleted = $emp->delete() > 0;
+        // $deleted = Employee::destroy($request->id) > 0;
 
         if (!$deleted) $result->setToFail('Failed to disable the agent.');
 
@@ -429,6 +433,12 @@ class EmployeeController extends Controller
         $restored = Employee::withTrashed()->where('id', '=', $request->id)->restore();
 
         if (!$restored) $result->setToFail('Failed to restore agent.');
+
+        $emp = Employee::find($request->id);
+        $emp->is_active = true;
+        $saved = $emp->save();
+
+        if (!$saved) $result->setToFail('Employee was restored, but failed to update the "Active" status.');
 
         return $result->getResponse();
     }

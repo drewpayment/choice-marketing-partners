@@ -85,7 +85,7 @@ export class EditAgentDialogComponent implements OnInit {
         // send model to save
         this.service.updateAgent(agent)
             .subscribe(result => {
-                console.dir(result);
+                this.dialogRef.close(result);
             });
     }
 

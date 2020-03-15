@@ -10,6 +10,7 @@ import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.co
 import { AccountService } from '../../account.service';
 import { EditAgentDialogComponent } from '../edit-agent-dialog/edit-agent-dialog.component';
 import { ResetPasswordDialogComponent } from '../reset-password-dialog/reset-password-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
     selector: 'cp-agents-list',
@@ -26,7 +27,12 @@ export class AgentsListComponent implements OnInit {
     pageSize$ = new BehaviorSubject<number>(10);
     pageIndex$ = new BehaviorSubject<number>(0);
 
-    constructor(private service: AgentsService, private dialog: MatDialog, private account: AccountService) { }
+    constructor(
+        private service: AgentsService, 
+        private dialog: MatDialog, 
+        private account: AccountService,
+        private snack: MatSnackBar
+    ) { }
 
     ngOnInit(): void {
         this.account.getUserInfo.subscribe(u => this.user = u);
@@ -40,6 +46,14 @@ export class AgentsListComponent implements OnInit {
                 }),
                 map(result => {
                     this.paginator = result;
+
+                    // don't think this works right...
+                    if (!result.data || !result.data.length) {
+                        const curr = this.paging$.getValue();
+                        curr.pageIndex = 0;
+                        this.paging$.next(curr);
+                    }
+
                     return result.data;
                 })
             );
@@ -59,23 +73,31 @@ export class AgentsListComponent implements OnInit {
             autoFocus: false,
             minWidth: '50vw',
         })
-        .afterClosed()
-        .subscribe(result => {
-            console.dir(result);
-        });
+            .afterClosed()
+            .subscribe(result => {
+                if (!result) return;
+
+                this._showSuccess('Added agent successfully.');
+            });
     }
 
     disableAgent(agentId: number) {
         this.service.disableAgent(agentId)
             .subscribe(result => {
-                if (result) this.showAll$.next(false);
+                if (result) {
+                    this.showAll$.next(false);
+                    this._showSuccess('Agent has been disabled.');
+                }
             });
     }
 
     restoreAgent(agentId: number) {
         this.service.restoreAgent(agentId)
             .subscribe(result => {
-                if (result) this.showAll$.next(this.showAll$.getValue());
+                if (result) {
+                    this.showAll$.next(this.showAll$.getValue());
+                    this._showSuccess('Agent has been restored.');
+                }
             });
     }
 
@@ -90,7 +112,8 @@ export class AgentsListComponent implements OnInit {
                 // means user canceled the dialog and didn't make changes
                 if (!result) return;
 
-                console.dir(result);
+                this._showSuccess('The agent was updated successfully.');
+                this.showAll$.next(false);
             });
     }
 
@@ -106,6 +129,10 @@ export class AgentsListComponent implements OnInit {
 
                 console.dir(result);
             });
+    }
+
+    private _showSuccess(msg: string) {
+        this.snack.open(msg, 'dismiss', { duration: 3000 });
     }
 
 }
