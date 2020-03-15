@@ -3,7 +3,7 @@ import { AgentsService } from '../agents.service';
 import { Agent, Paginator, PaginatorEvent, User } from '../../models';
 import { Observable, BehaviorSubject, merge, zip, concat, combineLatest } from 'rxjs';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
-import { switchMap, tap, map, withLatestFrom } from 'rxjs/operators';
+import { switchMap, tap, map, withLatestFrom, startWith, debounceTime } from 'rxjs/operators';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { MatDialog } from '@angular/material/dialog';
 import { AddAgentDialogComponent } from '../add-agent-dialog/add-agent-dialog.component';
@@ -12,6 +12,7 @@ import { EditAgentDialogComponent } from '../edit-agent-dialog/edit-agent-dialog
 import { ResetPasswordDialogComponent } from '../reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginator } from '@angular/material/paginator';
+import { FormControl } from '@angular/forms';
 
 @Component({
     selector: 'cp-agents-list',
@@ -23,11 +24,14 @@ export class AgentsListComponent implements OnInit {
     user: User;
     @ViewChild('matPaginator') matPaginator: MatPaginator;
     paginator: Paginator<Agent>;
+    private agents: Agent[];
     agents$: Observable<Agent[]>;
     paging$ = new BehaviorSubject<PaginatorEvent>({ pageIndex: 0, pageSize: 10 } as PaginatorEvent);
     showAll$ = new BehaviorSubject<boolean>(false);
     pageSize$ = new BehaviorSubject<number>(10);
     pageIndex$ = new BehaviorSubject<number>(0);
+    searchControl = new FormControl();
+    filteredAgents: Observable<Agent[]>;
 
     constructor(
         private service: AgentsService, 
@@ -37,6 +41,13 @@ export class AgentsListComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        // this.filteredAgents = this.searchControl.valueChanges
+        //     .pipe(
+        //         startWith(''),
+        //         debounceTime(500),
+                
+        //     );
+
         this.account.getUserInfo.subscribe(u => this.user = u);
         this.agents$ = combineLatest([this.showAll$, this.paging$])
             .pipe(
@@ -46,6 +57,7 @@ export class AgentsListComponent implements OnInit {
                     const page = value[1].pageIndex;
                     return this.service.getAgents(showAll, page, size);
                 }),
+                tap(pag => this.agents = pag.data),
                 map(result => {
                     this.paginator = result;
 
@@ -57,6 +69,10 @@ export class AgentsListComponent implements OnInit {
                     return result.data;
                 })
             );
+    }
+
+    displayFn(agent: Agent) {
+        return agent && agent.name ? agent.name : '';
     }
 
     slideToggleValueChange(event: MatSlideToggleChange) {
@@ -134,6 +150,11 @@ export class AgentsListComponent implements OnInit {
 
     private _showSuccess(msg: string) {
         this.snack.open(msg, 'dismiss', { duration: 3000 });
+    }
+
+    private _filter(search: string): Agent[] {
+        if (!this.agents || !this.agents.length) return [];
+        return this.agents.filter(agent => agent.name.trim().toLowerCase().replace(/\s/g, '') === search.trim().toLowerCase());
     }
 
 }

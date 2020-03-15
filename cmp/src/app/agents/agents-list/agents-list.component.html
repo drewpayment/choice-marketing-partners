@@ -11,6 +11,17 @@
                 Show All
             </mat-slide-toggle>
         </section>
+<!-- 
+        <div class="spacer"></div>
+
+        <mat-form-field>
+            <input type="text" matInput [formControl]="searchControl" [matAutocomplete]="searchAutocomplete" />
+            <mat-autocomplete #searchAutocomplete [displayWith]="displayFn">
+                <mat-option *ngFor="let agent of filteredAgents|async" [value]="agent">
+                    {{ agent.name }}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field> -->
     </mat-toolbar-row>
 </mat-toolbar>
 
