@@ -3,26 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Employee;
+use App\Http\Results\OpResult;
 use App\Services\EmployeeService;
+use App\Services\SessionUtil;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeController extends Controller
 {
 
-	protected $employeeService;
+    protected $employeeService;
+    protected $sessionUtil;
 
 
 	/**
 	 * Middleware
 	 */
-	public function __construct(EmployeeService $employee_service)
+	public function __construct(EmployeeService $employee_service, SessionUtil $session_util)
 	{
 		$this->middleware('auth');
 
-		$this->employeeService = $employee_service;
+        $this->employeeService = $employee_service;
+        $this->sessionUtil = $session_util;
 	}
 
 
@@ -271,6 +276,202 @@ class EmployeeController extends Controller
 
 
 		return response()->json(true);
-	}
+    }
+    
+    public function getAgents(Request $request) 
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin) 
+            return $result->setToFail('Unauthorized.')->getResponse();
+            
+        $showAll = strtolower($request->query('showall')) === 'true';
+        $size = $request->query('size', 10);
+        $page = $request->query('page');
+
+        return $result->trySetData(function ($showAll, $size, $page) {
+            $qry = Employee::with('user')->orderBy('name');
+
+            return $showAll 
+                ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
+                : $qry->active()->paginate($size, ['*'], 'page', $page);
+        }, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
+    }
+
+    public function updateAgent(Request $req)
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin)
+            return $result->setToFail('Unauthorized.')->getResponse();
+
+        $employeeId = intval($req->id);
+
+        if ($employeeId < 1) 
+            return $result->setToFail('Unable to find a valid employee.')->getResponse();
+
+        $employee = Employee::find($employeeId);
+
+        $data = $req->all();
+        unset($data['id']);
+
+        $data = $this->sessionUtil->fromCamelCase($data);
+
+        foreach ($data as $k => $v)
+        {
+            $employee[$k] = $v;
+        }
+
+        $saved = $employee->save();
+
+        if (!$saved) 
+            return $result
+                ->setToFail('Failed to save the updated employee.')
+                ->getResponse();
+
+        return $result->setData($employee)->getResponse();
+    }
+
+    public function createAgent(Request $request)
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin)
+            return $result->setToFail('Unauthorized.')->getResponse();
+
+        $employee = new Employee([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone_no' => $request->phoneNo,
+            'address' => $request->address,
+            'address_2' => $request->address2,
+            'city' => $request->city,
+            'state' => $request->state,
+            'country' => $request->country,
+            'is_active' => true,
+            'is_admin' => false,
+            'sales_id1' => $request->salesId1,
+            'sales_id2' => $request->salesId2, 
+            'sales_id3' => $request->salesId3,
+            'hidden_payroll' => false
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $saved = $employee->save();
+
+            if (!$saved) 
+                return $result->setToFail('Agent save failed.')->getResponse();
+
+            $dto = [
+                'agent' => $employee
+            ];
+                
+            if (boolval($request->isCreatingUser)) {
+                $user = new User([
+                    'id' => $employee->id,
+                    'name' => $request->name,
+                    'user_type' => $request->userType,
+                    'email' => $request->email
+                ]);
+
+                if (is_null($request->password)) {
+                    $random = str_random(10);
+                    $user->password = bcrypt($random);
+                } else {
+                    $user->password = bcrypt($request->password);
+                }
+
+                $userSaved = $user->save();
+
+                if (!$userSaved) 
+                    return $result->setToFail('Agent saved, but failed to save user.')->getResponse();
+
+                $dto['user'] = $user;
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            Log::error($e);
+            DB::rollback();
+
+            return $result->setToFail($e->getMessage())->getResponse();
+        }
+
+        return $result->setData($dto)->getResponse();
+    }
+
+    public function deleteAgent(Request $request)
+    {
+        $result = new OpResult();
+
+        $emp = Employee::withTrashed()->where('id', '=', $request->id)->first();
+        $emp->is_active = false;
+        $emp->save();
+        $deleted = $emp->delete() > 0;
+        // $deleted = Employee::destroy($request->id) > 0;
+
+        if (!$deleted) $result->setToFail('Failed to disable the agent.');
+
+        return $result->getResponse();
+    }
+
+    public function restoreAgent(Request $request) 
+    {
+        $result = new OpResult();
+
+        $restored = Employee::withTrashed()->where('id', '=', $request->id)->restore();
+
+        if (!$restored) $result->setToFail('Failed to restore agent.');
+
+        $emp = Employee::find($request->id);
+        $emp->is_active = true;
+        $saved = $emp->save();
+
+        if (!$saved) $result->setToFail('Employee was restored, but failed to update the "Active" status.');
+
+        return $result->getResponse();
+    }
+
+    /**
+     * Admins make a call to this endpoint from Angular to reset an employee's password.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function resetPassword(Request $request)
+    {
+        $result = new OpResult();
+
+        $this->sessionUtil->checkUserIsAdmin()->mergeInto($result);
+
+        if ($result->hasError()) 
+            return $result->getResponse();
+
+        $user = User::find($request->id);
+
+        if ($user == null) {
+            return $result->setToFail('Could not find the specified agent.')
+                ->getResponse();
+        }
+
+        $user->password = bcrypt($request->password);
+
+        $saved = $user->save();
+
+        if (!$saved) $result->setTofail('Changing passwords failed.');
+
+        return $result->getResponse();
+    }
 
 }

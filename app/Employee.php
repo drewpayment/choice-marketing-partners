@@ -4,9 +4,12 @@ namespace App;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
+    use SoftDeletes;
+
     protected $primaryKey = 'id';
 
 	/**
@@ -23,69 +26,9 @@ class Employee extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-		'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3'
-	];
-
-
-	/**
-	 * You can use this to extend the normal collection to have custom functionality
-	 *
-	 * @param array $models
-	 *
-	 * @return CustomCollection
-	 */
-//	public function newCollection(array $models = [])
-//	{
-//		return new CustomCollection($models);
-//	}
-
-
-//	/**
-//	 * @param $s
-//	 *
-//	 * @return bool|string
-//	 */
-//	function formatPhoneNumber($s) {
-//		$rx = "/
-//		    (1)?\D*     # optional country code
-//		    (\d{3})?\D* # optional area code
-//		    (\d{3})\D*  # first three
-//		    (\d{4})     # last four
-//		    (?:\D+|$)   # extension delimiter or EOL
-//		    (\d*)       # optional extension
-//		/x";
-//		preg_match($rx, $s, $matches);
-//		if(!isset($matches[0])) return false;
-//
-//		$country = $matches[1];
-//		$area = $matches[2];
-//		$three = $matches[3];
-//		$four = $matches[4];
-//		$ext = $matches[5];
-//
-//		$out = "$three-$four";
-//		if(!empty($area)) $out = "$area-$out";
-//		if(!empty($country)) $out = "+$country-$out";
-//		if(!empty($ext)) $out .= "x$ext";
-//
-//		// check that no digits were truncated
-//		// if (preg_replace('/\D/', '', $s) != preg_replace('/\D/', '', $out)) return false;
-//		return $out;
-//	}
-//
-//
-//	/**
-//	 * Phone number attribute getter, formats the integer into a phone number string
-//	 *
-//	 * @param $value
-//	 *
-//	 * @return string
-//	 */
-//	public function getPhoneNoAttribute($value)
-//	{
-//		$this->attributes['phone_no'] = $this->formatPhoneNumber($value);
-//	}
-
+        'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
+        'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
+    ];
 
 	public function setPhoneNoAttribute($value)
 	{
@@ -105,7 +48,27 @@ class Employee extends Model
 		$dt = Carbon::createFromFormat($format, $date);
 
 		return $dt->format('m-d-Y');
-	}
+    }
+    
+    public function getIsActiveAttribute()
+    {
+        return $this->attributes['is_active'] == 1;
+    }
+
+    public function setIsActiveAttribute($value)
+    {
+        $this->attributes['is_active'] = $value == 'true' || $value == 1 ? 1 : 0;
+    }
+
+    public function getIsMgrAttribute()
+    {
+        return $this->attributes['is_mgr'] == 1;
+    }
+
+    public function setIsMgrAttribute($value)
+    {
+        $this->attributes['is_mgr'] = $value == 'true' || $value == 1 ? 1 : 0;
+    }
 
 
 	/**
@@ -223,7 +186,7 @@ class Employee extends Model
 	 */
 	public function scopeShowAll($query)
 	{
-		return $query->whereIn('is_active', [0, 1]);
+		return $query->withTrashed();
 	}
 
 

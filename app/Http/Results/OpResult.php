@@ -30,7 +30,7 @@ class OpResult
     {
         if (!is_callable($fn))
         {
-            $this->setToFail('Bad request. Illformed expression.');
+            $this->setToFail('Bad request. Malformed expression.');
         }
         $fnDataResult = call_user_func_array($fn, $params);
         if (!$fnDataResult) return $this->setToFail('Query expression failed.');

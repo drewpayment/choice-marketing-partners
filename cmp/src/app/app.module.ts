@@ -8,15 +8,21 @@ import { HttpClientModule } from '@angular/common/http';
 import { PaystubsListComponent } from './payroll/paystubs-list/paystubs-list.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './shared/material/material.module';
+import { NavBarComponent } from './shared/nav-bar/nav-bar.component';
+import { AgentsModule } from './agents/agents.module';
+import { AgentsListComponent } from './agents/agents-list/agents-list.component';
 
 const entryPoints = [
     CreateInvoiceComponent,
-    PaystubsListComponent
+    PaystubsListComponent,
+    NavBarComponent,
+    AgentsListComponent,
 ];
 
 @NgModule({
     declarations: [
-        AppComponent
+        AppComponent,
+        NavBarComponent
     ],
     imports: [
         BrowserModule,
@@ -25,6 +31,7 @@ const entryPoints = [
         MaterialModule,
 
         PayrollModule,
+        AgentsModule,
 
         BrowserAnimationsModule
     ],

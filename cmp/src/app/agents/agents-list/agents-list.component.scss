@@ -1,0 +1,23 @@
+
+$text-muted: rgba(0, 0, 0, 0.54);
+
+.mat-column-isActive {
+    max-width: 80px !important;
+}
+
+.agent-disabled {
+    font-style: italic;
+
+    * {
+        color: $text-muted;
+    }
+}
+
+.mat-column-edit {
+    max-width: 70px !important;
+    color: $text-muted;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}

@@ -86,7 +86,8 @@
     "use-lifecycle-interface": true,
     "use-pipe-transform-interface": true,
     "curly": false,
-    "no-trailing-whitespace": false
+    "no-trailing-whitespace": false,
+    "forin": false
   },
   "rulesDirectory": [
     "codelyzer"
