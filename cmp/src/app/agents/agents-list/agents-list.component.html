@@ -64,7 +64,8 @@
         <mat-header-row *matHeaderRowDef="['edit', 'name', 'email', 'phone', 'isActive']"></mat-header-row>
         <mat-row [class.agent-disabled]="!row.isActive" *matRowDef="let row; columns: ['edit', 'name', 'email', 'phone', 'isActive']"></mat-row>
     </mat-table>
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]" 
+    <mat-paginator #matPaginator
+        [pageSizeOptions]="[5, 10, 20]" 
         showFirstLastButtons
         [length]="paginator?.total"
         [pageSize]="paginator?.perPage"

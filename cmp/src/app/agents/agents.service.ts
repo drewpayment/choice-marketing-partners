@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Agent, Paginator, AgentRequest, AgentResult } from '../models';
+import { Agent, Paginator, AgentRequest, AgentResult, User } from '../models';
 
 @Injectable({
     providedIn: 'root'
@@ -38,6 +38,11 @@ export class AgentsService {
     updateAgent(agent: Agent): Observable<Agent> {
         const url = `ng/agents/${agent.id}`;
         return this.http.put<Agent>(url, agent);
+    }
+
+    adminResetAgentPassword(agent: User): Observable<Agent> {
+        const url = `ng/agents/${agent.id}/password-reset`;
+        return this.http.post<Agent>(url, agent);
     }
 
 }

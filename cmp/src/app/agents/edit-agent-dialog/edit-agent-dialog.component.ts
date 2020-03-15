@@ -89,6 +89,10 @@ export class EditAgentDialogComponent implements OnInit {
             });
     }
 
+    closeDialog() {
+        this.dialogRef.close();
+    }
+
     selectedCountry(option: Country, selection: string): boolean {
         return option.CountryName == selection;
     }

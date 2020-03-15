@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\User;
 use App\Employee;
+use App\Http\Results\OpResult;
 
 class SessionUtil
 {
@@ -56,6 +57,19 @@ class SessionUtil
             // $convertedKey = mb_strtolower(preg_replace('%(?<!^)\p{Lu}%usD', '_$0', $key), 'utf-8');
             // $result[$convertedKey] = $value;
         }
+
+        return $result;
+    }
+
+    public function checkUserIsAdmin() 
+    {
+        $result = new OpResult();
+
+        $user = auth()->user();
+        $isAdmin = $user->employee->is_admin;
+
+        if (!$isAdmin)
+            return $result->setToFail('Unauthorized.');
 
         return $result;
     }

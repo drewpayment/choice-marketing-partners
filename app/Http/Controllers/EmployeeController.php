@@ -443,4 +443,35 @@ class EmployeeController extends Controller
         return $result->getResponse();
     }
 
+    /**
+     * Admins make a call to this endpoint from Angular to reset an employee's password.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function resetPassword(Request $request)
+    {
+        $result = new OpResult();
+
+        $this->sessionUtil->checkUserIsAdmin()->mergeInto($result);
+
+        if ($result->hasError()) 
+            return $result->getResponse();
+
+        $user = User::find($request->id);
+
+        if ($user == null) {
+            return $result->setToFail('Could not find the specified agent.')
+                ->getResponse();
+        }
+
+        $user->password = bcrypt($request->password);
+
+        $saved = $user->save();
+
+        if (!$saved) $result->setTofail('Changing passwords failed.');
+
+        return $result->getResponse();
+    }
+
 }

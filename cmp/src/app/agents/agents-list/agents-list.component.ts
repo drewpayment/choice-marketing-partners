@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { AgentsService } from '../agents.service';
 import { Agent, Paginator, PaginatorEvent, User } from '../../models';
 import { Observable, BehaviorSubject, merge, zip, concat, combineLatest } from 'rxjs';
@@ -11,6 +11,7 @@ import { AccountService } from '../../account.service';
 import { EditAgentDialogComponent } from '../edit-agent-dialog/edit-agent-dialog.component';
 import { ResetPasswordDialogComponent } from '../reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatPaginator } from '@angular/material/paginator';
 
 @Component({
     selector: 'cp-agents-list',
@@ -20,6 +21,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class AgentsListComponent implements OnInit {
 
     user: User;
+    @ViewChild('matPaginator') matPaginator: MatPaginator;
     paginator: Paginator<Agent>;
     agents$: Observable<Agent[]>;
     paging$ = new BehaviorSubject<PaginatorEvent>({ pageIndex: 0, pageSize: 10 } as PaginatorEvent);
@@ -49,9 +51,7 @@ export class AgentsListComponent implements OnInit {
 
                     // don't think this works right...
                     if (!result.data || !result.data.length) {
-                        const curr = this.paging$.getValue();
-                        curr.pageIndex = 0;
-                        this.paging$.next(curr);
+                        this.matPaginator.firstPage();
                     }
 
                     return result.data;
@@ -72,6 +72,7 @@ export class AgentsListComponent implements OnInit {
         this.dialog.open(AddAgentDialogComponent, {
             autoFocus: false,
             minWidth: '50vw',
+            restoreFocus: false,
         })
             .afterClosed()
             .subscribe(result => {
@@ -105,7 +106,9 @@ export class AgentsListComponent implements OnInit {
         this.dialog
             .open(EditAgentDialogComponent, {
                 data: agent,
-                minWidth: '50vw'
+                minWidth: '50vw',
+                autoFocus: false,
+                restoreFocus: false,
             })
             .afterClosed()
             .subscribe(result => {
@@ -120,15 +123,13 @@ export class AgentsListComponent implements OnInit {
     resetPassword(agent: Agent) {
         this.dialog
             .open(ResetPasswordDialogComponent, {
-                data: agent.user,
-                minWidth: '30vw'
+                data: agent,
+                minWidth: '30vw',
+                autoFocus: false,
+                restoreFocus: false
             })
             .afterClosed()
-            .subscribe(result => {
-                if (!result) return;
-
-                console.dir(result);
-            });
+            .subscribe();
     }
 
     private _showSuccess(msg: string) {

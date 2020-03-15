@@ -96,6 +96,10 @@ export class AddAgentDialogComponent implements OnInit {
         }
     }
 
+    closeDialog() {
+        this.dialogRef.close();
+    }
+
     private createForm(): FormGroup {
         return this.fb.group({
             name: this.fb.control('', [Validators.required]),

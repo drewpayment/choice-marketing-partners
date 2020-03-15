@@ -224,4 +224,5 @@ Route::group(['middleware' => 'auth'], function() {
     Route::delete('/ng/agents/{id}', 'EmployeeController@deleteAgent');
     Route::put('/ng/agents/{id}/restore', 'EmployeeController@restoreAgent');
     Route::put('/ng/agents/{id}', 'EmployeeController@updateAgent');
+    Route::post('/ng/agents/{id}/password-reset', 'EmployeeController@resetPassword');
 });

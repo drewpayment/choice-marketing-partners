@@ -1,5 +1,11 @@
 
-<h2 mat-dialog-title>Edit</h2>
+<div mat-dialog-title style="display:flex !important;">
+    <div>Edit</div>
+    <div class="spacer"></div>
+    <button type="button" mat-icon-button (click)="closeDialog()">
+        <mat-icon>clear</mat-icon>
+    </button>
+</div>
 
 <mat-dialog-content>
     <form [formGroup]="f" class="form-container">
@@ -85,13 +91,15 @@
             </mat-error>
         </mat-form-field>
 
-        <ng-container *ngFor="let x of [1, 2, 3]">
-            <mat-form-field>
-                <mat-label>Sales ID {{x}}</mat-label>
-                <input type="text" matInput [formControl]="f.get('id' + x)" />
-                <mat-hint>Optional</mat-hint>
-            </mat-form-field>
-        </ng-container>
+        <div class="d-flex">
+            <ng-container *ngFor="let x of [1, 2, 3]">
+                <mat-form-field>
+                    <mat-label>Sales ID {{x}}</mat-label>
+                    <input type="text" matInput [formControl]="f.get('id' + x)" />
+                    <mat-hint>Optional</mat-hint>
+                </mat-form-field>
+            </ng-container>
+        </div>
 
         <div class="checkbox-form-field">
             <mat-checkbox formControlName="isManager">Enable Manager Role</mat-checkbox>
