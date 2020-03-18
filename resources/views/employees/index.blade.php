@@ -6,7 +6,9 @@
 
 @section('wrapper-content')
 
-    <div class="box box-default">
+    <cp-agents-list></cp-agents-list>
+
+    <!-- <div class="box box-default">
         <div class="box-title desktop-only">
             <button type="button" class="btn btn-primary" data-toggle="button" id="show-all-employees"><i class="fa fa-eye"></i> All</button>
             <button type="button" class="btn btn-primary" data-action="create-employee-modal"><i class="fa fa-plus"></i> Agent</button>
@@ -49,7 +51,7 @@
         </div>
     </div>
 
-    @include('employees.partials.createaemployeemodal')
+    @include('employees.partials.createaemployeemodal') -->
 
 @endsection
 

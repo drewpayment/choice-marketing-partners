@@ -5,6 +5,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -37,8 +38,8 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
     <!-- Slick Carousel http://kenwheeler.github.io/slick/ -->
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     @yield('topCSS')
@@ -54,7 +55,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     </style>
 
     @foreach ($styles as $s)
-        <link rel="styleshset" href="{{$s['path']}}" />
+    <link rel="styleshset" href="{{$s['path']}}" />
     @endforeach
     <!-- jsPDF -->
     <script src="{{url('js/jspdf.js')}}"></script>
@@ -65,7 +66,10 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     @yield('topJS')
 </head>
+
 <body id="app-layout">
+    <!-- CANNOT IMPLEMENT UNTIL CREATE-INVOICE BRANCH MERGED... NEED USER TYPE  -->
+    <!-- <cp-nav-bar></cp-nav-bar> -->
     <nav class="navbar navbar-default navbar-fixed-top bg-blue">
         <div class="container">
             <div class="navbar-header">
@@ -89,21 +93,21 @@ $container = isset($containerClass) ? $containerClass : 'container';
             <div class="collapse navbar-collapse" id="navcol-1">
                 <ul class="nav navbar-nav navbar-right">
                     @if(!Auth::user())
-                        <li role="presentation" id="homeLink">
-                            <a href="{{url('/')}}" class="navbar-title-text">
-                                <i class="fa fa-home"></i> Home
-                            </a>
-                        </li>
-                        <li role="presentation" id="aboutLink">
-                            <a href="/about-us" class="navbar-title-text">
-                                <i class="fa fa-info"></i> About
-                            </a>
-                        </li>
-                        <li role="presentation" id="loginLink">
-                            <a href="{{url('/login')}}" class="navbar-title-text">
-                                <i class="fa fa-sign-in"></i> Login
-                            </a>
-                        </li>
+                    <li role="presentation" id="homeLink">
+                        <a href="{{url('/')}}" class="navbar-title-text">
+                            <i class="fa fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li role="presentation" id="aboutLink">
+                        <a href="/about-us" class="navbar-title-text">
+                            <i class="fa fa-info"></i> About
+                        </a>
+                    </li>
+                    <li role="presentation" id="loginLink">
+                        <a href="{{url('/login')}}" class="navbar-title-text">
+                            <i class="fa fa-sign-in"></i> Login
+                        </a>
+                    </li>
                     @endif
                     @if(Auth::user())
                     <li class="dropdown">
@@ -114,27 +118,27 @@ $container = isset($containerClass) ? $containerClass : 'container';
                             </li>
                             <li class="divider"></li>
                             @if(!session('authenticatedUserIsAdmin'))
-                                <li>
-                                    <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
-                                </li>
+                            <li>
+                                <a href="{{action('DocumentController@index')}}"><i class="fa fa-paperclip"></i> Documents</a>
+                            </li>
                             @endif
                             <li>
                                 <a href="{{url('/payroll')}}"><i class="fa fa-dollar"></i> Paystubs</a>
                             </li>
 
                             @if(session('authenticatedUserIsAdmin'))
-                                <li class="divider"></li>
-                                <li>
-                                    <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
-                                </li>
-                                <li>
-                                    <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-globe"></i> Admin</a>
-                                </li>
-                                @if(Auth::user()->is_admin() || Auth::user()->can_post())
-                                    <li>
-                                        <a href="{{url('/blog')}}"><i class="fa fa-newspaper-o"></i> Blog</a>
-                                    </li>
-                                @endif
+                            <li class="divider"></li>
+                            <li>
+                                <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
+                            </li>
+                            <li>
+                                <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-globe"></i> Admin</a>
+                            </li>
+                            @if(Auth::user()->is_admin() || Auth::user()->can_post())
+                            <li>
+                                <a href="{{url('/blog')}}"><i class="fa fa-newspaper-o"></i> Blog</a>
+                            </li>
+                            @endif
                             @endif
                             <li class="divider"></li>
                             <li id="logoutLink">
@@ -153,50 +157,50 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <div class="site-content">
 
         @if(Session::has('alert'))
-            <div class="row">
-                <div class="col-md-8 col-md-offset-2">
-                    <div class="alert alert-danger pt-10">
-                        <div class="display-inline display_msgs">{{Session::get('alert')}}</div>
-                        <span class="display-inline cursor-clickable pull-right" id="msg-close">
-                            <i class="fa fa-times"></i>
-                        </span>
-                    </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-danger pt-10">
+                    <div class="display-inline display_msgs">{{Session::get('alert')}}</div>
+                    <span class="display-inline cursor-clickable pull-right" id="msg-close">
+                        <i class="fa fa-times"></i>
+                    </span>
                 </div>
             </div>
+        </div>
         @endif
 
         @if(Session::has('message'))
-            <div class="row">
-                <div class="col-md-8 col-md-offset-2">
-                    <div class="alert alert-info pt-10" id="display_msgs">
-                        {{ Session::get('message') }}
-                    </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-info pt-10" id="display_msgs">
+                    {{ Session::get('message') }}
                 </div>
             </div>
+        </div>
         @endif
 
         @if(isset($messages) && $messages->any())
-            <div class="row">
-                <div class="col-md-8 col-md-offset-2">
-                    <div class="alert alert-info pt-10 system-msgs">
-                        @foreach($messages->all() as $message)
-                            {{$message}}
-                        @endforeach
-                    </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-info pt-10 system-msgs">
+                    @foreach($messages->all() as $message)
+                    {{$message}}
+                    @endforeach
                 </div>
             </div>
+        </div>
         @endif
 
         @if(isset($errors) && $errors->any())
-            <div class="row">
-                <div class="col-md-8 col-md-offset-2">
-                    <div class="alert alert-danger pt-10 system-msgs">
-                        @foreach($errors->all() as $error)
-                            {{$error}}
-                        @endforeach
-                    </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="alert alert-danger pt-10 system-msgs">
+                    @foreach($errors->all() as $error)
+                    {{$error}}
+                    @endforeach
                 </div>
             </div>
+        </div>
         @endif
 
         <div class="alert alert-info pt-10 hidden" id="js_msgs"></div>
@@ -207,7 +211,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     </div>
 
-     <footer class="footer pt-5">
+    <footer class="footer pt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6 mobile-hidden">
@@ -258,23 +262,23 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{url('/js/selectize.js')}}"></script>
     <script type="text/javascript">
         // opt-in to bootstrap tooltips
-        $(function () {
+        $(function() {
             $('[data-toggle="tooltip"]').tooltip();
-//            $('[data-usescroll="true"]').jScrollPane();
+            //            $('[data-usescroll="true"]').jScrollPane();
 
             var dt = new Date();
             var footerCopyrightText = "Choice Marketing Partners © " + dt.getFullYear();
             $('#footer-copyright').html(footerCopyrightText);
 
-            $(window).scroll(function(){
-                if($(this).scrollTop() > 50){
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 50) {
                     $('#scrollToTop').fadeIn();
                 } else {
                     $('#scrollToTop').fadeOut();
                 }
             });
 
-            $('#scrollToTop').on('click', function(){
+            $('#scrollToTop').on('click', function() {
                 $('html, body').animate({
                     scrollTop: 0
                 }, 500);
@@ -283,18 +287,18 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
             // check to see if there are messages shown on the page and fade them out if applicable
             var $messages = $('.system-msgs');
-            if($messages.length){
+            if ($messages.length) {
                 $messages.fadeOut(6000);
             }
         });
 
-        $(document).ready(function(){
-            $('ul.nav.navbar-nav li').on('click', function(){
+        $(document).ready(function() {
+            $('ul.nav.navbar-nav li').on('click', function() {
                 $('li').removeClass('active');
                 $(this).addClass('active');
                 $(this).find('navbar-title-text').removeClass('navbar-title-text');
-            }).on('focusout', function(){
-                if($(this).attr('id') !== 'Home'){
+            }).on('focusout', function() {
+                if ($(this).attr('id') !== 'Home') {
                     $('li').removeClass('active');
                     $(this).find('a').addClass('navbar-title-text');
                 }
@@ -308,10 +312,10 @@ $container = isset($containerClass) ? $containerClass : 'container';
             })
         });
 
-        (function(){
+        (function() {
             var currentPage = window.location.pathname;
 
-            switch(currentPage){
+            switch (currentPage) {
                 case "/":
                     $('#homeLink').addClass('active');
                     $('#homeLink').find('.navbar-title-text').removeClass('navbar-title-text');
@@ -333,31 +337,30 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
         $('#dashboardLink').webuiPopover({
             type: 'async',
-            url: '{{url('/dashboard')}}',
+            url: '{{url(' / dashboard ')}}',
             backdrop: true,
             animation: 'pop'
         })
-
     </script>
     <script type="text/javascript">
         // entire system messages
-//        $('#display_msgs').fadeOut(6000);
-        $(document).on('click', '#msg-close', function(){
+        //        $('#display_msgs').fadeOut(6000);
+        $(document).on('click', '#msg-close', function() {
             $(this).parent().hide();
         });
 
-        $(function(){
-            var h = $('.wrapper').height()+20;
+        $(function() {
+            var h = $('.wrapper').height() + 20;
             var footer = $(window).height();
 
-            if(h + 100 <= footer){
+            if (h + 100 <= footer) {
                 $('.site-footer').css({
-                    'top': footer - 100+'px',
+                    'top': footer - 100 + 'px',
                     'display': 'block'
                 });
             } else {
                 $('.site-footer').css({
-                    'top': h+'px',
+                    'top': h + 'px',
                     'display': 'block'
                 })
             }
@@ -366,20 +369,21 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     {{--livereload js --- only for dev env--}}
     @if ( config('app.debug') )
-        <script type="text/javascript">
-            document.write('<script src="//localhost:35729/livereload.js?snipver=1" type="text/javascript"><\/script>')
-        </script>
+    <script type="text/javascript">
+        document.write('<script src="//localhost:35729/livereload.js?snipver=1" type="text/javascript"><\/script>')
+    </script>
     @endif
 
     @yield('scripts')
 
     @foreach ($file_paths as $fp)
-        @if ($fp['is_es5'])
-            <script src="{{$fp['path']}}" nomodule defer></script>
-        @else
-            <script src="{{$fp['path']}}" type="module"></script>
-        @endif
+    @if ($fp['is_es5'])
+    <script src="{{$fp['path']}}" nomodule defer></script>
+    @else
+    <script src="{{$fp['path']}}" type="module"></script>
+    @endif
     @endforeach
 
 </body>
+
 </html>

@@ -14,7 +14,7 @@ export class CreateInvoiceComponent implements OnInit {
     constructor(private account: AccountService) { }
 
     ngOnInit(): void {
-        this.account.getUserInfo().subscribe(user => {
+        this.account.getUserInfo.subscribe(user => {
             this.user = user;
             console.dir(this.user);
         });

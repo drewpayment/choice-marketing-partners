@@ -1,0 +1,156 @@
+
+<div mat-dialog-title style="display:flex !important;">
+    <div>Create Agent</div>
+    <div class="spacer"></div>
+    <button mat-icon-button type="button" (click)="closeDialog()">
+        <mat-icon>clear</mat-icon>
+    </button>
+</div>
+
+<mat-dialog-content>
+    <mat-vertical-stepper #stepper>
+        <mat-step [stepControl]="f">
+            <ng-template matStepLabel>Agent Details</ng-template>
+            <div class="checkbox-form-field">
+                <mat-checkbox (change)="toggleIsCreatingUser()">Create User</mat-checkbox>
+                <mat-hint>Creates account with login access.</mat-hint>
+            </div>
+            <mat-divider></mat-divider>
+            <form [formGroup]="f" class="form-container">
+                <mat-form-field>
+                    <mat-label>Full Name</mat-label>
+                    <input type="text" matInput formControlName="name" required />
+                    <mat-error *ngIf="f.get('name').hasError('required')">
+                        Please enter name.
+                    </mat-error>
+                </mat-form-field>
+        
+                <mat-form-field>
+                    <mat-label>Email</mat-label>
+                    <input type="email" matInput formControlName="email" required />
+                    <mat-error *ngIf="f.get('email').hasError('required')">
+                        Please enter an email address.
+                    </mat-error>
+                </mat-form-field>
+        
+                <mat-form-field>
+                    <mat-label>Phone</mat-label>
+                    <input type="text" matInput formControlName="phone" required />
+                    <mat-error *ngIf="f.get('phone').hasError('required')">
+                        Please enter a phone number.
+                    </mat-error>
+                </mat-form-field>
+        
+                <mat-form-field>
+                    <mat-label>Street</mat-label>
+                    <input type="text" matInput formControlName="address" required />
+                    <mat-error *ngIf="f.get('address').hasError('required')">
+                        Please enter a street address.
+                    </mat-error>
+                </mat-form-field>
+        
+                <mat-form-field>
+                    <mat-label>Apt/Unit</mat-label>
+                    <input type="text" matInput formControlName="address2" />
+                    <mat-hint>Optional</mat-hint>
+                </mat-form-field>
+        
+                <mat-form-field>
+                    <mat-label>City</mat-label>
+                    <input type="text" matInput formControlName="city" required />
+                    <mat-error *ngIf="f.get('city').hasError('required')">
+                        Please enter a city.
+                    </mat-error>
+                </mat-form-field>
+        
+                <ng-container *ngIf="countries$ | async as countries">
+                    <mat-form-field>
+                        <mat-label>Country</mat-label>
+                        <mat-select formControlName="country" required>
+                            <mat-option *ngFor="let country of countries" [value]="country">
+                                {{ country.CountryName }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f.get('country').hasError('required')">
+                            Please select a country.
+                        </mat-error>
+                    </mat-form-field>
+                </ng-container>
+        
+                <ng-container *ngIf="states$ | async as states">
+                    <mat-form-field>
+                        <mat-label>State</mat-label>
+                        <mat-select formControlName="state" required>
+                            <mat-option *ngFor="let state of states" [value]="state">
+                                {{ state.StateName }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f.get('state')?.hasError('required')">
+                            Please select a state.
+                        </mat-error>
+                    </mat-form-field>
+                </ng-container>
+        
+                <mat-form-field>
+                    <mat-label>Postal Code</mat-label>
+                    <input type="text" matInput formControlName="postalCode" required />
+                    <mat-error *ngIf="f.get('postalCode').hasError('required')">
+                        Please enter a postal code.
+                    </mat-error>
+                </mat-form-field>
+        
+                <div class="d-flex">
+                    <ng-container *ngFor="let x of [1, 2, 3]">
+                        <mat-form-field>
+                            <mat-label>Sales ID {{x}}</mat-label>
+                            <input type="text" matInput [formControl]="f.get('id' + x)" />
+                            <mat-hint>Optional</mat-hint>
+                        </mat-form-field>
+                    </ng-container>
+                </div>
+        
+                <div class="checkbox-form-field">
+                    <mat-checkbox formControlName="isManager">Enable Manager Role</mat-checkbox>
+                    <mat-hint>Only enable if user should be able to see subordinates payroll.</mat-hint>
+                </div>
+            </form>
+        </mat-step>
+        <mat-step *ngIf="isCreatingUser" [stepControl]="fUser">
+            <ng-template matStepLabel>User Detail</ng-template>
+            <form [formGroup]="fUser" class="form-container">
+                <mat-form-field>
+                    <mat-label>User Type</mat-label>
+                    <mat-select formControlName="userType" [required]="isCreatingUser">
+                        <mat-option *ngFor="let type of userTypes; let i=index" [value]="getUserTypeValue(type)">
+                            {{ type }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-hint>
+                        Gives user role-based access to the application.
+                    </mat-hint>
+                </mat-form-field>
+
+                <div class="checkbox-form-field">
+                    <mat-slide-toggle (change)="overridePasswordChange($event)">Override Password</mat-slide-toggle>
+                </div>
+
+                <mat-form-field *ngIf="!isPasswordReadonly">
+                    <mat-label>Password</mat-label>
+                    <input type="password" matInput formControlName="password" required />
+                    <mat-hint>8 alphanumeric characters (Minimum 1 numberic value required)</mat-hint>
+                </mat-form-field>
+            </form>
+        </mat-step>
+    </mat-vertical-stepper>
+    
+</mat-dialog-content>
+<mat-dialog-actions class="py-5">
+    <button mat-button mat-dialog-close>
+        <mat-icon>clear</mat-icon>
+        <span>Cancel</span>
+    </button>
+    <button mat-raised-button color="primary" (click)="saveAgent()">
+        <mat-icon>save</mat-icon>
+        <span>Save</span>
+    </button>
+</mat-dialog-actions>
