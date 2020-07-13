@@ -293,7 +293,9 @@ class EmployeeController extends Controller
         $page = $request->query('page');
 
         return $result->trySetData(function ($showAll, $size, $page) {
-            $qry = Employee::with('user')->orderBy('name');
+            $qry = Employee::with('user')
+                ->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
+                ->orderBy('name');
 
             return $showAll 
                 ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
