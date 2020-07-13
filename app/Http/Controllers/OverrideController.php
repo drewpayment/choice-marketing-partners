@@ -106,8 +106,8 @@ class OverrideController extends Controller
 		if(!request()->ajax())
 			return response()->json(false);
 
-		$agent = Input::get('agentId');
-		$mgr = Input::get('mgrId');
+        $agent = $request->get('agentId');
+        $mgr = $request->get('mgrId');
 
 		$result = $this->OverrideService->AddEmployeeOverride($agent, $mgr);
 
@@ -120,8 +120,8 @@ class OverrideController extends Controller
 		if(!request()->ajax())
 			return response()->json(false);
 
-		$agent = Input::get('agentId');
-		$mgr = Input::get('mgrId');
+        $agent = $request->get('agentId');
+        $mgr = $request->get('mgrId');
 
 		$result = $this->OverrideService->DeleteEmployeeOverride($agent, $mgr);
 
