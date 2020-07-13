@@ -78,6 +78,7 @@ export class EditAgentDialogComponent implements OnInit {
     }
 
     saveAgent() {
+        console.dir(this.f);
         if (this.f.invalid) return;
 
         const agent = this.prepareModel();
