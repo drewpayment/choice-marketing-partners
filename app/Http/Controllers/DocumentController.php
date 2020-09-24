@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Document;
 use App\Services\UploadsManager;
+use App\Services\SessionUtil;
 use Carbon\Carbon;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
 use Illuminate\Http\Request;
@@ -17,24 +18,24 @@ use Illuminate\Support\Facades\View;
 class DocumentController extends Controller
 {
 	protected $manager;
-
+	protected $session;
 
 	/**
 	 * _UploadRepo constructor.
 	 *
 	 * @param UploadsManager $manager
 	 */
-	public function __construct(UploadsManager $manager)
+	public function __construct(UploadsManager $manager, SessionUtil $session)
 	{
 		$this->manager = $manager;
 		$this->middleware('auth');
+		$this->session = $session;
 	}
 
 	public function index()
 	{
 		$documents = Document::all();
-		$thisUser = DB::table('employees')->where('name', Auth::user()->name)->first();
-		$admin = $thisUser->is_admin;
+		$admin = $this->session->checkUserIsAdmin();
 
 		$tags = Document::existingTags();
 		$selectedTags = [];
