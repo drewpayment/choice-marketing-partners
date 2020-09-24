@@ -35,7 +35,12 @@ class DocumentController extends Controller
 	public function index()
 	{
 		$documents = Document::all();
-		$admin = $this->session->checkUserIsAdmin();
+		$admin = false;
+		$adminResult = $this->session->checkUserIsAdmin();
+		
+		if (!$adminResult->hasError()) {
+			$admin = true;
+		}
 
 		$tags = Document::existingTags();
 		$selectedTags = [];
