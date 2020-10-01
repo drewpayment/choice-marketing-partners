@@ -56,11 +56,33 @@ class OverrideService {
 	 */
 	public function AddEmployeeOverride($agentId, $managerId)
 	{
+		// Get the employee's permission record that needs to be attached to the manager
 		$permission = Permission::where('emp_id', $agentId)->first();
 		$manager = Employee::find($managerId);
 
 		DB::beginTransaction();
 		try {
+			
+			// Check to see if the permission record exists.
+			// if it doesn't, we need to generate one for the employee in order to associate it 
+			// with the manager. 
+			if ($permission == null) {
+				// the employee record for the employee we are trying to attach to the manager's permissions
+				$emp = Employee::find($agentId)->first();	
+				
+				$dt = date("Y-m-d H:i:s");
+				
+				if ($emp != null) {
+					$newPermission = new Permission();
+					$newPermission->emp_id = $agentId;
+					$newPermission->is_active = 1;
+					$newPermission->created_at = $dt;
+					$newPermission->updated_at = $dt;
+					$saved = $newPermission->save();
+					
+					if ($saved) $permission = $newPermission;
+				}
+			}
 
 			$manager->permissions()->attach($permission);
 			DB::commit();
