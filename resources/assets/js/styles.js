@@ -1,0 +1,2 @@
+require('../sass/app.scss');
+

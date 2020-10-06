@@ -23,11 +23,13 @@ class AngularComposer
 
         $file_paths = [];
         $styles = [];
+        
+        $files = [];
 
         foreach ($angular_assets as $aa)
         {
             // Angular's output directory in angular.json
-            $cmp_path = 'dist/cmp/';
+            $cmp_path = 'public/dist/cmp/';
 
             // If the key is just styles then we are going to build a CSS file path 
             $is_stylesheet = strpos($aa, 'styles') !== false;
@@ -41,8 +43,12 @@ class AngularComposer
              * and if so, build the expected css filename. Otherwise, build the expected JS filename. 
              */
             $path = $is_stylesheet && !$has_js_styles
-                ? $cmp_path . $aa . '*.css'
-                : $cmp_path . $aa . '*.js';
+                ? $cmp_path . $aa . '.css'
+                : $cmp_path . $aa . '.js';
+            
+            if (is_string($path)) {
+                $files[] = str_replace('public/', '', $path);
+            }
 
             // Check to see if we can find the JS/CSS dependency with PHP's glob function
             $p = glob($path);
@@ -53,7 +59,7 @@ class AngularComposer
              */
             if (strpos($aa, 'styles') !== false && count($p) < 1) 
             {
-                $path = $cmp_path . $aa . '*.js';
+                $path = $cmp_path . $aa . '.js';
                 $p = glob($path);
             }
 
@@ -87,8 +93,11 @@ class AngularComposer
             }
         }
         
+        var_dump($file_paths);
+        var_dump($styles);
+        
         $view->with([
-            'file_paths' => $file_paths,
+            'file_paths' => $files,
             'styles' => $styles
         ]);
     }

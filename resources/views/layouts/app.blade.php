@@ -1,39 +1,28 @@
 <?php
-
 $container = isset($containerClass) ? $containerClass : 'container';
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta id="global-token" name="token" content="{{csrf_token()}}">
 
-    <title>@yield('title') - Choice Marketing Partners</title>
+    <title>@yield('title')</title>
 
+    @auth
     <!-- Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700">
-
-    <!-- Styles -->
-    {{--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">--}}
-    {{--<link rel="stylesheet" href="{{url('css/bootstrap/bootstrap.min.css')}}"> removed because gulped bootstrap into all.css--}}
-    {{--<link rel="stylesheet" href="{{url('css/bootstrap/bootstrap-theme.min.css')}}">--}}
     <!-- Latest compiled and minified Bootstrap select/option module -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
-    {{-- <link href="{{ elixir('css/app.css') }}" rel="stylesheet"> --}}
     <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
     <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.css" />
 
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
     <link rel="stylesheet" href="{{url('css/user.css')}}">
     <link rel="stylesheet" href="{{elixir('css/all.css')}}">
-    {{-- Sandy Walker/WebUI-Popover --}}
-    {{-- How do I only use local as backup? --}}
-    {{--<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.css">--}}
     <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
     <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
@@ -62,11 +51,20 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <!-- jsPDF plugin Autotable: https://github.com/simonbengtsson/jsPDF-AutoTable -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/g/jquery.slick@1.6.0(slick-theme.css+slick.css)">
 
-    {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.0/jspdf.plugin.autotable.js"></script>--}}
-
     @yield('topJS')
+    @endauth
+    
+    <!-- ANGULAR ASSETS -->
+    @guest
+    @foreach ($styles as $s)
+    <link rel="styleshset" href="{{$s['path']}}" />
+    @endforeach
+    
+    
+    @endguest
 </head>
 
+@auth
 <body id="app-layout">
     <!-- CANNOT IMPLEMENT UNTIL CREATE-INVOICE BRANCH MERGED... NEED USER TYPE  -->
     <!-- <cp-nav-bar></cp-nav-bar> -->
@@ -233,10 +231,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     <a id="scrollToTop" href="#"><i class="fa fa-3x fa-chevron-circle-up"></i></a>
 
-    <!-- JavaScripts -->
-    {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>--}}
     <script src="{{url('js/jquery-3.1.1.min.js')}}"></script>
-    {{--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>--}}
     <script src="{{url('js/bootstrap.min.js')}}"></script>
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
@@ -244,19 +239,11 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{ elixir('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
-    {{-- Sandy Walker WebUI Popover --}}
-    {{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/loading.gif"></script>--}}
-    {{--<script src="https://cdn.jsdelivr.net/jquery.webui-popover/2.1.15/jquery.webui-popover.min.js"></script>--}}
     <script src="{{url('js/jquery.webui-popover.js')}}"></script>
     <script src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
     <script src="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.min.js"></script>
     <!-- moment js plugin for dates -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
-    {{-- jscrollpane --}}
-    {{--<script src="{{url('assets/jscrollpane/jquery.mousewheel.js')}}"></script>--}}
-    {{--<script src="{{url('assets/jscrollpane/mwheelintent.js')}}"></script>--}}
-    {{--<script src="{{url('assets/jscrollpane/jquery.jscrollpane.js')}}"></script>--}}
-    {{--jquery scroll to plugin--}}
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
     {{-- http://selectize.github.io/selectize.js/ --}}
     <script src="{{url('/js/selectize.js')}}"></script>
@@ -367,13 +354,6 @@ $container = isset($containerClass) ? $containerClass : 'container';
         })
     </script>
 
-    {{--livereload js --- only for dev env--}}
-    @if ( config('app.debug') )
-    <script type="text/javascript">
-        document.write('<script src="//localhost:35729/livereload.js?snipver=1" type="text/javascript"><\/script>')
-    </script>
-    @endif
-
     @yield('scripts')
 
     @foreach ($file_paths as $fp)
@@ -385,5 +365,20 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @endforeach
 
 </body>
+@endauth
+
+@guest
+<body>
+    <h1>TEST</h1>
+    
+    @foreach ($file_paths as $fp)
+    @if (strpos($fp, '2015') !== false)
+    <script src="{{$fp}}" type="module"></script>
+    @else
+    <script src="{{$fp}}" nomodule defer></script>
+    @endif
+    @endforeach
+</body>
+@endguest
 
 </html>

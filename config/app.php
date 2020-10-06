@@ -182,7 +182,7 @@ $results = [
         App\Providers\JsonResponseServiceProvider::class,
         App\Plugins\PDFServiceProvider::class,
 	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
-
+        App\Http\View\Composers\ViewServiceProvider::class,
 
     ],
 
