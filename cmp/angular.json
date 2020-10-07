@@ -33,7 +33,6 @@
               "../resources/assets/sass/app.scss"
             ],
             "scripts": [
-              "../resources/assets/js/styles.js",
               "../resources/assets/js/conf/employee.js",
               "../resources/assets/js/welcome.js",
               "../resources/assets/js/paystubs.js",

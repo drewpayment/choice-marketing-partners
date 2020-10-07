@@ -10,19 +10,13 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <meta id="global-token" name="token" content="{{csrf_token()}}">
 
     <title>@yield('title')</title>
-
-    @auth
     <!-- Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700">
     <!-- Latest compiled and minified Bootstrap select/option module -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
-    <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
+   
     <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.css" />
-
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
-    <link rel="stylesheet" href="{{url('css/user.css')}}">
-    <link rel="stylesheet" href="{{elixir('css/all.css')}}">
     <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
     <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
@@ -31,6 +25,12 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    @auth
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
+    <link rel="stylesheet" href="{{url('css/user.css')}}">
+    <link rel="stylesheet" href="{{elixir('css/all.css')}}">
+    
     @yield('topCSS')
 
     <style>
@@ -62,6 +62,8 @@ $container = isset($containerClass) ? $containerClass : 'container';
     
     
     @endguest
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
 </head>
 
 @auth
@@ -369,13 +371,32 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
 @guest
 <body>
-    <h1>TEST</h1>
+    <cp-root></cp-root>
+    
+    <script src="{{url('js/jquery-3.1.1.min.js')}}"></script>
+    <script src="{{url('js/bootstrap.min.js')}}"></script>
+    <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
+    <script src="{{url('js/config.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
+    <script src="{{ elixir('js/all.js') }}"></script>
+    <!-- Latest compiled and minified Bootstrap select/option js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
+    <script src="{{url('js/jquery.webui-popover.js')}}"></script>
+    <script src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
+    <script src="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.min.js"></script>
+    <!-- moment js plugin for dates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
+    {{-- http://selectize.github.io/selectize.js/ --}}
+    <script src="{{url('/js/selectize.js')}}"></script>
     
     @foreach ($file_paths as $fp)
     @if (strpos($fp, '2015') !== false)
     <script src="{{$fp}}" type="module"></script>
-    @else
+    @elseif (strpos($fp, 'es5') !== false)
     <script src="{{$fp}}" nomodule defer></script>
+    @elseif (strpos($fp, '.map') === false)
+    <script src="{{$fp}}" type="text/javascript"></script>
     @endif
     @endforeach
 </body>
