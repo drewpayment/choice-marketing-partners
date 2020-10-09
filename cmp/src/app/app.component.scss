@@ -1,11 +1,12 @@
 @import '../styles/theme';
 
-.hero-banner {
-  height: 100vh;
-  background: linear-gradient(90deg, #183b78 67%, #ffffff 33%);
+.container {
+  height: 95vh;
+  background: linear-gradient(90deg, #183b78 70%, #bdbdbd 30%);
+  display: grid;
+  grid-template-rows: 80px 1fr 120px;
 
   .hero-header {
-    height: 80px;
     display: grid;
     grid-template-columns: 1fr 3fr 1fr;
     padding: 1rem;
@@ -15,6 +16,71 @@
       justify-content: center;
       align-items: center;
     }
+  }
+
+  .body-content {
+
+    .hero-row {
+      display: grid;
+      grid-template-columns: 2fr 4fr;
+
+      .hero-slogan {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 5rem;
+        color: $light-primary-text;
+
+        h1 {
+          letter-spacing: 1.2px;
+          line-height: 3rem;
+          font-weight: 400;
+        }
+      }
+
+      .hero-city {
+        // background-size: contain;
+        // background-image: url('~src/assets/gummy-city.svg');
+        // background-repeat: no-repeat;
+        max-height: 800px;
+        overflow: hidden;
+
+        img {
+          max-height: 800px;
+          width: auto;
+        }
+      }
+    }
+
+    .partners-header {
+      font-size: 2.5rem;
+      text-transform: uppercase;
+      margin: 3rem;
+      text-align: center;
+    }
+
+    .partners {
+      margin: 2rem;
+      padding: 2rem;
+
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 400px);
+      grid-template-rows: repeat(auto-fill, 250px);
+      gap: 1rem;
+
+      .img-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+
+  } // .body-content
+
+  .footer {
+
   }
 
 }
