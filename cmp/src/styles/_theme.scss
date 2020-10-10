@@ -10,13 +10,14 @@
 // Fonts
 // @import 'https://fonts.googleapis.com/css?family=Material+Icons';
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
+@import url('https://fonts.googleapis.com/css2?family=Lora&display=swap');
 
 $fontConfig: (
   display-4: mat-typography-level(112px, 112px, 300, 'Roboto', -0.0134em),
   display-3: mat-typography-level(56px, 56px, 400, 'Roboto', -0.0089em),
   display-2: mat-typography-level(45px, 48px, 400, 'Roboto', 0.0000em),
   display-1: mat-typography-level(34px, 40px, 400, 'Roboto', 0.0074em),
-  headline: mat-typography-level(24px, 32px, 400, 'Roboto', 0.0000em),
+  headline: mat-typography-level(24px, 32px, 400, 'Lora', 0.0000em),
   title: mat-typography-level(20px, 32px, 500, 'Roboto', 0.0075em),
   subheading-2: mat-typography-level(16px, 28px, 400, 'Roboto', 0.0094em),
   subheading-1: mat-typography-level(15px, 24px, 500, 'Roboto', 0.0067em),
@@ -85,7 +86,7 @@ $mat-dark-theme-foreground: (
 
 // Background config
 // Light bg
-$light-background:    #fafafa;
+$light-background:    #f9fcff;
 $light-bg-darker-5:   darken($light-background, 5%);
 $light-bg-darker-10:  darken($light-background, 10%);
 $light-bg-darker-20:  darken($light-background, 20%);
@@ -228,6 +229,10 @@ $altTheme: mat-dark-theme($theme-primary, $theme-accent, $theme-warn);
   }
 }
 
+@mixin font-lora() {
+  font-family: Lora, Georgia, 'Times New Roman', Times, serif;
+}
+
 // Specific component overrides, pieces that are not in line with the general theming
 
 // Handle buttons appropriately, with respect to line-height
@@ -249,4 +254,16 @@ $altTheme: mat-dark-theme($theme-primary, $theme-accent, $theme-warn);
   .mat-badge-content {
     font-family: 'Roboto';
   }
+}
+
+.mat-text-primary {
+  @include get-theme(color, primary);
+}
+
+.mat-text-accent {
+  @include get-theme(color, accent);
+}
+
+.mat-background-accent {
+  @include get-theme(background-color, accent);
 }

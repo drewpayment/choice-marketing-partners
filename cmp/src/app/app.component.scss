@@ -1,7 +1,9 @@
 @import '../styles/theme';
 
+$section-title-font-size: 2.5rem;
+
 .container {
-  height: 95vh;
+  height: 900px;
   background: linear-gradient(90deg, #183b78 70%, #bdbdbd 30%);
   display: grid;
   grid-template-rows: 80px 1fr 120px;
@@ -43,7 +45,7 @@
         // background-size: contain;
         // background-image: url('~src/assets/gummy-city.svg');
         // background-repeat: no-repeat;
-        max-height: 800px;
+        height: 800px;
         overflow: hidden;
 
         img {
@@ -54,9 +56,10 @@
     }
 
     .partners-header {
-      font-size: 2.5rem;
+      @include font-lora();
+      font-size: $section-title-font-size;
       text-transform: uppercase;
-      margin: 3rem;
+      padding: 2rem;
       text-align: center;
     }
 
@@ -67,7 +70,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, 400px);
       grid-template-rows: repeat(auto-fill, 250px);
-      gap: 1rem;
+      gap: 1rem 1.5rem;
 
       .img-wrapper {
         display: flex;
@@ -89,3 +92,40 @@
   @include get-theme(color, accent);
 }
 
+.lora {
+  @include font-lora();
+}
+
+.section-details {
+  background-color:$light-background;
+  display: grid;
+  grid-template-rows: repeat(3, 450px);
+
+  .agents-section {
+    display: grid;
+    grid-template-rows: 80px 1fr;
+    margin: 2rem 0;
+
+    .agents-title {
+      @include font-lora();
+      font-size: $section-title-font-size;
+      @extend .mat-text-primary;
+      display: flex;
+      justify-content: center;
+    }
+
+    .agents-section-detail {
+      display: flex;
+      justify-content: space-evenly;
+
+      .agents-section-detail-text {
+        display: flex;
+        align-items: center;
+
+        .agent-perks {
+          line-height: 2rem;
+        }
+      }
+    }
+  }
+}
