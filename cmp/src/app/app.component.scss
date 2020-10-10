@@ -99,14 +99,14 @@ $section-title-font-size: 2.5rem;
 .section-details {
   background-color:$light-background;
   display: grid;
-  grid-template-rows: repeat(3, 450px);
+  grid-template-rows: 600px 700px 600px;
 
-  .agents-section {
+  .agents-section, .testimontials {
     display: grid;
     grid-template-rows: 80px 1fr;
     margin: 2rem 0;
 
-    .agents-title {
+    .agents-title, .testimontials-title {
       @include font-lora();
       font-size: $section-title-font-size;
       @extend .mat-text-primary;
@@ -114,17 +114,80 @@ $section-title-font-size: 2.5rem;
       justify-content: center;
     }
 
-    .agents-section-detail {
+    .agents-section-detail, .testimontials-detail {
       display: flex;
       justify-content: space-evenly;
 
-      .agents-section-detail-text {
+      .agents-section-detail-text, .testimontials-detail-text {
         display: flex;
         align-items: center;
 
-        .agent-perks {
+        .agent-perks, .testimonials-info {
           line-height: 2rem;
         }
+      }
+    }
+  }
+
+  .incentives {
+    display: grid;
+    grid-template-rows: 80px 1fr;
+    margin: 2rem 0;
+
+    .incentives-title {
+      @include font-lora();
+      font-size: $section-title-font-size;
+      @extend .mat-text-primary;
+      display: flex;
+      justify-content: center;
+    }
+
+    .incentives-content {
+      display: flex;
+      justify-content: space-around;
+
+      .mat-card {
+        max-width: 300px;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+      }
+    }
+  }
+
+  .testimonials {
+    display: grid;
+    grid-template-rows: 80px 1fr;
+    margin: 2rem 0;
+
+    .testimonials-title {
+      @include font-lora();
+      font-size: $section-title-font-size;
+      @extend .mat-text-primary;
+      display: flex;
+      justify-content: center;
+    }
+
+    .testimonials-detail {
+      display: flex;
+      justify-content: space-around;
+      max-width: 100%;
+      padding: 0 2rem 2rem 2rem;
+
+      .testimonials-detail-text {
+        display: flex;
+        align-items: center;
+        padding-left: 4rem;
+        flex-grow: 1;
+
+        .testimonials-info {
+          line-height: 2rem;
+        }
+      }
+
+      .testimonials-detail-graphic {
+        flex-shrink: 1;
       }
     }
   }
