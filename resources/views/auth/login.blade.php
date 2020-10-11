@@ -8,7 +8,7 @@
                 <h3 class="m-0"><i class="fa fa-sign-in"></i> Login</h3>
             </div>
             <div class="box-content">
-                <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}">
+                <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}" ngNoForm>
                     {{ csrf_field() }}
 
                     <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">

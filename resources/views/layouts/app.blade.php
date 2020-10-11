@@ -358,13 +358,17 @@ $container = isset($containerClass) ? $containerClass : 'container';
 
     @yield('scripts')
 
+    @auth
     @foreach ($file_paths as $fp)
-    @if ($fp['is_es5'])
-    <script src="{{$fp['path']}}" nomodule defer></script>
-    @else
-    <script src="{{$fp['path']}}" type="module"></script>
+    @if (strpos($fp, '2015') !== false)
+    <script src="{{$fp}}" type="module"></script>
+    @elseif (strpos($fp, 'es5') !== false)
+    <script src="{{$fp}}" nomodule defer></script>
+    @elseif (strpos($fp, '.map') === false)
+    <script src="{{$fp}}" type="text/javascript"></script>
     @endif
     @endforeach
+    @endauth
 
 </body>
 @endauthurl
