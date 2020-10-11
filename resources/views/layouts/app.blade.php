@@ -25,7 +25,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    @auth
+    @authurl
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
     <link rel="stylesheet" href="{{url('css/user.css')}}">
@@ -52,21 +52,21 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/g/jquery.slick@1.6.0(slick-theme.css+slick.css)">
 
     @yield('topJS')
-    @endauth
+    @endauthurl
     
     <!-- ANGULAR ASSETS -->
-    @guest
+    @guesturl
     @foreach ($styles as $s)
     <link rel="styleshset" href="{{$s['path']}}" />
     @endforeach
     
     
-    @endguest
+    @endguesturl
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
 </head>
 
-@auth
+@authurl
 <body id="app-layout">
     <!-- CANNOT IMPLEMENT UNTIL CREATE-INVOICE BRANCH MERGED... NEED USER TYPE  -->
     <!-- <cp-nav-bar></cp-nav-bar> -->
@@ -92,7 +92,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
             </div>
             <div class="collapse navbar-collapse" id="navcol-1">
                 <ul class="nav navbar-nav navbar-right">
-                    @if(!Auth::user())
+                    @guest
                     <li role="presentation" id="homeLink">
                         <a href="{{url('/')}}" class="navbar-title-text">
                             <i class="fa fa-home"></i> Home
@@ -108,8 +108,8 @@ $container = isset($containerClass) ? $containerClass : 'container';
                             <i class="fa fa-sign-in"></i> Login
                         </a>
                     </li>
-                    @endif
-                    @if(Auth::user())
+                    @endguest
+                    @auth
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-th navbar-title-text color-white"></i> <span class="hidden-sm hidden-md color-white">Menu</span></a>
                         <ul class="dropdown-menu">
@@ -148,7 +148,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
                             </li>
                         </ul>
                     </li>
-                    @endif
+                    @endauth
                 </ul>
             </div>
         </div>
@@ -367,9 +367,9 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @endforeach
 
 </body>
-@endauth
+@endauthurl
 
-@guest
+@guesturl
 <body>
     <cp-root></cp-root>
     
@@ -400,6 +400,6 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @endif
     @endforeach
 </body>
-@endguest
+@endguesturl
 
 </html>
