@@ -3,10 +3,9 @@
 $section-title-font-size: 2.5rem;
 
 .container {
-  height: 900px;
   background: linear-gradient(90deg, #183b78 70%, #bdbdbd 30%);
   display: grid;
-  grid-template-rows: 80px 1fr 120px;
+  grid-template-rows: 80px 1fr 160px;
 
   .hero-header {
     display: grid;
@@ -17,6 +16,7 @@ $section-title-font-size: 2.5rem;
       display: flex;
       justify-content: center;
       align-items: center;
+      font-size: 2rem;
     }
   }
 
@@ -42,9 +42,6 @@ $section-title-font-size: 2.5rem;
       }
 
       .hero-city {
-        // background-size: contain;
-        // background-image: url('~src/assets/gummy-city.svg');
-        // background-repeat: no-repeat;
         height: 800px;
         overflow: hidden;
 
@@ -83,7 +80,27 @@ $section-title-font-size: 2.5rem;
   } // .body-content
 
   .footer {
+    // background-color: $light-background;
+    @include get-theme(background-color, primary);
+    @include get-theme(color, accent);
 
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    align-items: center;
+    padding: 2rem;
+    gap: 1rem;
+
+    .social-links {
+      padding: 0 0 0 40px;
+
+      .mat-button {
+        @extend .lora;
+      }
+    }
+
+    .contributions {
+      padding: 0 0 0 40px;
+    }
   }
 
 }
@@ -99,14 +116,14 @@ $section-title-font-size: 2.5rem;
 .section-details {
   background-color:$light-background;
   display: grid;
-  grid-template-rows: 600px 700px 600px;
+  grid-template-rows: 600px 700px 1600px 900px;
 
-  .agents-section, .testimontials {
+  .agents-section {
     display: grid;
     grid-template-rows: 80px 1fr;
     margin: 2rem 0;
 
-    .agents-title, .testimontials-title {
+    .agents-title {
       @include font-lora();
       font-size: $section-title-font-size;
       @extend .mat-text-primary;
@@ -114,15 +131,15 @@ $section-title-font-size: 2.5rem;
       justify-content: center;
     }
 
-    .agents-section-detail, .testimontials-detail {
+    .agents-section-detail {
       display: flex;
       justify-content: space-evenly;
 
-      .agents-section-detail-text, .testimontials-detail-text {
+      .agents-section-detail-text {
         display: flex;
         align-items: center;
 
-        .agent-perks, .testimonials-info {
+        .agent-perks {
           line-height: 2rem;
         }
       }
@@ -156,9 +173,45 @@ $section-title-font-size: 2.5rem;
     }
   }
 
+  .company-section {
+    display: grid;
+    grid-template-rows: 115px 1fr;
+    margin: 2rem 0;
+
+    .company-title {
+      @include font-lora();
+      font-size: $section-title-font-size;
+      @extend .mat-text-primary;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .company-content {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 570px);
+      gap: 1rem;
+      align-items: center;
+
+      .company-card-container {
+        display: flex;
+        justify-content: center;
+
+        .mat-card {
+          max-width: 300px;
+          background: transparent;
+          box-shadow: none;
+          border-radius: 0;
+          border: none;
+        }
+      }
+    }
+  }
+
   .testimonials {
     display: grid;
-    grid-template-rows: 80px 1fr;
+    grid-template-rows: 80px 1fr 1fr;
     margin: 2rem 0;
 
     .testimonials-title {
@@ -170,15 +223,15 @@ $section-title-font-size: 2.5rem;
     }
 
     .testimonials-detail {
-      display: flex;
-      justify-content: space-around;
+      display: grid;
+      grid-template-columns: 50vw 50vw;
       max-width: 100%;
-      padding: 0 2rem 2rem 2rem;
+      padding: 2rem 0;
 
       .testimonials-detail-text {
         display: flex;
         align-items: center;
-        padding-left: 4rem;
+        padding: 0 4rem;
         flex-grow: 1;
 
         .testimonials-info {
@@ -187,7 +240,10 @@ $section-title-font-size: 2.5rem;
       }
 
       .testimonials-detail-graphic {
-        flex-shrink: 1;
+        display: grid;
+        grid-template-rows: auto;
+        grid-template-columns: auto;
+        align-items: center;
       }
     }
   }

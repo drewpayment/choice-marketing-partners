@@ -1,23 +1,23 @@
 <div class="container">
   <div class="hero-header">
-    <div class="hero-icon">
-      ICON
+    <div class="hero-icon lora mat-text-accent">
+      Choice Marketing
     </div>
 
     <div class="hero-menu">
-      <a mat-button class="text-uppercase">Agents</a>
+      <button type="button" mat-button class="text-uppercase" (click)="goTo(agents)">Agents</button>
 
-      <a mat-button class="text-uppercase">Customers</a>
+      <button type="button" mat-button class="text-uppercase" (click)="goTo(customers)">Customers</button>
 
-      <a mat-button class="text-uppercase">Incentives</a>
+      <button type="button" mat-button class="text-uppercase" (click)="goTo(incentives)">Incentives</button>
 
-      <a mat-button class="text-uppercase">Partners</a>
+      <button type="button" mat-button class="text-uppercase" (click)="goTo(partners)">Partners</button>
 
-      <a mat-button class="text-uppercase">Contact</a>
+      <button type="button" mat-button class="text-uppercase" (click)="goTo(company)">Company</button>
     </div>
 
     <div class="login-menu">
-      <a mat-flat-button class="text-uppercase">
+      <a mat-flat-button class="text-uppercase" href="/login">
         <span>Login</span>
         <mat-icon inline="true">login</mat-icon>
       </a>
@@ -36,9 +36,9 @@
           <a type="button" mat-flat-button color="accent">
             Join Now
           </a>
-          <a type="button" mat-stroked-button color="accent" href="#agents">
+          <button type="button" mat-stroked-button color="accent" (click)="goTo(agents)">
             Learn More
-          </a>
+          </button>
         </div>
       </div>
 
@@ -48,7 +48,7 @@
     </div>
 
     <div class="section-details">
-      <div id="agents" class="agents-section">
+      <div id="agents" class="agents-section" #agents>
         <div class="agents-title">
           <span>Why you should become an Agent of Choice</span>
         </div>
@@ -92,7 +92,7 @@
         </div>
       </div>
 
-      <div id="incentives" class="incentives">
+      <div id="incentives" class="incentives" #incentives>
         <div class="incentives-title">
           <span>Compensation you control by Choice</span>
         </div>
@@ -141,64 +141,208 @@
         </div>
       </div>
 
-      <div id="customers" class="testimonials">
+      <div id="customers" class="testimonials" #customers>
         <div class="testimonials-title">
           <span>What people are saying about their Choice</span>
         </div>
 
         <div class="testimonials-detail">
-          <div class="testimonials-detail-text">
-            <div>
-              <h1 class="mat-text-accent lora">Bay City, MI</h1>
+          <div>
+            <div class="testimonials-detail-text">
+              <div>
+                <h1 class="mat-text-accent lora">Bay City, MI</h1>
 
-              <p class="testimonials-info">
-                My sales representative was great. I was originally pretty reluctant, but she addressed all
-                of my concerns about the service and made sure that all of my questions were thoroughly answered.
-                She was extremely genuine and I felt like she had my best intentions in mind throughout the entire process.
-              </p>
+                <p class="testimonials-info">
+                  My sales representative was great. I was originally pretty reluctant, but she addressed all
+                  of my concerns about the service and made sure that all of my questions were thoroughly answered.
+                  She was extremely genuine and I felt like she had my best intentions in mind throughout the entire process.
+                </p>
+              </div>
+            </div>
+
+            <div class="testimonials-detail-text">
+              <div>
+                <h1 class="mat-text-accent lora">Chicago, IL</h1>
+
+                <p class="testimonials-info">
+                  Thank you, thank you, thank you! Every dollar counts, and especially during the holidays.
+                  Bless you for taking the time to analyze my situation and finding me additional savings
+                  I didn't even know was possible!
+                </p>
+              </div>
+            </div>
+
+            <div class="testimonials-detail-text">
+              <div>
+                <h1 class="mat-text-accent lora">Columbus, OH</h1>
+
+                <p class="testimonials-info">
+                  We cannot stress how happy we were with the gentlemen that stopped by our house. After
+                  reviewing our bill and finding us extra savings, he was able to review our cabin's bill
+                  on Buckeye Lake and get us some savings there too!
+                </p>
+              </div>
             </div>
           </div>
 
           <div class="testimonials-detail-graphic">
-            <img src="dist/cmp/assets/delesign/defense.svg" style="height: 100%; width: auto;" />
+            <img src="dist/cmp/assets/delesign/defense.svg" class="img-fluid" />
+          </div>
+        </div>
+
+        <div class="testimonials-detail">
+          <div class="testimonials-detail-graphic">
+            <img src="dist/cmp/assets/delesign/creative-thinking.svg" class="img-fluid" />
+          </div>
+
+          <div>
+            <div class="testimonials-detail-text">
+              <div>
+                <h1 class="mat-text-accent lora">Naperville, IL</h1>
+
+                <p class="testimonials-info">
+                  The young man, Damian, who stopped by to help me was very impressive. He was extremely
+                  friendly, patient and vigilant at making sure that I was getting the best deal. As an
+                  81-year-old retired woman on a fixed income, energy bills can be very stressful with how
+                  unpredictable they can be. Damian made sure to help get me as much as savings as he could
+                  and went over everything everytime I asked since I didn't really understand what it was at first.
+                </p>
+              </div>
+            </div>
+
+            <div class="testimonials-detail-text">
+              <div>
+                <h1 class="mat-text-accent lora">Michigan</h1>
+
+                <p class="testimonials-info">
+                  I have been approached many times regarding my energy utilities at mutliple office locations
+                  of my business. I have always been wary and turned down every offer. One weekend while
+                  relaxing at my cabin, one of your young ladies approached and at first I was reluctant to
+                  even give her the time to talk. However, she was friendly and I thought I would give her a
+                  listen. I was immediately impressed with her level of professionalism and knowledge on the industry,
+                  and eventually let her enroll my cabin on your plan. She asked about my businesses, but I told
+                  her I would hold off. Since then, I reached back out to her and we have enrolled our other two
+                  residences and all of my business locations. I estimate that she has saved me over $1,000 dollars
+                  annually! Thank you from a late believer.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="partners-section" #partners>
+        <h2 class="partners-header mat-text-primary mat-background-accent">
+          Our Partners
+        </h2>
+
+        <div id="partners" class="partners">
+          <div class="img-wrapper">
+            <img src="images/clients/att.png" class="img-fluid" />
+          </div>
+
+          <div class="img-wrapper">
+            <img src="images/clients/charter.png" class="img-fluid" />
+          </div>
+
+          <div class="img-wrapper">
+            <img src="images/clients/continuum.jpg" class="img-fluid" />
+          </div>
+
+          <div class="img-wrapper">
+            <img src="images/clients/directv.png" class="img-fluid" />
+          </div>
+
+          <div class="img-wrapper">
+            <img src="images/clients/palmco.jpeg" class="img-fluid" />
+          </div>
+
+          <div class="img-wrapper">
+            <img src="images/clients/santanna.jpeg" class="img-fluid" />
           </div>
         </div>
       </div>
 
-      <h2 class="partners-header mat-text-primary mat-background-accent">
-        Our Partners
-      </h2>
-
-      <div id="partners" class="partners">
-        <div class="img-wrapper">
-          <img src="images/clients/att.png" class="img-fluid" />
+      <div class="company-section" #company>
+        <div class="company-title mat-background-accent">
+          <span>Who is Choice Marketing?</span>
         </div>
 
-        <div class="img-wrapper">
-          <img src="images/clients/charter.png" class="img-fluid" />
-        </div>
+        <div class="company-content">
+          <div class="company-card-container">
+            <mat-card>
+              <img mat-card-image src="dist/cmp/assets/people/chris.jpg" />
 
-        <div class="img-wrapper">
-          <img src="images/clients/continuum.jpg" class="img-fluid" />
-        </div>
+              <mat-card-content>
+                <h1 class="text-center lora">Chris Payment</h1>
+              </mat-card-content>
+            </mat-card>
+          </div>
 
-        <div class="img-wrapper">
-          <img src="images/clients/directv.png" class="img-fluid" />
-        </div>
+          <div class="company-card-container">
+            <mat-card>
+              <img mat-card-image src="dist/cmp/assets/people/terri.jpg" />
 
-        <div class="img-wrapper">
-          <img src="images/clients/palmco.jpeg" class="img-fluid" />
-        </div>
+              <mat-card-content>
+                <h1 class="text-center lora">Terri Payment</h1>
+              </mat-card-content>
+            </mat-card>
+          </div>
 
-        <div class="img-wrapper">
-          <img src="images/clients/santanna.jpeg" class="img-fluid" />
+          <div class="company-card-container">
+            <mat-card>
+              <img mat-card-image src="dist/cmp/assets/people/bret.jpg" />
+
+              <mat-card-content>
+                <h1 class="text-center lora">Bret Payment</h1>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="company-card-container">
+            <mat-card>
+              <img mat-card-image src="dist/cmp/assets/people/rebecca.jpg" />
+
+              <mat-card-content>
+                <h1 class="text-center lora">Rebecca Payment</h1>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="company-card-container">
+            <mat-card>
+              <img mat-card-image src="dist/cmp/assets/people/ted.jpg" />
+
+              <mat-card-content>
+                <h1 class="text-center lora">Ted Barker</h1>
+              </mat-card-content>
+            </mat-card>
+          </div>
         </div>
       </div>
+
     </div>
 
   </div>
 
   <div class="footer">
+    <div class="social-links">
+      <a mat-icon-button href="https://www.facebook.com/choicemarketingpartners/">
+        <mat-icon>facebook</mat-icon>
+      </a>
 
+      <a mat-button href="https://www.linkedin.com/company/choice-marketing-partners/">
+        LinkedIn
+      </a>
+
+      <a mat-button href="https://www.instagram.com/choicemarketingpartners/">Instagram</a>
+    </div>
+
+    <div class="contributions">
+      <p>
+        Built with &#9829; in 2020 by <a mat-button href="https://www.linkedin.com/in/drewpayment/" target="_blank">Drew Payment.</a>
+      </p>
+    </div>
   </div>
 </div>
