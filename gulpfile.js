@@ -25,7 +25,7 @@ elixir(function(mix) {
     ]);
 
     mix.sass('app.scss');
-    mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
+    // mix.copy('node_modules/animate.css/animate.min.css', 'public/css/animate.min.css');
 
     mix.less([
         'custom.less',

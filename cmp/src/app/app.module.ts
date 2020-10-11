@@ -13,6 +13,7 @@ import { AgentsModule } from './agents/agents.module';
 import { AgentsListComponent } from './agents/agents-list/agents-list.component';
 
 const entryPoints = [
+    AppComponent,
     CreateInvoiceComponent,
     PaystubsListComponent,
     NavBarComponent,

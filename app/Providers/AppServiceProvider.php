@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,6 +20,14 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('datetime', function($expression){
         	$dt = Carbon::createFromFormat('Y-m-d', $expression)->format('m-d-Y');
 	        return "<?php echo $dt; ?>";
+        });
+        
+        Blade::if('authurl', function() {
+            return Auth::check() || strpos(URL::current(), 'login') !== false;
+        });
+        
+        Blade::if('guesturl', function() {
+            return !Auth::check() && strpos(URL::current(), 'login') === false;
         });
     }
 
