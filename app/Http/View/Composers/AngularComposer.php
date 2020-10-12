@@ -23,74 +23,25 @@ class AngularComposer
 
         $file_paths = [];
         $styles = [];
-
-        foreach ($angular_assets as $aa)
-        {
-            // Angular's output directory in angular.json
-            $cmp_path = 'dist/cmp/';
-
-            // If the key is just styles then we are going to build a CSS file path 
-            $is_stylesheet = strpos($aa, 'styles') !== false;
-
-            // Check to see if the styles is either of the normal build JS file syntaxes
-            $has_js_styles = $is_stylesheet && 
-                (strpos($aa, 'styles-es5') !== false || strpos($aa, 'styles-es2015') !== false);
-
-            /**
-             * Check if it is a CSS stylesheet based on the check above (this fails when using `--watch`)
-             * and if so, build the expected css filename. Otherwise, build the expected JS filename. 
-             */
-            $path = $is_stylesheet && !$has_js_styles
-                ? $cmp_path . $aa . '*.css'
-                : $cmp_path . $aa . '*.js';
-
-            // Check to see if we can find the JS/CSS dependency with PHP's glob function
-            $p = glob($path);
-
-            /**
-             * If running with --watch flag, angular generates a `styles.js` and `styles.js.map` that 
-             * we need to catch and account for, because the 2 above paths won't find it. 
-             */
-            if (strpos($aa, 'styles') !== false && count($p) < 1) 
-            {
-                $path = $cmp_path . $aa . '*.js';
-                $p = glob($path);
-            }
-
-            /**
-             * Check to make sure that glob found the file we were expecting it to find. 
-             * After finding the file, let's check to see if we're working with CSS or JS.
-             * Push the path to the correct styles or files array and then specify if we're going 
-             * to apply nomodule attributes if it is JS.
-             */
-            if (is_array($p) && count($p) > 0) 
-            {
-                if (strpos($path, '.css') !== false)
-                {
-                    if (!$this->path_exists_in_list($p[0], $styles))
-                    {
-                        $styles[] = [
-                            'path' => $p[0]
-                        ];
-                    }
-                }
-                else 
-                {
-                    if (!$this->path_exists_in_list($p[0], $file_paths))
-                    {
-                        $file_paths[] = [
-                            'path' => $p[0],
-                            'is_es5' => strpos($aa, 'es5') !== false
-                        ];
-                    }
-                }
-            }
-        }
+        
+        $files = [];
+        
+        $file_types = array('js', 'map');
+        $base_path = public_path('dist/cmp');
+        
+        $files = ScanDir::scan($base_path, $file_types);
+        $files = array_map('self::getPublicFilename', $files);
         
         $view->with([
-            'file_paths' => $file_paths,
+            'file_paths' => $files,
             'styles' => $styles
         ]);
+    }
+    
+    private function getPublicFilename($full_path) 
+    {
+        $path_parts = explode('/', $full_path);
+        return 'dist/cmp/'.$path_parts[count($path_parts) - 1];
     }
 
     /**
@@ -116,4 +67,93 @@ class AngularComposer
         }
     }
 
+}
+
+class ScanDir {
+    static private $directories, $files, $ext_filter, $recursive;
+    
+    // scan(dirpath::string|array, extensions::string|array, recursive::true|false)
+    static public function scan() 
+    {
+        self::$recursive = false;
+        self::$directories = [];
+        self::$files = [];
+        self::$ext_filter = false;
+        
+        if (!$args = func_get_args()) {
+            die("Must provide a path string or array of path strings");
+        }
+        if (gettype($args[0]) != "string" && gettype($args[0]) != "array") {
+            die("Must provide a path string or array of path strings");
+        }
+        
+        // check if recursive | default action: no subs
+        if (isset($args[2]) && $args[2] == true) {
+            self::$recursive = true;
+        }
+        
+        // was filter on file extensions included? | default action: return all file types
+        if (isset($args[1])) {
+            if (gettype($args[1]) == "array") {
+                self::$ext_filter = array_map('strtolower', $args[1]);
+            } else if (gettype($args[1]) == "string") {
+                self::$ext_filter[] = strtolower($args[1]);
+            }
+        }
+        
+        // grab path(s)
+        self::verifyPaths($args[0]);
+        return self::$files;
+    }
+    
+    static private function verifyPaths($paths) 
+    {
+        $path_errors = [];
+        if (gettype($paths) == "string") {
+            $paths = array($paths);
+        }    
+        
+        foreach ($paths as $path) {
+            if (is_dir($path)) {
+                self::$directories[] = $path;
+                $dirContents = self::find_contents($path);
+            } else {
+                $path_errors[] = $path;
+            }
+        }
+        
+        if ($path_errors) {
+            echo "The following directories do not exist<br />";
+            die(var_dump($path_errors));
+        }
+    }
+    
+    // how we scan directories 
+    static private function find_contents($dir) 
+    {
+        $result = array();
+        $root = scandir($dir);
+        foreach ($root as $value) {
+            if ($value === '.' || $value === '..') {
+                continue;
+            }
+            
+            if (is_file($dir.DIRECTORY_SEPARATOR.$value)) {
+                if (!self::$ext_filter || 
+                    in_array(strtolower(pathinfo($dir.DIRECTORY_SEPARATOR.$value, PATHINFO_EXTENSION)), self::$ext_filter)) 
+                {
+                    self::$files[] = $result[] = $dir.DIRECTORY_SEPARATOR.$value;
+                }
+                continue;
+            }
+            
+            if (self::$recursive) {
+                foreach (self::find_contents($dir.DIRECTORY_SEPARATOR.$value) as $value) {
+                    self::$files[] = $result[] = $value;
+                }
+            }
+        }    
+        
+        return $result;
+    }
 }

@@ -2,7 +2,11 @@ var overrides = false,
 	expenses = false;
 
 $(function(){
-    var saveBtn = $('#saveInvoice');
+	var saveBtn = $('#saveInvoice');
+	const wkendDateInput = $('#wkendDate');
+	
+	if (!wkendDateInput.length) return;
+	
 	$('#wkendDate').datepicker();
 
 	$(document).on('click', '#addOverrides', function(){
