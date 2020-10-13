@@ -1,0 +1,34 @@
+
+.mat-card {
+  margin: 2rem 0;
+}
+
+mat-card-content:not(.invoice-tables) {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+
+    .mat-form-field {
+        margin: 2rem;
+    }
+}
+
+.action-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mat-cell, .mat-header-cell {
+    padding: 0 2rem;
+
+    &:first-of-type {
+        padding-left: 24px;
+    }
+}
+
+.invoice-tables {
+
+    .mat-form-field {
+        max-width: 120px;
+    }
+}

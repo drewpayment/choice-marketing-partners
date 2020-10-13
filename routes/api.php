@@ -16,3 +16,6 @@ use Illuminate\Http\Request;
 // Route::get('/account/user-info', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:api');
+
+Route::get('/invoices', 'InvoiceController@getInvoicePageResources');
+Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'InvoiceController@getExistingInvoice');

@@ -3,39 +3,44 @@ var managerId;
 var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
     '(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)';
 
-var emps = JSON.parse($('#jsobject').html());
+const jsData = $('#jsobject');
 
-var $select = $('#employeeList').selectize({
-    persist: false,
-    maxItems: 1,
-    valueField: 'id',
-    labelField: 'name',
-    searchField: ['name'],
-    options: emps,
-    render: {
-        item: function(item, escape) {
-            return '<div>' +
-                (item.name ? '<span class="name">' + escape(item.name) + '</span> ' : '') +
-                '</div>';
+if (jsData && jsData.length) {
+    var emps = JSON.parse(jsData.html());
+
+    var $select = $('#employeeList').selectize({
+        persist: false,
+        maxItems: 1,
+        valueField: 'id',
+        labelField: 'name',
+        searchField: ['name'],
+        options: emps,
+        render: {
+            item: function(item, escape) {
+                return '<div>' +
+                    (item.name ? '<span class="name">' + escape(item.name) + '</span> ' : '') +
+                    '</div>';
+            },
+            option: function(item, escape) {
+                var label = item.name;
+                return '<div>' +
+                    '<span class="label">' + escape(label) + '</span> ' +
+                    '</div>';
+            }
         },
-        option: function(item, escape) {
-            var label = item.name;
-            return '<div>' +
-                '<span class="label">' + escape(label) + '</span> ' +
-                '</div>';
-        }
-    },
-    onChange: function(value){
-        if(value) {
-            confirmationBox(value);
+        onChange: function(value){
+            if(value) {
+                confirmationBox(value);
 
-            managerId = $('[data-manager="true"]').data('managerid');
+                managerId = $('[data-manager="true"]').data('managerid');
 
-            var selectize = $select[0].selectize;
-            selectize.clear();
+                var selectize = $select[0].selectize;
+                selectize.clear();
+            }
         }
-    }
-});
+    });
+}
+
 
 var confirmationBox = function(val){
 

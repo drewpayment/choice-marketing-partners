@@ -71,7 +71,64 @@ class InvoiceController extends Controller
 
 		return view('invoices.upload', ['emps' => $emps, 'weds' => $wedArr, 'vendors' => $vendors]);
 	}
+	
+	/**
+	 * Replaces index()
+	 */
+	public function getInvoicePageResources()
+	{
+		$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
+		$vendors = Vendor::active()->get();
+		$wedArr = [];
 
+		for($i = 0; $i < 6; $i++){
+			$dt = Carbon::parse('this wednesday');
+			$tmpDt = $dt->addWeek($i);
+			$wedArr[] = $tmpDt->format('m-d-Y');
+		}
+
+		return response()->json([
+			'agents' => $emps, 
+			'issueDates' => $wedArr, 
+			'vendors' => $vendors
+		]);
+	}
+	
+	/**
+	 * Replaces editinvoice()
+	 */
+	public function getExistingInvoice($agentID, $vendorID, $issueDate)
+	{
+		if($vendorID < 1) return response()->json(false, 500);
+		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
+		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
+		$expenses = Expense::agentId($agentID)->issueDate($issueDate)->get();
+		$employee = Employee::find($invoices->first()->agentid);
+		$campaign = Vendor::find($invoices->first()->vendor);
+
+		$invoices = $invoices->transform(function($v, $k){
+			$date = new DateTime($v->sale_date);
+			$v->sale_date = $date->format('m-d-Y');
+			return $v;
+		});
+
+		$invoiceDate = new DateTime($invoices->first()->issue_date);
+		$weekEnding = new DateTime($invoices->first()->wkending);
+		$issueDate = $invoiceDate->format('m-d-Y');
+		$weekEnding = $weekEnding->format('m-d-Y');
+
+		$invoices = json_encode($invoices);
+		$overrides = json_encode($overrides);
+		$expenses = json_encode($expenses);
+
+		return response()->json(['invoices' => $invoices,
+			'employee' => $employee,
+			'campaign' => $campaign,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'issueDate' => $issueDate,
+			'weekEnding' => $weekEnding]);
+	}
 
 	public function HandleEditInvoice(Request $request)
 	{
@@ -79,7 +136,7 @@ class InvoiceController extends Controller
 
 		$input = json_decode($request->all()['input'], true);
 		$result = $this->invoiceService->editInvoice($input);
-
+		
 		return response()->json($result);
 	}
 
@@ -499,13 +556,13 @@ class InvoiceController extends Controller
 		$expenses = json_encode($expenses);
 
 		return view('invoices.edit',
-			['invoices' => $invoices,
-			 'employee' => $employee,
-			 'campaign' => $campaign,
-			 'overrides' => $overrides,
-			 'expenses' => $expenses,
-			 'issueDate' => $issueDate,
-			 'weekEnding' => $weekEnding]);
+			['data' => json_encode(['invoices' => $invoices,
+			'employee' => $employee,
+			'campaign' => $campaign,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'issueDate' => $issueDate,
+			'weekending' => $weekEnding])]);
 	}
 
 
