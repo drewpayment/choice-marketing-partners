@@ -166,12 +166,12 @@ class InvoiceController extends Controller
         $issue_date = $request['issueDate'];
         $week_ending = $request['weekending'];
         
-        $is_existing_invoice = $this->invoiceHelper->checkForExistingInvoice($agent_id, $vendor_id, $issue_date);
+        // $is_existing_invoice = $this->invoiceHelper->checkForExistingInvoice($agent_id, $vendor_id, $issue_date);
         
-        if ($is_existing_invoice) 
-        {
-            return response('Invoice already exists.', 400);
-        }
+        // if ($is_existing_invoice) 
+        // {
+        //     return response('Invoice already exists.', 400);
+        // }
         
         $salesTotal = array_reduce($request['sales'], function ($a, $b) {
             $a['amount'] = $a['amount'] + $b['amount'];
