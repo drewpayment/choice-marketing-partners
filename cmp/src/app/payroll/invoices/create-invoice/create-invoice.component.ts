@@ -161,14 +161,16 @@ export class CreateInvoiceComponent implements OnInit {
 
         if (this.f.invalid) return;
 
+        const fv = this.f.getRawValue();
+
         const dto: InvoiceSaveRequest = {
-            vendorId: this.f.value.vendor,
-            agentId: this.f.value.agent,
-            issueDate: moment(this.f.value.issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
-            weekending: moment(this.f.value.weekending).format('YYYY-MM-DD'),
-            sales: this.f.value.invoices,
-            overrides: this.f.value.overrides,
-            expenses: this.f.value.expenses,
+            vendorId: fv.vendor,
+            agentId: fv.agent,
+            issueDate: moment(fv.issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
+            weekending: moment(fv.weekending).format('YYYY-MM-DD'),
+            sales: fv.invoices,
+            overrides: fv.overrides,
+            expenses: fv.expenses,
         };
 
         this.invoiceService.saveInvoice(dto)
