@@ -166,12 +166,12 @@ class InvoiceController extends Controller
         $issue_date = $request['issueDate'];
         $week_ending = $request['weekending'];
         
-        // $is_existing_invoice = $this->invoiceHelper->checkForExistingInvoice($agent_id, $vendor_id, $issue_date);
+        $is_existing_invoice = $this->invoiceHelper->deleteExistingInvoice($agent_id, $vendor_id, $issue_date);
         
-        // if ($is_existing_invoice) 
-        // {
-        //     return response('Invoice already exists.', 400);
-        // }
+        if ($is_existing_invoice) 
+        {
+            return response('Invoice already exists.', 400);
+        }
         
         $salesTotal = array_reduce($request['sales'], function ($a, $b) {
             $a['amount'] = $a['amount'] + $b['amount'];
@@ -197,10 +197,10 @@ class InvoiceController extends Controller
         
         DB::beginTransaction();
 		try {
-			DB::table('invoices')->updateOrInsert($pending['sales']);
-            DB::table('overrides')->updateOrInsert($pending['overrides']);
-            DB::table('expenses')->updateOrInsert($pending['expenses']);
-            DB::table('payroll')->insertOrIgnore($pending['payroll']);
+			DB::table('invoices')->insert($pending['sales']);
+            DB::table('overrides')->insert($pending['overrides']);
+            DB::table('expenses')->insert($pending['expenses']);
+            DB::table('payroll')->insert($pending['payroll']);
 			DB::commit();
 		}
 		catch(Exception $e)
