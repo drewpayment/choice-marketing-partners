@@ -197,9 +197,9 @@ class InvoiceController extends Controller
         
         DB::beginTransaction();
 		try {
-			DB::table('invoices')->insert($pending['sales']);
-            DB::table('overrides')->insert($pending['overrides']);
-            DB::table('expenses')->insert($pending['expenses']);
+			DB::table('invoices')->updateOrInsert($pending['sales']);
+            DB::table('overrides')->updateOrInsert($pending['overrides']);
+            DB::table('expenses')->updateOrInsert($pending['expenses']);
             DB::table('payroll')->insertOrIgnore($pending['payroll']);
 			DB::commit();
 		}
