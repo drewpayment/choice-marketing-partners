@@ -15,7 +15,9 @@ class Override extends Model
 		'total',
 		'agentid',
 		'issue_date',
-		'wkending'
+        'wkending',
+        'created_at', 
+        'updated_at'
 	];
 
 

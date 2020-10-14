@@ -6,7 +6,8 @@ $(document).ready(function () {
     if (!overrideTblElem.length || !expenseTblElem.length || !invoiceTblElem.length) 
         return;
         
-    var invoiceData = JSON.parse($('#invoiceTable').text()),
+    const invoiceTableText = invoiceTblElem.text();
+    var invoiceData = JSON.parse(invoiceTableText),
         overrideData = JSON.parse(overrideTblElem.text()),
         expenseData = JSON.parse(expenseTblElem.text());
 
