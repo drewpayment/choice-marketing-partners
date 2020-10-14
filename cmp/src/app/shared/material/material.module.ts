@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { forwardRef, NgModule } from '@angular/core';
+import { MatFormFieldControl, MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
+import { MatInputModule, MAT_INPUT_VALUE_ACCESSOR } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -22,9 +22,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatInputCurrencyDirective } from './mat-input-currency.directive';
+import { NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @NgModule({
     imports: [
+        MatExpansionModule,
         MatFormFieldModule,
         MatButtonModule,
         MatInputModule,
@@ -49,7 +53,11 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
         MatTooltipModule,
         MatSnackBarModule,
     ],
+    declarations: [
+        MatInputCurrencyDirective
+    ],
     exports: [
+        MatExpansionModule,
         MatFormFieldModule,
         MatButtonModule,
         MatInputModule,
@@ -73,6 +81,24 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
         MatDividerModule,
         MatTooltipModule,
         MatSnackBarModule,
+        MatInputCurrencyDirective,
+    ],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => MatInputCurrencyDirective),
+            multi: true,
+        },
+        {
+            provide: NG_VALIDATORS,
+            useExisting: MatInputCurrencyDirective,
+            multi: true,
+        },
+        {
+            provide: MAT_INPUT_VALUE_ACCESSOR,
+            useExisting: MatInputCurrencyDirective,
+            multi: true,
+        },
     ]
 })
 export class MaterialModule { }

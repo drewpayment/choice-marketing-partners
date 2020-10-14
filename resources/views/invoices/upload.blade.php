@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
 @section('topCSS')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.css">
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.css"> -->
+<!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
 @endsection
 
 @section('topJS')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script> -->
 @endsection
 
 @section('title', 'Create an Invoice')
 
 @section('content')
 
-<!-- <cp-create-invoice></cp-create-invoice> -->
+<cp-create-invoice></cp-create-invoice>
 
-<div class="row pt-10">
+<!-- <div class="row pt-10">
 	<div class="col-xs-12">
 		<div class="box box-default">
 			<div class="box-title bg-primary">
@@ -125,13 +125,13 @@
 	<div class="col-xs-10 col-xs-offset-1">
 		<button class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem !important;" id="saveInvoice"><i class="fa fa-save"></i> Save</button>
 	</div>
-</div>
+</div> -->
 
 @endsection
 
-@section('scripts')
+<!-- @section('scripts')
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script src="{{elixir('js/views/invoices/upload.js')}}"></script>
 
-@endsection
+@endsection -->

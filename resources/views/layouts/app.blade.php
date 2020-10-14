@@ -8,6 +8,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta id="global-token" name="token" content="{{csrf_token()}}">
+    <base href="/" />
 
     <title>@yield('title')</title>
     <!-- Fonts -->
@@ -361,11 +362,11 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @auth
     @foreach ($file_paths as $fp)
     @if (strpos($fp, '2015') !== false)
-    <script src="{{$fp}}" type="module"></script>
+    <script src="{{url($fp)}}" type="module"></script>
     @elseif (strpos($fp, 'es5') !== false)
-    <script src="{{$fp}}" nomodule defer></script>
+    <script src="{{url($fp)}}" nomodule defer></script>
     @elseif (strpos($fp, '.map') === false)
-    <script src="{{$fp}}" type="text/javascript"></script>
+    <script src="{{url($fp)}}" type="text/javascript"></script>
     @endif
     @endforeach
     @endauth
@@ -396,11 +397,11 @@ $container = isset($containerClass) ? $containerClass : 'container';
     
     @foreach ($file_paths as $fp)
     @if (strpos($fp, '2015') !== false)
-    <script src="{{$fp}}" type="module"></script>
+    <script src="{{url($fp)}}" type="module"></script>
     @elseif (strpos($fp, 'es5') !== false)
-    <script src="{{$fp}}" nomodule defer></script>
+    <script src="{{url($fp)}}" nomodule defer></script>
     @elseif (strpos($fp, '.map') === false)
-    <script src="{{$fp}}" type="text/javascript"></script>
+    <script src="{{url($fp)}}" type="text/javascript"></script>
     @endif
     @endforeach
 </body>
