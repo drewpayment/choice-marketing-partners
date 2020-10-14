@@ -1,8 +1,10 @@
-<div class="row" [formGroup]="f">
+<div class="row" [formGroup]="f" (paste)="onPaste($event)">
     <div class="col-12">
         <mat-card>
             <mat-card-header>
-                <h2>New Invoice</h2>
+                <mat-card-title>
+                    <h2>{{ isNew ? 'New Invoice' : 'Editing Invoice' }}</h2>
+                </mat-card-title>
             </mat-card-header>
 
             <mat-card-content>
@@ -46,7 +48,12 @@
     <div class="col-12">
         <mat-card>
             <mat-card-header>
-                <h3>Sales</h3>
+                <mat-card-title>
+                    <h3>Sales</h3>
+                </mat-card-title>
+                <button type="button" mat-icon-button color="primary" (click)="addInvoiceRow()">
+                    <mat-icon>add</mat-icon>
+                </button>
             </mat-card-header>
 
             <mat-card-content class="invoice-tables">
@@ -130,48 +137,51 @@
                     <h3>Overrides</h3>
                 </mat-expansion-panel-header>
 
-                <mat-card-content class="invoice-tables">
-                    <mat-table [dataSource]="overrideDataSource" formArrayName="overrides">
-                        <ng-container matColumnDef="name">
-                            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                            <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
-                                <mat-form-field>
-                                    <input matInput formControlName="name" required />
-                                </mat-form-field>
-                            </mat-cell>
-                        </ng-container>
+                <div class="mat-table-header-action-row">
+                    <button type="button" mat-icon-button (click)="addOverrideRow()">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
+                <mat-table [dataSource]="overrideDataSource" formArrayName="overrides">
+                    <ng-container matColumnDef="name">
+                        <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
+                            <mat-form-field>
+                                <input matInput formControlName="name" required />
+                            </mat-form-field>
+                        </mat-cell>
+                    </ng-container>
 
-                        <ng-container matColumnDef="numSales">
-                            <mat-header-cell *matHeaderCellDef># Sales</mat-header-cell>
-                            <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
-                                <mat-form-field>
-                                    <input matInput formControlName="sales" required />
-                                </mat-form-field>
-                            </mat-cell>
-                        </ng-container>
+                    <ng-container matColumnDef="numSales">
+                        <mat-header-cell *matHeaderCellDef># Sales</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
+                            <mat-form-field>
+                                <input matInput formControlName="sales" required />
+                            </mat-form-field>
+                        </mat-cell>
+                    </ng-container>
 
-                        <ng-container matColumnDef="commission">
-                            <mat-header-cell *matHeaderCellDef>Commission</mat-header-cell>
-                            <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
-                                <mat-form-field>
-                                    <input matInputCurrency formControlName="commission" required />
-                                </mat-form-field>
-                            </mat-cell>
-                        </ng-container>
+                    <ng-container matColumnDef="commission">
+                        <mat-header-cell *matHeaderCellDef>Commission</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
+                            <mat-form-field>
+                                <input matInputCurrency formControlName="commission" required />
+                            </mat-form-field>
+                        </mat-cell>
+                    </ng-container>
 
-                        <ng-container matColumnDef="total">
-                            <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
-                            <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
-                                <mat-form-field>
-                                    <input matInputCurrency formControlName="total" required />
-                                </mat-form-field>
-                            </mat-cell>
-                        </ng-container>
+                    <ng-container matColumnDef="total">
+                        <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
+                            <mat-form-field>
+                                <input matInputCurrency formControlName="total" required readonly />
+                            </mat-form-field>
+                        </mat-cell>
+                    </ng-container>
 
-                        <mat-header-row *matHeaderRowDef="overridesCols"></mat-header-row>
-                        <mat-row *matRowDef="let row; columns: overridesCols"></mat-row>
-                    </mat-table>
-                </mat-card-content>
+                    <mat-header-row *matHeaderRowDef="overridesCols"></mat-header-row>
+                    <mat-row *matRowDef="let row; columns: overridesCols"></mat-row>
+                </mat-table>
             </mat-expansion-panel>
 
             <mat-expansion-panel>
@@ -179,6 +189,11 @@
                     <h3>Expenses</h3>
                 </mat-expansion-panel-header>
 
+                <div class="mat-table-header-action-row">
+                    <button type="button" mat-icon-button (click)="addExpenseRow()">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
                 <mat-table [dataSource]="expenseDataSource" formArrayName="expenses">
                     <ng-container matColumnDef="type">
                         <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
@@ -217,11 +232,11 @@
     <div>
         <mat-card>
             <mat-card-content class="invoice-tables action-row">
-                <button type="button" mat-flat-button color="primary">
+                <button type="button" mat-flat-button color="primary" (click)="save()">
                     <mat-icon>save</mat-icon> Save
                 </button>
 
-                <button type="button" mat-flat-button>
+                <button type="button" mat-flat-button *ngIf="isNew" (click)="cancel()">
                     <mat-icon>clear</mat-icon> Cancel
                 </button>
             </mat-card-content>

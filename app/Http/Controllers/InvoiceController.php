@@ -143,7 +143,7 @@ class InvoiceController extends Controller
 
 	/**
 	 * Save invoice via ajax --- new module
-	 *
+	 * @deprecated 
 	 */
 	public function SaveInvoice(Request $request)
 	{
@@ -154,7 +154,142 @@ class InvoiceController extends Controller
 		$result = $this->invoiceService->saveInvoice($input);
 
 		return response()->json($result);
-	}
+    }
+    
+    /**
+     * Replaces UploadInvoice()
+     */
+    public function saveApiInvoice(Request $request) 
+    {
+        $vendor_id = $request['vendorId'];
+        $agent_id = $request['agentId'];
+        $issue_date = $request['issueDate'];
+        $week_ending = $request['weekending'];
+        
+        $is_existing_invoice = $this->invoiceHelper->checkForExistingInvoice($agent_id, $vendor_id, $issue_date);
+        
+        if ($is_existing_invoice) 
+        {
+            return response('Invoice already exists.', 400);
+        }
+        
+        $salesTotal = array_reduce($request['sales'], function ($a, $b) {
+            $a['amount'] = $a['amount'] + $b['amount'];
+            return $a;
+        })['amount'];
+        
+        $overridesTotal = array_reduce($request['overrides'], function ($a, $b) {
+            $a['total'] = $a['total'] + $b['total'];
+            return $a;
+        })['total'];
+        
+        $expensesTotal = array_reduce($request['expenses'], function ($a, $b) {
+            $a['amount'] = $a['amount'] + $b['amount'];
+            return $a;
+        })['amount'];
+        
+        $totals = [
+            'sales' => $salesTotal,
+            'overrides' => $overridesTotal,
+            'expenses' => $expensesTotal
+        ];
+        $pending = $this->mapToPendingInvoice($request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals);
+        
+        DB::beginTransaction();
+		try {
+			DB::table('invoices')->insert($pending['sales']);
+            DB::table('overrides')->insert($pending['overrides']);
+            DB::table('expenses')->insert($pending['expenses']);
+            DB::table('payroll')->insertOrIgnore($pending['payroll']);
+			DB::commit();
+		}
+		catch(Exception $e)
+		{
+            DB::rollback();
+            
+            return response('Failed to save the invoice, please make sure you haven\'t created an invoice already.', 400);
+        }
+        
+        $this->paystubService->processPaystubJob($issue_date);
+        
+        return response()->json($pending);
+    }
+    
+    /**
+     * Maps request into sql entities.
+     */
+    private function mapToPendingInvoice(Request $request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals)
+    {
+        $now = Carbon::now()->format('Y-m-d H:i:s');
+        
+        $pending_sales = array_map(function ($sale) use ($agent_id, $issue_date, $week_ending, $vendor_id, $now) {
+            return [
+                'vendor' => $vendor_id, 
+                'sale_date' => Carbon::parse($sale['saleDate'])->format('Y-m-d'),
+                'first_name' => $sale['firstName'],
+                'last_name' => $sale['lastName'],
+                'address' => $sale['address'],
+                'city' => $sale['city'],
+                'status' => $sale['status'],
+                'amount' => $sale['amount'],
+                'agentid' => $agent_id,
+                'issue_date' => $issue_date,
+                'wkending' => $week_ending,
+                'created_at' => $now,
+                'updated_at' => $now
+            ];
+        }, $request['sales']); 
+        
+        $pending_overrides = array_map(function ($ovr) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
+            return [
+                'vendor_id' => $vendor_id,
+                'name' => $ovr['name'],
+                'sales' => $ovr['sales'],
+                'commission' => $ovr['commission'],
+                'total' => $ovr['total'],
+                'agentid' => $agent_id,
+                'issue_date' => $issue_date,
+                'wkending' => $week_ending,
+                'created_at' => $now,
+                'updated_at' => $now
+            ];
+        }, $request['overrides']);
+        
+        $pending_expenses = array_map(function ($exp) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
+            return [
+                'vendor_id' => $vendor_id,
+                'type' => $exp['type'],
+                'amount' => $exp['amount'],
+                'notes' => $exp['notes'],
+                'agentid' => $agent_id,
+                'issue_date' => $issue_date,
+                'wkending' => $week_ending,
+                'created_at' => $now,
+                'updated_at' => $now
+            ];
+        }, $request['expenses']);
+        
+        $paystub_total = $totals['sales'] + $totals['overrides'] + $totals['expenses'];
+        $agent = Employee::find($agent_id);
+        
+        $pending_payroll = [
+            'agent_id' => $agent_id,
+            'agent_name' => $agent->name,
+            'amount' => $paystub_total,
+            'is_paid' => 0,
+            'vendor_id' => $vendor_id,
+            'pay_date' => $issue_date,
+            'created_at' => $now,
+            'updated_at' => $now
+        ];
+        
+        return [
+            'sales' => $pending_sales,
+            'overrides' => $pending_overrides,
+            'expenses' => $pending_expenses,
+            'payroll' => $pending_payroll
+        ];
+    }
 
 
 	/**
@@ -164,6 +299,7 @@ class InvoiceController extends Controller
 	 *
 	 * @return \Illuminate\Http\JsonResponse
 	 * @throws \Illuminate\Support\Facades\Exception
+     * @deprecated
 	 */
 	public function UploadInvoice(Request $request)
 	{
@@ -362,14 +498,17 @@ class InvoiceController extends Controller
 
 		foreach($list as $dt)
 		{
-			$date = $dt->issue_date;
-			$today = strtotime('today');
-			$nextMon = strtotime('next wednesday 20:00 -1 day');
-			$issueDt = strtotime($date);
-
-			if($admin){
+            if ($admin)
+            {
 				$dates[] = date('m-d-Y', strtotime($date));
-			} else {
+            } 
+            else 
+            {
+                $date = $dt->issue_date;
+                $today = strtotime('today');
+                $nextMon = strtotime('next wednesday 20:00 -1 day');
+                $issueDt = strtotime($date);
+                
 				if($issueDt > $today){
 					if($today > $nextMon){
 						$dates[] = date('m-d-Y', strtotime($date));
@@ -616,12 +755,12 @@ class InvoiceController extends Controller
 		$limit = PayrollRestriction::find(1);
 
 		// This employee is an admin user
-		if($isAdmin)
+		if ($isAdmin)
 		{
 			$agents = Employee::active()->hideFromPayroll()->orderByName()->get();
 		}
 		// This employee is a manager
-		else if($isManager)
+		else if ($isManager)
 		{
 			$agents = $this->session->getUserSubordinates($sessionUser->id);
             

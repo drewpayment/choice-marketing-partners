@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { InvoicePageResources, PaystubSummary, Vendor } from '../../models';
+import { InvoicePageResources, InvoiceSaveRequest, InvoiceSaveResult, PaystubSummary, Vendor } from '../../models';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Moment } from 'moment';
@@ -26,6 +26,11 @@ export class InvoiceService {
     getExistingInvoice(agentId: number, vendorId: number, issueDate: Moment): Observable<any> {
         const url = `api/agents/${agentId}/vendors/${vendorId}/dates/${issueDate.format('YYYY-MM-DD')}`;
         return this.http.get<any>(url);
+    }
+
+    saveInvoice(dto: InvoiceSaveRequest): Observable<InvoiceSaveResult> {
+        const url = `api/invoices`;
+        return this.http.post<InvoiceSaveResult>(url, dto);
     }
 
     private compareVendorNames = (a: PaystubSummary, b: PaystubSummary) => {

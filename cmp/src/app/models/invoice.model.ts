@@ -3,6 +3,7 @@ import { Vendor } from '.';
 import { Agent } from './agent.model';
 import { Expense } from './expense.model';
 import { Override } from './override.model';
+import { Payroll } from './payroll.model';
 
 
 export interface InvoicePageResources {
@@ -36,4 +37,21 @@ export interface Invoice {
   wkending: Date | Moment | string;
   createdAt?: Date | Moment | string;
   updatedAt?: Date | Moment | string;
+}
+
+export interface InvoiceSaveRequest {
+    vendorId: number;
+    agentId: number;
+    issueDate: string;
+    weekending: string;
+    sales: Invoice[];
+    overrides: Override[];
+    expenses: Expense[];
+}
+
+export interface InvoiceSaveResult {
+    expenses: Expense[];
+    overrides: Override[];
+    sales: Invoice[];
+    payroll: Payroll;
 }

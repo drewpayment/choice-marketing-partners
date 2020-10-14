@@ -1,6 +1,14 @@
-
 .mat-card {
-  margin: 2rem 0;
+    margin: 2rem 0;
+
+    .mat-card-header-text {
+        display: none;
+    }
+
+    .mat-card-header {
+        display: flex;
+        justify-content: space-between;
+    }
 }
 
 mat-card-content:not(.invoice-tables) {
@@ -18,7 +26,8 @@ mat-card-content:not(.invoice-tables) {
     justify-content: flex-end;
 }
 
-.mat-cell, .mat-header-cell {
+.mat-cell,
+.mat-header-cell {
     padding: 0 2rem;
 
     &:first-of-type {
@@ -27,8 +36,12 @@ mat-card-content:not(.invoice-tables) {
 }
 
 .invoice-tables {
-
     .mat-form-field {
         max-width: 120px;
     }
+}
+
+.mat-table-header-action-row {
+    display: flex;
+    justify-content: flex-end;
 }

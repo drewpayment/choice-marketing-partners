@@ -9,3 +9,4 @@ export * from './user-type.enum';
 export * from './invoice.model';
 export * from './override.model';
 export * from './expense.model';
+export * from './payroll.model';
