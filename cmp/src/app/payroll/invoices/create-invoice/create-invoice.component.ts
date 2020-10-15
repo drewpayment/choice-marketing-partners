@@ -32,7 +32,7 @@ export class CreateInvoiceComponent implements OnInit {
     private issueDates: Date[] | Moment[] | string[];
     issueDates$ = new Subject<Date[] | Moment[] | string[]>();
 
-    salesCols = ['saleDate', 'firstName', 'lastName', 'address', 'city', 'status', 'amount'];
+    salesCols = ['saleDate', 'firstName', 'lastName', 'address', 'city', 'status', 'amount', 'delete'];
     overridesCols = ['name', 'numSales', 'commission', 'total', 'delete'];
     expenseCols = ['type', 'amount', 'notes', 'delete'];
 
@@ -56,9 +56,9 @@ export class CreateInvoiceComponent implements OnInit {
     destroy$ = new Subject();
 
     pendingDeletes: DeleteInvoiceItems = {
-        sales: null,
-        overrides: null,
-        expenses: null
+        sales: [],
+        overrides: [],
+        expenses: []
     };
 
     constructor(
@@ -115,7 +115,7 @@ export class CreateInvoiceComponent implements OnInit {
                     parsed.overrides = JSON.parse(parsed.overrides as any);
                     parsed.weekending = moment(parsed.weekending, 'MM-DD-YYYY');
 
-                    const issueDate = moment(parsed.invoices[0].issueDate);
+                    const issueDate = moment(parsed.issueDate, 'MM-DD-YYYY');
                     const hasIssueDate = this.issueDates.some(dt => issueDate.isSame(moment(dt, 'MM-DD-YYYY'), 'date'));
                     if (!hasIssueDate) {
                         this.issueDates.unshift(issueDate.format('MM-DD-YYYY') as any);
@@ -267,6 +267,16 @@ export class CreateInvoiceComponent implements OnInit {
 
         this.formInvoices.clear();
         this.formInvoices.push(this.addEmptyInvoiceRow());
+        this.invoiceDataSource.next(this.formInvoices.controls);
+    }
+
+    removeInvoice(index: number) {
+        const pendDel = this.formInvoices.at(index).value;
+
+        if (pendDel.invoiceId > 0)
+            this.pendingDeletes.sales = [...this.pendingDeletes.sales, pendDel];
+
+        this.formInvoices.removeAt(index);
         this.invoiceDataSource.next(this.formInvoices.controls);
     }
 

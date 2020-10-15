@@ -129,6 +129,15 @@
                         </mat-cell>
                     </ng-container>
 
+                    <ng-container matColumnDef="delete">
+                        <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index">
+                            <button type="button" mat-icon-button (click)="removeInvoice(i)" *ngIf="formInvoices.length > 1">
+                                <mat-icon>delete_forever</mat-icon>
+                            </button>
+                        </mat-cell>
+                    </ng-container>
+
                     <mat-header-row *matHeaderRowDef="salesCols"></mat-header-row>
                     <mat-row *matRowDef="let row; columns: salesCols; let idx = index"></mat-row>
                 </mat-table>

@@ -200,8 +200,22 @@ class InvoiceController extends Controller
         
         // Update/Create new payroll record which gets used on the /payroll screen to show a list of payroll information
         // NOT to be confused with the insanely duplicated entity called "Paystub" that creates a very similar screen... WTF
-        $payroll = $pending['payroll'];
-        Payroll::updateOrCreate(['id' => $payroll['id']], $payroll);
+        $pending_payroll = $pending['payroll'];
+        $payroll = Payroll::find($pending_payroll['id']);
+        
+        if ($payroll != null) 
+        {
+            $payroll->agent_name = $pending_payroll['agent_name'];
+            $payroll->amount = $pending_payroll['amount'];
+            $payroll->is_paid = $pending_payroll['is_paid'];
+            $payroll->vendor_id = $pending_payroll['vendor_id'];
+            $payroll->pay_date = $pending_payroll['pay_date'];
+            $payroll->save();
+        }
+        else 
+        {
+            Payroll::insert($pending_payroll);
+        }
         
         $this->paystubService->processPaystubJob($issue_date);
         
