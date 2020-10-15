@@ -166,11 +166,11 @@ class InvoiceController extends Controller
         $issue_date = $request['issueDate'];
         $week_ending = $request['weekending'];
         
-        $is_existing_invoice = $this->invoiceHelper->deleteExistingInvoice($agent_id, $vendor_id, $issue_date);
+        $pending_deletes = $request['pendingDeletes'];
         
-        if ($is_existing_invoice) 
+        if (isset($pending_deletes))
         {
-            return response('Invoice already exists.', 400);
+            $this->deletePendingInvoiceItems($pending_deletes);
         }
         
         $salesTotal = array_reduce($request['sales'], function ($a, $b) {
@@ -193,26 +193,105 @@ class InvoiceController extends Controller
             'overrides' => $overridesTotal,
             'expenses' => $expensesTotal
         ];
+        
         $pending = $this->mapToPendingInvoice($request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals);
         
-        DB::beginTransaction();
-		try {
-			DB::table('invoices')->insert($pending['sales']);
-            DB::table('overrides')->insert($pending['overrides']);
-            DB::table('expenses')->insert($pending['expenses']);
-            DB::table('payroll')->insert($pending['payroll']);
-			DB::commit();
-		}
-		catch(Exception $e)
-		{
-            DB::rollback();
-            
-            return response('Failed to save the invoice, please make sure you haven\'t created an invoice already.', 400);
-        }
+        $result = $this->updateOrInsertInvoices($pending);
+        
+        // Update/Create new payroll record which gets used on the /payroll screen to show a list of payroll information
+        // NOT to be confused with the insanely duplicated entity called "Paystub" that creates a very similar screen... WTF
+        $payroll = $pending['payroll'];
+        Payroll::updateOrCreate(['id' => $payroll['id']], $payroll);
         
         $this->paystubService->processPaystubJob($issue_date);
         
         return response()->json($pending);
+    }
+    
+    private function deletePendingInvoiceItems($pending_deletes)
+    {
+        if (isset($pending_deletes['sales']) && count($pending_deletes['sales']) > 0) 
+        {
+            Invoice::destroy($pending_deletes['sales']);
+        }
+        
+        if (isset($pending_deletes['overrides']) && count($pending_deletes['overrides']) > 0) 
+        {
+            Override::destroy($pending_deletes['overrides']);
+        }
+        
+        if (isset($pending_deletes['expenses']) && count($pending_deletes['expenses']) > 0)
+        {
+            Expense::destroy($pending_deletes['expenses']);
+        }
+    }
+    
+    /**
+     * Updates or Inserts new invoice records for a paystub.
+     * 
+     *  $pending = [
+     *       'sales' => $pending_sales,
+     *       'overrides' => $pending_overrides,
+     *       'expenses' => $pending_expenses,
+     *       'payroll' => $pending_payroll
+     *   ];
+     */
+    private function updateOrInsertInvoices($pending)
+    {
+        foreach ($pending['sales'] as $sale)
+        {
+            $s = Invoice::find($sale['invoice_id']);
+            
+            if ($s != null)
+            {
+                $s->first_name = $sale['first_name'];
+                $s->last_name = $sale['last_name'];
+                $s->address = $sale['address'];
+                $s->city = $sale['city'];
+                $s->status = $sale['status'];
+                $s->amount = $sale['amount'];
+                $s->save();
+            }
+            else 
+            {
+                $sale_model = Invoice::create($sale);
+            }
+        }
+        
+        foreach ($pending['overrides'] as $override)
+        {
+            $o = Override::find($override['ovrid']);
+            
+            if ($o != null)
+            {
+                $o->name = $override['name'];
+                $o->sales = $override['sales'];
+                $o->commission = $override['commission'];
+                $o->total = $override['total'];
+                $o->save();
+            }
+            else 
+            {
+                $o = Override::create($override);
+            }
+        }
+        
+        foreach ($pending['expenses'] as $expense)
+        {
+            $e = Expense::find($expense['expid']);
+            
+            if ($e != null)
+            {
+                $e->type = $expense['type'];
+                $e->amount = $expense['amount'];
+                $e->notes = $expense['notes'];
+                $e->save();
+            }
+            else 
+            {
+                $e = Expense::create($expense);
+            }
+        }
     }
     
     /**
@@ -224,6 +303,7 @@ class InvoiceController extends Controller
         
         $pending_sales = array_map(function ($sale) use ($agent_id, $issue_date, $week_ending, $vendor_id, $now) {
             return [
+                'invoice_id' => $sale['invoiceId'],
                 'vendor' => $vendor_id, 
                 'sale_date' => Carbon::parse($sale['saleDate'])->format('Y-m-d'),
                 'first_name' => $sale['firstName'],
@@ -242,6 +322,7 @@ class InvoiceController extends Controller
         
         $pending_overrides = array_map(function ($ovr) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
             return [
+                'ovrid' => $ovr['overrideId'],
                 'vendor_id' => $vendor_id,
                 'name' => $ovr['name'],
                 'sales' => $ovr['sales'],
@@ -257,6 +338,7 @@ class InvoiceController extends Controller
         
         $pending_expenses = array_map(function ($exp) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
             return [
+                'expid' => $exp['expenseId'],
                 'vendor_id' => $vendor_id,
                 'type' => $exp['type'],
                 'amount' => $exp['amount'],
@@ -270,9 +352,16 @@ class InvoiceController extends Controller
         }, $request['expenses']);
         
         $paystub_total = $totals['sales'] + $totals['overrides'] + $totals['expenses'];
+        $payroll_id = null;
+        $payroll = Payroll::agentId($agent_id)->vendor($vendor_id)->payDate($issue_date)->first();
+        if ($payroll != null)
+        {
+            $payroll_id = $payroll->id;
+        }
         $agent = Employee::find($agent_id);
         
         $pending_payroll = [
+            'id' => $payroll_id,
             'agent_id' => $agent_id,
             'agent_name' => $agent->name,
             'amount' => $paystub_total,

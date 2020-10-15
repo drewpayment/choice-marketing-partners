@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Override extends Model
 {
-
+    protected $primaryKey = 'ovrid';
+    
 	protected $fillable = [
 		'vendor_id',
 		'name',

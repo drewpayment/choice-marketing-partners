@@ -51,9 +51,15 @@
                 <mat-card-title>
                     <h3>Sales</h3>
                 </mat-card-title>
-                <button type="button" mat-icon-button color="primary" (click)="addInvoiceRow()">
-                    <mat-icon>add</mat-icon>
-                </button>
+
+                <div>
+                    <button type="button" mat-icon-button (click)="clearInvoiceTable()" *ngIf="formInvoices.length > 1">
+                        <mat-icon>delete_forever</mat-icon>
+                    </button>
+                    <button type="button" mat-icon-button (click)="addInvoiceRow()">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
             </mat-card-header>
 
             <mat-card-content class="invoice-tables">
@@ -179,6 +185,15 @@
                         </mat-cell>
                     </ng-container>
 
+                    <ng-container matColumnDef="delete">
+                        <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index">
+                            <button type="button" mat-icon-button (click)="removeOverride(i)" *ngIf="formOverrides.length > 1">
+                                <mat-icon>delete_forever</mat-icon>
+                            </button>
+                        </mat-cell>
+                    </ng-container>
+
                     <mat-header-row *matHeaderRowDef="overridesCols"></mat-header-row>
                     <mat-row *matRowDef="let row; columns: overridesCols"></mat-row>
                 </mat-table>
@@ -219,6 +234,15 @@
                             <mat-form-field>
                                 <input matInput formControlName="notes" required />
                             </mat-form-field>
+                        </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="delete">
+                        <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
+                        <mat-cell *matCellDef="let item; let i=index">
+                            <button type="button" mat-icon-button (click)="removeExpense(i)" *ngIf="formExpenses.length > 1">
+                                <mat-icon>delete_forever</mat-icon>
+                            </button>
                         </mat-cell>
                     </ng-container>
 

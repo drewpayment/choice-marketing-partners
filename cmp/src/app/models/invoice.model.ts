@@ -47,6 +47,13 @@ export interface InvoiceSaveRequest {
     sales: Invoice[];
     overrides: Override[];
     expenses: Expense[];
+    pendingDeletes?: DeleteInvoiceItems;
+}
+
+export interface DeleteInvoiceItems {
+    sales: number[];
+    overrides: number[];
+    expenses: number[];
 }
 
 export interface InvoiceSaveResult {
