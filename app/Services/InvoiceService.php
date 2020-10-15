@@ -414,7 +414,11 @@ class InvoiceService {
 
     public function insertBlankStub($agentId, $vendorId, $date)
     {
-        $dt = Carbon::createFromFormat('Y-m-d', $date);
+        try {
+            $dt = Carbon::parse($date);
+        } catch (\Exception $e) {}
+        
+        // $dt = Carbon::createFromFormat('Y-m-d', $date);
         $blankInvoice = new Invoice([
             'vendor' => $vendorId,
             'sale_date' => $date,
