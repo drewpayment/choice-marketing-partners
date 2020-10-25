@@ -13,6 +13,8 @@ class Expense extends Model
 	 * @var string
 	 */
     protected $table = 'expenses';
+    
+    protected $primaryKey = 'expid';
 
 
     /**

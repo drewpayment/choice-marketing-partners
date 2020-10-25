@@ -4,7 +4,7 @@ import { AccountService } from '../../../account.service';
 import { InvoiceService } from '../invoice.service';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Agent, EditInvoiceResources, Expense, Invoice, InvoiceSaveRequest, Override, Vendor } from '../../../models';
+import { Agent, DeleteInvoiceItems, EditInvoiceResources, Expense, Invoice, InvoicePageResources, InvoiceSaveRequest, Override, Vendor } from '../../../models';
 import { Moment } from 'moment';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
@@ -26,15 +26,15 @@ export class CreateInvoiceComponent implements OnInit {
 
     f = this.createForm();
 
-
+    private editInvoiceResources: EditInvoiceResources;
     vendorOptions$ = new Subject<Vendor[]>();
     agentOptions$ = new Subject<Agent[]>();
     private issueDates: Date[] | Moment[] | string[];
     issueDates$ = new Subject<Date[] | Moment[] | string[]>();
 
-    salesCols = ['saleDate', 'firstName', 'lastName', 'address', 'city', 'status', 'amount'];
-    overridesCols = ['name', 'numSales', 'commission', 'total'];
-    expenseCols = ['type', 'amount', 'notes'];
+    salesCols = ['saleDate', 'firstName', 'lastName', 'address', 'city', 'status', 'amount', 'delete'];
+    overridesCols = ['name', 'numSales', 'commission', 'total', 'delete'];
+    expenseCols = ['type', 'amount', 'notes', 'delete'];
 
     invoiceDataSource = new BehaviorSubject<AbstractControl[]>([]);
     overrideDataSource = new BehaviorSubject<AbstractControl[]>([]);
@@ -54,6 +54,12 @@ export class CreateInvoiceComponent implements OnInit {
 
     isNew = false;
     destroy$ = new Subject();
+
+    pendingDeletes: DeleteInvoiceItems = {
+        sales: [],
+        overrides: [],
+        expenses: []
+    };
 
     constructor(
         private account: AccountService,
@@ -103,12 +109,13 @@ export class CreateInvoiceComponent implements OnInit {
 
                 if (!this.isNew) {
                     const parsed = JSON.parse(data) as EditInvoiceResources;
+
                     parsed.expenses = JSON.parse(parsed.expenses as any);
                     parsed.invoices = JSON.parse(parsed.invoices as any);
                     parsed.overrides = JSON.parse(parsed.overrides as any);
                     parsed.weekending = moment(parsed.weekending, 'MM-DD-YYYY');
 
-                    const issueDate = moment(parsed.invoices[0].issueDate);
+                    const issueDate = moment(parsed.issueDate, 'MM-DD-YYYY');
                     const hasIssueDate = this.issueDates.some(dt => issueDate.isSame(moment(dt, 'MM-DD-YYYY'), 'date'));
                     if (!hasIssueDate) {
                         this.issueDates.unshift(issueDate.format('MM-DD-YYYY') as any);
@@ -126,6 +133,8 @@ export class CreateInvoiceComponent implements OnInit {
                             parsed[p] = fixed || parsed[p];
                         }
                     }
+
+                    this.editInvoiceResources = parsed;
 
                     this.updateForm(parsed);
                 }
@@ -161,14 +170,17 @@ export class CreateInvoiceComponent implements OnInit {
 
         if (this.f.invalid) return;
 
+        const fv = this.f.getRawValue();
+
         const dto: InvoiceSaveRequest = {
-            vendorId: this.f.value.vendor,
-            agentId: this.f.value.agent,
-            issueDate: moment(this.f.value.issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
-            weekending: moment(this.f.value.weekending).format('YYYY-MM-DD'),
-            sales: this.f.value.invoices,
-            overrides: this.f.value.overrides,
-            expenses: this.f.value.expenses,
+            vendorId: fv.vendor,
+            agentId: fv.agent,
+            issueDate: moment(fv.issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
+            weekending: moment(fv.weekending).format('YYYY-MM-DD'),
+            sales: fv.invoices,
+            overrides: fv.overrides,
+            expenses: fv.expenses,
+            pendingDeletes: this.pendingDeletes,
         };
 
         this.invoiceService.saveInvoice(dto)
@@ -213,19 +225,25 @@ export class CreateInvoiceComponent implements OnInit {
 
         const rows = clipText.split(/\n|\r/).filter(row => row.length).map(row => row.split(/\t/));
 
+        console.dir(rows);
+
         if (rows && rows.length) {
             this.formInvoices.clear();
             rows.forEach(row => {
+                const isExcelNegative = this.isExcelNegative(row[6]);
+                const rgx = /[^-\d]/gi;
                 const amtParts = row[6].trim().split('.');
                 let amount = '';
 
                 if (amtParts.length > 1) {
-                    const beforeDec = amtParts[0].replace(/\D/g, '');
-                    const afterDec = amtParts[1].replace(/\D/g, '');
+                    const beforeDec = amtParts[0].replace(rgx, '');
+                    const afterDec = amtParts[1].replace(rgx, '');
                     amount = `${beforeDec}.${afterDec}`;
                 } else {
-                    amount = amtParts[0].replace(/\D/g, '') + '.00';
+                    amount = amtParts[0].replace(rgx, '') + '.00';
                 }
+
+                if (isExcelNegative) amount = `-${amount}`;
 
                 this.formInvoices.push(this.fb.group({
                     saleDate: this.fb.control(moment(row[0], 'MM-DD-YYYY'), [Validators.required]),
@@ -241,17 +259,66 @@ export class CreateInvoiceComponent implements OnInit {
         }
     }
 
-    private resetForm() {
-        this.f.reset();
+    clearInvoiceTable() {
+        const pendDels = this.formInvoices.value.filter(inv => inv.invoiceId > 0);
+
+        if (pendDels.length)
+            this.pendingDeletes.sales = [...this.pendingDeletes.sales, ...pendDels];
+
         this.formInvoices.clear();
-        this.formOverrides.clear();
-        this.formExpenses.clear();
         this.formInvoices.push(this.addEmptyInvoiceRow());
-        this.formOverrides.push(this.addEmptyOverrideRow());
-        this.formExpenses.push(this.addEmptyExpenseRow());
         this.invoiceDataSource.next(this.formInvoices.controls);
+    }
+
+    removeInvoice(index: number) {
+        const pendDel = this.formInvoices.at(index).value;
+
+        if (pendDel.invoiceId > 0)
+            this.pendingDeletes.sales = [...this.pendingDeletes.sales, pendDel];
+
+        this.formInvoices.removeAt(index);
+        this.invoiceDataSource.next(this.formInvoices.controls);
+    }
+
+    removeOverride(index: number) {
+        const pendDel = this.formOverrides.at(index).value;
+
+        if (pendDel.overrideId > 0)
+            this.pendingDeletes.overrides = [...this.pendingDeletes.overrides, pendDel];
+
+        this.formOverrides.removeAt(index);
         this.overrideDataSource.next(this.formOverrides.controls);
+    }
+
+    removeExpense(index: number) {
+        const pendDel = this.formExpenses.at(index).value;
+
+        if (pendDel.expenseId > 0)
+            this.pendingDeletes.expenses = [...this.pendingDeletes.expenses, pendDel];
+
+        this.formExpenses.removeAt(index);
         this.expenseDataSource.next(this.formExpenses.controls);
+    }
+
+    private isExcelNegative(value: any): boolean {
+        const hasStartingParen = value.indexOf('(') > -1;
+        const hasEndingParen = value.indexOf(')') > -1;
+        return hasStartingParen && hasEndingParen;
+    }
+
+    private resetForm() {
+        if (this.isNew) {
+            this.f.reset();
+            this.formInvoices.clear();
+            this.formOverrides.clear();
+            this.formExpenses.clear();
+            this.formInvoices.push(this.addEmptyInvoiceRow());
+            this.formOverrides.push(this.addEmptyOverrideRow());
+            this.formExpenses.push(this.addEmptyExpenseRow());
+            this.invoiceDataSource.next(this.formInvoices.controls);
+            this.overrideDataSource.next(this.formOverrides.controls);
+            this.expenseDataSource.next(this.formExpenses.controls);
+        }
     }
 
     private checkIsRowEmpty(row: any): boolean {
@@ -315,6 +382,7 @@ export class CreateInvoiceComponent implements OnInit {
 
         overrides.forEach(ovr => {
             this.formOverrides.push(this.fb.group({
+                overrideId: this.fb.control(ovr.ovrid),
                 name: this.fb.control(ovr.name, [Validators.required]),
                 sales: this.fb.control(ovr.sales, [Validators.required]),
                 commission: this.fb.control(ovr.commission, [Validators.required]),
@@ -332,6 +400,7 @@ export class CreateInvoiceComponent implements OnInit {
 
         expenses.forEach(exp => {
             this.formExpenses.push(this.fb.group({
+                expenseId: this.fb.control(exp.expid),
                 type: this.fb.control(exp.type, [Validators.required]),
                 amount: this.fb.control(exp.amount, [Validators.required]),
                 notes: this.fb.control(exp.notes, [Validators.required]),
@@ -348,6 +417,7 @@ export class CreateInvoiceComponent implements OnInit {
 
         invoices.forEach(inv => {
             this.formInvoices.push(this.fb.group({
+                invoiceId: this.fb.control(inv.invoiceId),
                 saleDate: this.fb.control(moment(inv.saleDate, 'MM-DD-YYYY'), [Validators.required]),
                 firstName: this.fb.control(inv.firstName, [Validators.required]),
                 lastName: this.fb.control(inv.lastName, [Validators.required]),

@@ -8,6 +8,7 @@ use App\Vendor;
 use App\Expense;
 use App\Invoice;
 use App\Paystub;
+use App\Payroll;
 use App\Employee;
 use App\Http\Results\OpResult;
 use App\Override;
@@ -275,7 +276,7 @@ class InvoiceHelper
 		$dt = Carbon::parse($date)->format('Y-m-d');
 		$invoices = Invoice::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
 		$overrides = Override::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
-		$expenses = Expense::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
+        $expenses = Expense::agentId($agentId)->vendorId($vendor)->issueDate($dt)->get();
 
 		if($invoices->count() > 0 || $overrides->count() > 0 || $expenses->count() > 0){
 			return true;
@@ -283,7 +284,32 @@ class InvoiceHelper
 			return false;
 		}
 
-	}
+    }
+    
+    public function deleteExistingInvoice($agentId, $vendor, $date)
+    {
+        $dt = Carbon::parse($date)->format('Y-m-d');
+        
+        try {
+            $invoices = Invoice::agentId($agentId)->vendorId($vendor)->issueDate($dt)->destroy();
+            $overrides = Override::agentId($agentId)->vendorId($vendor)->issueDate($dt)->destroy();
+            $expenses = Expense::agentId($agentId)->vendorId($vendor)->issueDate($dt)->destroy();
+            $paroll = Payroll::agentId($agentId)->vendorId($vendor)->issueDate($dt)->destroy();
+        } catch (\Exception $e) {
+            
+        }
+
+		// if($invoices->count() > 0 || $overrides->count() > 0 || $expenses->count() > 0){
+        //     try {
+        //         $invoices->delete();
+        //         $overrides->delete();
+        //         $expenses->delete();
+        //         $payroll->delete();
+        //     } catch (\Exception $e) {
+                
+        //     }
+		// } 
+    }
 
 
 
