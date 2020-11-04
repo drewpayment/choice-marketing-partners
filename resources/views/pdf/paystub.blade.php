@@ -16,7 +16,7 @@
 			<button type="button" class="btn btn-default display-inline" onclick="history.back()">
 				<i class="fa fa-arrow-circle-left"></i> Back
 			</button>
-			<button type="submit" class="btn btn-default display-inline" id="generatePdf" formtarget="_blank">
+			<button type="submit" class="btn btn-default display-inline" id="generatePdf" formtarget="_blank" onclick="printPdf(event)">
 				<i class="fa fa-print"></i> Print Version
 			</button>
 			@if($isAdmin)
@@ -176,6 +176,12 @@
 @endsection
 
 @section('scripts')
+
+    <script type="text/javascript">
+        const printPdf = function (event) {
+            event.target.parentNode.submit();
+        };
+    </script>
 
 	<script type="text/javascript">
 
