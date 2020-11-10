@@ -778,7 +778,7 @@ class InvoiceController extends Controller
 		if($vendorID < 1) return response()->json(false, 500);
 		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
-		$expenses = Expense::agentId($agentID)->issueDate($issueDate)->get();
+		$expenses = Expense::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$employee = Employee::find($invoices->first()->agentid);
 		$campaign = Vendor::find($invoices->first()->vendor);
 
