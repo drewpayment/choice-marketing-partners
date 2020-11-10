@@ -300,6 +300,16 @@ export class CreateInvoiceComponent implements OnInit {
         this.expenseDataSource.next(this.formExpenses.controls);
     }
 
+    changeCommissionCalculation(index: number) {
+        const override = this.formOverrides.at(index);
+
+        console.dir(override);
+
+        (this.formOverrides.at(index).get('commission') as any).usePercent =
+            !(this.formOverrides.at(index).get('commission') as any).usePercent;
+        this.cd.detectChanges();
+    }
+
     private isExcelNegative(value: any): boolean {
         const hasStartingParen = value.indexOf('(') > -1;
         const hasEndingParen = value.indexOf(')') > -1;

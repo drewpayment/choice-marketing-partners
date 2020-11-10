@@ -1,7 +1,7 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { getSupportedInputTypes } from '@angular/cdk/platform';
 import { CurrencyPipe } from '@angular/common';
-import { Directive, ElementRef, forwardRef, HostBinding, HostListener, Inject, Input, Optional, Self } from '@angular/core';
+import { Directive, ElementRef, forwardRef, HostBinding, HostListener, Inject, Input, OnChanges, Optional, Self, SimpleChanges } from '@angular/core';
 import { NgControl, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { getMatInputUnsupportedTypeError, MAT_INPUT_VALUE_ACCESSOR } from '@angular/material/input';
@@ -57,7 +57,7 @@ const MAT_INPUT_INVALID_TYPES = [
         '[attr.aria-required]': 'required.toString()',
     }
 })
-export class MatInputCurrencyDirective {
+export class MatInputCurrencyDirective implements OnChanges {
     // @HostBinding('style.border') border = 'none';
     protected _uid = `mat-input-currency-${nextUniqueId++}`;
     // tslint:disable-next-line: variable-name
@@ -124,6 +124,11 @@ export class MatInputCurrencyDirective {
     get id(): string { return this._id; }
     set id(value: string) { this._id = value || this._uid; }
     protected _id: string;
+
+    protected _usePercent = false;
+    @Input()
+    get usePercent(): boolean { return this.usePercent; }
+    set usePercent(value: boolean) { this._usePercent = coerceBooleanProperty(value); }
 
     /**
      * Implemented as part of MatFormFieldControl.
@@ -194,6 +199,11 @@ export class MatInputCurrencyDirective {
         // If no input value accessor was explicitly specified, use the element as the input value
         // accessor.
         this._inputValueAccessor = inputValueAccessor || element;
+        this.formatValue(this._inputValueAccessor.value);
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        console.dir(changes);
         this.formatValue(this._inputValueAccessor.value);
     }
 

@@ -180,7 +180,10 @@
                         <mat-header-cell *matHeaderCellDef>Commission</mat-header-cell>
                         <mat-cell *matCellDef="let item; let i=index" [formGroupName]="i">
                             <mat-form-field>
-                                <input matInputCurrency formControlName="commission" required />
+                                <input matInputCurrency formControlName="commission" required usePercent="formOverrides.at(i).get('commission').usePercent" />
+                                <button type="button" mat-icon-button matSuffix (click)="changeCommissionCalculation(i)">
+                                    <mat-icon>loop</mat-icon>
+                                </button>
                             </mat-form-field>
                         </mat-cell>
                     </ng-container>
