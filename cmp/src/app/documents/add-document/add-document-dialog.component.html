@@ -1,0 +1,41 @@
+
+<h2 mat-dialog-title>
+    Upload Document
+</h2>
+<mat-dialog-content>
+    <div [formGroup]="f">
+        <mat-form-field class="wp-100">
+            <mat-label>Name</mat-label>
+            <input type="text" matInput placeholder="my cool file" formControlName="name" required />
+            <mat-error *ngIf="f.get('name').hasError('required')">
+                Name is required.
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="wp-100">
+            <mat-label>Description</mat-label>
+            <textarea matInput required formControlName="description"></textarea>
+            <mat-error *ngIf="f.get('description').hasError('required')">
+                A description is required.
+            </mat-error>
+        </mat-form-field>
+
+        <div class="py-4">
+            <button type="button" mat-raised-button color="primary" (click)="fileInput.click()">
+                <span>Choose File</span>
+                <mat-icon inline="true">note_add</mat-icon>
+            </button>
+            <input type="file" class="hidden" #fileInput (change)="fileSelected($event)" />
+        </div>
+
+        <div class="ellipsis py-4" *ngIf="fileInput.files.length">
+            <label>Filename:</label>
+            <br />
+            <span>{{ fileInput.files[0]?.name }}</span>
+        </div>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex justify-content-between">
+    <button type="button" mat-button mat-dialog-close>Cancel</button>
+    <button type="button" mat-button color="primary" (click)="uploadFile()">Save</button>
+</mat-dialog-actions>

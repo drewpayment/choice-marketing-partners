@@ -4,6 +4,11 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
 
+import Bugsnag from '@bugsnag/js';
+
+// configure Bugsnag asap
+Bugsnag.start({ apiKey: environment.bugsnag });
+
 if (environment.production) {
   enableProdMode();
 }
