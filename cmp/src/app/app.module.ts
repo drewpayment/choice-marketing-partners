@@ -11,6 +11,8 @@ import { MaterialModule } from './shared/material/material.module';
 import { NavBarComponent } from './shared/nav-bar/nav-bar.component';
 import { AgentsModule } from './agents/agents.module';
 import { AgentsListComponent } from './agents/agents-list/agents-list.component';
+import { DocumentsModule } from './documents/documents.module';
+import { DocumentListComponent } from './documents/document-list/document-list.component';
 
 const entryPoints = [
     AppComponent,
@@ -18,6 +20,7 @@ const entryPoints = [
     PaystubsListComponent,
     NavBarComponent,
     AgentsListComponent,
+    DocumentListComponent,
 ];
 
 @NgModule({
@@ -30,6 +33,7 @@ const entryPoints = [
         HttpClientModule,
         ReactiveFormsModule,
         MaterialModule,
+        DocumentsModule,
 
         PayrollModule,
         AgentsModule,

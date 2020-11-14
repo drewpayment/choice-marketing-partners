@@ -63,7 +63,46 @@ class DocumentController extends Controller
 		}
 
 		return view('doc_manager.index')->with(['documents' => $documents, 'admin' => $admin, 'tags' => $tags, 'selected' => $selectedTags, 'uTags' => $uTags]);
-	}
+    }
+    
+    public function getDocumentManagerInfo() 
+    {
+        $documents = Document::all();
+		$admin = false;
+		$adminResult = $this->session->checkUserIsAdmin();
+		
+		if (!$adminResult->hasError()) {
+			$admin = true;
+		}
+
+		$tags = Document::existingTags();
+		$selectedTags = [];
+		foreach($documents as $doc)
+		{
+			$docTags = $doc->tagNames();
+			$docInfo = [
+				'docId' => $doc->id,
+				'tags' => $docTags
+			];
+			array_push($selectedTags, $docInfo);
+		}
+
+		$uTags = array();
+		foreach($tags as $t){
+			$exists = $this->selectTagBySlug($uTags, $t->slug);
+			if(is_null($exists)){
+				array_push($uTags, $t);
+			}
+        }
+        
+        return response()->json([
+            'documents' => $documents, 
+            'isAdmin' => $admin, 
+            'tags' => $tags, 
+            'selected' => $selectedTags, 
+            'uTags' => $uTags
+        ]);
+    }
 
 
 	function selectTagBySlug($array, $slug)
@@ -162,7 +201,50 @@ class DocumentController extends Controller
 
 			return back()->with('message', 'We have successfully deleted your document.');
 		}
-	}
+    }
+    
+    public function deleteDocumentsAsync(Request $request) 
+    {
+        $idsQry = $request->query('ids');
+        $ids = explode(',', $idsQry);
+        
+        if (count($ids) < 1) return response()->json(true);
+        if (count($ids) > 1) {
+            $deletedDocuments = Document::whereIn('id', $ids)->get();
+            
+            foreach ($deletedDocuments as $doc) 
+            {
+                $filename = $doc->filePath;
+                $file_path = public_path() . '/uploads/' . $filename;
+                
+                File::delete($file_path);
+            }
+            
+            $deletedDocuments = Document::whereIn('id', $ids)->delete();
+            
+            return response()->json($ids);
+        }
+        else 
+        {
+            $document = Document::find($ids[0]);
+            $filename = $document->filePath;
+            $file_path = public_path() . '/uploads/' . $filename;
+            
+            File::delete($file_path);
+            
+            if (file_exists($file_path))
+            {
+                return response()->json(false, 400);
+            }
+            else 
+            {
+                $document->delete();
+                return response()->json($ids);
+            }
+        }
+        
+        return response()->json(false, 500);
+    }
 
 
 	public function HandleNewTagCRUD(Request $request)

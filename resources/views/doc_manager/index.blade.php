@@ -7,6 +7,12 @@ Document Manager
 @endsection
 
 @section('wrapper-content')
+    
+    <div class="row">
+        <div class="col-md-9">
+            <cp-document-list></cp-document-list>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-9">

@@ -20,3 +20,8 @@ use Illuminate\Http\Request;
 Route::get('/invoices', 'InvoiceController@getInvoicePageResources');
 Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'InvoiceController@getExistingInvoice');
 Route::post('/invoices', 'InvoiceController@saveApiInvoice');
+
+
+Route::get('/documents-view', 'DocumentController@getDocumentManagerInfo');
+Route::delete('/documents', 'DocumentController@deleteDocumentsAsync');
+Route::get('/documents/{filename}/download', 'DocumentController@download');
