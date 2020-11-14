@@ -1,4 +1,18 @@
 
+export interface SaveDocumentRequest {
+    name: string;
+    description: string;
+    file: File;
+    filePath: string;
+    mimeType: string;
+    uploadedBy: string;
+}
+
+export interface SaveDocumentResult {
+    files: IDocument[];
+    [key: string]: any;
+}
+
 export interface DocumentListData {
     isAdmin: boolean;
     documents: IDocument[];

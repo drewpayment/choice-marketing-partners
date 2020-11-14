@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  api: '/api'
+  api: '/api',
+  bugsnag: '541f3417fe6392a170dcb356e728e7fd',
 };
 
 /*

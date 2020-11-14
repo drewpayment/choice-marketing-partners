@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, ComponentFactoryResolver, DoBootstrap, ApplicationRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule, ComponentFactoryResolver, DoBootstrap, ApplicationRef, CUSTOM_ELEMENTS_SCHEMA, ErrorHandler } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppComponent } from './app.component';
 import { PayrollModule } from './payroll/payroll.module';
@@ -13,6 +13,7 @@ import { AgentsModule } from './agents/agents.module';
 import { AgentsListComponent } from './agents/agents-list/agents-list.component';
 import { DocumentsModule } from './documents/documents.module';
 import { DocumentListComponent } from './documents/document-list/document-list.component';
+import { BugsnagErrorHandler } from '@bugsnag/plugin-angular';
 
 const entryPoints = [
     AppComponent,
@@ -22,6 +23,12 @@ const entryPoints = [
     AgentsListComponent,
     DocumentListComponent,
 ];
+
+// create a factory which will return the Bugsnag error handler
+export function errorHandlerFactory() {
+    return new BugsnagErrorHandler();
+}
+
 
 @NgModule({
     declarations: [
@@ -40,13 +47,15 @@ const entryPoints = [
 
         BrowserAnimationsModule
     ],
-    providers: [],
+    providers: [
+        { provide: ErrorHandler, useFactory: errorHandlerFactory },
+    ],
     //   bootstrap: []
     entryComponents: entryPoints
 })
 export class AppModule implements DoBootstrap {
 
-    constructor(private resolver: ComponentFactoryResolver) {}
+    constructor(private resolver: ComponentFactoryResolver) { }
 
     ngDoBootstrap(appRef: ApplicationRef) {
         entryPoints.forEach((p: any) => {

@@ -101,7 +101,7 @@ Route::get('/dashboard', 'HomeController@index'); //webuipopover menu           
  */
 Route::get('/documents', 'DocumentController@index');                                                       // doc_manager.index
 Route::post('/sendmodal', 'DocumentController@sendMessage');                                                //
-Route::post('/postNewDocument', 'DocumentController@postNewDocument');                                      //
+// Route::post('/postNewDocument', 'DocumentController@postNewDocument');                                      //
 // upload documents
 Route::post('/UploadDocument', 'DocumentController@store');                                                 //
 Route::get('download/{filename}', 'DocumentController@download');                                           //

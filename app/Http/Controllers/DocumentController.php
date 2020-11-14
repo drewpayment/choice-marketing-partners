@@ -231,6 +231,7 @@ class DocumentController extends Controller
             $file_path = public_path() . '/uploads/' . $filename;
             
             File::delete($file_path);
+            $document->delete();
             
             if (file_exists($file_path))
             {
@@ -238,7 +239,6 @@ class DocumentController extends Controller
             }
             else 
             {
-                $document->delete();
                 return response()->json($ids);
             }
         }

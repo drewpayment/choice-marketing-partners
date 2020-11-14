@@ -1,9 +1,13 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
-import { BehaviorSubject, of, Subject } from 'rxjs';
-import { catchError, filter, map, takeUntil, tap } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { BehaviorSubject, NEVER, of, Subject } from 'rxjs';
+import { catchError, filter, map, switchMap, take, takeUntil, takeWhile, tap } from 'rxjs/operators';
 import { IDocument } from 'src/app/models';
+import { AddDocumentDialogComponent } from '../add-document/add-document-dialog.component';
 import { ConfirmDeletesDialogComponent } from '../confirm-deletes/confirm-deletes-dialog.component';
 import { DocumentService } from '../documents.service';
 
@@ -24,15 +28,22 @@ export class DocumentListComponent implements OnInit, OnDestroy {
     destroy$ = new Subject();
     docs$ = new BehaviorSubject<IDocument[]>([]);
     @ViewChild(MatSelectionList) documents: MatSelectionList;
+    sortMethod = this.fb.control('name');
 
-    constructor(private service: DocumentService, private dialog: MatDialog) {}
+    constructor(
+        private fb: FormBuilder,
+        private service: DocumentService,
+        private dialog: MatDialog,
+        private snack: MatSnackBar,
+        @Inject(DOCUMENT) private dom: Document,
+    ) {}
 
     ngOnInit() {
         this.service.getDocumentsPageData()
             .pipe(
                 takeUntil(this.destroy$),
                 tap(data => {
-                    this.docs$.next(data.documents);
+                    this.docs$.next(this.sortDocuments(data.documents));
                 })
             )
             .subscribe();
@@ -43,7 +54,45 @@ export class DocumentListComponent implements OnInit, OnDestroy {
     }
 
     addDocument() {
-        console.log('Open dialog and let user upload a file.');
+        const stop$ = new Subject();
+        let uploadedResult: IDocument;
+
+        this.dialog.open(AddDocumentDialogComponent, {
+            maxWidth: '25vw',
+        }).afterClosed()
+            .pipe(
+                map((result: IDocument) => {
+                    if (!result) return NEVER;
+
+                    uploadedResult = result;
+                    return result;
+                }),
+                switchMap(result => {
+                    const newDocs = this.sortDocuments([...this.docs$.value, uploadedResult]);
+                    this.docs$.next(newDocs);
+
+                    return this.docs$.asObservable();
+                }),
+                takeUntil(stop$),
+                tap((result) => {
+                    const scrollElement = this.dom.getElementById(`doc_${uploadedResult.id}`);
+
+                    if (scrollElement) {
+                        scrollElement.scrollIntoView({ behavior: 'smooth' });
+                        this.snack.open(`Saved your document!`, 'dismiss', { duration: 10000 });
+                        stop$.next();
+                    }
+                }),
+            )
+            .subscribe();
+    }
+
+    changeSortMethod(event) {
+        console.dir(event);
+    }
+
+    private sortDocuments(documents: IDocument[]): IDocument[] {
+        return documents.sort((a, b) => (a.name < b.name) ? -1 : (a.name > b.name) ? 1 : 0);
     }
 
     openDocument(event: Event, document: IDocument) {
@@ -68,10 +117,6 @@ export class DocumentListComponent implements OnInit, OnDestroy {
             if (isConfirmDelete) {
                 this.service.deleteDocuments(ids)
                     .pipe(
-                        catchError(err => {
-                            console.dir(err);
-                            return of(null);
-                        }),
                         map(res => {
                             if (res) {
                                 const current = this.docs$.value;
