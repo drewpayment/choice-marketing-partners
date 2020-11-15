@@ -317,7 +317,7 @@ class InvoiceController extends Controller
         
         $pending_sales = array_map(function ($sale) use ($agent_id, $issue_date, $week_ending, $vendor_id, $now) {
             return [
-                'invoice_id' => $sale['invoiceId'],
+                'invoice_id' => isset($sale['invoiceId']) ? $sale['invoiceId'] : null,
                 'vendor' => $vendor_id, 
                 'sale_date' => Carbon::parse($sale['saleDate'])->format('Y-m-d'),
                 'first_name' => $sale['firstName'],
@@ -336,7 +336,7 @@ class InvoiceController extends Controller
         
         $pending_overrides = array_map(function ($ovr) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
             return [
-                'ovrid' => $ovr['overrideId'],
+                'ovrid' => isset($ovr['overrideId']) ? $ovr['overrideId'] : null,
                 'vendor_id' => $vendor_id,
                 'name' => $ovr['name'],
                 'sales' => $ovr['sales'],
@@ -352,7 +352,7 @@ class InvoiceController extends Controller
         
         $pending_expenses = array_map(function ($exp) use ($vendor_id, $agent_id, $issue_date, $week_ending, $now) {
             return [
-                'expid' => $exp['expenseId'],
+                'expid' => isset($exp['expenseId']) ? $exp['expenseId'] : null,
                 'vendor_id' => $vendor_id,
                 'type' => $exp['type'],
                 'amount' => $exp['amount'],
