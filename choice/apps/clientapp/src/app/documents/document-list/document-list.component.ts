@@ -4,9 +4,9 @@ import { FormBuilder } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelectionList } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, NEVER, of, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, take, takeUntil, takeWhile, tap } from 'rxjs/operators';
-import { IDocument } from 'src/app/models';
+import { BehaviorSubject, NEVER, Subject } from 'rxjs';
+import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { IDocument } from '../../models';
 import { AddDocumentDialogComponent } from '../add-document/add-document-dialog.component';
 import { ConfirmDeletesDialogComponent } from '../confirm-deletes/confirm-deletes-dialog.component';
 import { DocumentService } from '../documents.service';
@@ -67,14 +67,14 @@ export class DocumentListComponent implements OnInit, OnDestroy {
                     uploadedResult = result;
                     return result;
                 }),
-                switchMap(result => {
+                switchMap(() => {
                     const newDocs = this.sortDocuments([...this.docs$.value, uploadedResult]);
                     this.docs$.next(newDocs);
 
                     return this.docs$.asObservable();
                 }),
                 takeUntil(stop$),
-                tap((result) => {
+                tap(() => {
                     const scrollElement = this.dom.getElementById(`doc_${uploadedResult.id}`);
 
                     if (scrollElement) {
@@ -95,7 +95,7 @@ export class DocumentListComponent implements OnInit, OnDestroy {
         return documents.sort((a, b) => (a.name < b.name) ? -1 : (a.name > b.name) ? 1 : 0);
     }
 
-    openDocument(event: Event, document: IDocument) {
+    openDocument(event: Event) {
         event.stopPropagation();
 
         // this.service.openDocument(document.filePath)

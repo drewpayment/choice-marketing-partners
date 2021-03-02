@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
-import { AccountService } from 'src/app/account.service';
+import { AccountService } from '../../account.service';
 import { User } from '../../models';
 import { DocumentService } from '../documents.service';
 

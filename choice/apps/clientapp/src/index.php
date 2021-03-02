@@ -8,7 +8,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta id="global-token" name="token" content="{{csrf_token()}}">
-    <base href="/"/>
+    <base href="/" />
 
     <title>@yield('title')</title>
     <!-- Fonts -->
@@ -16,14 +16,14 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700">
     <!-- Latest compiled and minified Bootstrap select/option module -->
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/ax5ui/ax5ui-toast/master/dist/ax5toast.css" />
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
     <link rel="stylesheet" href="{{url('css/jquery.webui-popover.css')}}">
     <link rel="stylesheet" href="{{url('assets/jscrollpane/jquery.jscrollpane.css')}}">
 
     <!-- Slick Carousel http://kenwheeler.github.io/slick/ -->
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     @authurl
@@ -45,7 +45,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     </style>
 
     @foreach ($styles as $s)
-    <link rel="styleshset" href="{{$s['path']}}"/>
+    <link rel="styleshset" href="{{$s['path']}}" />
     @endforeach
     <!-- jsPDF -->
     <script src="{{url('js/jspdf.js')}}"></script>
@@ -58,14 +58,14 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <!-- ANGULAR ASSETS -->
     @guesturl
     @foreach ($styles as $s)
-    <link rel="styleshset" href="{{$s['path']}}"/>
+    <link rel="styleshset" href="{{$s['path']}}" />
     @endforeach
 
 
     @endguesturl
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
-<link rel="stylesheet" href="/dist/cmp/styles.css"></head>
+</head>
 
 @authurl
 <body id="app-layout">
@@ -364,7 +364,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @if (strpos($fp, '2015') !== false)
     <script src="{{url($fp)}}" type="module"></script>
     @elseif (strpos($fp, 'es5') !== false)
-    <script src="{{url($fp)}}" nomodule="" defer=""></script>
+    <script src="{{url($fp)}}" nomodule defer></script>
     @elseif (strpos($fp, '.map') === false)
     <script src="{{url($fp)}}" type="text/javascript"></script>
     @endif
@@ -396,12 +396,12 @@ $container = isset($containerClass) ? $containerClass : 'container';
     @if (strpos($fp, '2015') !== false)
     <script src="{{url($fp)}}" type="module"></script>
     @elseif (strpos($fp, 'es5') !== false)
-    <script src="{{url($fp)}}" nomodule="" defer=""></script>
+    <script src="{{url($fp)}}" nomodule defer></script>
     @elseif (strpos($fp, '.map') === false)
     <script src="{{url($fp)}}" type="text/javascript"></script>
     @endif
     @endforeach
 @endguesturl
 
-<script src="/dist/cmp/runtime.js" defer></script><script src="/dist/cmp/polyfills.js" defer></script><script src="/dist/cmp/scripts.js" defer></script><script src="/dist/cmp/vendor.js" defer></script><script src="/dist/cmp/main.js" defer></script></body>
+</body>
 </html>
