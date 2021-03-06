@@ -35,11 +35,11 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     controlName: string;
 
     constructor(
-        private ref: ElementRef, 
-        private fb: FormBuilder, 
+        private ref: ElementRef,
+        private fb: FormBuilder,
         private service: InvoiceService,
         private location: Location
-    ) { 
+    ) {
         const elem = this.ref.nativeElement;
         this.isAdmin = elem.getAttribute('isAdmin') > 0;
         this.isManager = elem.getAttribute('isManager') > 0;
@@ -53,7 +53,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
         this.issueDates = typeof this.issueDates === 'object' && this.issueDates !== null
             ? Object.values(this.issueDates) : this.issueDates;
 
-        this.vendors = typeof this.vendors === 'object' && this.vendors !== null 
+        this.vendors = typeof this.vendors === 'object' && this.vendors !== null
             ? Object.values(this.vendors) : this.vendors;
     }
 
@@ -68,7 +68,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
                     id: -1,
                     name: 'All Campaigns'
                 } as Vendor);
-            } 
+            }
             this.f.get('campaign').setValue(this.vendors[0]);
         }
 
@@ -114,7 +114,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     search() {
         const model = this.prepareModel();
-        
+
         this.service.getPaystubs(model.agentId, model.campaignId, (model.date as string))
             .subscribe(paystubs => this.paystubs$.next(paystubs));
     }
@@ -126,7 +126,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
             case 'name':
                 sorted = this.sortBy('agentName', isAsc);
                 break;
-            case 'vendor': 
+            case 'vendor':
                 sorted = this.sortBy('vendorName', isAsc);
                 break;
             default:
