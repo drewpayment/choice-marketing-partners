@@ -3,6 +3,7 @@
 namespace App\Http\Results;
 
 use App\Helpers\Utilities;
+use Illuminate\Http\JsonResponse;
 
 class OpResult 
 {
@@ -42,8 +43,12 @@ class OpResult
         return $this->data;
     }
 
-    public function getResponse()
-    {
+	/**
+	 * Serializes data inside of the OpResult and returns it.
+	 *
+	 * @return JsonResponse
+	 */
+    public function getResponse(): JsonResponse {
         $body = is_null($this->data) ? $this->messages : $this->data;
         return response()->json($body, $this->httpStatus);
     }

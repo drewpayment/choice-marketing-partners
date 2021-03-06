@@ -13,20 +13,21 @@ use Illuminate\Http\Request;
 |
 */
 
-// Route::get('/account/user-info', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:api');
+#region INVOICES
 
 Route::get('/invoices', 'InvoiceController@getInvoicePageResources');
-
 Route::post('/invoices', 'InvoiceController@saveApiInvoice');
 
+#endregion
+
+#region DOCUMENTS
 
 Route::get('/documents-view', 'DocumentController@getDocumentManagerInfo');
 Route::delete('/documents', 'DocumentController@deleteDocumentsAsync');
 Route::get('/documents/{filename}/download', 'DocumentController@download');
 Route::post('/documents', 'DocumentController@store');
 
+#endregion
 
 #region PAYROLL VIEW
 

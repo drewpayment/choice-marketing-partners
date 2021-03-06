@@ -3,6 +3,10 @@
 namespace App;
 
 use App\EmployeePermission;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 class User extends Authenticatable
 {
     use Notifiable, SoftDeletes;
+
+    #region TABLE PROPERTIES
 
     /**
      * dates used by the model
@@ -45,10 +51,12 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    #endregion
+
     /**
      * Get employee related to logged in user
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function employee()
     {
@@ -58,7 +66,7 @@ class User extends Authenticatable
     /**
      * Returns active employee IDs this user has access to.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     * @return HasManyThrough
      */
     public function employeePermissions()
     {
@@ -66,12 +74,23 @@ class User extends Authenticatable
     }
 
 	/**
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param $id int
 	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @return Builder
 	 */
-	public function scopeUserId($query, $id)
+	public function scopeByUserId( Builder $query, int $id ): Builder
+	{
+		return $query->where('uid', $id);
+	}
+
+	/**
+	 * @param Builder $query
+	 * @param $id int
+	 *
+	 * @return Builder
+	 */
+	public function scopeByEmployeeId( Builder $query, int $id ): Builder
 	{
 		return $query->where('id', $id);
 	}
@@ -79,7 +98,7 @@ class User extends Authenticatable
 	/**
 	 * User has many posts
 	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 * @return HasMany
 	 */
 	public function posts()
 	{
@@ -89,7 +108,7 @@ class User extends Authenticatable
 	/**
 	 * User has many comments
 	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 * @return HasMany
 	 */
 	public function comments()
 	{

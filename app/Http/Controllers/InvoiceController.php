@@ -14,6 +14,7 @@ use App\Override;
 use Carbon\Carbon;
 use App\Services\DbHelper;
 use App\PayrollRestriction;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Mailable;
 use App\Helpers\InvoiceHelper;
@@ -26,14 +27,13 @@ use App\Services\SessionUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Storage;
 use Doctrine\DBAL\Driver\Mysqli\MysqliException;
+use Illuminate\View\View;
 
 class InvoiceController extends Controller
 {
-
     protected $dbHelper;
     protected $invoiceHelper;
     protected $invoiceService;
@@ -45,6 +45,8 @@ class InvoiceController extends Controller
 	 *
 	 * @param InvoiceHelper $_invoiceHelper
 	 * @param InvoiceService $invoice_service
+	 * @param PaystubService $paystub_service
+	 * @param SessionUtil $_session
 	 */
 	public function __construct(InvoiceHelper $_invoiceHelper, InvoiceService $invoice_service, PaystubService $paystub_service, SessionUtil $_session)
 	{
@@ -56,27 +58,36 @@ class InvoiceController extends Controller
 	}
 
 
-	public function index()
-	{
-		$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
-		$vendors = Vendor::active()->get();
-		$wedArr = [];
-
-		for($i = 0; $i < 6; $i++){
-			$dt = Carbon::parse('this wednesday');
-			$tmpDt = $dt->addWeek($i);
-			$wedArr[] = $tmpDt->format('m-d-Y');
-		}
-
-
-		return view('invoices.upload', ['emps' => $emps, 'weds' => $wedArr, 'vendors' => $vendors]);
-	}
-	
 	/**
-	 * Replaces index()
+	 * The search for paystubs page.
+	 *
+	 * @return View
 	 */
-	public function getInvoicePageResources()
-	{
+	public function index(): View {
+		$result = $this->getInvoiceSearchParams();
+
+		return view('invoices.upload', [
+			'emps' => $result['agents'],
+			'weds' => $result['issueDates'],
+			'vendors' => $result['vendors']]);
+	}
+
+	/**
+	 * Gets params to search for paystubs, serializes and returns them to Angular.
+	 *
+	 * @return JsonResponse
+	 */
+	public function getInvoicePageResources(): JsonResponse {
+		$res = $this->getInvoiceSearchParams();
+		return response()->json($res);
+	}
+
+	/**
+	 * Gets the infomation necessary to search for paystubs.
+	 *
+	 * @return array
+	 */
+	private function getInvoiceSearchParams(): array {
 		$emps = Employee::active()->hideFromPayroll()->orderByName()->get();
 		$vendors = Vendor::active()->get();
 		$wedArr = [];
@@ -87,23 +98,11 @@ class InvoiceController extends Controller
 			$wedArr[] = $tmpDt->format('m-d-Y');
 		}
 
-		return response()->json([
-			'agents' => $emps, 
-			'issueDates' => $wedArr, 
-			'vendors' => $vendors
-		]);
-	}
-	
-
-
-	public function HandleEditInvoice(Request $request)
-	{
-		if(!request()->ajax()) return response()->json(false);
-
-		$input = json_decode($request->all()['input'], true);
-		$result = $this->invoiceService->editInvoice($input);
-		
-		return response()->json($result);
+		return [
+			'agents' => $emps,
+			'vendors' => $vendors,
+			'issueDates' => $wedArr
+		];
 	}
 
 
@@ -273,11 +272,18 @@ class InvoiceController extends Controller
             }
         }
     }
-    
-    /**
-     * Maps request into sql entities.
-     */
-    private function mapToPendingInvoice(Request $request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals)
+
+	/**
+	 * @param Request $request
+	 * @param $vendor_id
+	 * @param $agent_id
+	 * @param $issue_date
+	 * @param $week_ending
+	 * @param $totals
+	 *
+	 * @return array
+	 */
+    private function mapToPendingInvoice(Request $request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals): array
     {
         $now = Carbon::now()->format('Y-m-d H:i:s');
         
@@ -362,158 +368,13 @@ class InvoiceController extends Controller
 
 
 	/**
-	 * Upload invoice from handsontable
-	 *
-	 * @param Request $request
-	 *
-	 * @return \Illuminate\Http\JsonResponse
-	 * @throws \Illuminate\Support\Facades\Exception
-     * @deprecated
-	 */
-	public function UploadInvoice(Request $request)
-	{
-		$salesInput = $request->sales;
-		$overrideInput = $request->overrides;
-		$expenseInput = $request->expenses;
-		$salesArr = [];
-		$overArr = [];
-		$expArr = [];
-		$exception = null;
-		$payrollData = [];
-
-		$vendorId = $salesInput[0]['vendor'];
-
-		// if the vendor id isn't properly set, we will just bail out and make the user try again.
-		if($vendorId < 1) return response()->json(false, 500);
-
-		$hasExistingInvoice = $this->invoiceHelper->checkForExistingInvoice($salesInput[0]['agentid'], $salesInput[0]['vendor'], $salesInput[0]['issueDate']);
-
-		if($hasExistingInvoice === true) return response()->json(false);
-
-		if(!is_null($salesInput))
-		{
-			foreach($salesInput as $invoice)
-			{
-				if(!empty($invoice['issueDate']))
-				{
-					$salesArr[] = [
-						'id' => $invoice['id'],
-						'vendor' => $invoice['vendor'],
-						'sale_date' => new DateTime($invoice['date']),
-						'first_name' => $invoice['name']['first'],
-						'last_name' => $invoice['name']['last'],
-						'address' => $invoice['address'],
-						'city' => $invoice['city'],
-						'status' => $invoice['status'],
-						'amount' => $invoice['amount'],
-						'agentid' => $invoice['agentid'],
-						'issue_date' => new DateTime($invoice['issueDate']),
-						'wkending' => new DateTime($invoice['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
-			}
-		}
-
-
-		if(!is_null($overrideInput))
-		{
-			foreach($overrideInput as $ovr)
-			{
-				if(!empty($ovr['issueDate']))
-				{
-					$overArr[] = [
-						'id' => $ovr['id'],
-						'vendor_id' => $vendorId,
-						'name' => $ovr['name'],
-						'sales' => $ovr['numOfSales'],
-						'commission' => $ovr['commission'],
-						'total' => $ovr['total'],
-						'agentid' => $ovr['agentid'],
-						'issue_date' => new DateTime($ovr['issueDate']),
-						'wkending' => new DateTime($ovr['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
-			}
-		}
-
-
-		if(!is_null($expenseInput))
-		{
-			foreach($expenseInput as $exp)
-			{
-				if(!empty($exp['issueDate']))
-				{
-					$expArr[] = [
-						'vendor_id' => $vendorId,
-						'type' => $exp['type'],
-						'amount' => $exp['amount'],
-						'notes' => $exp['notes'],
-						'agentid' => $exp['agentid'],
-						'issue_date' => new DateTime($exp['issueDate']),
-						'wkending' => new DateTime($exp['wkending']),
-						'created_at' => new DateTime(),
-						'updated_at' => new DateTime()
-					];
-				}
-			}
-		}
-
-		DB::beginTransaction();
-		try{
-			if(!is_null($salesArr))
-			{
-				DB::table('invoices')->insert($salesArr);
-			}
-			if(!is_null($overArr))
-			{
-				DB::table('overrides')->insert($overArr);
-			}
-			if(!is_null($expArr))
-			{
-				DB::table('expenses')->insert($expArr);
-			}
-
-			DB::commit();
-		}
-		catch(Exception $e)
-		{
-			DB::rollback();
-			return response()->json(false);
-		}
-
-		$agentid = ($salesInput[0]['agentid'] > 0) ? $salesInput[0]['agentid'] : $overrideInput[0]['agentid'];
-		$result = is_null($exception) ? true : $exception;
-
-		$payrollData[] = $this->invoiceHelper->setPayrollData($salesArr, $overArr, $expArr, $agentid, $vendorId);
-
-		DB::beginTransaction();
-		try{
-			DB::table('payroll')->insert($payrollData);
-			DB::commit();
-		}
-		catch(Exception $e)
-		{
-			DB::rollback();
-			return response()->json(false);
-		}
-
-		return response()->json($result);
-	}
-
-
-	/**
 	 * Delete existing paystub.
 	 *
 	 * @param Request $request
 	 *
-	 * @return \Illuminate\Http\JsonResponse
-	 * @throws \Illuminate\Support\Facades\Exception
+	 * @return JsonResponse
 	 */
-	public function deletePaystub(Request $request)
+	public function deletePaystub(Request $request): JsonResponse
 	{
 		$params = $request->all();
 		$id = $params["id"];
@@ -531,7 +392,8 @@ class InvoiceController extends Controller
 
 			DB::commit();
 			$result = true;
-		} catch (\mysqli_sql_exception $e)
+		}
+		catch (Exception $e)
 		{
 			DB::rollback();
 			$result = false;
@@ -541,207 +403,29 @@ class InvoiceController extends Controller
 	}
 
 
-	public function historical()
-	{
-		$thisUser = Employee::find(Auth::user()->id);
-
-		$result = $this->invoiceHelper->getPaystubEmployeeListByLoggedInUser($thisUser);
-		$admin = $thisUser->is_admin;
-
-		$hidden = ($admin == 1) ? "" : "hidden";
-		$isAdmin = ($admin == 1);
-
-		return view('invoices.historical',
-			['emps' => $result, 'self' => $thisUser, 'hidden' => $hidden, 'isAdmin' => $isAdmin]);
-	}
-
-
-
-	public function returnIssueDates(Request $request)
-	{
-		$thisUser = Employee::find(Auth::user()->id);
-		$admin = ($thisUser->is_admin == 1);
-		$id = $request->id;
-		$dates = [];
-		$list = Invoice::agentId($id)->latest('issue_date')->get()->unique('issue_date');
-
-		foreach($list as $dt)
-		{
-            if ($admin)
-            {
-				$dates[] = date('m-d-Y', strtotime($date));
-            } 
-            else 
-            {
-                $date = $dt->issue_date;
-                $today = strtotime('today');
-                $nextMon = strtotime('next wednesday 20:00 -1 day');
-                $issueDt = strtotime($date);
-                
-				if($issueDt > $today){
-					if($today > $nextMon){
-						$dates[] = date('m-d-Y', strtotime($date));
-					} else {
-						continue;
-					}
-				} else {
-					$dates[] = date('m-d-Y', strtotime($date));
-				}
-			}
-
-		}
-
-		return view('invoices.issuedates', ['issuedates' => $dates]);
-	}
-
-
-	public function returnPaystub(Request $request)
-	{
-		$agentId = $request->id;
-		$date = $request["date"];
-		$date = date_create_from_format('m-d-Y', $date);
-		$date = $date->format('Y-m-d');
-		$gross = 0;
-		$invoiceDt = strtotime($date);
-		$invoiceDt = date('m-d-Y', $invoiceDt);
-		$stubs = Invoice::agentId($agentId)->issueDate($date)->get();
-		$emp = Employee::find($agentId);
-		$vendorId = $stubs->first()->vendor;
-		$vendorName = Vendor::find($vendorId)->name;
-
-		foreach($stubs as $s)
-		{
-			if(is_numeric($s->amount))
-			{
-				$gross = $gross + $s->amount;
-			}
-
-			$s->sale_date = strtotime($s->sale_date);
-			$s->sale_date = date('m-d-Y', $s->sale_date);
-		}
-
-		$overrides = Override::agentId($agentId)->issueDate($date)->get();
-		$expenses = Expense::agentId($agentId)->issueDate($date)->get();
-
-		$ovrGross = $overrides->sum(function($ovr){
-			global $ovrGross;
-			return $ovrGross + $ovr->total;
-		});
-
-		$expGross = $expenses->sum(function($exp){
-			global $expGross;
-			return $expGross + $exp->amount;
-		});
-
-		$gross = array_sum([$gross, $ovrGross, $expGross]);
-
-
-		return view('invoices.paystub',
-			['stubs' => $stubs,
-			 'emp' => $emp,
-			 'gross' => $gross,
-			 'invoiceDt' => $invoiceDt,
-			 'vendor' => $vendorName,
-			 'overrides' => $overrides,
-			 'expenses' => $expenses,
-			 'ovrgross' => $ovrGross,
-			 'expgross' => $expGross]);
-	}
-
-
 	public function OverridesModal()
 	{
 		return view('invoices.overridesmodal');
 	}
 
-
-	public function searchInvoices()
+	/**
+	 * URL: /invoices/show-invoice/{agentID}/{vendorID}/{issueDate}
+	 * Description:
+	 * Paystub detail
+	 *
+	 * @param $agentID
+	 * @param $vendorID
+	 * @param $issueDate
+	 *
+	 * @return View
+	 * @throws Exception
+	 */
+	public function editInvoice($agentID, $vendorID, $issueDate): View
 	{
-		$emps = Employee::active()->orderByName()->get();
-		$campaigns = Vendor::all()->sortBy('id');
-		$vID = Vendor::find(1)->id;
+		if($vendorID < 1)
+			back()->withError('Missing campaign information. Please refresh the page and try again.')
+				->withInput();
 
-		$dates = Invoice::vendorId($vID)->get(['issue_date'])->unique()->values()->all();
-		$dates = collect($dates)->sortByDesc('issue_date');
-		$invoiceList = Invoice::all()->groupBy('issue_date')->all();
-
-		$invoices = [];
-		$count = 0;
-		foreach($invoiceList as $i){
-			$row = $i->first(function($v, $k){
-				return $v->agentid;
-			});
-			$vendorId = $i->first(function($v, $k){
-				return $v->vendor;
-			})->vendor;
-			$id = $i->first(function($v, $k){
-				return $v->agentid;
-			})->agentid;
-
-			$name = $emps->first(function($v, $k) use ($row){
-				return $v->id == $row->agentid;
-			});
-			$name = (!is_null($name)) ? $name->name : null;
-
-			$c = $campaigns->first(function($v, $k) use ($vendorId){
-				return $v->id == 1;
-			});
-			$campaign = $c->name;
-
-			$invoices[] = [
-				'name' => $name,
-				'campaign' => $campaign,
-				'issueDate' => $row->issue_date
-			];
-		}
-
-
-		return view('invoices.search',
-			['employees' => $emps,
-			 'campaigns' => $campaigns,
-			 'dates' => $dates,
-			 'invoices' => $invoices]);
-	}
-
-
-	public function getSearchResults(Request $request)
-	{
-		$inputParams = $request->inputParams;
-		$vID = $inputParams['vendorid'];
-		$aID = $inputParams['agentid'];
-		$date = $inputParams['issue_date'];
-		// find invoice by id and then return filled out handsontable
-		$data = Invoice::vendorId($vID)->issueDate($date)->agentId($aID)->get();
-
-		$employees = Employee::all();
-		$vendors = Vendor::all();
-		$result = [];
-
-		foreach($data as $d)
-		{
-			$empName = $employees->first(function($v, $k) use ($d){
-				return $v->id == $d->agentid;
-			})->name;
-			$vendor = $vendors->first(function($v, $k) use($d){
-				return $v->id == $d->vendor;
-			})->name;
-			$result[] = [
-				'agentID' => $d->agentid,
-				'agentName' => $empName,
-				'issueDate' => $d->issue_date,
-				'vendorID' => $d->vendor,
-				'vendorName' => $vendor
-			];
-		}
-		$result = collect($result)->unique('issue_date')->all();
-
-		return view('invoices._searchresults', ['invoices' => $result]);
-	}
-
-
-	public function editInvoice($agentID, $vendorID, $issueDate)
-	{
-		if($vendorID < 1) return response()->json(false, 500);
 		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$expenses = Expense::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
@@ -774,70 +458,19 @@ class InvoiceController extends Controller
 	}
 
 
-	function formatDateCollectionSeparators($date, $currentFormat, $desiredFormat)
+	function formatDateCollectionSeparators($date, $currentFormat, $desiredFormat): string
 	{
 		return Carbon::createFromFormat($currentFormat, $date)->format($desiredFormat);
     }
-    
-    public function getPaystubs(Request $request, $employeeId, $vendorId, $issueDate)
-    {
-        $result = new OpResult();
-
-        $user = $request->user()->employee;
-        $this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
-
-        if ($result->hasError()) return $result->getResponse();
-        
-        $args = [
-            'vendor' => $vendorId,
-            'agent' => $employeeId,
-            'date' => $issueDate
-        ];
-
-        $data = $this->invoiceHelper->searchPaystubData($args);
-
-        if (!is_null($data))
-        {
-            $result->setDataOnSuccess($data);
-        }
-
-        return $result->getResponse();
-    }
 
 
-	function array_insert($array, $var, $position)
+	function array_insert($array, $var, $position): array
 	{
 		$before = array_slice($array, 0, $position);
 		$after = array_slice($array, $position);
 
 		$return = array_merge($before, (array) $var);
 		return array_merge($return, $after);
-	}
-
-
-	/**
-	 * Fired from "filter" button on /payroll view. Takes date, vendor and agent params
-	 * and get paystub data for the params.
-	 *
-	 * @param Request $request
-	 *
-	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\JsonResponse|\Illuminate\View\View
-	 */
-	public function filterPaystubs(Request $request)
-	{
-		if(!$request->ajax()) return response()->json(false);
-
-        $params = $request->all()['inputParams'];
-		$results = $this->invoiceHelper->searchPaystubData($params);
-
-		return view('paystubs._stubrowdata', [
-			'paystubs' => $results->stubs,
-			'agents' => $results->agents,
-			'vendors' => $results->vendors,
-			'rows' => $results->rows,
-			'isAdmin' => $results->isAdmin,
-			'isManager' => $results->isManager
-		]);
 	}
 
 
@@ -853,12 +486,12 @@ class InvoiceController extends Controller
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
         $vendorName = Vendor::find($vendorId)->name;
-        
+
         /**
-         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
-         * the one record they did have and it needs to be recreated for the pages to work properly. 
+         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted
+         * the one record they did have and it needs to be recreated for the pages to work properly.
          */
-        if (count($stubs) < 1 || is_null($stubs)) 
+        if (count($stubs) < 1 || is_null($stubs))
         {
             $this->invoiceService->insertBlankStub($agentId, $vendorId, $date);
         }
@@ -906,32 +539,7 @@ class InvoiceController extends Controller
 			'isAdmin' => $isAdmin
 		]);
     }
-    
-    public function showPaystubDetailByPaystubId(Request $request, $employeeId, $paystubId)
-    {
-        $result = new OpResult();
 
-        $user = $request->user()->employee;
-        $this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
-
-        if ($result->hasError()) 
-        {
-            return $result->getResponse();
-        }
-
-        $paystub = Paystub::find($paystubId);
-
-        if (is_null($paystub)) 
-        {
-            return $result
-                ->setToFail('Failed to find specified paystub.')
-                ->getResponse();   
-        }
-
-        $issueDate = Carbon::createFromFormat('Y-m-d', $paystub->issue_date);
-
-        return $this->invoiceService->getPaystubView($employeeId, $paystub->vendor_id, $issueDate);
-    }
 
 	public function printablePaystub(Request $request)
 	{
@@ -1038,11 +646,7 @@ class InvoiceController extends Controller
 	}
 
 
-	/**
-	 * HELPER FUNCTIONS
-	 *
-	 */
-
+	#region HELPER FUNCTIONS
 
 	private function unsetValue(array $array, $value)
 	{
@@ -1080,5 +684,7 @@ class InvoiceController extends Controller
 
 		return false;
 	}
+
+	#endregion
 
 }

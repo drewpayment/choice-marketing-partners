@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Employee;
 use App\Expense;
+use App\Helpers\InvoiceHelper;
 use App\Helpers\Utilities;
+use App\Http\Results\OpResult;
 use App\Invoice;
 use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
+use App\Services\InvoiceService;
 use App\Services\SessionUtil;
 use App\Vendor;
 use Carbon\Carbon;
@@ -17,6 +20,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 
 class PayrollController extends Controller
 {
@@ -25,10 +29,14 @@ class PayrollController extends Controller
     protected $vendors = [];
     protected $limit;
     protected $utilities;
+	protected $invoiceHelper;
+	protected $invoiceService;
 
-    public function __construct(SessionUtil $_session)
+    public function __construct(SessionUtil $_session, InvoiceHelper $_invoiceHelper, InvoiceService $_invoiceService)
     {
     	$this->session = $_session;
+    	$this->invoiceHelper = $_invoiceHelper;
+    	$this->invoiceService = $_invoiceService;
     	$this->utilities = new Utilities();
     }
 
@@ -98,9 +106,80 @@ class PayrollController extends Controller
 	#region API METHODS
 
 	/**
+	 * URL: /payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}
+	 * Description:
+	 * Called from Angular when when user clicks "Search" button payroll list.
+	 *
+	 * @param Request $request
+	 * @param $employeeId
+	 * @param $vendorId
+	 * @param $issueDate
+	 *
+	 * @return JsonResponse
+	 */
+	public function getPaystubs(Request $request, $employeeId, $vendorId, $issueDate): JsonResponse {
+		$result = new OpResult();
+
+		$user = $request->user()->employee;
+		$this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
+
+		if ($result->hasError()) return $result->getResponse();
+
+		$args = [
+			'vendor' => $vendorId,
+			'agent' => $employeeId,
+			'date' => $issueDate
+		];
+
+		$data = $this->invoiceHelper->searchPaystubData($args);
+
+		if (!is_null($data))
+		{
+			$result->setDataOnSuccess($data);
+		}
+
+		return $result->getResponse();
+	}
+
+	/**
+	 * URL: /payroll/employees/{employeeId}/paystubs/{paystubId}
+	 * Description:
+	 * Show's an employee's paystub detail
+	 *
+	 * @param Request $request
+	 * @param $employeeId
+	 * @param $paystubId
+	 *
+	 * @return View
+	 */
+	public function showPaystubDetailByPaystubId(Request $request, $employeeId, $paystubId): View {
+		$result = new OpResult();
+
+		$user = $request->user()->employee;
+		$this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return back()->withError($result->getResponse())->withInput();
+		}
+
+		$paystub = Paystub::find($paystubId);
+
+		if (is_null($paystub))
+		{
+			return back()->withError('Fatal error, please refresh the page and try again.')->withInput();
+		}
+
+		$issueDate = Carbon::createFromFormat('Y-m-d', $paystub->issue_date);
+
+		return $this->invoiceService->getPaystubView($employeeId, $paystub->vendor_id, $issueDate);
+	}
+
+	/**
 	 * URL: /agents/{agentId}/vendors/{vendorId}/dates/{issueDate}
 	 * Description:
-	 * NOT ACTUALLY SURE WHAT CALLS THIS?
+	 * Returns the entire invoice in JsonResponse. This is the same as InvoiceController@editInvoice
+	 * and could be used to show a "peak" of the invoice or something for a quick view.
 	 *
 	 * @param $agentID
 	 * @param $vendorID
