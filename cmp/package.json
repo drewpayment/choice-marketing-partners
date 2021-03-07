@@ -8,6 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
+    "prod": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng build --prod --extract-css=false",
     "postinstall": "ngcc"
   },
   "private": true,
