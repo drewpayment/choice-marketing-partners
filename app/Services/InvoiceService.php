@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use App\Helpers\InvoiceHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class InvoiceService {
 
@@ -350,8 +351,7 @@ class InvoiceService {
      * @param Carbon $date
      * @return View
      */
-    public function getPaystubView($agentId, $vendorId, $date)
-    {
+    public function getPaystubView(int $agentId, int $vendorId, Carbon $date): View {
         $gross = 0;
         $invoiceDt = $date->format('m-d-Y');
         $issueDate = $date->format('Y-m-d');

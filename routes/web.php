@@ -17,6 +17,9 @@ if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
 | Views are listed on the right...
 |
 */
+
+#region NOT REALLY SURE
+
 if ( app()->environment(['local', 'staging']) )
 {
     // THIS DOESN'T WORK WITHOUT THE FULL DOMAIN, APP_HOST is new custom env to resolve this
@@ -50,55 +53,70 @@ if ( app()->environment(['local', 'staging']) )
     
 // });
 
+#endregion
+
+#region PUBLIC ENDPOINTS
+
 Route::get('/', 'PublicController@index');                                                                  // index
 Route::get('/about-us', 'PublicController@aboutus');                                                        // about
 Route::post('/returnCommaClubListByID', 'PublicController@ReturnCommaClubListByID');                        // comma.club
+
+#endregion
+
+#region INVOICES
+
+Route::get('/upload-invoice', 'InvoiceController@index');                                                   // invoices.upload
+Route::post('/upload/save-invoice', 'InvoiceController@SaveInvoice');                                       //
+
+Route::get('/overrides', 'OverrideController@overrides');                                                   // overrides.overrides
+Route::get('/overrides/detail/{id}', 'OverrideController@detail');                                          // overrides.detail
+Route::get('/overrides/refresh-detail/{id}', 'OverrideController@refreshDetail');                           // overrides._detailRowData
+Route::get('/overrides/confirm-add-agent/{id}', 'OverrideController@returnAddAgentConfirmModal');           // overrides.confirm_add
+Route::post('/overrides/handleAddAgentOverride', 'OverrideController@handleAddAgentOverride');              //
+Route::get('/overrides/confirm-delete-agent/{id}', 'OverrideController@returnDeleteAgentConfirmModal');     // overrides.confirm_delete
+Route::post('/overrides/handleDeleteAgentOverride', 'OverrideController@handleDeleteAgentOverride');        //
+
+#endregion
+
+#region PAYROLL
+
+Route::get('/payroll', 'PayrollController@viewPayrollList');
+Route::get('/invoices/show-invoice/{agentID}/{vendorID}/{issueDate}', 'InvoiceController@editInvoice');
+
+Route::post('/paystubs/pdf-detail', 'InvoiceController@showPaystub');
+Route::post('/payroll/printable', 'InvoiceController@printablePaystub');
+Route::post('/pdfs/paystubs/delete', 'InvoiceController@deletePaystubPdf');
+Route::post('/pdfs/makepdf', 'InvoiceController@makePdf');
+
+Route::get('/paystub/delete/confirm', 'PayrollController@confirmDeletePaystub');
+Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');
+
 Route::get('/payroll-dispute', 'PayrollController@payrollDispute');
 
-
-/*
- * view paystubs by week, and if admin, delete paystubs
+/**
+ *
+ * ANGULAR HYBRID API CALLS
+ * These do not use the Laravel API token methods, but rely on the normal laravel session token
+ * and the csrf tokens.
  *
  */
-Route::get('/upload-invoice', 'InvoiceController@index');                                                   // invoices.upload
-Route::post('/upload/invoice', 'InvoiceController@UploadInvoice');                                          //
-Route::post('/upload/save-invoice', 'InvoiceController@SaveInvoice');                                       //
-Route::get('/historical-invoice-data', 'InvoiceController@historical');                                     // invoices.historical
-Route::get('/getissuedates', 'InvoiceController@returnIssueDates');                                         // invoices.issueDates
-Route::post('/getpaystub', 'InvoiceController@returnPaystub');                                              // invoices.paystub
-Route::get('/paystub/delete/confirm', 'PayrollController@confirmDeletePaystub');
-Route::post('/paystub/delete/submit', 'InvoiceController@deletePaystub');                                   //
+Route::group(['middleware' => 'auth'], function() {
+	Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'PayrollController@getPaystubs');
+	Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'PayrollController@showPaystubDetailByPaystubId');
+});
 
-// new paystub module (do not implement on production)
-//Route::get('/paystubs', 'InvoiceController@paystubs');                                                      // paystubs.paystubs
-Route::post('/paystubs/filter-paystubs', 'InvoiceController@filterPaystubs');                               // paystubs._stubrowdata
-Route::post('/paystubs/pdf-detail', 'InvoiceController@showPaystub');                                       // pdf.paystub
-Route::post('/payroll/printable', 'InvoiceController@printablePaystub');                                    // pdf.template
-Route::post('/pdfs/paystubs/delete', 'InvoiceController@deletePaystubPdf');                                 //
-Route::post('/pdfs/makepdf', 'InvoiceController@makePdf');                                                  // pdf.template
-Route::get('/payroll', 'InvoiceController@payrollViewer');                                                  // paystubs.paystubs
+#endregion
 
-// edit invoices
-Route::get('/invoices/edit-invoice', 'InvoiceController@searchInvoices');                                   // invoices.search
-Route::get('/invoices/show-invoice/{agentID}/{vendorID}/{issueDate}', 'InvoiceController@editInvoice');     // invoices.edit
-Route::post('/getSearchResults', 'InvoiceController@getSearchResults');                                     // invoices._searchResults
-Route::post('/invoices/handle-edit-invoice', 'InvoiceController@HandleEditInvoice');                        //
+#region AUTHENTICATION
 
-
-/*
- * authentication routes - login/logout
- * we also handle where users are sent after successful authentication
- *
- */
 Auth::routes();
 Route::get('/logout', 'Auth\LoginController@logout');                                                       //
 Route::get('/dashboard', 'HomeController@index'); //webuipopover menu                                       // home
 
+#endregion
 
-/*
- * document manager routes
- *
- */
+#region DOCUMENT MANAGER
+
 Route::get('/documents', 'DocumentController@index');                                                       // doc_manager.index
 Route::post('/sendmodal', 'DocumentController@sendMessage');                                                //
 // Route::post('/postNewDocument', 'DocumentController@postNewDocument');                                      //
@@ -114,14 +132,10 @@ Route::post('/untagDocument', 'DocumentController@HandleUntagDocument');        
 Route::get('/showNewDocumentModal', 'DocumentController@ReturnNewDocumentModal');                           // doc_manager._newDocumentModal
 Route::post('/returnDocumentsByTag', 'DocumentController@ReturnDocumentsByTag');                            // doc_manager._doc
 
-/*
- * employee management routes
- *
- * index()                                                                                                  // emp_manager.index
- * create()                                                                                                 // emp_manager._create
- * store()                                                                                                  //
- *
- */
+#endregion
+
+#region EMPLOYEE MANAGEMENT
+
 Route::resource('employees', 'EmpManagerController');
 Route::post('/employee/create-ajax', 'EmpManagerController@handleAddNewEmployee');                          //
 Route::post('/refresh-employees', 'EmpManagerController@refreshEmployeeRowData');                           // emp_manager._emp
@@ -130,9 +144,10 @@ Route::post('/update-employee', 'EmpManagerController@update');                 
 Route::post('/employee/update/salesid', 'EmpManagerController@updateEmployeeSalesID');                      //
 Route::get('/returnEmployeeRowData', 'EmpManagerController@returnEmployeeRowData');                         // emp_manager._emp
 
-/*
- * Agent Management --- will replace EmpManagerController
- */
+#endregion
+
+#region AGENT MANAGEMENT
+
 Route::get('/agents', 'EmployeeController@index');                                                          // employees.index
 Route::get('/getExistingEmployeeModal', 'EmployeeController@getExistingEmployee');                          // employees.partials.existingemployeemodal
 Route::post('/updateExistingEmployee', 'EmployeeController@updateExistingEmployee');                        //
@@ -140,10 +155,10 @@ Route::post('/createNewEmployee', 'EmployeeController@createNewEmployee');      
 Route::get('/refreshEmployees', 'EmployeeController@refreshEmployeeRowData');                               // employees.partials._employeetablerowdata
 Route::post('/updateEmployeeStatus', 'EmployeeController@updateEmployeeActiveStatus');                      //
 
-/*
- * admin dashboard routes
- *
- */
+#endregion
+
+#region ADMIN DASHBOARD
+
 Route::get('/dashboards/dashboard', 'DashboardController@index');                                           // dashboard.dashboard
 Route::get('/dashboards/payroll-info', 'DashboardController@payrollInfo');                                  // dashboard.payrollinfo
 Route::get('/dashboards/release-restriction', 'DashboardController@releaseRestriction');                    // dashboard.restriction
@@ -154,31 +169,21 @@ Route::get('/process-payroll/{date}', 'DashboardController@reprocessPaystubDates
 Route::post('/dashboards/handlePayrollClick', 'DashboardController@handlePayrollClick');                    //
 Route::get('/dashboards/refreshPayrollInfo', 'DashboardController@refreshPayrollInfo');                     // dashboard.payrollTableRowData
 Route::get('/refreshPayrollTracking', 'DashboardController@refreshPayrollTracking');                        // dashboard.payrollTableRowData
-Route::get('/overrides', 'OverrideController@overrides');                                                   // overrides.overrides
-Route::get('/overrides/detail/{id}', 'OverrideController@detail');                                          // overrides.detail
-Route::get('/overrides/refresh-detail/{id}', 'OverrideController@refreshDetail');                           // overrides._detailRowData
-Route::get('/overrides/confirm-add-agent/{id}', 'OverrideController@returnAddAgentConfirmModal');           // overrides.confirm_add
-Route::post('/overrides/handleAddAgentOverride', 'OverrideController@handleAddAgentOverride');              //
-Route::get('/overrides/confirm-delete-agent/{id}', 'OverrideController@returnDeleteAgentConfirmModal');     // overrides.confirm_delete
-Route::post('/overrides/handleDeleteAgentOverride', 'OverrideController@handleDeleteAgentOverride');        //
 
+#endregion
 
-/**
- * vendor routes
- *
- */
+#region VENDORS
+
 Route::get('/vendors', 'VendorController@index');                                                           // vendors.index
 Route::post('/vendors/handleAddVendor', 'VendorController@handleAddVendor');                                //
 Route::get('/vendors/returnAddModal', 'VendorController@returnAddModal');                                   // vendors._addModal
 Route::get('/vendors/refreshVendorRowData', 'VendorController@refreshVendorRowData');                       // vendors._vendorRowData
 Route::post('/vendors/handleVendorActive', 'VendorController@handleVendorActive');                          //
 
+#endregion
 
+#region BLOG
 
-/**
- * ************* BLOG ROUTES --- NEW ****************
- * URL ---> /blog/{restofstuffhere}
- */
 Route::group(['prefix' => 'blog', 'middleware' => ['auth']], function(){
 
 //	Route::get('/', 'PostController@index');
@@ -237,6 +242,9 @@ Route::get('blog/user/{id}', 'BlogUserController@profile')->where('id', '[0-9]+'
 // display list of posts
 Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id', '[0-9]+');
 
+#endregion
+
+#region MISCELLANEOUS ANGULAR STUFF
 
 /**
  * 
@@ -247,8 +255,6 @@ Route::get('blog/user/{id}/posts', 'BlogUserController@user_posts')->where('id',
  */
 Route::group(['middleware' => 'auth'], function() {
     Route::get('/account/user-info', 'HomeController@getUserInfo');
-    Route::get('/payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}', 'InvoiceController@getPaystubs');
-    Route::get('/payroll/employees/{employeeId}/paystubs/{paystubId}', 'InvoiceController@showPaystubDetailByPaystubId');
 
     Route::get('/ng/agents', 'EmployeeController@getAgents');
     Route::post('/ng/agents', 'EmployeeController@createAgent');
@@ -257,3 +263,5 @@ Route::group(['middleware' => 'auth'], function() {
     Route::put('/ng/agents/{id}', 'EmployeeController@updateAgent');
     Route::post('/ng/agents/{id}/password-reset', 'EmployeeController@resetPassword');
 });
+
+#endregion

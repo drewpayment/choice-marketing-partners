@@ -7,10 +7,12 @@ use App\Http\Results\OpResult;
 use App\Services\EmployeeService;
 use App\Services\SessionUtil;
 use App\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class EmployeeController extends Controller
 {
@@ -74,9 +76,9 @@ class EmployeeController extends Controller
 
 
 	/**
-	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+	 * @return View
 	 */
-	public function index()
+	public function index(): View
 	{
 		$employees = Employee::active()->get()->sortBy('name');
 
@@ -89,7 +91,7 @@ class EmployeeController extends Controller
 	 *
 	 * @param Request $request
 	 *
-	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+	 * @return \Illuminate\Contracts\View\Factory|View
 	 *
 	 */
 	public function refreshEmployeeRowData(Request $request)
@@ -111,9 +113,10 @@ class EmployeeController extends Controller
 	/**
 	 * Gets employee by id and displays information on modal. Needs to be injected into modal div and
 	 * Bootstrap modal method called to show it.
+	 *
 	 * @param Request $request
 	 *
-	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\JsonResponse|\Illuminate\View\View
+	 * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\JsonResponse|View
 	 */
 	public function getExistingEmployee(Request $request)
 	{
@@ -277,8 +280,17 @@ class EmployeeController extends Controller
 
 		return response()->json(true);
     }
-    
-    public function getAgents(Request $request) 
+
+	/**
+	 * URL: /ng/agents
+	 * Description:
+	 * Search for agents with paging, returns json for Angular.
+	 *
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+    public function getAgents(Request $request): JsonResponse
     {
         $result = new OpResult();
 
@@ -291,10 +303,12 @@ class EmployeeController extends Controller
         $showAll = strtolower($request->query('showall')) === 'true';
         $size = $request->query('size', 10);
         $page = $request->query('page');
+        $search = $request->query('q');
 
-        return $result->trySetData(function ($showAll, $size, $page) {
+        return $result->trySetData(function ($showAll, $size, $page) use (&$search) {
             $qry = Employee::with('user')
                 ->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
+	            ->whereLike('name', $search)
                 ->orderBy('name');
 
             return $showAll 
@@ -428,19 +442,31 @@ class EmployeeController extends Controller
         return $result->getResponse();
     }
 
-    public function restoreAgent(Request $request) 
+	/**
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+    public function restoreAgent(Request $request): JsonResponse
     {
         $result = new OpResult();
 
-        $restored = Employee::withTrashed()->where('id', '=', $request->id)->restore();
+        $emp = Employee::withTrashed()->byEmployeeId($request->id)->first();
+        $restored = $emp->restore();
 
         if (!$restored) $result->setToFail('Failed to restore agent.');
 
-        $emp = Employee::find($request->id);
         $emp->is_active = true;
         $saved = $emp->save();
 
         if (!$saved) $result->setToFail('Employee was restored, but failed to update the "Active" status.');
+
+	    $empUser = User::onlyTrashed()->byEmployeeId($emp->id)->first();
+
+	    if ($empUser != null)
+	    {
+		    $empUser->restore();
+	    }
 
         return $result->getResponse();
     }

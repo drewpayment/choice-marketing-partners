@@ -167,6 +167,7 @@ $results = [
 	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
         App\Http\View\Composers\ViewServiceProvider::class,
         Sentry\Laravel\ServiceProvider::class,
+	    App\Providers\QueryBuilderServiceProvider::class,
     ],
 
     /*

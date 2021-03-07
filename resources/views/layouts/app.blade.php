@@ -64,7 +64,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     
     @endguesturl
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>
+{{--    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.29.2/handsontable.full.js"></script>--}}
 </head>
 
 @authurl

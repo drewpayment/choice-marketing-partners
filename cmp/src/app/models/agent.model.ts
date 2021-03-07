@@ -35,3 +35,10 @@ export interface AgentResult {
     agent: Agent;
     user: User;
 }
+
+export interface AgentSearchRequest {
+  showAll: boolean;
+  page: number;
+  size: number;
+  qry: string;
+}

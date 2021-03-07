@@ -3,12 +3,15 @@
 namespace App;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
     use SoftDeletes;
+
+    #region TABLE PROPERTIES
 
     protected $primaryKey = 'id';
 
@@ -29,6 +32,11 @@ class Employee extends Model
         'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
         'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
     ];
+
+	#endregion
+
+
+	#region ACCESS MODIFIERS
 
 	public function setPhoneNoAttribute($value)
 	{
@@ -94,6 +102,10 @@ class Employee extends Model
 		return $this->formatDate($value, 'Y-m-d H:i:s');
 	}
 
+	#endregion
+
+
+	#region RELATIONSHIPS
 
 	/**
 	 * Get the permission associated with the employee
@@ -149,15 +161,31 @@ class Employee extends Model
 		return $this->hasOne(User::class, 'id', 'id');
 	}
 
+	#endregion
+
+
+	#region FILTERS
+
+	/**
+	 * @param Builder $query
+	 * @param $id
+	 *
+	 * @return Builder
+	 */
+	public function scopeByEmployeeId(Builder $query, int $id): Builder
+	{
+		return $query->where('id', $id);
+	}
 
 	/**
 	 * scope query to filter managers
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param bool
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 *
+	 * @return Builder
 	 */
-	public function scopeManagersOnly($query, $mgrsOnly)
+	public function scopeManagersOnly(Builder $query, bool $mgrsOnly): Builder
 	{
 		$managersOnly = ($mgrsOnly) ? 1 : 0;
 		return $query->where('is_mgr', $managersOnly);
@@ -167,11 +195,11 @@ class Employee extends Model
 	/**
 	 * Scope a query to only include active users.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @return Builder
 	 */
-	public function scopeActive($query)
+	public function scopeActive(Builder $query): Builder
 	{
 		return $query->where('is_active', 1);
 	}
@@ -180,11 +208,11 @@ class Employee extends Model
 	/**
 	 * Scope a query to show both active/inactive users.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @return Builder
 	 */
-	public function scopeShowAll($query)
+	public function scopeShowAll( Builder $query ): Builder
 	{
 		return $query->withTrashed();
 	}
@@ -193,10 +221,11 @@ class Employee extends Model
 	/**
 	 * Score a query to order by employee's name.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @param Builder $query
+	 *
+	 * @return Builder
 	 */
-	public function scopeOrderByName($query)
+	public function scopeOrderByName( Builder $query ): Builder
 	{
 		return $query->orderBy('name', 'asc');
 	}
@@ -205,10 +234,11 @@ class Employee extends Model
 	/**
 	 * Scope query to filter hidden from payroll employees.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @param Builder $query
+	 *
+	 * @return Builder
 	 */
-	public function scopeHideFromPayroll($query)
+	public function scopeHideFromPayroll( Builder $query ): Builder
 	{
 		return $query->where('hidden_payroll', 0);
 	}
@@ -217,11 +247,12 @@ class Employee extends Model
 	/**
 	 * scope query to filter by agent id
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param int
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 *
+	 * @return Builder
 	 */
-	public function scopeAgentId($query, $id)
+	public function scopeAgentId( Builder $query, $id ): Builder
 	{
 		if(!is_object($id) && $id == -1) {
 			return $query;
@@ -238,14 +269,17 @@ class Employee extends Model
 	/**
 	 * scope list of agents
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param array
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 *
+	 * @return Builder
 	 */
-	public function scopeListOfAgents($query, $arr)
+	public function scopeListOfAgents( Builder $query, $arr ): Builder
 	{
 		return $query->whereIn('id', $arr);
 	}
+
+	#endregion
 
 
 }
