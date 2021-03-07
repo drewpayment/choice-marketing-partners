@@ -21,26 +21,6 @@ $text-muted: rgba(0, 0, 0, 0.54);
     flex: 1 1 auto;
 }
 
-::ng-deep .mat-form-field {
-    color: white !important;
-}
-
-::ng-deep .mat-form-field-autofill {
-    color: white;
-}
-
-::ng-deep .mat-form-field-placeholder {
-    color: white;
-}
-
-::ng-deep .mat-focused .mat-form-field-placeholder {
-    color: white;
-}
-
-::ng-deep .mat-form-field-underline .mat-form-field-ripple {
-    background-color: white;
-}
-
-::ng-deep .mat-form-field-underline {
-    background-color: white;
+::ng-deep .mat-form-field-suffix {
+  cursor: pointer;
 }

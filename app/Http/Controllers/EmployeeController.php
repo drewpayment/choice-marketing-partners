@@ -280,8 +280,17 @@ class EmployeeController extends Controller
 
 		return response()->json(true);
     }
-    
-    public function getAgents(Request $request) 
+
+	/**
+	 * URL: /ng/agents
+	 * Description:
+	 * Search for agents with paging, returns json for Angular.
+	 *
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+    public function getAgents(Request $request): JsonResponse
     {
         $result = new OpResult();
 
@@ -294,10 +303,12 @@ class EmployeeController extends Controller
         $showAll = strtolower($request->query('showall')) === 'true';
         $size = $request->query('size', 10);
         $page = $request->query('page');
+        $search = $request->query('q');
 
-        return $result->trySetData(function ($showAll, $size, $page) {
+        return $result->trySetData(function ($showAll, $size, $page) use (&$search) {
             $qry = Employee::with('user')
                 ->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
+	            ->whereLike('name', $search)
                 ->orderBy('name');
 
             return $showAll 

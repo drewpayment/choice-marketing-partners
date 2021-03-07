@@ -1,85 +1,86 @@
 
-<mat-toolbar color="primary">
-    <mat-toolbar-row>
-        <mat-form-field appearance="fill" floatLabel="false">
-            <input type="text" matInput [formControl]="searchControl" [matAutocomplete]="searchAutocomplete" placeholder="Search Agents" />
-            <mat-icon inline="true" matSuffix>search</mat-icon>
-            <mat-autocomplete #searchAutocomplete [displayWith]="displayFn">
-                <mat-option *ngFor="let agent of filteredAgents|async" [value]="agent">
-                    {{ agent.name }}
-                </mat-option>
-            </mat-autocomplete>
-        </mat-form-field>
+<mat-card>
+  <mat-form-field class="pr-5">
+    <input type="text" matInput [formControl]="searchControl" placeholder="Search Agents" (keyup.enter)="searchButtonClick(false)" />
+    <mat-button type="button" mat-button *ngIf="showSearchIcon && searchControl.value; else showClear" matSuffix (click)="searchButtonClick(true)">
+      <mat-icon inline="true">search</mat-icon>
+    </mat-button>
+    <ng-template #showClear>
+      <mat-button type="button" mat-button matSuffix (click)="clearSearch()" *ngIf="searchControl.value">
+        <mat-icon inline="true">clear</mat-icon>
+      </mat-button>
+    </ng-template>
+  </mat-form-field>
 
-        <section class="mx-5">
-            <mat-slide-toggle color="accent" (change)="slideToggleValueChange($event)">
-                Show All
-            </mat-slide-toggle>
-        </section>
+  <span class="px-5">
+    <mat-slide-toggle color="accent" (change)="slideToggleValueChange($event)">
+      Include Inactive
+    </mat-slide-toggle>
+  </span>
 
-        <div class="spacer"></div>
+  <span class="spacer"></span>
 
-        <button type="button" mat-raised-button (click)="showAddAgentDialog()">
-            <span class="mx-2">Add</span>
-            <mat-icon>add_box</mat-icon>
-        </button>
-    </mat-toolbar-row>
-</mat-toolbar>
+  <span class="px-5">
+    <button type="button" mat-raised-button (click)="showAddAgentDialog()">
+      <span class="mx-2">Agent</span>
+      <mat-icon>add_box</mat-icon>
+    </button>
+  </span>
 
-<ng-container *ngIf="agents$ | async as agents">
-    <mat-table [dataSource]="agents">
+  <mat-card-content>
+    <ng-container *ngIf="agents$ | async as agents">
+      <mat-table [dataSource]="agents">
 
         <ng-container matColumnDef="edit">
-            <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
-            <mat-cell *matCellDef="let item">
-                <button type="button" mat-icon-button *ngIf="item.isActive" (click)="editAgent(item)">
-                    <mat-icon>edit</mat-icon>
-                </button>
-            </mat-cell>
+          <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button type="button" mat-icon-button *ngIf="item.isActive" (click)="editAgent(item)">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-            <mat-cell *matCellDef="let item">{{ item.name }}</mat-cell>
+          <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+          <mat-cell *matCellDef="let item">{{ item.name }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="email">
-            <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
-            <mat-cell *matCellDef="let item">{{ item.email }}</mat-cell>
+          <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+          <mat-cell *matCellDef="let item">{{ item.email }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="phone">
-            <mat-header-cell *matHeaderCellDef>Phone</mat-header-cell>
-            <mat-cell *matCellDef="let item">{{ item.phoneNo }}</mat-cell>
+          <mat-header-cell *matHeaderCellDef>Phone</mat-header-cell>
+          <mat-cell *matCellDef="let item">{{ item.phoneNo }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="isActive">
-            <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
-            <mat-cell *matCellDef="let item">
-                <button type="button" mat-icon-button *ngIf="item.isActive && item.user"
-                    [matTooltip]="'Reset Password'" [matTooltipPosition]="'above'" (click)="resetPassword(item)">
-                    <mat-icon>https</mat-icon>
-                </button>
+          <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button type="button" mat-icon-button *ngIf="item.isActive && item.user" [matTooltip]="'Reset Password'"
+              [matTooltipPosition]="'above'" (click)="resetPassword(item)">
+              <mat-icon>https</mat-icon>
+            </button>
 
-                <!-- ENABLE OR DISABLE -->
-                <button type="button" mat-icon-button *ngIf="item && item.isActive && item.id != user.id" (click)="disableAgent(item.id)"
-                    [matTooltip]="'Disable'" [matTooltipPosition]="'above'">
-                    <mat-icon>remove_circle_outline</mat-icon>
-                </button>
-                <button type="button" mat-icon-button *ngIf="!item.isActive" (click)="restoreAgent(item.id)"
-                    [matTooltip]="'Restore'" [matTooltipPosition]="'above'">
-                    <mat-icon>cached</mat-icon>
-                </button>
-            </mat-cell>
+            <!-- ENABLE OR DISABLE -->
+            <button type="button" mat-icon-button *ngIf="item && item.isActive && item.id != user.id"
+              (click)="disableAgent(item.id)" [matTooltip]="'Disable'" [matTooltipPosition]="'above'">
+              <mat-icon>remove_circle_outline</mat-icon>
+            </button>
+            <button type="button" mat-icon-button *ngIf="!item.isActive" (click)="restoreAgent(item.id)"
+              [matTooltip]="'Restore'" [matTooltipPosition]="'above'">
+              <mat-icon>cached</mat-icon>
+            </button>
+          </mat-cell>
         </ng-container>
 
         <mat-header-row *matHeaderRowDef="['edit', 'name', 'email', 'phone', 'isActive']"></mat-header-row>
-        <mat-row [class.agent-disabled]="!row.isActive" *matRowDef="let row; columns: ['edit', 'name', 'email', 'phone', 'isActive']"></mat-row>
-    </mat-table>
-    <mat-paginator #matPaginator
-        [pageSizeOptions]="[5, 10, 20]"
-        showFirstLastButtons
-        [length]="paginator?.total"
-        [pageSize]="paginator?.perPage"
-        (page)="paging($event)"></mat-paginator>
-</ng-container>
+        <mat-row [class.agent-disabled]="!row.isActive"
+          *matRowDef="let row; columns: ['edit', 'name', 'email', 'phone', 'isActive']"></mat-row>
+      </mat-table>
+      <mat-paginator #matPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons [length]="paginator?.total"
+        [pageSize]="paginator?.perPage" (page)="paging($event)"></mat-paginator>
+    </ng-container>
+  </mat-card-content>
+</mat-card>
