@@ -15,7 +15,7 @@ class SessionUtil
 
     public function getUserSubordinates($userId)
     {
-        $user = User::with('employee')->userId($userId)->first();
+        $user = User::with('employee')->byEmployeeId($userId)->first();
         $list = $user->employee->permissions()->active()->get(['emp_id'])->pluck('emp_id');
         $agents = collect([$user->employee]);
 
