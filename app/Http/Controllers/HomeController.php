@@ -22,7 +22,6 @@ class HomeController extends Controller
 
     public function authenticated()
     {
-
     	return view('index');
     }
 

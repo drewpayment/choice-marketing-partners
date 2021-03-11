@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
@@ -12,6 +13,12 @@ class PublicController extends Controller
 
 	public function index()
 	{
+		$user = Auth::user();
+
+		if ($user != null) {
+			return view('spa.index', ['user' => $user]);
+		}
+
 		$data['customers'] = DB::table('testimonials')->where('testimonial_type', 1)->get();
 		$data['agents'] = DB::table('testimonials')->where('testimonial_type', 2)->get();
 		$data['posts'] = Post::latest('created_at')->where('active', 1)->paginate(5);

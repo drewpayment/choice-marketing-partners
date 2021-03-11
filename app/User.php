@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -58,17 +59,27 @@ class User extends Authenticatable
      *
      * @return BelongsTo
      */
-    public function employee()
+    public function employee(): BelongsTo
     {
     	return $this->belongsTo(Employee::class, 'id');
     }
 
-    /**
-     * Returns active employee IDs this user has access to.
-     *
-     * @return HasManyThrough
-     */
-    public function employeePermissions()
+	/**
+	 * Has one UserFeature record.
+	 *
+	 * @return HasOne
+	 */
+	public function features(): HasOne
+	{
+    	return $this->hasOne(UserFeature::class, 'user_id');
+    }
+
+	/**
+	 * Returns active employee IDs this user has access to.
+	 *
+	 * @return HasMany
+	 */
+	public function employeePermissions(): HasMany
     {
         return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
     }
@@ -100,7 +111,7 @@ class User extends Authenticatable
 	 *
 	 * @return HasMany
 	 */
-	public function posts()
+	public function posts(): HasMany
 	{
 		return $this->hasMany(Post::class, 'author_id', 'id');
 	}
@@ -110,7 +121,7 @@ class User extends Authenticatable
 	 *
 	 * @return HasMany
 	 */
-	public function comments()
+	public function comments(): HasMany
 	{
 		return $this->hasMany(Comment::class, 'from_user', 'id');
 	}
@@ -120,7 +131,7 @@ class User extends Authenticatable
 	 *
 	 * @return bool
 	 */
-	public function can_post()
+	public function can_post(): bool
 	{
 		$role = $this->role;
 
@@ -132,7 +143,7 @@ class User extends Authenticatable
 	 *
 	 * @return bool
 	 */
-	public function is_admin()
+	public function is_admin(): bool
 	{
 		$role = $this->role;
 
