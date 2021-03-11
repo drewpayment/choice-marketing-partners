@@ -9,7 +9,7 @@ class UserFeature extends Model
 {
     #region TABLE PROPERTIES
 
-	protected $table = 'user_feature';
+	protected $table = 'user_features';
 
 	protected $primaryKey = 'id';
 
@@ -27,6 +27,20 @@ class UserFeature extends Model
 	public function user(): BelongsTo
 	{
 		return $this->belongsTo(User::class);
+	}
+
+	#endregion
+
+	#region ATTRIBUTE MUTATORS
+
+	public function getHasNewUi()
+	{
+		return $this->attributes['has_new_ui'] == 1;
+	}
+
+	public function setHasNewUi($value)
+	{
+		$this->attributes['has_new_ui'] = $value ? 1 : 0;
 	}
 
 	#endregion

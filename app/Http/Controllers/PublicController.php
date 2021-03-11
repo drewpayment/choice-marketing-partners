@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Post;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,12 @@ class PublicController extends Controller
 
 	public function index()
 	{
-		$user = Auth::user();
+		$id = Auth::user()->id;
 
-		if ($user != null) {
+		if ($id != null && $id > 0) {
+			$user = User::with('features')->byEmployeeId($id)->first();
+
+			dd($user->features->has_new_ui);
 			return view('spa.index', ['user' => $user]);
 		}
 
