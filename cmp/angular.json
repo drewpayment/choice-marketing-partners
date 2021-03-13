@@ -171,6 +171,8 @@
           "options": {
             "outputPath": "../storage/app/public/dist/apps/spa",
             "index": "apps/spa/src/index.blade.php",
+            "baseHref": "/n",
+            "deployUrl": "/storage/dist/apps/spa/",
             "main": "apps/spa/src/main.ts",
             "polyfills": "apps/spa/src/polyfills.ts",
             "tsConfig": "apps/spa/tsconfig.app.json",
