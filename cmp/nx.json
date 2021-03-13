@@ -7,19 +7,12 @@
     "nx.json": "*",
     "tsconfig.base.json": "*"
   },
-  "affected": {
-    "defaultBase": "master"
-  },
+  "affected": { "defaultBase": "master" },
   "npmScope": "cmp",
   "projects": {
-    "cmp": {
-      "tags": []
-    },
-    "cmp-e2e": {
-      "tags": [],
-      "implicitDependencies": [
-        "cmp"
-      ]
-    }
+    "cmp": { "tags": [] },
+    "cmp-e2e": { "tags": [], "implicitDependencies": ["cmp"] },
+    "spa": { "tags": [] },
+    "spa-e2e": { "tags": [], "implicitDependencies": ["spa"] }
   }
 }

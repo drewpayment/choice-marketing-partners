@@ -25,10 +25,7 @@
             "polyfills": "apps/cmp/src/polyfills.ts",
             "tsConfig": "apps/cmp/tsconfig.app.json",
             "aot": true,
-            "assets": [
-              "apps/cmp/src/favicon.ico",
-              "apps/cmp/src/assets"
-            ],
+            "assets": ["apps/cmp/src/favicon.ico", "apps/cmp/src/assets"],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
               "apps/cmp/src/styles.scss",
@@ -106,10 +103,7 @@
             "polyfills": "apps/cmp/src/polyfills.ts",
             "tsConfig": "apps/cmp/tsconfig.spec.json",
             "karmaConfig": "apps/cmp/karma.conf.js",
-            "assets": [
-              "apps/cmp/src/favicon.ico",
-              "apps/cmp/src/assets"
-            ],
+            "assets": ["apps/cmp/src/favicon.ico", "apps/cmp/src/assets"],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
               "apps/cmp/src/styles.scss"
@@ -124,9 +118,7 @@
               "apps/cmp/tsconfig.app.json",
               "apps/cmp/tsconfig.spec.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         },
         "e2e": {
@@ -163,12 +155,137 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": "apps/cmp-e2e/tsconfig.json",
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
+    },
+    "spa": {
+      "projectType": "application",
+      "root": "apps/spa",
+      "sourceRoot": "apps/spa/src",
+      "prefix": "cmp",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/apps/spa",
+            "index": "apps/spa/src/index.html",
+            "main": "apps/spa/src/main.ts",
+            "polyfills": "apps/spa/src/polyfills.ts",
+            "tsConfig": "apps/spa/tsconfig.app.json",
+            "aot": true,
+            "assets": ["apps/spa/src/favicon.ico", "apps/spa/src/assets"],
+            "styles": ["apps/spa/src/styles.scss"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "apps/spa/src/environments/environment.ts",
+                  "with": "apps/spa/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "spa:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "spa:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "spa:build"
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/spa/src/**/*.ts",
+              "apps/spa/src/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/spa"],
+          "options": {
+            "jestConfig": "apps/spa/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "spa-e2e": {
+      "root": "apps/spa-e2e",
+      "sourceRoot": "apps/spa-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/spa-e2e/cypress.json",
+            "tsConfig": "apps/spa-e2e/tsconfig.e2e.json",
+            "devServerTarget": "spa:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "spa:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["apps/spa-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    }
+  },
+  "schematics": {
+    "@nrwl/angular:application": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "cypress"
+    },
+    "@nrwl/angular:library": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/angular:component": {
+      "style": "scss"
     }
   }
 }
