@@ -55,6 +55,8 @@ if ( app()->environment(['local', 'staging']) )
 
 #endregion
 
+Route::get('/n', 'HomeController@showSpa');
+
 #region PUBLIC ENDPOINTS
 
 Route::get('/', 'PublicController@index');                                                                  // index

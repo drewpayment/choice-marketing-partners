@@ -47,4 +47,9 @@ class HomeController extends Controller
         })->getResponse();
     }
 
+	public function showSpa()
+	{
+		return view('spa.index');
+	}
+
 }
