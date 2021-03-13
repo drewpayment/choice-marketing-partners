@@ -10,8 +10,11 @@ namespace App\Services;
 
 use App\Employee;
 use App\Expense;
+use App\Helpers\RoleType;
+use App\Http\Results\OpResult;
 use App\Invoice;
 use App\Override;
+use App\PayrollRestriction;
 use App\Paystub;
 use App\Vendor;
 use Carbon\Carbon;
@@ -22,7 +25,7 @@ class PaystubService {
 	// This needs to run a job that will process paystubs for the date range passed into it.
 	// This is super important and critical that the user enters the correct dates.
 	// Although critical, I think this still can be assumed from the existing data that we have in SQL.
-
+	#region PAYSTUB PROCESSING
 
 	/**
 	 * Gets all unique dates in sql and returns them as an array.
@@ -169,5 +172,60 @@ class PaystubService {
 			}
 		}
 	}
+
+	#endregion
+
+	#region SEARCH PAYSTUBS
+
+	public function checkAccessToIssueDate($employeeId, $date): OpResult
+	{
+		$result = new OpResult();
+
+		if ($employeeId < 0) return $result->setToSuccess();
+
+		$employee = Employee::active()->byEmployeeId($employeeId)->first();
+
+		if ($employee == null) return $result->setToFail();
+
+		if ($employee->is_admin == 1)
+		{
+			$role = RoleType::Admin;
+		}
+		else if ($employee->is_mgr == 1)
+		{
+			$role = RoleType::Manager;
+		}
+		else
+		{
+			$role = RoleType::Employee;
+		}
+
+		if ($role == RoleType::Admin) return $result->setToSuccess();
+
+		$today = Carbon::now();
+		$issueDate = Carbon::parse($date);
+		$limit = PayrollRestriction::find(1);
+
+		if ($role == RoleType::Manager || $role == RoleType::Employee)
+		{
+			$today = $today->setTime($limit->hour, $limit->minute);
+			if ($issueDate->isAfter($today))
+			{
+				$nextWednesday = new Carbon('next wednesday');
+				return $result->setData($issueDate->isBefore($nextWednesday)
+                    && $issueDate->isAfter($issueDate->subDay()->setTime($limit->hour, $limit->minute)));
+			}
+			else
+			{
+				return $result->setToSuccess();
+			}
+		}
+		else
+		{
+			return $result->setToFail();
+		}
+	}
+
+	#endregion
 
 }
