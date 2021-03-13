@@ -11,14 +11,11 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "ES5",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
-    "paths": {},
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
+    "paths": {
+      "@cmp/sessions": ["libs/sessions/src/index.ts"]
+    },
     "rootDir": "."
   },
   "angularCompilerOptions": {

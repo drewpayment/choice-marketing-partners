@@ -20,17 +20,17 @@ if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
 
 #region NOT REALLY SURE
 
-if ( app()->environment(['local', 'staging']) )
-{
-    // THIS DOESN'T WORK WITHOUT THE FULL DOMAIN, APP_HOST is new custom env to resolve this
-    Route::domain('debug.' . env('APP_HOST', 'choice-marketing-partners.com'))->group(function () {
-        Route::get('/', function () { return 'TEST'; });
-    });
-    
-    Route::get('/debug-sentry', function () {
-        throw new Exception('My first Sentry error!');  
-    });
-}
+//if ( app()->environment(['local', 'staging']) )
+//{
+//    // THIS DOESN'T WORK WITHOUT THE FULL DOMAIN, APP_HOST is new custom env to resolve this
+//    Route::domain('debug.' . env('APP_HOST', 'choice-marketing-partners.com'))->group(function () {
+//        Route::get('/', function () { return 'TEST'; });
+//    });
+//
+//    Route::get('/debug-sentry', function () {
+//        throw new Exception('My first Sentry error!');
+//    });
+//}
 
 // Route::domain('{admin}' . env('APP_HOST', 'choice-marketing-partners.com'))->group(function () {
 //     Route::middleware(['auth', 'role:admin'])->group(function () {

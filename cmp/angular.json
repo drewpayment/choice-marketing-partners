@@ -3,7 +3,7 @@
   "cli": {
     "defaultCollection": "@nrwl/angular"
   },
-  "defaultProject": "cmp",
+  "defaultProject": "spa",
   "projects": {
     "cmp": {
       "projectType": "application",
@@ -19,7 +19,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "../public/dist/apps/cmp",
+            "outputPath": "../storage/app/public/dist/apps/cmp",
             "index": "apps/cmp/src/index.php",
             "main": "apps/cmp/src/main.ts",
             "polyfills": "apps/cmp/src/polyfills.ts",
@@ -169,8 +169,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/apps/spa",
-            "index": "apps/spa/src/index.html",
+            "outputPath": "../storage/app/public/dist/apps/spa",
+            "index": "apps/spa/src/index.blade.php",
             "main": "apps/spa/src/main.ts",
             "polyfills": "apps/spa/src/polyfills.ts",
             "tsConfig": "apps/spa/tsconfig.app.json",
@@ -267,6 +267,31 @@
           "builder": "@nrwl/linter:eslint",
           "options": {
             "lintFilePatterns": ["apps/spa-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
+    "sessions": {
+      "projectType": "library",
+      "root": "libs/sessions",
+      "sourceRoot": "libs/sessions/src",
+      "prefix": "cmp",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/sessions/src/**/*.ts",
+              "libs/sessions/src/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/sessions"],
+          "options": {
+            "jestConfig": "libs/sessions/jest.config.js",
+            "passWithNoTests": true
           }
         }
       }

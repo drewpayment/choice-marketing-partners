@@ -1,6 +1,6 @@
 @extends('spa.app', ['containerClass' => 'container-fluid'])
 
-@section('title', 'Choice Marketing Partners')
+@section('title', 'Choice Marketing')
 
 @section('content')
 

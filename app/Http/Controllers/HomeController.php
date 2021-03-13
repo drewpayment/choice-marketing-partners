@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Results\OpResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 
 class HomeController extends Controller
 {
@@ -49,7 +50,10 @@ class HomeController extends Controller
 
 	public function showSpa()
 	{
-		return view('spa.index');
+		$filePath = public_path('storage/dist/apps/spa/index.blade.php');
+		return View::file($filePath);
+
+//		return view('spa.index', ['indexHtml' => $filePath]);
 	}
 
 }
