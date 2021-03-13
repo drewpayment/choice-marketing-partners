@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Employee;
 use App\Expense;
 use App\Helpers\InvoiceHelper;
+use App\Helpers\RoleType;
 use App\Helpers\Utilities;
 use App\Http\Results\OpResult;
 use App\Invoice;
@@ -12,12 +13,14 @@ use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
 use App\Services\InvoiceService;
+use App\Services\PaystubService;
 use App\Services\SessionUtil;
 use App\Vendor;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
@@ -31,13 +34,19 @@ class PayrollController extends Controller
     protected $utilities;
 	protected $invoiceHelper;
 	protected $invoiceService;
+	protected $paystubService;
 
-    public function __construct(SessionUtil $_session, InvoiceHelper $_invoiceHelper, InvoiceService $_invoiceService)
-    {
+    public function __construct(
+    	SessionUtil $_session,
+	    InvoiceHelper $_invoiceHelper,
+	    InvoiceService $_invoiceService,
+	    PaystubService $_paystubService
+    ) {
     	$this->session = $_session;
     	$this->invoiceHelper = $_invoiceHelper;
     	$this->invoiceService = $_invoiceService;
     	$this->utilities = new Utilities();
+    	$this->paystubService = $_paystubService;
     }
 
     #region WEB METHODS
@@ -122,6 +131,10 @@ class PayrollController extends Controller
 
 		$user = $request->user()->employee;
 		$this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
+
+		if ($result->hasError()) return $result->getResponse();
+
+		$this->paystubService->checkAccessToIssueDate($user->id, $issueDate)->mergeInto($result);
 
 		if ($result->hasError()) return $result->getResponse();
 
@@ -231,7 +244,13 @@ class PayrollController extends Controller
     	return json_encode($this->utilities->encodeJson($value));
     }
 
-	private function getEmployeesByRole(int $roleType, int $userId): \Illuminate\Support\Collection
+	/**
+	 * @param int $roleType
+	 * @param int $userId
+	 *
+	 * @return Collection
+	 */
+	private function getEmployeesByRole(int $roleType, int $userId): Collection
 	{
 		switch ($roleType)
 		{
@@ -245,7 +264,12 @@ class PayrollController extends Controller
 		}
 	}
 
-	private function getEmployeesAsEmployee($userId): \Illuminate\Support\Collection
+	/**
+	 * @param $userId
+	 *
+	 * @return Collection
+	 */
+	private function getEmployeesAsEmployee($userId): Collection
 	{
 		$agents = collect([Auth::user()->employee]);
 		$this->issueDates = Paystub::latest('issue_date')
@@ -293,7 +317,12 @@ class PayrollController extends Controller
 		return $agents;
 	}
 
-	private function getEmployeesAsManager($userId): \Illuminate\Support\Collection
+	/**
+	 * @param $userId
+	 *
+	 * @return Collection
+	 */
+	private function getEmployeesAsManager($userId): Collection
 	{
 		$agents = $this->session->getUserSubordinates($userId);
 
@@ -330,9 +359,3 @@ class PayrollController extends Controller
 	#endregion
 }
 
-abstract class RoleType
-{
-	const Admin = 0;
-	const Manager = 1;
-	const Employee = 2;
-}
