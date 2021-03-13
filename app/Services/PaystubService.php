@@ -181,9 +181,10 @@ class PaystubService {
 	{
 		$result = new OpResult();
 
-		if ($employeeId < 0) return $result->setToSuccess();
+		if ($employeeId < 0)
+			return $result->setToFail('No active employee record found for authenticated user.');
 
-		$employee = Employee::active()->byEmployeeId($employeeId)->first();
+		$employee = Employee::byEmployeeId($employeeId)->first();
 
 		if ($employee == null) return $result->setToFail();
 
