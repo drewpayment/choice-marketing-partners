@@ -2,13 +2,19 @@
 
   <nb-layout-header fixed>
     <div class="header-row">
+      <button type="button" nbButton ghost (click)="toggleMenu()">
+        <nb-icon icon="grid-outline"></nb-icon>
+      </button>
+
       <h3>Choice Marketing</h3>
 
-      <button type="button" nbButton>
-        <nb-icon icon="log-out-outline" (click)="logMeOut()"></nb-icon>
+      <button type="button" nbButton ghost (click)="logMeOut()">
+        <nb-icon icon="log-out-outline"></nb-icon>
       </button>
     </div>
   </nb-layout-header>
+
+  <nb-sidebar state="collapsed" responsive="true"></nb-sidebar>
 
   <nb-layout-column>
 

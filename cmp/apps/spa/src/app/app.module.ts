@@ -10,7 +10,7 @@ import { environment } from '../environments/environment';
 import { StoreRouterConnectingModule } from '@ngrx/router-store';
 import { SessionsModule } from '@cmp/sessions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbThemeModule, NbLayoutModule, NbIconModule, NbButtonModule } from '@nebular/theme';
+import { NbThemeModule, NbLayoutModule, NbIconModule, NbButtonModule, NbSidebarModule, NbSidebarService } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ROUTES } from './routes';
 import { ComponentsModule } from '@cmp/shared';
@@ -40,9 +40,12 @@ import { ComponentsModule } from '@cmp/shared';
     NbEvaIconsModule,
     NbIconModule,
     NbButtonModule,
+    NbSidebarModule,
     ComponentsModule,
   ],
-  providers: [],
+  providers: [
+    NbSidebarService,
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
