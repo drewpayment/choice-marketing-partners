@@ -16,11 +16,14 @@ class PublicController extends Controller
 	{
 		$id = Auth::user()->id;
 
-		if ($id != null && $id > 0) {
+		if ($id != null && $id > 0)
+		{
 			$user = User::with('features')->byEmployeeId($id)->first();
 
-			dd($user->features->has_new_ui);
-			return view('spa.index', ['user' => $user]);
+			if ($user->features->has_new_ui)
+			{
+				return view('spa.index', ['user' => $user]);
+			}
 		}
 
 		$data['customers'] = DB::table('testimonials')->where('testimonial_type', 1)->get();

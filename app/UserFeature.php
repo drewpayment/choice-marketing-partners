@@ -33,12 +33,12 @@ class UserFeature extends Model
 
 	#region ATTRIBUTE MUTATORS
 
-	public function getHasNewUi()
+	public function getHasNewUiAttribute()
 	{
 		return $this->attributes['has_new_ui'] == 1;
 	}
 
-	public function setHasNewUi($value)
+	public function setHasNewUiAttribute($value)
 	{
 		$this->attributes['has_new_ui'] = $value ? 1 : 0;
 	}
