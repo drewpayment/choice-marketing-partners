@@ -132,8 +132,8 @@
     "use-pipe-transform-interface": true,
     "curly": false,
     "no-trailing-whitespace": false,
-    "forin": false
-  ,    "variable-name": {
+    "forin": false,
+    "variable-name": {
       "options": [
         "ban-keywords",
         "check-format",
@@ -149,9 +149,24 @@
         "check-type",
         "check-typecast"
       ]
-    }
-},
+    },
+    "nx-enforce-module-boundaries": [
+      true,
+      {
+        "allow": [],
+        "depConstraints": [
+          {
+            "sourceTag": "*",
+            "onlyDependOnLibsWithTags": [
+              "*"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "rulesDirectory": [
-    "codelyzer"
+    "codelyzer",
+    "node_modules/@nrwl/workspace/src/tslint"
   ]
 }

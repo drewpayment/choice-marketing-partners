@@ -1,7 +1,9 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "newProjectRoot": "projects",
+  "cli": {
+    "defaultCollection": "@nrwl/angular"
+  },
+  "defaultProject": "cmp",
   "projects": {
     "cmp": {
       "projectType": "application",
@@ -10,26 +12,26 @@
           "style": "scss"
         }
       },
-      "root": "",
-      "sourceRoot": "src",
+      "root": "apps/cmp",
+      "sourceRoot": "apps/cmp/src",
       "prefix": "cp",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "../public/dist/cmp",
-            "index": "src/index.php",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.app.json",
+            "outputPath": "../public/dist/apps/cmp",
+            "index": "apps/cmp/src/index.php",
+            "main": "apps/cmp/src/main.ts",
+            "polyfills": "apps/cmp/src/polyfills.ts",
+            "tsConfig": "apps/cmp/tsconfig.app.json",
             "aot": true,
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "apps/cmp/src/favicon.ico",
+              "apps/cmp/src/assets"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
-              "src/styles.scss",
+              "apps/cmp/src/styles.scss",
               "../resources/assets/sass/app.scss"
             ],
             "scripts": [
@@ -54,8 +56,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "apps/cmp/src/environments/environment.ts",
+                  "with": "apps/cmp/src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -100,17 +102,17 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
+            "main": "apps/cmp/src/test.ts",
+            "polyfills": "apps/cmp/src/polyfills.ts",
+            "tsConfig": "apps/cmp/tsconfig.spec.json",
+            "karmaConfig": "apps/cmp/karma.conf.js",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "apps/cmp/src/favicon.ico",
+              "apps/cmp/src/assets"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
-              "src/styles.scss"
+              "apps/cmp/src/styles.scss"
             ],
             "scripts": []
           }
@@ -119,9 +121,8 @@
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json",
-              "e2e/tsconfig.json"
+              "apps/cmp/tsconfig.app.json",
+              "apps/cmp/tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"
@@ -141,7 +142,33 @@
           }
         }
       }
+    },
+    "cmp-e2e": {
+      "root": "apps/cmp-e2e",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "apps/cmp-e2e/protractor.conf.js",
+            "devServerTarget": "cmp:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "cmp:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": "apps/cmp-e2e/tsconfig.json",
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
-  },
-  "defaultProject": "cmp"
+  }
 }
