@@ -24,14 +24,14 @@ class RedirectIfSpaAuthorized
 	 */
 	public function handle(Request $request, Closure $next, $guard = null)
 	{
-		if (Auth::guard($guard)->check() && !str_ends_with(URL::current(), '/n'))
+		if (Auth::guard($guard)->check() && !str_contains(URL::current(), '/app'))
 		{
 			$u        = User::with( 'features' )->byEmployeeId( Auth::user()->id )->first();
 			$hasNewUi = $u->features->has_new_ui;
 
 			if ( $hasNewUi )
 			{
-				return redirect( '/n' );
+				return redirect( '/app' );
 			}
 		}
 

@@ -14,7 +14,8 @@
     "typeRoots": ["node_modules/@types"],
     "lib": ["es2018", "dom"],
     "paths": {
-      "@cmp/sessions": ["libs/sessions/src/index.ts"]
+      "@cmp/sessions": ["libs/sessions/src/index.ts"],
+      "@cmp/shared": ["libs/shared/src/index.ts"]
     },
     "rootDir": "."
   },

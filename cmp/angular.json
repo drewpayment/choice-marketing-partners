@@ -171,7 +171,7 @@
           "options": {
             "outputPath": "../storage/app/public/dist/apps/spa",
             "index": "apps/spa/src/index.blade.php",
-            "baseHref": "/n",
+            "baseHref": "/app",
             "deployUrl": "/storage/dist/apps/spa/",
             "main": "apps/spa/src/main.ts",
             "polyfills": "apps/spa/src/polyfills.ts",
@@ -293,6 +293,31 @@
           "outputs": ["coverage/libs/sessions"],
           "options": {
             "jestConfig": "libs/sessions/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "shared": {
+      "projectType": "library",
+      "root": "libs/shared",
+      "sourceRoot": "libs/shared/src",
+      "prefix": "cmp",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/shared/src/**/*.ts",
+              "libs/shared/src/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/shared"],
+          "options": {
+            "jestConfig": "libs/shared/jest.config.js",
             "passWithNoTests": true
           }
         }

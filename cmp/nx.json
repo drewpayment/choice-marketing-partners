@@ -14,6 +14,7 @@
     "cmp-e2e": { "tags": [], "implicitDependencies": ["cmp"] },
     "spa": { "tags": [] },
     "spa-e2e": { "tags": [], "implicitDependencies": ["spa"] },
-    "sessions": { "tags": [] }
+    "sessions": { "tags": [] },
+    "shared": { "tags": [] }
   }
 }

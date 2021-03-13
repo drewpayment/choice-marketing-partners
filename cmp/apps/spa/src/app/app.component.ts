@@ -7,4 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'spa';
+
+  logMeOut() {
+    console.log('LOG ME OUT PLEASE!');
+  }
+
 }

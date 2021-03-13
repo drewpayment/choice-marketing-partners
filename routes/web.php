@@ -1,6 +1,9 @@
 <?php
 
 // https://stackoverflow.com/questions/48343557/count-parameter-must-be-an-array-or-an-object-that-implements-countable
+
+use Illuminate\Support\Facades\Route;
+
 if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
     error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 }
@@ -55,7 +58,9 @@ if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
 
 #endregion
 
-Route::get('/n', 'HomeController@showSpa');
+Route::prefix('app')->group(function () {
+	Route::get('/{any?}', 'HomeController@showSpa')->where('any', '.*');
+});
 
 #region PUBLIC ENDPOINTS
 
