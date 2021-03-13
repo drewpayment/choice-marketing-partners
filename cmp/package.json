@@ -28,7 +28,7 @@
     "@bugsnag/plugin-angular": "^7.5.1",
     "@smarthtmlelements/smart-elements-community": "^6.2.0",
     "moment": "^2.24.0",
-    "rxjs": "~6.5.4",
+    "rxjs": "~6.6.6",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.3"
   },
