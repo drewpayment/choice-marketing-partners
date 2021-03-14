@@ -3,10 +3,10 @@
   <nb-layout-header fixed>
     <div class="header-row">
       <button type="button" nbButton ghost (click)="toggleMenu()">
-        <nb-icon icon="grid-outline"></nb-icon>
+        <nb-icon [icon]="sidebarActionIcon"></nb-icon>
       </button>
 
-      <h3>Choice Marketing</h3>
+      <h3>{{title}}</h3>
 
       <button type="button" nbButton ghost (click)="logMeOut()">
         <nb-icon icon="log-out-outline"></nb-icon>
@@ -14,7 +14,7 @@
     </div>
   </nb-layout-header>
 
-  <nb-sidebar state="collapsed" responsive="true"></nb-sidebar>
+  <nb-sidebar state="collapsed" responsive="true" (stateChange)="sidebarStateChanged($event)"></nb-sidebar>
 
   <nb-layout-column>
 

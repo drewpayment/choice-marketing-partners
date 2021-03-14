@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 
 class Override extends Model
@@ -71,6 +72,17 @@ class Override extends Model
 	public function scopeIssueDate($query, $date)
 	{
 		return $query->whereDate('issue_date', $date);
+	}
+
+	/**
+	 * Prepare a date for array / JSON serialization.
+	 *
+	 * @param  DateTimeInterface  $date
+	 * @return string
+	 */
+	protected function serializeDate(DateTimeInterface $date): string
+	{
+		return $date->format('Y-m-d H:i:s');
 	}
 
 }

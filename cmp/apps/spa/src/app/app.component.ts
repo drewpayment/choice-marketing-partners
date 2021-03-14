@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NbSidebarService } from '@nebular/theme';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'cmp-root',
@@ -7,7 +9,10 @@ import { NbSidebarService } from '@nebular/theme';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'Choice Marketing Partners';
+  title = 'Choice Marketing';
+  sidebarActionIcon = 'grid-outline';
+  destroy$ = new Subject();
+
 
   constructor(private sidebar: NbSidebarService) {}
 
@@ -17,6 +22,19 @@ export class AppComponent {
 
   toggleMenu() {
     this.sidebar.toggle();
+  }
+
+  sidebarStateChanged(state: 'compact' | 'collapsed' | 'expanded') {
+    switch (state) {
+      case 'expanded':
+        this.sidebarActionIcon = 'arrow-left-outline';
+        break;
+      case 'compact':
+      case 'collapsed':
+      default:
+        this.sidebarActionIcon = 'grid-outline';
+        break;
+    }
   }
 
 }

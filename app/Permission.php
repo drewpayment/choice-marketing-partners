@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Employee;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -60,6 +61,17 @@ class Permission extends Model
 	public function scopeActive($query)
 	{
 		return $query->where('is_active', 1);
+	}
+
+	/**
+	 * Prepare a date for array / JSON serialization.
+	 *
+	 * @param  DateTimeInterface  $date
+	 * @return string
+	 */
+	protected function serializeDate(DateTimeInterface $date): string
+	{
+		return $date->format('Y-m-d H:i:s');
 	}
 
 }

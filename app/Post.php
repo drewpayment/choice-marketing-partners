@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
@@ -41,4 +42,16 @@ class Post extends Model
 	{
 		return $this->belongsTo(User::class, 'author_id', 'id');
 	}
+
+	/**
+	 * Prepare a date for array / JSON serialization.
+	 *
+	 * @param  DateTimeInterface  $date
+	 * @return string
+	 */
+	protected function serializeDate(DateTimeInterface $date): string
+	{
+		return $date->format('Y-m-d H:i:s');
+	}
+
 }

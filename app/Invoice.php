@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
@@ -101,6 +102,17 @@ class Invoice extends Model
 		return $query->with(['agent' => function($query){
 			$query->where('is_active', 1);
 		}]);
+	}
+
+	/**
+	 * Prepare a date for array / JSON serialization.
+	 *
+	 * @param  DateTimeInterface  $date
+	 * @return string
+	 */
+	protected function serializeDate(DateTimeInterface $date): string
+	{
+		return $date->format('Y-m-d H:i:s');
 	}
 
 }

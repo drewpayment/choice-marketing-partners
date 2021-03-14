@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 
 class Testimonial extends Model
@@ -9,4 +10,15 @@ class Testimonial extends Model
     protected $table = 'testimonials';
 
     protected $fillable = ['content', 'location'];
+
+	/**
+	 * Prepare a date for array / JSON serialization.
+	 *
+	 * @param  DateTimeInterface  $date
+	 * @return string
+	 */
+	protected function serializeDate(DateTimeInterface $date): string
+	{
+		return $date->format('Y-m-d H:i:s');
+	}
 }
