@@ -14,18 +14,6 @@ class PublicController extends Controller
 
 	public function index()
 	{
-		$id = Auth::user()->id;
-
-		if ($id != null && $id > 0)
-		{
-			$user = User::with('features')->byEmployeeId($id)->first();
-
-			if ($user->features->has_new_ui)
-			{
-				return view('spa.index', ['user' => $user]);
-			}
-		}
-
 		$data['customers'] = DB::table('testimonials')->where('testimonial_type', 1)->get();
 		$data['agents'] = DB::table('testimonials')->where('testimonial_type', 2)->get();
 		$data['posts'] = Post::latest('created_at')->where('active', 1)->paginate(5);

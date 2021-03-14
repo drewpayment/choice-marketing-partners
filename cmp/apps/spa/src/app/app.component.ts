@@ -1,20 +1,27 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { NbSidebarService } from '@nebular/theme';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, switchMap } from 'rxjs/operators';
+import { AppService } from './services/app.service';
 
 @Component({
   selector: 'cmp-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'Choice Marketing';
   sidebarActionIcon = 'grid-outline';
   destroy$ = new Subject();
+  userId: number;
 
 
-  constructor(private sidebar: NbSidebarService) {}
+  constructor(private sidebar: NbSidebarService, private route: ActivatedRoute, private service: AppService) {}
+
+  ngOnInit() {
+
+  }
 
   logMeOut() {
     console.log('LOG ME OUT PLEASE!');

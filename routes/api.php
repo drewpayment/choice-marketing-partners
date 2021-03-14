@@ -34,3 +34,11 @@ Route::post('/documents', 'DocumentController@store');
 Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollController@getExistingInvoice');
 
 #endregion
+
+#region Authentication
+
+Route::post('/login', '\App\Http\Controllers\Api\TokenController@login');
+
+#endregion
+
+

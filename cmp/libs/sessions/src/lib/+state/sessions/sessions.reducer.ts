@@ -36,7 +36,9 @@ const sessionsReducer = createReducer(
   on(SessionsActions.loadSessionsFailure, (state, { error }) => ({
     ...state,
     error,
-  }))
+  })),
+  on(SessionsActions.setUser, (state, { user }) =>
+    sessionsAdapter.addOne({ sessionId: user.id, ...user }, { ...state, loaded: true, selectedId: user.id })),
 );
 
 export function reducer(state: State | undefined, action: Action) {

@@ -50,6 +50,7 @@ class HomeController extends Controller
 
 	public function showSpa()
 	{
+		$user = Auth::user();
 		$filePath = public_path('storage/dist/apps/spa/index.blade.php');
 		return View::file($filePath);
 

@@ -8,13 +8,25 @@
 
       <h3>{{title}}</h3>
 
-      <button type="button" nbButton ghost (click)="logMeOut()">
+      <a type="button" nbButton ghost href="/logout">
         <nb-icon icon="log-out-outline"></nb-icon>
-      </button>
+      </a>
     </div>
   </nb-layout-header>
 
-  <nb-sidebar state="collapsed" responsive="true" (stateChange)="sidebarStateChanged($event)"></nb-sidebar>
+  <nb-sidebar state="collapsed" responsive="true" (stateChange)="sidebarStateChanged($event)">
+    <nb-card size="large">
+      <nb-card-header>
+        Hi, User.
+      </nb-card-header>
+      <nb-list>
+        <nb-list-item>
+          <nb-icon icon="pricetags-outline"></nb-icon>
+          Earnings
+        </nb-list-item>
+      </nb-list>
+    </nb-card>
+  </nb-sidebar>
 
   <nb-layout-column>
 

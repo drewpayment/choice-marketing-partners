@@ -15,6 +15,7 @@
     "spa": { "tags": [] },
     "spa-e2e": { "tags": [], "implicitDependencies": ["spa"] },
     "sessions": { "tags": [] },
-    "shared": { "tags": [] }
+    "shared": { "tags": [] },
+    "interfaces": { "tags": [] }
   }
 }

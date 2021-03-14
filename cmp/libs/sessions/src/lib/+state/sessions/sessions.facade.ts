@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { User } from '@cmp/interfaces';
 
 import { select, Store, Action } from '@ngrx/store';
 
@@ -24,5 +25,9 @@ export class SessionsFacade {
    */
   init() {
     this.store.dispatch(SessionsActions.init());
+  }
+
+  setUser(user: User) {
+    this.store.dispatch(SessionsActions.setUser({ user }));
   }
 }
