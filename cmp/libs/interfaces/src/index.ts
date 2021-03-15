@@ -12,3 +12,4 @@ export * from './lib/models/expense.model';
 export * from './lib/models/payroll.model';
 export * from './lib/models/document.model';
 export * from './lib/models/employee.model';
+export * from './lib/models/task.model';

@@ -31,7 +31,11 @@ const sessionsReducer = createReducer(
     error: null,
   })),
   on(SessionsActions.loadSessionsSuccess, (state, { sessions }) =>
-    sessionsAdapter.setAll(sessions, { ...state, loaded: true })
+    sessionsAdapter.setAll(sessions, { ...state,
+      loaded: true,
+      selectedId: sessions.length ? sessions[0].id : null,
+      ids: state.ids || [],
+    })
   ),
   on(SessionsActions.loadSessionsFailure, (state, { error }) => ({
     ...state,

@@ -41,4 +41,13 @@ Route::post('/login', '\App\Http\Controllers\Api\TokenController@login');
 
 #endregion
 
+#region Tasks
+
+Route::prefix('tasks')->group(function () {
+
+	Route::get('/', 'TaskController@index');
+
+});
+
+#endregion
 

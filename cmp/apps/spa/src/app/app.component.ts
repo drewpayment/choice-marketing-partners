@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NbSidebarService } from '@nebular/theme';
 import { Subject } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
@@ -17,7 +17,12 @@ export class AppComponent implements OnInit {
   userId: number;
 
 
-  constructor(private sidebar: NbSidebarService, private route: ActivatedRoute, private service: AppService) {}
+  constructor(
+    private sidebar: NbSidebarService,
+    private route: ActivatedRoute,
+    private service: AppService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
 
@@ -42,6 +47,11 @@ export class AppComponent implements OnInit {
         this.sidebarActionIcon = 'grid-outline';
         break;
     }
+  }
+
+  goHome() {
+    this.router.navigateByUrl('/')
+      .then(() => this.sidebar.toggle());
   }
 
 }

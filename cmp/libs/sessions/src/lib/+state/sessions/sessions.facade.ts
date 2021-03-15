@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { User } from '@cmp/interfaces';
 
 import { select, Store, Action } from '@ngrx/store';
+import { Observable } from 'rxjs';
 
 import * as SessionsActions from './sessions.actions';
 import * as SessionsFeature from './sessions.reducer';
@@ -27,7 +28,16 @@ export class SessionsFacade {
     this.store.dispatch(SessionsActions.init());
   }
 
+  loadSession(userId: number) {
+    this.store.dispatch(SessionsActions.loadSession({id: userId}));
+  }
+
   setUser(user: User) {
     this.store.dispatch(SessionsActions.setUser({ user }));
   }
+
+  setSelectedId(id: number) {
+    this.store.dispatch(SessionsActions.setSelectedId({ id }));
+  }
+
 }

@@ -56,35 +56,7 @@ class User extends Authenticatable
 
     #endregion
 
-    /**
-     * Get employee related to logged in user
-     *
-     * @return BelongsTo
-     */
-    public function employee(): BelongsTo
-    {
-    	return $this->belongsTo(Employee::class, 'id');
-    }
-
-	/**
-	 * Has one UserFeature record.
-	 *
-	 * @return HasOne
-	 */
-	public function features(): HasOne
-	{
-    	return $this->hasOne(UserFeature::class, 'user_id');
-    }
-
-	/**
-	 * Returns active employee IDs this user has access to.
-	 *
-	 * @return HasMany
-	 */
-	public function employeePermissions(): HasMany
-    {
-        return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
-    }
+	#region Filters
 
 	/**
 	 * @param Builder $query
@@ -108,6 +80,40 @@ class User extends Authenticatable
 		return $query->where('id', $id);
 	}
 
+	#endregion
+
+	#region Relationships
+
+	/**
+	 * Get employee related to logged in user
+	 *
+	 * @return BelongsTo
+	 */
+	public function employee(): BelongsTo
+	{
+		return $this->belongsTo(Employee::class, 'id');
+	}
+
+	/**
+	 * Has one UserFeature record.
+	 *
+	 * @return HasOne
+	 */
+	public function features(): HasOne
+	{
+		return $this->hasOne(UserFeature::class, 'user_id');
+	}
+
+	/**
+	 * Returns active employee IDs this user has access to.
+	 *
+	 * @return HasMany
+	 */
+	public function employeePermissions(): HasMany
+	{
+		return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
+	}
+
 	/**
 	 * User has many posts
 	 *
@@ -127,6 +133,26 @@ class User extends Authenticatable
 	{
 		return $this->hasMany(Comment::class, 'from_user', 'id');
 	}
+
+	/**
+	 * @return HasMany
+	 */
+	public function createdTasks(): HasMany
+	{
+		return $this->hasMany(Task::class, 'created_by_user_id', 'uid');
+	}
+
+	/**
+	 * @return HasMany
+	 */
+	public function assignedTasks(): HasMany
+	{
+		return $this->hasMany(Task::class, 'assigned_to_user_id', 'uid');
+	}
+
+	#endregion
+
+	#region Mutators
 
 	/**
 	 * User can post
@@ -172,4 +198,6 @@ class User extends Authenticatable
 	{
 		return $date->format('Y-m-d H:i:s');
 	}
+
+	#endregion
 }
