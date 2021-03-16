@@ -1,0 +1,20 @@
+
+.add-task-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.add-task-dialog {
+  width: 100% !important;
+  height: 100% !important;
+
+  .cdk-visually-hidden {
+    width: 99% !important;
+    height: 99% !important;
+  }
+
+  nb-dialog-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}

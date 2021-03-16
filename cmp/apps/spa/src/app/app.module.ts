@@ -11,7 +11,7 @@ import { StoreRouterConnectingModule } from '@ngrx/router-store';
 import { rehydrateMetaReducer, SessionsFacade, SessionsModule } from '@cmp/sessions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NbThemeModule, NbLayoutModule, NbIconModule, NbButtonModule,
-  NbSidebarModule, NbSidebarService, NbListModule, NbCardModule } from '@nebular/theme';
+  NbSidebarModule, NbSidebarService, NbListModule, NbCardModule, NbDialogModule, NbDatepickerModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ROUTES } from './routes';
 import { ComponentsModule } from '@cmp/shared';
@@ -48,6 +48,8 @@ import { AuthGuard } from './services/auth.guard';
     ComponentsModule,
     NbListModule,
     NbCardModule,
+    NbDialogModule.forRoot(),
+    NbDatepickerModule.forRoot(),
   ],
   providers: [
     NbSidebarService,

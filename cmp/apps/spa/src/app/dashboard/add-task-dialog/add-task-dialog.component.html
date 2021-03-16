@@ -1,0 +1,39 @@
+
+<nb-card size="medium">
+  <nb-card-header>
+    Add Task
+  </nb-card-header>
+
+  <nb-card-body class="dialog-body">
+    <div [formGroup]="f">
+      <nb-form-field>
+        <input type="text" nbInput fullWidth placeholder="Title" required
+          [status]="f.get('title').hasError('required') ? 'danger' : 'basic'" />
+        <span *ngIf="f.get('title').hasError('required')">
+          Please enter a title.
+        </span>
+      </nb-form-field>
+
+      <nb-form-field>
+        <textarea nbInput fullWidth placeholder="Notes"></textarea>
+      </nb-form-field>
+
+      <nb-form-field>
+        <input nbInput fullWidth [nbDatepicker]="picker" placeholder="Due Date" />
+        <nb-datepicker #picker [min]="minDueDate" format="MM-dd-yyyy"></nb-datepicker>
+        <nb-icon nbSuffix icon="calendar-outline"></nb-icon>
+      </nb-form-field>
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <button type="button" nbButton ghost (click)="cancel()">
+      Cancel
+    </button>
+
+    <button type="button" nbButton ghost status="primary" (click)="save()">
+      <nb-icon icon="save-outline"></nb-icon>
+      Save
+    </button>
+  </nb-card-footer>
+</nb-card>

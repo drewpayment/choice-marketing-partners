@@ -1,1 +1,18 @@
-<p>dashboard works!</p>
+
+<nb-card *ngIf="{tasks: tasks$|async} as data">
+  <nb-card-header>
+    My Tasks
+  </nb-card-header>
+
+  <nb-list>
+    <nb-list-item *ngFor="let task of data.tasks">
+      {{ task?.title }}
+    </nb-list-item>
+
+    <nb-list-item class="add-task-row" (click)="addTask()">
+      <span class="text-disabled-color">Add Task</span>
+
+      <nb-icon icon="plus-square-outline"></nb-icon>
+    </nb-list-item>
+  </nb-list>
+</nb-card>

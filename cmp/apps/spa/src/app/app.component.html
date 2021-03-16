@@ -17,7 +17,9 @@
   <nb-sidebar state="collapsed" responsive="true" (stateChange)="sidebarStateChanged($event)">
     <nb-card size="large">
       <nb-card-header>
-        Hi, User.
+        <ng-container *ngIf="{user: user$|async} as data">
+          Hi, {{data.user?.name}}
+        </ng-container>
       </nb-card-header>
       <nb-list>
         <nb-list-item (click)="goHome()">

@@ -1,0 +1,13 @@
+.dialog-body {
+  width: 40vw !important;
+}
+
+@media only screen and (max-width: 500px) {
+  .dialog-body {
+    width: 95vw !important;
+  }
+}
+
+nb-form-field {
+  padding: 0.5rem 0;
+}

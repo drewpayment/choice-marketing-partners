@@ -8,6 +8,6 @@ export interface Task {
   isComplete: boolean;
   createdByUserId: number;
   assignedToUserId: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
