@@ -7,20 +7,21 @@
   <nb-card-body class="dialog-body">
     <div [formGroup]="f">
       <nb-form-field>
-        <input type="text" nbInput fullWidth placeholder="Title" required
-          [status]="f.get('title').hasError('required') ? 'danger' : 'basic'" />
-        <span *ngIf="f.get('title').hasError('required')">
+        <input type="text" nbInput fullWidth placeholder="Title" required formControlName="title"
+          [status]="(f.get('title').hasError('required') && isSubmitted) ? 'danger' : 'basic'" />
+        <span *ngIf="f.get('title').hasError('required') && isSubmitted" class="text-danger">
           Please enter a title.
         </span>
       </nb-form-field>
 
       <nb-form-field>
-        <textarea nbInput fullWidth placeholder="Notes"></textarea>
+        <textarea nbInput fullWidth placeholder="Notes" formControlName="notes"></textarea>
       </nb-form-field>
 
       <nb-form-field>
-        <input nbInput fullWidth [nbDatepicker]="picker" placeholder="Due Date" />
-        <nb-datepicker #picker [min]="minDueDate" format="MM-dd-yyyy"></nb-datepicker>
+        <input nbInput fullWidth [nbDatepicker]="picker" placeholder="Due Date (Optional)"
+          formControlName="dueDate" />
+        <nb-datepicker #picker [min]="minDueDate" format="MMM dd, yyyy"></nb-datepicker>
         <nb-icon nbSuffix icon="calendar-outline"></nb-icon>
       </nb-form-field>
     </div>

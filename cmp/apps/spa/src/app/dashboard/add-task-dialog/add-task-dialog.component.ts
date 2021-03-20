@@ -13,6 +13,7 @@ import addDays from 'date-fns/addDays';
   styleUrls: ['./add-task-dialog.component.scss']
 })
 export class AddTaskDialogComponent implements OnInit, OnDestroy {
+  isSubmitted = false;
   destroy$ = new Subject();
   f = this.createForm();
   user: User;
@@ -23,7 +24,7 @@ export class AddTaskDialogComponent implements OnInit, OnDestroy {
     private ref: NbDialogRef<AddTaskDialogComponent>,
     private fb: FormBuilder,
     private facade: SessionsFacade,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.facade.selectedSessions$
@@ -42,10 +43,13 @@ export class AddTaskDialogComponent implements OnInit, OnDestroy {
   }
 
   save() {
+    this.isSubmitted = true;
     console.log('SAVE TASK');
     const task = this.prepareModel();
 
     console.dir(task);
+
+    if (this.f.invalid) return;
 
     this.ref.close(task);
   }

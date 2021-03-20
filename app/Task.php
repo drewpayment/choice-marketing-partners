@@ -21,6 +21,17 @@ class Task extends Model
 
 	/**
 	 * @param Builder $query
+	 * @param int $taskId
+	 *
+	 * @return Builder
+	 */
+	public function scopeByTaskId(Builder $query, int $taskId): Builder
+	{
+		return $query->where('id', $taskId);
+	}
+
+	/**
+	 * @param Builder $query
 	 * @param int $userId
 	 *
 	 * @return Builder
@@ -74,6 +85,12 @@ class Task extends Model
 	{
 		$this->attributes['is_complete'] = $value ? 1 : 0;
 	}
+
+	#endregion
+
+	#region Helpers
+
+
 
 	#endregion
 }

@@ -47,6 +47,12 @@ Route::prefix('tasks')->group(function () {
 
 	Route::get('/', 'TaskController@index');
 
+	Route::post('/', 'TaskController@store');
+
+	Route::put('/{taskId}', 'TaskController@update');
+
+	Route::delete('/{taskId}', 'TaskController@delete');
+
 });
 
 #endregion

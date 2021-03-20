@@ -19,15 +19,29 @@ class OpResult
         $this->utilities = new Utilities();
     }
 
-    public function mergeInto(OpResult &$op)
+	/**
+	 * @param OpResult $op
+	 *
+	 * @return $this
+	 */
+	public function mergeInto(OpResult &$op): OpResult
     {
         $op->status = $this->status;
         $op->httpStatus = $this->httpStatus;
         $op->messages = array_merge($this->messages, $op->messages);
-        return $this;
+        // Changing to return the var passed by ref into this method
+	    // Don't think it is supposed to return this class instead...
+		// return $this;
+		return $op;
     }
 
-    public function trySetData($fn, $params = [])
+	/**
+	 * @param $fn
+	 * @param array $params
+	 *
+	 * @return $this
+	 */
+	public function trySetData($fn, $params = []): OpResult
     {
         if (!is_callable($fn))
         {
@@ -38,7 +52,10 @@ class OpResult
         return $this->setData($fnDataResult);
     }
 
-    public function getData()
+	/**
+	 * @return mixed|null
+	 */
+	public function getData()
     {
         return $this->data;
     }
@@ -53,7 +70,12 @@ class OpResult
         return response()->json($body, $this->httpStatus);
     }
 
-    public function setData($value)
+	/**
+	 * @param $value
+	 *
+	 * @return $this
+	 */
+	public function setData($value): OpResult
     {
         $this->data = $this->utilities->encodeJson($value);
 
@@ -64,7 +86,12 @@ class OpResult
         return $this->setToFail();
     }
 
-    public function setDataOnSuccess($data)
+	/**
+	 * @param $data
+	 *
+	 * @return $this
+	 */
+	public function setDataOnSuccess($data): OpResult
     {
         if ($data != null && $this->status == StatusType::Success) 
         {
@@ -73,14 +100,25 @@ class OpResult
         return $this;
     }
 
-    public function setMessage($msg)
+	/**
+	 * @param $msg
+	 *
+	 * @return $this
+	 */
+	public function setMessage($msg): OpResult
     {
         if ($msg == null) return $this;
         $this->messages[] = $msg;
         return $this;
     }
 
-    public function setToFail($msg = null, int $httpStatus = HttpStatus::BadRequest)
+	/**
+	 * @param null $msg
+	 * @param int $httpStatus
+	 *
+	 * @return $this
+	 */
+	public function setToFail($msg = null, int $httpStatus = HttpStatus::BadRequest): OpResult
     {
         $this->httpStatus = $httpStatus;
         $this->status = StatusType::Fail;
@@ -88,17 +126,39 @@ class OpResult
         return $this;
     }
 
-    public function setToSuccess()
+	/**
+	 * @return $this
+	 */
+	public function setToSuccess(): OpResult
     {
         $this->httpStatus = HttpStatus::Ok;
         $this->status = StatusType::Success;
         return $this;
     }
 
-    public function hasError()
+	/**
+	 * @return bool
+	 */
+	public function hasError(): bool
     {
         return $this->status != StatusType::Success;
     }
+
+	/**
+	 * @param $data
+	 * @param string $msg
+	 *
+	 * @return $this
+	 */
+	public function checkNull($data, $msg = 'Resource not found.'): OpResult
+	{
+		if ($data == null)
+		{
+			$this->setToFail($msg);
+		}
+
+		return $this;
+	}
 }
 
 abstract class StatusType
