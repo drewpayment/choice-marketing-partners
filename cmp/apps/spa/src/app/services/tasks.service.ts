@@ -15,4 +15,16 @@ export class TasksService {
     return this.http.get<Task[]>('/api/tasks');
   }
 
+  saveTask(task: Task): Observable<Task> {
+    return this.http.post<Task>('/api/tasks', task);
+  }
+
+  updateTask(task: Task): Observable<Task> {
+    return this.http.put<Task>('/api/tasks', task);
+  }
+
+  deleteTask(taskId: number): Observable<void> {
+    return this.http.delete<void>(`/api/tasks/${taskId}`);
+  }
+
 }

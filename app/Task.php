@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +85,16 @@ class Task extends Model
 	public function setIsCompleteAttribute(bool $value)
 	{
 		$this->attributes['is_complete'] = $value ? 1 : 0;
+	}
+
+	public function setDueDateAttribute($value)
+	{
+		$this->attributes['due_date'] = Carbon::parse($value);
+	}
+
+	public function getDueDateAttribute(): \DateTime
+	{
+		return Carbon::parse($this->attributes['due_date'])->toDate();
 	}
 
 	#endregion

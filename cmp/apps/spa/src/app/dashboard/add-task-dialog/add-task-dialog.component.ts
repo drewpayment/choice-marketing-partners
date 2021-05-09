@@ -6,6 +6,7 @@ import { NbDialogRef } from '@nebular/theme';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import addDays from 'date-fns/addDays';
+import { TasksService } from '../../services/tasks.service';
 
 @Component({
   selector: 'cmp-add-task-dialog',
@@ -24,6 +25,7 @@ export class AddTaskDialogComponent implements OnInit, OnDestroy {
     private ref: NbDialogRef<AddTaskDialogComponent>,
     private fb: FormBuilder,
     private facade: SessionsFacade,
+    private service: TasksService,
   ) {}
 
   ngOnInit(): void {
@@ -44,14 +46,14 @@ export class AddTaskDialogComponent implements OnInit, OnDestroy {
 
   save() {
     this.isSubmitted = true;
-    console.log('SAVE TASK');
     const task = this.prepareModel();
 
     console.dir(task);
 
     if (this.f.invalid) return;
 
-    this.ref.close(task);
+    this.service.saveTask(task)
+      .subscribe(res => this.ref.close(res));
   }
 
   cancel() {

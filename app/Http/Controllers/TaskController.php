@@ -44,8 +44,8 @@ class TaskController extends Controller
 	        'notes' => $request->input('notes'),
 	        'due_date' => $request->input('dueDate'),
 	        'is_complete' => false,
-	        'created_by_user_id' => $request->user()->id,
-	        'assigned_to_user_id' => $request->user()->id
+	        'created_by_user_id' => $request->user()->uid,
+	        'assigned_to_user_id' => $request->user()->uid
         ]);
 
         $isSuccess = $task->save();
