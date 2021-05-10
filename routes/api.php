@@ -34,3 +34,11 @@ Route::post('/documents', 'DocumentController@store');
 Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollController@getExistingInvoice');
 
 #endregion
+
+#region ADMIN SETTINGS
+
+Route::get('/company/settings/payroll-dates', 'AdminSettingsController@getPayrollDates');
+
+Route::put('/company/settings/payroll-dates', 'AdminSettingsController@calculatePayroll');
+
+#endregion

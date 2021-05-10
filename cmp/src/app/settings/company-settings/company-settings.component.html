@@ -1,0 +1,55 @@
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Reprocess Payroll</h2>
+      <p>
+        If someone's paystub was modified, or a total doesn't look right, reprocess an entire payroll cycle's paystubs.
+      </p>
+
+      <button type="button" (click)="openRunPayrollDialog()" mat-raised-button>
+        <mat-icon>autorenew</mat-icon>
+        Re-run Payroll
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="divider">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="row" [formGroup]="f">
+    <div class="col-md-12">
+      <h2>Company Options</h2>
+      <p>
+        Organization settings that effect all users and features in the site.
+      </p>
+    </div>
+
+    <div class="col-md-12">
+      <mat-slide-toggle formControlName="hasPaystubNotifications">Paystub Notifications</mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="divider">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="f.dirty">
+    <div class="col-md-12">
+      <button type="button" mat-button (click)="resetForm()">
+        <mat-icon>reset</mat-icon>
+        Reset
+      </button>
+
+      <button type="button" mat-raised-button color="primary" (click)="save()">
+        <mat-icon>save</mat-icon>
+        Save
+      </button>
+    </div>
+  </div>
+</div>

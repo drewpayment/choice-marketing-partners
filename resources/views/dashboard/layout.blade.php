@@ -30,7 +30,7 @@ $useWrapper = isset($useWrapper) ? (boolean)$useWrapper : false;
                                             <ul class="nav nav-pills nav-stacked">
 						@if(session('authenticatedUserIsAdmin'))
                                                 <li>
-                                                    <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-cogs"></i> Dashboard</a>
+                                                    <a href="{{url('/dashboards/settings')}}"><i class="fa fa-cogs"></i> Settings</a>
                                                 </li>
                                                 <li>
                                                     <a href="{{url('/agents')}}"><i class="fa fa-users"></i> Agents</a>

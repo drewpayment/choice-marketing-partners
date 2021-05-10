@@ -6,35 +6,37 @@
 
 @section('wrapper-content')
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="box box-default">
-                <div class="box-title">
-                    <h3 class="b-b">Payroll Processing</h3>
-                </div>
-                <div class="box-content">
-                    <div class="box-content-title">
-                        <strong>Important: </strong> In case of a situation where something doesn't look right with your payroll, this is how you can "re-run" payroll
-                        for a given date. When should you resort to clicking these buttons? Only, and ONLY IF you have someone is missing an invoice, but you can see their total
-                        listed when you look at Payroll Tracking.
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="payroll-dates">Payroll Dates</label>
-                                <select class="form-control" id="payroll-dates">
-                                    @foreach($dates as $d)
-                                        <option value="{{$d}}">{{$d->display_date}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <button type="button" class="btn btn-primary" id="submit-payroll" data-toggle="modal" data-target="#confirm-process-modal">Submit</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{{--    <div class="row">--}}
+{{--        <div class="col-md-6">--}}
+{{--            <div class="box box-default">--}}
+{{--                <div class="box-title">--}}
+{{--                    <h3 class="b-b">Payroll Processing</h3>--}}
+{{--                </div>--}}
+{{--                <div class="box-content">--}}
+{{--                    <div class="box-content-title">--}}
+{{--                        <strong>Important: </strong> In case of a situation where something doesn't look right with your payroll, this is how you can "re-run" payroll--}}
+{{--                        for a given date. When should you resort to clicking these buttons? Only, and ONLY IF you have someone is missing an invoice, but you can see their total--}}
+{{--                        listed when you look at Payroll Tracking.--}}
+{{--                    </div>--}}
+{{--                    <div class="row">--}}
+{{--                        <div class="col-md-12">--}}
+{{--                            <div class="form-group">--}}
+{{--                                <label for="payroll-dates">Payroll Dates</label>--}}
+{{--                                <select class="form-control" id="payroll-dates">--}}
+{{--                                    @foreach($dates as $d)--}}
+{{--                                        <option value="{{$d}}">{{$d->display_date}}</option>--}}
+{{--                                    @endforeach--}}
+{{--                                </select>--}}
+{{--                            </div>--}}
+{{--                            <button type="button" class="btn btn-primary" id="submit-payroll" data-toggle="modal" data-target="#confirm-process-modal">Submit</button>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    </div>--}}
+
+    <cmp-settings-outlet></cmp-settings-outlet>
 
     <div class="modal fade" tabindex="-1" role="dialog" id="confirm-process-modal">
         <div class="modal-dialog" role="document">
