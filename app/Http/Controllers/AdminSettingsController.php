@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\CompanyOption;
 use App\Http\Results\OpResult;
 use App\Paystub;
 use App\Services\PaystubService;
@@ -19,6 +20,56 @@ class AdminSettingsController extends Controller
 	{
 		$this->session = $_session;
 		$this->paystubs = $_paystubs;
+	}
+
+	/**
+	 * @return JsonResponse
+	 */
+	public function getCompanyOptions(): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return $result->getResponse();
+		}
+
+		$options = CompanyOption::all()->first();
+
+		$result->setData($options);
+
+		return $result->getResponse();
+	}
+
+	public function updateCompanyOptions(Request $request): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return $result->getResponse();
+		}
+
+		$option = CompanyOption::all()->first();
+
+		$option->has_paystub_notifications = $request->input('hasPaystubNotifications');
+
+		$isSaved = $option->save();
+
+		if (!$isSaved)
+		{
+			$result->setToFail('Failed to update.');
+		}
+		else
+		{
+			$result->setData($option);
+		}
+
+		return $result->getResponse();
 	}
 
     /**

@@ -37,6 +37,10 @@ Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollCon
 
 #region ADMIN SETTINGS
 
+Route::get('/company/options', 'AdminSettingsController@getCompanyOptions');
+
+Route::put('/company/options', 'AdminSettingsController@updateCompanyOptions');
+
 Route::get('/company/settings/payroll-dates', 'AdminSettingsController@getPayrollDates');
 
 Route::put('/company/settings/payroll-dates', 'AdminSettingsController@calculatePayroll');
