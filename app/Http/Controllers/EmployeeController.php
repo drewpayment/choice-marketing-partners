@@ -306,7 +306,7 @@ class EmployeeController extends Controller
         $search = $request->query('q');
 
         return $result->trySetData(function ($showAll, $size, $page) use (&$search) {
-            $qry = Employee::with('user')
+            $qry = Employee::with('user.notifications')
                 ->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
 	            ->whereLike('name', $search)
                 ->orderBy('name');
