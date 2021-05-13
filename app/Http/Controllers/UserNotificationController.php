@@ -2,19 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Results\OpResult;
+use App\Services\SessionUtil;
 use App\UserNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UserNotificationController extends Controller
 {
+	protected $session;
+
+	public function __construct(SessionUtil $_session)
+	{
+		$this->session = $_session;
+	}
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index($userId)
     {
-        //
+        $result = new OpResult();
+
+        $this->session->checkUserIsAdmin()->mergeInto($result);
+
+        if ($result->hasError())
+        	return $result->getResponse();
+
+        $result->setData(UserNotification::where('user_id', $userId)->first());
+
+        return $result->getResponse();
     }
 
     /**

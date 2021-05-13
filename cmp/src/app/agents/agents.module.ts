@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AddAgentDialogComponent } from "./add-agent-dialog/add-agent-dialog.component";
 import { EditAgentDialogComponent } from "./edit-agent-dialog/edit-agent-dialog.component";
 import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-password-dialog.component";
+import { NotificationSettingsDialogComponent } from './agents-list/notification-settings-dialog/notification-settings-dialog.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-pass
     AddAgentDialogComponent,
     EditAgentDialogComponent,
     ResetPasswordDialogComponent,
+    NotificationSettingsDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -26,6 +28,7 @@ import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-pass
     AddAgentDialogComponent,
     EditAgentDialogComponent,
     ResetPasswordDialogComponent,
+    NotificationSettingsDialogComponent,
   ],
 })
 export class AgentsModule {}

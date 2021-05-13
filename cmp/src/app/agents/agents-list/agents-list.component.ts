@@ -20,6 +20,7 @@ import {
   startWith,
   debounceTime,
   takeUntil,
+  shareReplay,
 } from "rxjs/operators";
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import { MatDialog } from "@angular/material/dialog";
@@ -30,6 +31,8 @@ import { ResetPasswordDialogComponent } from "../reset-password-dialog/reset-pas
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatPaginator } from "@angular/material/paginator";
 import { FormControl } from "@angular/forms";
+import { SettingsService } from 'src/app/settings/settings.service';
+import { NotificationSettingsDialogComponent } from './notification-settings-dialog/notification-settings-dialog.component';
 
 @Component({
   selector: "cp-agents-list",
@@ -55,11 +58,14 @@ export class AgentsListComponent implements OnInit, OnDestroy {
   search$ = new BehaviorSubject(null);
   showSearchIcon = true;
 
+  companyOptions$ = this.settings.getCompanyOptions().pipe(shareReplay());
+
   constructor(
     private service: AgentsService,
     private dialog: MatDialog,
     private account: AccountService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private settings: SettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -103,6 +109,18 @@ export class AgentsListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroy$.next();
+  }
+
+  openNotificationSettingsDialog(agent: Agent) {
+    this.dialog.open(NotificationSettingsDialogComponent, {
+      height: '40vh',
+      width: '40vw',
+      data: {
+        agent,
+      },
+    }).afterClosed().subscribe(result => {
+      console.dir(result);
+    });
   }
 
   searchButtonClick(fromClick: boolean) {

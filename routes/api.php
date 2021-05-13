@@ -46,3 +46,9 @@ Route::get('/company/settings/payroll-dates', 'AdminSettingsController@getPayrol
 Route::put('/company/settings/payroll-dates', 'AdminSettingsController@calculatePayroll');
 
 #endregion
+
+#region USER NOTIFICATIONS
+
+Route::get('/user-notifications/{userId}', 'UserNotificationController@index');
+
+#endregion

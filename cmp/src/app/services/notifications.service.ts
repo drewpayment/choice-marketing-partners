@@ -1,0 +1,17 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { UserNotification } from '../models';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class NotificationsService {
+
+  constructor(private http: HttpClient) {}
+
+  getUserNotificationPreferences(userId: number): Observable<UserNotification> {
+    return this.http.get<UserNotification>(`api/user-notifications/${userId}`);
+  }
+
+}
