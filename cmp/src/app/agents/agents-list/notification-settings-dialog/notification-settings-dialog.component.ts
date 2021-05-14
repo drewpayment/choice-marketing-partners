@@ -1,7 +1,9 @@
 import { Component, Inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { filter, tap } from 'rxjs/operators';
 import { SettingsService } from 'src/app/settings/settings.service';
-import { Agent } from '../../../models';
+import { Agent, PaystubNotifierType, UserNotification } from '../../../models';
 import { NotificationsService } from '../../../services/notifications.service';
 
 interface DialogData {
@@ -15,14 +17,57 @@ interface DialogData {
 })
 export class NotificationSettingsDialogComponent {
 
+  notification: UserNotification;
+  f = this.createForm();
+
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private settings: SettingsService,
     private notificationService: NotificationsService,
     private ref: MatDialogRef<NotificationSettingsDialogComponent>,
+    private fb: FormBuilder,
   ) {
     this.notificationService.getUserNotificationPreferences(data.agent.id)
-      .subscribe(result => console.dir(result));
+      .pipe(filter(result => !!result), tap(result => this.notification = result))
+      .subscribe(result => this.patchForm(result));
+  }
+
+  cancel() {
+    this.ref.close();
+  }
+
+  save() {
+    console.dir(this.f.value);
+    if (this.f.invalid) return;
+
+    const dto = this.prepareModel();
+
+    this.notificationService.saveUserNotificationPreferences(dto)
+      .subscribe(result => this.ref.close(result));
+  }
+
+  private patchForm(data: UserNotification) {
+    this.f.patchValue({
+      hasPaystubNotifier: data.hasPaystubNotifier,
+      paystubNotifierType: `${data.paystubNotifierType}`,
+      notifierDestination: data.notifierDestination,
+    });
+  }
+
+  private createForm(): FormGroup {
+    return this.fb.group({
+      hasPaystubNotifier: this.fb.control(false),
+      paystubNotifierType: this.fb.control(''),
+      notifierDestination: this.fb.control(''),
+    });
+  }
+
+  private prepareModel(): UserNotification {
+    return {...this.notification,
+      hasPaystubNotifier: this.f.value.hasPaystubNotifier,
+      paystubNotifierType: this.f.value.paystubNotifierType,
+      notifierDestination: this.f.value.notifierDestination,
+    };
   }
 
 }

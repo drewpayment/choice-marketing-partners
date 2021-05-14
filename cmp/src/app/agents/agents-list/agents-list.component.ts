@@ -119,7 +119,9 @@ export class AgentsListComponent implements OnInit, OnDestroy {
         agent,
       },
     }).afterClosed().subscribe(result => {
-      console.dir(result);
+      if (!result) return;
+
+      this.snack.open('Notification preferences updated!', 'dismiss', { duration: 7500 });
     });
   }
 

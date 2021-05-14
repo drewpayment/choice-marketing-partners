@@ -14,4 +14,8 @@ export class NotificationsService {
     return this.http.get<UserNotification>(`api/user-notifications/${userId}`);
   }
 
+  saveUserNotificationPreferences(notification: UserNotification): Observable<UserNotification> {
+    return this.http.put<UserNotification>(`api/user-notifications/${notification.userId}`, notification);
+  }
+
 }

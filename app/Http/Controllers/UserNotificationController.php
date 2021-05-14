@@ -39,7 +39,8 @@ class UserNotificationController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -50,7 +51,8 @@ class UserNotificationController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\UserNotification  $userNotification
+     * @param UserNotification $userNotification
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(UserNotification $userNotification)
@@ -58,22 +60,39 @@ class UserNotificationController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\UserNotification  $userNotification
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, UserNotification $userNotification)
+	/**
+	 * Update the specified resource in storage.
+	 *
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+    public function update(Request $request): JsonResponse
     {
-        //
+    	$result = new OpResult();
+
+        $un = UserNotification::where('user_id', $request->input('userId'))->first();
+
+        $un->has_paystub_notifier = $request->input('hasPaystubNotifier');
+        $un->paystub_notifier_type = $request->input('paystubNotifierType');
+        $un->notifier_destination = $request->input('notifier_destination');
+
+        $saved = $un->save();
+
+        if (!$saved)
+        	return $result->setToFail('Failed to save.')
+		        ->getResponse();
+
+        $result->setData($un);
+
+        return $result->getResponse();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\UserNotification  $userNotification
+     * @param UserNotification $userNotification
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(UserNotification $userNotification)
