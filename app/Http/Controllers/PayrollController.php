@@ -12,6 +12,7 @@ use App\Invoice;
 use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
+use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
 use App\Services\SessionUtil;
@@ -233,6 +234,99 @@ class PayrollController extends Controller
 		                         'expenses' => $expenses,
 		                         'issueDate' => $issueDate,
 		                         'weekEnding' => $weekEnding]);
+	}
+
+	/**
+	 * @param Request $request
+	 * @param $agentId
+	 * @param $vendorId
+	 * @param $issueDate
+	 *
+	 * @return JsonResponse
+	 */
+	public function printPaystub(Request $request, $agentId, $vendorId, $issueDate): JsonResponse
+	{
+		$result = new OpResult();
+
+		$user = $request->user()->employee;
+		$this->invoiceHelper->hasAccessToEmployee($user, $agentId)->mergeInto($result);
+
+		if ($result->hasError()) return $result->getResponse();
+
+		$cDate = Carbon::createFromFormat('m-d-Y', $issueDate);
+		$date = $cDate->format('Y-m-d');
+		$gross = 0;
+
+		$employee = Employee::find($agentId);
+		$vendorName = Vendor::find($vendorId)->name;
+
+		$stubs = Invoice::agentId($agentId)
+			->vendorId($vendorId)
+			->issueDate($date)
+			->get();
+
+		foreach ($stubs as $s)
+		{
+			if (is_numeric($s->amount))
+			{
+				$gross += $s->amount;
+			}
+
+			$s->sale_date = strtotime($s->sale_date);
+			$s->sale_date = date('m-d-Y', $s->sale_date);
+		}
+
+		$overrides = Override::agentId($agentId)
+			->vendorId($vendorId)
+			->issueDate($issueDate)
+			->get();
+
+		$expenses = Expense::agentId($agentId)
+			->vendorId($vendorId)
+			->issueDate($issueDate)
+			->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + $ovr->total;
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + $exp->amount;
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+		$path = strtolower($employee->name . '_' . $vendorName . '_' . $date->format('Ymd') . '.pdf');
+
+		$pdf = PDF::loadView('pdf.template', [
+			'stubs' => $stubs,
+			'emp' => $employee,
+			'gross' => $gross,
+			'invoiceDt' => $cDate->format('m-d-Y'),
+			'vendor' => $vendorName,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'ovrgross' => $ovrGross,
+			'expgross' => $expGross,
+			'vendorId' => $vendorId
+		]);
+
+		return $pdf->stream($path);
+	}
+
+	public function sendPaystubs(Request $request): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError()) return $result->getResponse();
+
+		// SEND PAYSTUBS
+
+		return $result->getResponse();
 	}
 
 	#endregion

@@ -27,7 +27,7 @@ export class NotificationSettingsDialogComponent {
     private ref: MatDialogRef<NotificationSettingsDialogComponent>,
     private fb: FormBuilder,
   ) {
-    this.notificationService.getUserNotificationPreferences(data.agent.id)
+    this.notificationService.getUserNotificationPreferences(data.agent.user.uid)
       .pipe(filter(result => !!result), tap(result => this.notification = result))
       .subscribe(result => this.patchForm(result));
   }

@@ -75,7 +75,7 @@ class UserNotificationController extends Controller
 
         $un->has_paystub_notifier = $request->input('hasPaystubNotifier');
         $un->paystub_notifier_type = $request->input('paystubNotifierType');
-        $un->notifier_destination = $request->input('notifier_destination');
+        $un->notifier_destination = $request->input('notifierDestination');
 
         $saved = $un->save();
 

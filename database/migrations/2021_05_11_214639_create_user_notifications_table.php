@@ -19,20 +19,24 @@ class CreateUserNotificationsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedInteger('user_id');
             $table->unsignedInteger('employee_id');
-            $table->boolean('has_paystub_notifier');
-            $table->unsignedTinyInteger('paystub_notifier_type');
-            $table->string('notifier_destination');
+            $table->boolean('has_paystub_notifier')->default(false);
+            $table->unsignedTinyInteger('paystub_notifier_type')->nullable();
+            $table->string('notifier_destination')->nullable();
             $table->timestamps();
 
 	        $table->foreign('user_id')->references('uid')->on('users');
 	        $table->foreign('employee_id')->references('id')->on('employees');
         });
 
-//	    DB::raw("insert into user_notifications (user_id, employee_id, has_paystub_notifier,
-//                                paystub_notifier_type, notifier_destination, created_at, updated_at)
-//							select u.uid, e.id, 1, 0, u.email, NOW(), NOW()
-//							from users u
-//							join employees e on e.id = u.id");
+
+	    DB::statement("insert into company_options (has_paystub_notifications, created_at, updated_at)
+'                           values (1, NOW(), NOW())");
+
+	    DB::statement("insert into user_notifications (user_id, employee_id, has_paystub_notifier,
+                                paystub_notifier_type, notifier_destination, created_at, updated_at)
+							select u.uid, e.id, 1, 0, u.email, NOW(), NOW()
+							from users u
+							join employees e on e.id = u.id");
     }
 
     /**

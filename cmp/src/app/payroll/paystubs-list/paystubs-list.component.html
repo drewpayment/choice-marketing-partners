@@ -53,6 +53,17 @@
             <mat-icon>search</mat-icon>
             <span>Search</span>
           </button>
+
+          <ng-container *ngIf="showTools">
+            <button type="button" mat-icon-button [mat-menu-trigger-for]="menu">
+              <mat-icon>menu</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="sendPaytubNotifications()">
+                Send Paystubs
+              </button>
+            </mat-menu>
+          </ng-container>
           <!-- </div>
                     </div> -->
         </mat-card-subtitle>
