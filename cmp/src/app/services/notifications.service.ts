@@ -18,4 +18,8 @@ export class NotificationsService {
     return this.http.put<UserNotification>(`api/user-notifications/${notification.userId}`, notification);
   }
 
+  sendPaystubNotifications(paystubIds: number[]): Observable<any> {
+    return this.http.post<any>(`api/agents/paystubs/send`, {ids: paystubIds});
+  }
+
 }

@@ -9,6 +9,7 @@ use App\Helpers\RoleType;
 use App\Helpers\Utilities;
 use App\Http\Results\OpResult;
 use App\Invoice;
+use App\Mail\PaystubNotification;
 use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
@@ -19,10 +20,14 @@ use App\Services\SessionUtil;
 use App\Vendor;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 
@@ -238,95 +243,45 @@ class PayrollController extends Controller
 
 	/**
 	 * @param Request $request
-	 * @param $agentId
-	 * @param $vendorId
-	 * @param $issueDate
 	 *
-	 * @return JsonResponse
+	 * @return Application|ResponseFactory|JsonResponse|Response
 	 */
-	public function printPaystub(Request $request, $agentId, $vendorId, $issueDate): JsonResponse
+	public function sendPaystubs(Request $request)
 	{
 		$result = new OpResult();
-
 		$user = $request->user()->employee;
-		$this->invoiceHelper->hasAccessToEmployee($user, $agentId)->mergeInto($result);
-
-		if ($result->hasError()) return $result->getResponse();
-
-		$cDate = Carbon::createFromFormat('m-d-Y', $issueDate);
-		$date = $cDate->format('Y-m-d');
-		$gross = 0;
-
-		$employee = Employee::find($agentId);
-		$vendorName = Vendor::find($vendorId)->name;
-
-		$stubs = Invoice::agentId($agentId)
-			->vendorId($vendorId)
-			->issueDate($date)
-			->get();
-
-		foreach ($stubs as $s)
-		{
-			if (is_numeric($s->amount))
-			{
-				$gross += $s->amount;
-			}
-
-			$s->sale_date = strtotime($s->sale_date);
-			$s->sale_date = date('m-d-Y', $s->sale_date);
-		}
-
-		$overrides = Override::agentId($agentId)
-			->vendorId($vendorId)
-			->issueDate($issueDate)
-			->get();
-
-		$expenses = Expense::agentId($agentId)
-			->vendorId($vendorId)
-			->issueDate($issueDate)
-			->get();
-
-		$ovrGross = $overrides->sum(function($ovr){
-			global $ovrGross;
-			return $ovrGross + $ovr->total;
-		});
-
-		$expGross = $expenses->sum(function($exp){
-			global $expGross;
-			return $expGross + $exp->amount;
-		});
-
-		$gross = array_sum([$gross, $ovrGross, $expGross]);
-
-		$path = strtolower($employee->name . '_' . $vendorName . '_' . $date->format('Ymd') . '.pdf');
-
-		$pdf = PDF::loadView('pdf.template', [
-			'stubs' => $stubs,
-			'emp' => $employee,
-			'gross' => $gross,
-			'invoiceDt' => $cDate->format('m-d-Y'),
-			'vendor' => $vendorName,
-			'overrides' => $overrides,
-			'expenses' => $expenses,
-			'ovrgross' => $ovrGross,
-			'expgross' => $expGross,
-			'vendorId' => $vendorId
-		]);
-
-		return $pdf->stream($path);
-	}
-
-	public function sendPaystubs(Request $request): JsonResponse
-	{
-		$result = new OpResult();
 
 		$this->session->checkUserIsAdmin()->mergeInto($result);
 
-		if ($result->hasError()) return $result->getResponse();
+		if ($result->hasError())
+		{
+			return response('You must be an admin.', 400);
+		}
 
 		// SEND PAYSTUBS
+		$paystubIds = $request->input('ids');
 
-		return $result->getResponse();
+		$paystubs = Paystub::with('agent')->whereIn('id', $paystubIds)->get();
+
+		foreach ($paystubs as $p)
+		{
+			$accessResult = $this->invoiceHelper->hasAccessToEmployee($user, $p->agent_id);
+
+			if ($accessResult->hasError()) continue;
+
+			$pdfResult = $this->paystubService->buildPaystubPdf($p->agent_id, $p->vendor_id, $p->issue_date);
+			$pdfData = null;
+
+			if (!$pdfResult->hasError())
+			{
+				$pdfData = $pdfResult->getData()->output();
+			}
+
+			Mail::to($p->agent->email)
+				->queue(new PaystubNotification($p, $pdfData));
+		}
+
+		return response();
 	}
 
 	#endregion

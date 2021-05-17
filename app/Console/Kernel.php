@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Helpers\Tasker;
+use Carbon\Carbon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
@@ -47,6 +48,10 @@ class Kernel extends ConsoleKernel
 //	    })->sundays()
 //		    ->daily()
 //		    ->withoutOverlapping();
+
+	    $schedule->command("send:paystubs")
+		    ->weeklyOn(2, '23:00')
+		    ->withoutOverlapping();
     }
 
     /**

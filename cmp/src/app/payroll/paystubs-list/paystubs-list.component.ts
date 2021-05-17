@@ -18,6 +18,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
 import { SettingsService } from 'src/app/settings/settings.service';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
   selector: "cp-paystubs-list",
@@ -58,6 +59,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     private location: Location,
     private dialog: MatDialog,
     private settings: SettingsService,
+    private notifications: NotificationsService,
   ) {
     const elem = this.ref.nativeElement;
     this.isAdmin = elem.getAttribute("isAdmin") > 0;
@@ -152,7 +154,17 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
       const paystubsToSend = this._paystubs.filter(stub => agents.find(a => a.id == stub.agentId) != null);
 
-      console.dir(paystubsToSend);
+      if (paystubsToSend && paystubsToSend.length) {
+        const ids = paystubsToSend.map(p => p.id);
+
+        if (ids && ids.length) {
+          console.log(ids);
+          this.notifications.sendPaystubNotifications(ids)
+            .subscribe(() => {
+              console.log('I think it sent...');
+            });
+        }
+      }
     });
   }
 

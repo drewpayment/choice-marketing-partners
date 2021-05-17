@@ -13,12 +13,15 @@ use App\Expense;
 use App\Helpers\RoleType;
 use App\Http\Results\OpResult;
 use App\Invoice;
+use App\Mail\PaystubNotification;
 use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
+use App\Plugins\Facade\PDF;
 use App\Vendor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class PaystubService {
 
@@ -225,6 +228,123 @@ class PaystubService {
 		{
 			return $result->setToFail();
 		}
+	}
+
+	#endregion
+
+	#region SEND PAYSTUBS VIA EMAIL
+
+	/**
+	 *
+	 *
+	 * @param $paystubIds
+	 *
+	 * @return OpResult
+	 */
+	public function sendPaystubs($paystubIds): OpResult
+	{
+		$result = new OpResult();
+
+		$paystubs = Paystub::with('agent')->whereIn('id', $paystubIds)->get();
+
+		try
+		{
+			foreach ($paystubs as $p)
+			{
+				$pdfResult = $this->buildPaystubPdf($p->agent_id, $p->vendor_id, $p->issue_date);
+				$pdfData = null;
+
+				if (!$pdfResult->hasError())
+				{
+					$pdfData = $pdfResult->getData()->output();
+				}
+
+				Mail::to($p->agent->email)
+				    ->queue(new PaystubNotification($p, $pdfData));
+			}
+		}
+		catch (\Exception $e)
+		{
+			$result->setToFail($e->getMessage());
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param $agentId
+	 * @param $vendorId
+	 * @param $issueDate
+	 *
+	 * @return OpResult
+	 */
+	public function buildPaystubPdf($agentId, $vendorId, $issueDate): OpResult
+	{
+		$result = new OpResult();
+
+		$cDate = Carbon::createFromFormat('Y-m-d', $issueDate);
+		$date = $cDate->format('Y-m-d');
+		$gross = 0;
+
+		$employee = Employee::find($agentId);
+		$vendorName = Vendor::find($vendorId)->name;
+
+		$stubs = Invoice::agentId($agentId)
+		                ->vendorId($vendorId)
+		                ->issueDate($date)
+		                ->get();
+
+		foreach ($stubs as $s)
+		{
+			if (is_numeric($s->amount))
+			{
+				$gross += $s->amount;
+			}
+
+			$s->sale_date = strtotime($s->sale_date);
+			$s->sale_date = date('m-d-Y', $s->sale_date);
+		}
+
+		$overrides = Override::agentId($agentId)
+		                     ->vendorId($vendorId)
+		                     ->issueDate($issueDate)
+		                     ->get();
+
+		$expenses = Expense::agentId($agentId)
+		                   ->vendorId($vendorId)
+		                   ->issueDate($issueDate)
+		                   ->get();
+
+		$ovrGross = $overrides->sum(function($ovr){
+			global $ovrGross;
+			return $ovrGross + $ovr->total;
+		});
+
+		$expGross = $expenses->sum(function($exp){
+			global $expGross;
+			return $expGross + $exp->amount;
+		});
+
+		$gross = array_sum([$gross, $ovrGross, $expGross]);
+
+		$path = strtolower($employee->name . '_' . $vendorName . '_' . $cDate->format('Ymd') . '.pdf');
+
+		$pdf = PDF::loadView('pdf.template', [
+			'stubs' => $stubs,
+			'emp' => $employee,
+			'gross' => $gross,
+			'invoiceDt' => $cDate->format('m-d-Y'),
+			'vendor' => $vendorName,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'ovrgross' => $ovrGross,
+			'expgross' => $expGross,
+			'vendorId' => $vendorId
+		]);
+
+		$result->setRawData($pdf);
+
+		return $result;
 	}
 
 	#endregion

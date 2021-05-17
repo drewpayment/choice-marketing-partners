@@ -19,7 +19,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Blade::directive('datetime', function($expression){
-        	$dt = Carbon::createFromFormat('Y-m-d', $expression)->format('m-d-Y');
+        	try
+	        {
+		        $dt = Carbon::createFromFormat('Y-m-d', $expression)
+		                    ->format('m-d-Y');
+	        }
+	        catch (\Exception $ex)
+	        {
+	        	$dt = $expression;
+	        }
 	        return "<?php echo $dt; ?>";
         });
         
@@ -29,6 +37,10 @@ class AppServiceProvider extends ServiceProvider
         
         Blade::if('guesturl', function() {
             return !Auth::check() && strpos(URL::current(), 'login') === false;
+        });
+
+        Blade::directive('currency', function ($money) {
+        	return "<?php echo number_format($money, 2); ?>";
         });
     }
 

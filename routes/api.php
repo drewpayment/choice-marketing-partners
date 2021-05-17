@@ -33,8 +33,6 @@ Route::post('/documents', 'DocumentController@store');
 
 Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollController@getExistingInvoice');
 
-Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollController@printPaystub');
-
 Route::post('/agents/paystubs/send', 'PayrollController@sendPaystubs');
 
 #endregion
