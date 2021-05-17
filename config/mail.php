@@ -56,9 +56,14 @@ return [
     */
 
     'from' => [
-        'address' => 'postmaster@mg.verostack.io',
-        'name' => 'Webmaster',
+        'address' => 'noreply@choice-marketing-partners.com',
+        'name' => 'No Reply',
     ],
+
+	'to' => [
+		'address' => 'drew.payment+cmpdev@gmail.com',
+		'name' => 'No Reply - Dev'
+	],
 
     /*
     |--------------------------------------------------------------------------

@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>Re-Run Payroll Date</h2>
+<mat-dialog-content>
+  <p>How to manually re-run a payroll if something doesn't add up...</p>
+
+  <p>
+    In case of a situation where something doesn't look right with your payroll,
+    this is how you can "re-run" payroll for a given date. When should you resort to clicking these buttons?
+    Only, and ONLY IF you have someone is missing an invoice, but you can see their total listed when
+    you look at Payroll Tracking.
+  </p>
+
+  <div [formGroup]="f">
+    <mat-form-field>
+      <mat-label>Available Re-Run Date</mat-label>
+      <mat-select formControlName="date">
+        <mat-option value="">Select a Date</mat-option>
+        <mat-option *ngFor="let d of payrollDates" [value]="d">
+          {{ d | date: 'shortDate' }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="f.get('date').hasError('required')">
+        Please select a date.
+      </mat-error>
+    </mat-form-field>
+
+    <ng-container *ngIf="f.get('date')?.value != ''">
+      <div>
+        <mat-checkbox formControlName="confirmSelection">Confirm Payroll Date</mat-checkbox>
+        <mat-hint>
+          Action cannot be undone after "Run Payroll"
+        </mat-hint>
+        <mat-error *ngIf="f.get('confirmSelection').hasError('required') && submitted">
+          Must confirm your payroll date before you can submit
+        </mat-error>
+      </div>
+    </ng-container>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" mat-button mat-dialog-close>
+    Cancel
+  </button>
+
+  <button type="button" mat-raised-button color="primary" (click)="runPayroll()">
+    <mat-icon>task_alt</mat-icon>
+    <span>Run Payroll</span>
+  </button>
+</mat-dialog-actions>

@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Paystub extends Model
 {
@@ -17,6 +18,14 @@ class Paystub extends Model
 	 * @var array
 	 */
 	protected $fillable = ['id', 'agent_id', 'agent_name', 'vendor_id', 'vendor_name', 'amount', 'issue_date', 'weekend_date', 'modified_by', 'created_at', 'updated_at'];
+
+	/**
+	 * @return HasOne
+	 */
+	public function agent(): HasOne
+	{
+		return $this->hasOne(Employee::class, 'id', 'agent_id');
+	}
 
 	/**
 	 * Scope query to the agent(s) id that is passed into the function.

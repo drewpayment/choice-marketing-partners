@@ -1,13 +1,24 @@
-import { Component, OnInit, Input, ElementRef, OnDestroy } from "@angular/core";
-import { FormGroup, FormBuilder, ValidatorFn, FormControl } from "@angular/forms";
+import { Component, OnInit, ElementRef, OnDestroy } from "@angular/core";
+import {
+  FormGroup,
+  FormBuilder,
+  FormControl,
+} from "@angular/forms";
 import * as moment from "moment";
 import { Vendor, Agent, SearchPaystubs, PaystubSummary } from "../../models";
-import { Observable, BehaviorSubject, Subscription, merge, combineLatest } from "rxjs";
-import { startWith, map, tap } from "rxjs/operators";
+import {
+  Observable,
+  BehaviorSubject,
+  Subscription,
+} from "rxjs";
+import { startWith, map, tap, shareReplay } from "rxjs/operators";
 import { InvoiceService } from "../invoices/invoice.service";
-import { Moment } from "moment";
 import { Location } from "@angular/common";
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from "@angular/material/dialog";
+import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
+import { SettingsService } from 'src/app/settings/settings.service';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
   selector: "cp-paystubs-list",
@@ -34,11 +45,21 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   controlName: string;
 
+  showTools = false;
+  private _allAgents: Agent[] = [];
+  private _displayedAgents: Agent[] = [];
+  private _paystubs: PaystubSummary[] = [];
+  private companyOptions$ = this.settings.getCompanyOptions()
+    .pipe(shareReplay());
+
   constructor(
     private ref: ElementRef,
     private fb: FormBuilder,
     private service: InvoiceService,
     private location: Location,
+    private dialog: MatDialog,
+    private settings: SettingsService,
+    private notifications: NotificationsService,
   ) {
     const elem = this.ref.nativeElement;
     this.isAdmin = elem.getAttribute("isAdmin") > 0;
@@ -104,7 +125,10 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     this.filteredAgents = this.f.get("agent").valueChanges.pipe(
       startWith(""),
-      map((value) => this.filterAgents(value))
+      map((value) => this.filterAgents(value)),
+      tap((agents) => {
+        this._allAgents = agents;
+      }),
     );
 
     this.paystubs = this.paystubs$.asObservable();
@@ -119,14 +143,51 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     }
   }
 
+  sendPaytubNotifications() {
+    this.dialog.open(PaystubNotificationDialogComponent, {
+      width: '40vw',
+      data: {
+        agents: this._displayedAgents,
+      },
+    }).afterClosed().subscribe((agents: Agent[]) => {
+      if (!agents) return;
+
+      const paystubsToSend = this._paystubs.filter(stub => agents.find(a => a.id == stub.agentId) != null);
+
+      if (paystubsToSend && paystubsToSend.length) {
+        const ids = paystubsToSend.map(p => p.id);
+
+        if (ids && ids.length) {
+          console.log(ids);
+          this.notifications.sendPaystubNotifications(ids)
+            .subscribe(() => {
+              console.log('I think it sent...');
+            });
+        }
+      }
+    });
+  }
+
   search() {
     const model = this.prepareModel();
 
     if (this.f.invalid) return;
 
-    this.service
-      .getPaystubs(model.agentId, model.campaignId, model.date as string)
-      .subscribe((paystubs) => this.paystubs$.next(paystubs));
+    forkJoin([
+      this.service.getPaystubs(model.agentId, model.campaignId, model.date as string),
+      this.companyOptions$,
+    ]).pipe(
+        map(([stubs, options]) => {
+          this.showTools = options != null && options.hasPaystubNotifications &&
+            stubs != null && stubs.length > 0;
+          return stubs;
+        }),
+      )
+      .subscribe((paystubs) => {
+        this._displayedAgents = this._allAgents.filter(a => paystubs.find(p => p.agentId == a.id) != null);
+        this._paystubs = paystubs;
+        this.paystubs$.next(paystubs);
+      });
   }
 
   sortPaystubs(event: { active: string; direction: "asc" | "desc" }) {
@@ -198,23 +259,24 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
   private createForm(): FormGroup {
     return this.fb.group({
-      date: this.fb.control(this.issueDates ? this.issueDates[0] : "", [(control: FormControl) => {
-        const selectedDate = moment(control.value);
-        let isValidDate = false;
-        if (!this.issueDates) return null;
+      date: this.fb.control(this.issueDates ? this.issueDates[0] : "", [
+        (control: FormControl) => {
+          const selectedDate = moment(control.value);
+          let isValidDate = false;
+          if (!this.issueDates) return null;
 
-        this.issueDates.forEach(id => {
-          if (isValidDate) return;
-          const testDate = moment(id, 'YYYY-MM-DD');
+          this.issueDates.forEach((id) => {
+            if (isValidDate) return;
+            const testDate = moment(id, "YYYY-MM-DD");
 
-          isValidDate = selectedDate.isSame(testDate, 'd');
-        });
+            isValidDate = selectedDate.isSame(testDate, "d");
+          });
 
-        if (!isValidDate)
-          return { 'invalidDate': true };
+          if (!isValidDate) return { invalidDate: true };
 
-        return null;
-      }]),
+          return null;
+        },
+      ]),
       campaign: this.fb.control(""),
       agent: this.fb.control(""),
     });
@@ -228,4 +290,3 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     return result;
   }
 }
-

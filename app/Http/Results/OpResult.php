@@ -48,12 +48,41 @@ class OpResult
 	 *
 	 * @return JsonResponse
 	 */
-    public function getResponse(): JsonResponse {
+    public function getResponse(): JsonResponse
+    {
         $body = is_null($this->data) ? $this->messages : $this->data;
-        return response()->json($body, $this->httpStatus);
+        return $this->isJson($body)
+	        ? response()->json($body, $this->httpStatus)
+	        : response()->json('[]', $this->httpStatus);
     }
 
-    public function setData($value)
+	/**
+	 * @param $value
+	 *
+	 * @return bool
+	 */
+	private function isJson($value): bool
+	{
+		try
+		{
+			json_decode($value);
+		}
+		catch (\Exception $e)
+		{
+			// silence is golden
+		}
+		return json_last_error() === JSON_ERROR_NONE;
+	}
+
+	/**
+	 * Set data on the opresult for HTTP consumption and delivery to Angular
+	 * as JsonResponse.
+	 *
+	 * @param $value
+	 *
+	 * @return $this
+	 */
+	public function setData($value): OpResult
     {
         $this->data = $this->utilities->encodeJson($value);
 
@@ -64,7 +93,26 @@ class OpResult
         return $this->setToFail();
     }
 
-    public function setDataOnSuccess($data)
+	/**
+	 * Set data on the opresult as the raw value, this cannot produce a
+	 * JsonResponse.
+	 *
+	 * @param $value
+	 *
+	 * @return $this
+	 */
+	public function setRawData($value): OpResult
+	{
+		$this->data = $value;
+		return $this;
+	}
+
+	/**
+	 * @param $data
+	 *
+	 * @return $this
+	 */
+	public function setDataOnSuccess($data): OpResult
     {
         if ($data != null && $this->status == StatusType::Success) 
         {
@@ -73,14 +121,25 @@ class OpResult
         return $this;
     }
 
-    public function setMessage($msg)
+	/**
+	 * @param $msg
+	 *
+	 * @return $this
+	 */
+	public function setMessage($msg): OpResult
     {
         if ($msg == null) return $this;
         $this->messages[] = $msg;
         return $this;
     }
 
-    public function setToFail($msg = null, int $httpStatus = HttpStatus::BadRequest)
+	/**
+	 * @param null $msg
+	 * @param int $httpStatus
+	 *
+	 * @return $this
+	 */
+	public function setToFail($msg = null, int $httpStatus = HttpStatus::BadRequest): OpResult
     {
         $this->httpStatus = $httpStatus;
         $this->status = StatusType::Fail;
@@ -88,14 +147,20 @@ class OpResult
         return $this;
     }
 
-    public function setToSuccess()
+	/**
+	 * @return $this
+	 */
+	public function setToSuccess(): OpResult
     {
         $this->httpStatus = HttpStatus::Ok;
         $this->status = StatusType::Success;
         return $this;
     }
 
-    public function hasError()
+	/**
+	 * @return bool
+	 */
+	public function hasError(): bool
     {
         return $this->status != StatusType::Success;
     }

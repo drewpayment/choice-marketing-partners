@@ -33,4 +33,26 @@ Route::post('/documents', 'DocumentController@store');
 
 Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollController@getExistingInvoice');
 
+Route::post('/agents/paystubs/send', 'PayrollController@sendPaystubs');
+
+#endregion
+
+#region ADMIN SETTINGS
+
+Route::get('/company/options', 'AdminSettingsController@getCompanyOptions');
+
+Route::put('/company/options', 'AdminSettingsController@updateCompanyOptions');
+
+Route::get('/company/settings/payroll-dates', 'AdminSettingsController@getPayrollDates');
+
+Route::put('/company/settings/payroll-dates', 'AdminSettingsController@calculatePayroll');
+
+#endregion
+
+#region USER NOTIFICATIONS
+
+Route::get('/user-notifications/{userId}', 'UserNotificationController@index');
+
+Route::put('/user-notifications/{userId}', 'UserNotificationController@update');
+
 #endregion

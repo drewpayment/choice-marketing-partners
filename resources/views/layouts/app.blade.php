@@ -133,7 +133,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
                                 <a href="/upload-invoice"><i class="fa fa-table"></i> Invoices</a>
                             </li>
                             <li>
-                                <a href="{{url('/dashboards/dashboard')}}"><i class="fa fa-globe"></i> Admin</a>
+                                <a href="{{url('/dashboards/settings')}}"><i class="fa fa-globe"></i> Admin</a>
                             </li>
                             @if(Auth::user()->is_admin() || Auth::user()->can_post())
                             <li>

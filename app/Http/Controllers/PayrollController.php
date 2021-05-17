@@ -9,19 +9,25 @@ use App\Helpers\RoleType;
 use App\Helpers\Utilities;
 use App\Http\Results\OpResult;
 use App\Invoice;
+use App\Mail\PaystubNotification;
 use App\Override;
 use App\PayrollRestriction;
 use App\Paystub;
+use App\Plugins\Facade\PDF;
 use App\Services\InvoiceService;
 use App\Services\PaystubService;
 use App\Services\SessionUtil;
 use App\Vendor;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 
@@ -233,6 +239,49 @@ class PayrollController extends Controller
 		                         'expenses' => $expenses,
 		                         'issueDate' => $issueDate,
 		                         'weekEnding' => $weekEnding]);
+	}
+
+	/**
+	 * @param Request $request
+	 *
+	 * @return Application|ResponseFactory|JsonResponse|Response
+	 */
+	public function sendPaystubs(Request $request)
+	{
+		$result = new OpResult();
+		$user = $request->user()->employee;
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return response('You must be an admin.', 400);
+		}
+
+		// SEND PAYSTUBS
+		$paystubIds = $request->input('ids');
+
+		$paystubs = Paystub::with('agent')->whereIn('id', $paystubIds)->get();
+
+		foreach ($paystubs as $p)
+		{
+			$accessResult = $this->invoiceHelper->hasAccessToEmployee($user, $p->agent_id);
+
+			if ($accessResult->hasError()) continue;
+
+			$pdfResult = $this->paystubService->buildPaystubPdf($p->agent_id, $p->vendor_id, $p->issue_date);
+			$pdfData = null;
+
+			if (!$pdfResult->hasError())
+			{
+				$pdfData = $pdfResult->getData()->output();
+			}
+
+			Mail::to($p->agent->email)
+				->queue(new PaystubNotification($p, $pdfData));
+		}
+
+		return response();
 	}
 
 	#endregion

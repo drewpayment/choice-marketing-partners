@@ -11,3 +11,5 @@ export * from './override.model';
 export * from './expense.model';
 export * from './payroll.model';
 export * from './document.model';
+export * from './company-options.model';
+export * from './user-notification.model';

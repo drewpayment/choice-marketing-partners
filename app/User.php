@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -31,7 +32,7 @@ class User extends Authenticatable
 	/**
 	 * primary key used by model
 	 */
-	protected $primaryKey = 'id';
+	protected $primaryKey = 'uid';
 
     /**
      * The attributes that are mass assignable.
@@ -113,6 +114,16 @@ class User extends Authenticatable
 	public function comments()
 	{
 		return $this->hasMany(Comment::class, 'from_user', 'id');
+	}
+
+	/**
+	 * Get user's notification settings.
+	 *
+	 * @return HasOne
+	 */
+	public function notifications(): HasOne
+	{
+		return $this->hasOne(UserNotification::class, 'user_id', 'uid');
 	}
 
 	/**
