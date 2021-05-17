@@ -60,11 +60,6 @@ return [
         'name' => 'No Reply',
     ],
 
-	'to' => [
-		'address' => 'drew.payment+cmpdev@gmail.com',
-		'name' => 'No Reply - Dev'
-	],
-
     /*
     |--------------------------------------------------------------------------
     | E-Mail Encryption Protocol
