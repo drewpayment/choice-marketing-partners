@@ -29,14 +29,14 @@ class CreateUserNotificationsTable extends Migration
         });
 
 
-	    DB::statement("insert into company_options (has_paystub_notifications, created_at, updated_at)
-'                           values (1, NOW(), NOW())");
-
-	    DB::statement("insert into user_notifications (user_id, employee_id, has_paystub_notifier,
-                                paystub_notifier_type, notifier_destination, created_at, updated_at)
-							select u.uid, e.id, 1, 0, u.email, NOW(), NOW()
-							from users u
-							join employees e on e.id = u.id");
+//	    DB::statement("insert into company_options (has_paystub_notifications, created_at, updated_at)
+//'                           values (1, NOW(), NOW())");
+//
+//	    DB::statement("insert into user_notifications (user_id, employee_id, has_paystub_notifier,
+//                                paystub_notifier_type, notifier_destination, created_at, updated_at)
+//							select u.uid, e.id, 1, 0, u.email, NOW(), NOW()
+//							from users u
+//							join employees e on e.id = u.id");
     }
 
     /**
