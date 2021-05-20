@@ -56,3 +56,9 @@ Route::get('/user-notifications/{userId}', 'UserNotificationController@index');
 Route::put('/user-notifications/{userId}', 'UserNotificationController@update');
 
 #endregion
+
+#region Employees
+
+Route::post('/employees/email-available', 'EmployeeController@checkEmailAvailability');
+
+#endregion

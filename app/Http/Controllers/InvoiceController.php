@@ -108,9 +108,13 @@ class InvoiceController extends Controller
 
 	/**
 	 * Save invoice via ajax --- new module
-	 * @deprecated 
+	 *
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 * @deprecated
 	 */
-	public function SaveInvoice(Request $request)
+	public function SaveInvoice(Request $request): JsonResponse
 	{
 		if(!request()->ajax())
 			return response()->json(false);
@@ -120,11 +124,15 @@ class InvoiceController extends Controller
 
 		return response()->json($result);
     }
-    
-    /**
-     * Replaces UploadInvoice()
-     */
-    public function saveApiInvoice(Request $request) 
+
+	/**
+	 * Replaces UploadInvoice()
+	 *
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+    public function saveApiInvoice(Request $request): JsonResponse
     {
         $vendor_id = $request['vendorId'];
         $agent_id = $request['agentId'];

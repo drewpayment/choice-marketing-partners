@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Observable, of } from "rxjs";
 import { Agent, Paginator, AgentRequest, AgentResult, User, AgentSearchRequest } from "../models";
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: "root",
@@ -45,4 +46,13 @@ export class AgentsService {
     const url = `ng/agents/${agent.id}/password-reset`;
     return this.http.post<Agent>(url, agent);
   }
+
+  checkEmailValidity(email: string): Observable<boolean> {
+    return this.http.post<boolean>(`api/employees/email-available`, { email })
+      .pipe(
+        map(() => true),
+        catchError(() => of(false)),
+      );
+  }
+
 }

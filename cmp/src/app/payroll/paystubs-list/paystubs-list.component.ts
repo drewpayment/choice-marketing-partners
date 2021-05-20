@@ -1,24 +1,16 @@
 import { Component, OnInit, ElementRef, OnDestroy } from "@angular/core";
-import {
-  FormGroup,
-  FormBuilder,
-  FormControl,
-} from "@angular/forms";
+import { FormGroup, FormBuilder, FormControl } from "@angular/forms";
 import * as moment from "moment";
 import { Vendor, Agent, SearchPaystubs, PaystubSummary } from "../../models";
-import {
-  Observable,
-  BehaviorSubject,
-  Subscription,
-} from "rxjs";
-import { startWith, map, tap, shareReplay } from "rxjs/operators";
+import { Observable, BehaviorSubject, Subscription, of, Subject } from "rxjs";
+import { startWith, map, tap, shareReplay, catchError, takeUntil } from "rxjs/operators";
 import { InvoiceService } from "../invoices/invoice.service";
 import { Location } from "@angular/common";
 import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
-import { SettingsService } from 'src/app/settings/settings.service';
-import { forkJoin } from 'rxjs/internal/observable/forkJoin';
-import { NotificationsService } from 'src/app/services/notifications.service';
+import { SettingsService } from "src/app/settings/settings.service";
+import { forkJoin } from "rxjs/internal/observable/forkJoin";
+import { NotificationsService } from "src/app/services/notifications.service";
 
 @Component({
   selector: "cp-paystubs-list",
@@ -49,8 +41,11 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   private _allAgents: Agent[] = [];
   private _displayedAgents: Agent[] = [];
   private _paystubs: PaystubSummary[] = [];
-  private companyOptions$ = this.settings.getCompanyOptions()
+  private companyOptions$ = this.settings
+    .getCompanyOptions()
     .pipe(shareReplay());
+  private destroy$ = new Subject();
+  isLoading$ = new BehaviorSubject(true);
 
   constructor(
     private ref: ElementRef,
@@ -59,7 +54,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     private location: Location,
     private dialog: MatDialog,
     private settings: SettingsService,
-    private notifications: NotificationsService,
+    private notifications: NotificationsService
   ) {
     const elem = this.ref.nativeElement;
     this.isAdmin = elem.getAttribute("isAdmin") > 0;
@@ -128,44 +123,54 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
       map((value) => this.filterAgents(value)),
       tap((agents) => {
         this._allAgents = agents;
-      }),
+      })
     );
 
     this.paystubs = this.paystubs$.asObservable();
 
     // search with default values on page load
     this.search();
+
+    this.f.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.search());
   }
 
   ngOnDestroy() {
     if (this.subscriptions && this.subscriptions.length) {
       this.subscriptions.forEach((s) => s.unsubscribe());
     }
+
+    this.destroy$.next();
   }
 
   sendPaytubNotifications() {
-    this.dialog.open(PaystubNotificationDialogComponent, {
-      width: '40vw',
-      data: {
-        agents: this._displayedAgents,
-      },
-    }).afterClosed().subscribe((agents: Agent[]) => {
-      if (!agents) return;
+    this.dialog
+      .open(PaystubNotificationDialogComponent, {
+        width: "40vw",
+        data: {
+          agents: this._displayedAgents,
+        },
+      })
+      .afterClosed()
+      .subscribe((agents: Agent[]) => {
+        if (!agents) return;
 
-      const paystubsToSend = this._paystubs.filter(stub => agents.find(a => a.id == stub.agentId) != null);
+        const paystubsToSend = this._paystubs.filter(
+          (stub) => agents.find((a) => a.id == stub.agentId) != null
+        );
 
-      if (paystubsToSend && paystubsToSend.length) {
-        const ids = paystubsToSend.map(p => p.id);
+        if (paystubsToSend && paystubsToSend.length) {
+          const ids = paystubsToSend.map((p) => p.id);
 
-        if (ids && ids.length) {
-          console.log(ids);
-          this.notifications.sendPaystubNotifications(ids)
-            .subscribe(() => {
-              console.log('I think it sent...');
+          if (ids && ids.length) {
+            console.log(ids);
+            this.notifications.sendPaystubNotifications(ids).subscribe(() => {
+              console.log("I think it sent...");
             });
+          }
         }
-      }
-    });
+      });
   }
 
   search() {
@@ -173,20 +178,45 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     if (this.f.invalid) return;
 
+    if (this._paystubs && this._paystubs.length) {
+      this._paystubs = [];
+      this.paystubs$.next(this._paystubs);
+      this.isLoading$.next(true);
+    }
+
     forkJoin([
-      this.service.getPaystubs(model.agentId, model.campaignId, model.date as string),
-      this.companyOptions$,
-    ]).pipe(
+      this.service.getPaystubs(
+        model.agentId,
+        model.campaignId,
+        model.date as string
+      ),
+      this.companyOptions$.pipe(catchError(err => of(null))),
+    ])
+      .pipe(
         map(([stubs, options]) => {
-          this.showTools = options != null && options.hasPaystubNotifications &&
-            stubs != null && stubs.length > 0;
+          this.showTools =
+            options != null &&
+            options.hasPaystubNotifications &&
+            stubs != null &&
+            stubs.length > 0;
           return stubs;
-        }),
+        })
       )
       .subscribe((paystubs) => {
-        this._displayedAgents = this._allAgents.filter(a => paystubs.find(p => p.agentId == a.id) != null);
+        this._displayedAgents = this._allAgents.filter(
+          (a) => paystubs.find((p) => p.agentId == a.id) != null
+        );
         this._paystubs = paystubs;
-        this.paystubs$.next(paystubs);
+
+        if (this._paystubs && this._paystubs.length) {
+          this._paystubs = this._paystubs.sort((a, b) => a.agentName < b.agentName ? -1 : a.agentName > b.agentName ? 1 : 0);
+        }
+
+        setTimeout(() => {
+          this.paystubs$.next(paystubs);
+          this.isLoading$.next(false);
+        }, 500);
+
       });
   }
 

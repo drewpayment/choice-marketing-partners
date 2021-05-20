@@ -1,8 +1,9 @@
-
 <mat-card>
   <mat-form-field class="pr-5">
-    <input type="text" matInput [formControl]="searchControl" placeholder="Search Agents" (keyup.enter)="searchButtonClick(false)" />
-    <mat-button type="button" mat-button *ngIf="showSearchIcon && searchControl.value; else showClear" matSuffix (click)="searchButtonClick(true)">
+    <input type="text" matInput [formControl]="searchControl" placeholder="Search Agents"
+      (keyup.enter)="searchButtonClick(true)" />
+    <mat-button type="button" mat-button *ngIf="showSearchIcon && searchControl.value; else showClear" matSuffix
+      (click)="searchButtonClick(true)">
       <mat-icon inline="true">search</mat-icon>
     </mat-button>
     <ng-template #showClear>
@@ -21,7 +22,7 @@
   <span class="spacer"></span>
 
   <span class="px-5">
-    <button type="button" mat-raised-button (click)="showAddAgentDialog()">
+    <button type="button" mat-raised-button (click)="showAddAgentDialog()" color="primary">
       <span class="mx-2">Agent</span>
       <mat-icon>add_box</mat-icon>
     </button>
@@ -58,7 +59,9 @@
         <ng-container matColumnDef="isActive">
           <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
           <mat-cell *matCellDef="let item">
-            <button type="button" mat-icon-button *ngIf="(companyOptions$|async)?.hasPaystubNotifications" (click)="openNotificationSettingsDialog(item)">
+            <button type="button" mat-icon-button
+              *ngIf="item?.isActive && item.user && (companyOptions$|async)?.hasPaystubNotifications"
+              (click)="openNotificationSettingsDialog(item)">
               <mat-icon>edit_notifications</mat-icon>
             </button>
 

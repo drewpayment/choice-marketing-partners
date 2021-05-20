@@ -31,6 +31,7 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatInputCurrencyDirective } from "./mat-input-currency.directive";
 import { NG_VALIDATORS, NG_VALUE_ACCESSOR } from "@angular/forms";
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   imports: [
@@ -58,6 +59,7 @@ import { NG_VALIDATORS, NG_VALUE_ACCESSOR } from "@angular/forms";
     MatDividerModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatProgressSpinnerModule,
   ],
   declarations: [MatInputCurrencyDirective],
   exports: [
@@ -86,6 +88,7 @@ import { NG_VALIDATORS, NG_VALUE_ACCESSOR } from "@angular/forms";
     MatTooltipModule,
     MatSnackBarModule,
     MatInputCurrencyDirective,
+    MatProgressSpinnerModule,
   ],
   providers: [
     {

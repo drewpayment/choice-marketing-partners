@@ -40,7 +40,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'email', 'password', 'isAdmin'
+        'id', 'name', 'email', 'password', 'created_at', 'updated_at', 'role'
     ];
 
     /**
@@ -59,7 +59,7 @@ class User extends Authenticatable
      *
      * @return BelongsTo
      */
-    public function employee()
+    public function employee(): BelongsTo
     {
     	return $this->belongsTo(Employee::class, 'id');
     }
@@ -67,9 +67,9 @@ class User extends Authenticatable
     /**
      * Returns active employee IDs this user has access to.
      *
-     * @return HasManyThrough
+     * @return HasMany
      */
-    public function employeePermissions()
+    public function employeePermissions(): HasMany
     {
         return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
     }
@@ -94,6 +94,17 @@ class User extends Authenticatable
 	public function scopeByEmployeeId( Builder $query, int $id ): Builder
 	{
 		return $query->where('id', $id);
+	}
+
+	/**
+	 * @param Builder $query
+	 * @param string $email
+	 *
+	 * @return Builder
+	 */
+	public function scopeByEmail(Builder $query, string $email): Builder
+	{
+		return $query->where('email', $email);
 	}
 
 	/**

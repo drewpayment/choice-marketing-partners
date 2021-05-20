@@ -10,6 +10,7 @@ import {
   combineLatest,
   Subject,
   fromEvent,
+  NEVER,
 } from "rxjs";
 import { MatSlideToggleChange } from "@angular/material/slide-toggle";
 import {

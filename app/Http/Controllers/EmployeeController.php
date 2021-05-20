@@ -7,6 +7,7 @@ use App\Http\Results\OpResult;
 use App\Services\EmployeeService;
 use App\Services\SessionUtil;
 use App\User;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -501,5 +502,41 @@ class EmployeeController extends Controller
 
         return $result->getResponse();
     }
+
+	#region API Endpoints
+
+	/**
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+	public function checkEmailAvailability(Request $request): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->sessionUtil->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError()) return $result->getResponse();
+
+		$email = $request->input('email');
+
+		if (is_null($email))
+		{
+			return $result->setToFail('Email is required')->getResponse();
+		}
+
+		$user = User::withTrashed()->where('email', $email)->first();
+
+		if ($user == null)
+		{
+			return $result->getResponse();
+		}
+
+		$result->setToFail('Found existing user with this email address.');
+
+		return $result->getResponse();
+	}
+
+	#endregion
 
 }

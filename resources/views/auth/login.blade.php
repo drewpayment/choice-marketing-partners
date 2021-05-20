@@ -11,33 +11,59 @@
                 <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}" ngNoForm>
                     {{ csrf_field() }}
 
-                    <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
-                        <label for="email" class="col-md-4 control-label">E-Mail Address</label>
+                    @if (app()->environment('production'))
+                        <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
+                            <label for="email" class="col-md-4 control-label">E-Mail Address</label>
 
-                        <div class="col-md-6">
-                            <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}">
+                            <div class="col-md-6">
+                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}">
 
-                            @if ($errors->has('email'))
-                                <span class="help-block">
-                                    <strong>{{ $errors->first('email') }}</strong>
-                                </span>
-                            @endif
+                                @if ($errors->has('email'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('email') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
-                        <label for="password" class="col-md-4 control-label">Password</label>
+                        <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
+                            <label for="password" class="col-md-4 control-label">Password</label>
 
-                        <div class="col-md-6">
-                            <input id="password" type="password" class="form-control" name="password">
+                            <div class="col-md-6">
+                                <input id="password" type="password" class="form-control" name="password">
 
-                            @if ($errors->has('password'))
-                                <span class="help-block">
-                                    <strong>{{ $errors->first('password') }}</strong>
-                                </span>
-                            @endif
+                                @if ($errors->has('password'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('password') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @endif
+
+                    @if (app()->environment('local'))
+
+                        <div class="form-group">
+                            <label for="email" class="col-md-4 control-label">Email Address</label>
+
+                            <div class="col-md-6">
+                                <select id="email" class="form-control" name="email">
+                                    @foreach ($users as $user)
+                                        <option value="{{$user->email}}">
+                                            @if ($user->employee['is_mgr'])
+                                                {{$user->name}} (Manager)
+                                            @elseif ($user->employee['is_admin'])
+                                                {{$user->name}} (Admin)
+                                            @else
+                                                {{$user->name}}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                    @endif
 
                     <div class="form-group">
                         <div class="col-md-6 col-md-offset-4">

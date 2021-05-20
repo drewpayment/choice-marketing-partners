@@ -49,18 +49,19 @@
           <!-- </div>
 
                         <div class="col-xs-3" style="padding: 8px;"> -->
-          <button type="button" mat-raised-button (click)="search()" color="primary" [disabled]="f.invalid">
+          <!-- <button type="button" mat-raised-button (click)="search()" color="primary" [disabled]="f.invalid">
             <mat-icon>search</mat-icon>
             <span>Search</span>
-          </button>
+          </button> -->
 
           <ng-container *ngIf="showTools">
-            <button type="button" mat-icon-button [mat-menu-trigger-for]="menu">
+            <button type="button" mat-raised-button [mat-menu-trigger-for]="menu" color="primary">
               <mat-icon>menu</mat-icon>
             </button>
             <mat-menu #menu="matMenu">
               <button mat-menu-item (click)="sendPaytubNotifications()">
-                Send Paystubs
+                <mat-icon>send</mat-icon>
+                <span>Send Paystubs</span>
               </button>
             </mat-menu>
           </ng-container>
@@ -69,7 +70,14 @@
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <ng-container *ngIf="(paystubs$ | async)?.length > 0; else noPaystubs">
+        <ng-container *ngIf="(isLoading$|async) === true">
+          <div class="row">
+            <div class="col-md-12">
+              <mat-spinner style="margin: 0 auto;"></mat-spinner>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="(isLoading$|async) === false && (paystubs$ | async)?.length > 0; else noPaystubs">
           <mat-table matSort class="mat-elevation-z2" [dataSource]="paystubs" (matSortChange)="sortPaystubs($event)">
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header>Agent Name</mat-header-cell>
@@ -97,7 +105,7 @@
           </mat-table>
         </ng-container>
         <ng-template #noPaystubs>
-          <div class="row">
+          <div class="row" *ngIf="(isLoading$|async) === false">
             <div class="col-xs-12">
               <h3>No Paystubs</h3>
             </div>
