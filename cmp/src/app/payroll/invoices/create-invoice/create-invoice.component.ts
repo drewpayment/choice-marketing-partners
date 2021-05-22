@@ -94,6 +94,7 @@ export class CreateInvoiceComponent implements OnInit {
   };
 
   isMultiSelectMode = false;
+  multiSelectDeletes: number[] = [];
 
   constructor(
     private account: AccountService,
@@ -191,7 +192,41 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
   checkedMultiSelectDelete(event: MatCheckboxChange) {
-    console.dir(event);
+    if (event.checked) {
+      const indexParts = event.source.id.split('-');
+      const index = coerceNumberProperty(indexParts[indexParts.length - 1]) - 1;
+
+      if (index > -1) {
+        const row = this.formInvoices.at(index).value;
+
+        if (row.invoiceId > 0) {
+          this.multiSelectDeletes.push(row.invoiceId);
+        }
+      }
+    }
+  }
+
+  confirmDelete() {
+    if (this.multiSelectDeletes && this.multiSelectDeletes.length) {
+      this.invoiceService.deleteInvoices(this.multiSelectDeletes)
+        .subscribe(res => {
+
+          const removeIndexes: number[] = [];
+          const rows: any[] = this.formInvoices.value;
+
+          this.multiSelectDeletes.forEach(id => {
+            const rowIndex = rows.findIndex(r => r.invoiceId == id);
+
+            if (rowIndex > -1) {
+              this.formInvoices.removeAt(rowIndex);
+            }
+          });
+
+          this.invoiceDataSource.next(this.formInvoices.controls);
+          this.multiSelectDeletes = [];
+          this.isMultiSelectMode = false;
+        });
+    }
   }
 
   save() {
@@ -331,12 +366,21 @@ export class CreateInvoiceComponent implements OnInit {
   removeInvoice(index: number) {
     const pendDel = this.formInvoices.at(index).value;
 
+    // If the row we are deleting has an invoice ID we are just going to post it to the server
+    // and delete it immediately
     if (pendDel.invoiceId > 0) {
-      this.pendingDeletes.sales = [...this.pendingDeletes.sales, pendDel];
+      this.invoiceService.deleteInvoice(pendDel.invoiceId)
+        .subscribe(deletedSuccessfully => {
+          if (deletedSuccessfully) {
+            this.formInvoices.removeAt(index);
+            this.invoiceDataSource.next(this.formInvoices.controls);
+          }
+        });
+    } else {
+      this.formInvoices.removeAt(index);
+      this.invoiceDataSource.next(this.formInvoices.controls);
     }
 
-    this.formInvoices.removeAt(index);
-    this.invoiceDataSource.next(this.formInvoices.controls);
   }
 
   removeOverride(index: number) {
@@ -506,6 +550,7 @@ export class CreateInvoiceComponent implements OnInit {
 
   private addEmptyInvoiceRow(): FormGroup {
     return this.fb.group({
+      invoiceId: this.fb.control(''),
       saleDate: this.fb.control("", [Validators.required]),
       firstName: this.fb.control("", [Validators.required]),
       lastName: this.fb.control("", [Validators.required]),

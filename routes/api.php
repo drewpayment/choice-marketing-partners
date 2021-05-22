@@ -17,6 +17,8 @@ use Illuminate\Http\Request;
 
 Route::get('/invoices', 'InvoiceController@getInvoicePageResources');
 Route::post('/invoices', 'InvoiceController@saveApiInvoice');
+Route::delete('/invoices/{invoiceId}', 'InvoiceController@deleteInvoiceRow');
+Route::delete('/invoices', 'InvoiceController@deleteInvoices');
 
 #endregion
 

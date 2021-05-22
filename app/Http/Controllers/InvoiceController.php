@@ -72,6 +72,8 @@ class InvoiceController extends Controller
 			'vendors' => $result['vendors']]);
 	}
 
+	#region API CALLS
+
 	/**
 	 * Gets params to search for paystubs, serializes and returns them to Angular.
 	 *
@@ -194,6 +196,68 @@ class InvoiceController extends Controller
         
         return response()->json($pending);
     }
+
+	/**
+	 * @param Request $request
+	 * @param $invoiceId
+	 *
+	 * @return JsonResponse
+	 */
+	public function deleteInvoiceRow(Request $request, $invoiceId): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return $result->getResponse();
+		}
+
+		$deleted_count = Invoice::destroy($invoiceId);
+
+		if ($deleted_count < 1)
+		{
+			return $result->setToFail('Failed to delete your invoice row.')
+				->getResponse();
+		}
+
+		return $result->getResponse();
+	}
+
+	/**
+	 * @param Request $request
+	 *
+	 * @return JsonResponse
+	 */
+	public function deleteInvoices(Request $request): JsonResponse
+	{
+		$result = new OpResult();
+
+		$this->session->checkUserIsAdmin()->mergeInto($result);
+
+		if ($result->hasError())
+		{
+			return $result->getResponse();
+		}
+
+		$invoiceIdStr = $request->query('i');
+		$invoiceIdArr = explode(',', $invoiceIdStr);
+
+		$expected_delete_count = count($invoiceIdArr);
+
+		$deleted_count = Invoice::destroy($invoiceIdArr);
+
+		if ($expected_delete_count != $deleted_count)
+		{
+			return $result->setToFail('Something went wrong and we may not have been able to delete all of the expected records. Please refresh the page.')
+				->getResponse();
+		}
+
+		return $result->getResponse();
+	}
+
+	#endregion
     
     private function deletePendingInvoiceItems($pending_deletes)
     {

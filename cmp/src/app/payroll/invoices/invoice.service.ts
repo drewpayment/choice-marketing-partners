@@ -1,21 +1,24 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import {
+  Invoice,
   InvoicePageResources,
   InvoiceSaveRequest,
   InvoiceSaveResult,
   PaystubSummary,
   Vendor,
 } from "../../models";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable, of } from "rxjs";
+import { catchError, map, mapTo } from "rxjs/operators";
 import { Moment } from "moment";
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Injectable({
   providedIn: "root",
 })
 export class InvoiceService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private snack: MatSnackBar,) {}
 
   getPaystubs(
     employeeId: number,
@@ -47,6 +50,34 @@ export class InvoiceService {
   saveInvoice(dto: InvoiceSaveRequest): Observable<InvoiceSaveResult> {
     const url = `api/invoices`;
     return this.http.post<InvoiceSaveResult>(url, dto);
+  }
+
+  deleteInvoice(invoiceId: number): Observable<boolean> {
+    return this.http.delete(`api/invoices/${invoiceId}`)
+      .pipe(
+        catchError(err => {
+          this.snack.open(err, 'dismiss', { duration: 10000 });
+          return of(false);
+        }),
+        map((res) => {
+          if (res === undefined) return true;
+          return coerceBooleanProperty(res);
+        }),
+      );
+  }
+
+  deleteInvoices(invoiceIds: number[]): Observable<boolean> {
+    return this.http.delete(`api/invoices`, { params: { i: invoiceIds.join(',') } })
+      .pipe(
+        catchError(err => {
+          this.snack.open(err, 'dismiss', { duration: 10000 });
+          return of(false);
+        }),
+        map((res) => {
+          if (res === undefined) return true;
+          return coerceBooleanProperty(res);
+        }),
+      );
   }
 
   private compareVendorNames = (a: PaystubSummary, b: PaystubSummary) => {

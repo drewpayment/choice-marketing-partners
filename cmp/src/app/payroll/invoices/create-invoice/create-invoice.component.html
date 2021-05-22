@@ -153,9 +153,15 @@
           <ng-container matColumnDef="delete">
             <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
             <mat-cell *matCellDef="let item; let i=index">
-              <button type="button" mat-icon-button (click)="removeInvoice(i)" *ngIf="!isMultiSelectMode && formInvoices?.length > 1">
-                <mat-icon>delete_forever</mat-icon>
+              <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" *ngIf="!isMultiSelectMode && formInvoices?.length > 1">
+                <mat-icon>arrow_drop_down</mat-icon>
               </button>
+              <mat-menu #rowMenu="matMenu">
+                <button mat-menu-item (click)="removeInvoice(i)">
+                  <mat-icon>delete_forever</mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
 
               <mat-checkbox (change)="checkedMultiSelectDelete($event)" *ngIf="isMultiSelectMode && formInvoices?.length > 1">
                 &nbsp;
@@ -290,11 +296,20 @@
   <div>
     <mat-card>
       <mat-card-content class="invoice-tables action-row">
-        <button type="button" mat-flat-button color="primary" (click)="save()">
+        <button type="button" mat-flat-button (click)="toggleMultiSelectMode(false)" *ngIf="isMultiSelectMode">
+          <mat-icon>clear</mat-icon> Cancel
+        </button>
+
+        <button mat-raised-button color="warn" *ngIf="isMultiSelectMode && formInvoices?.length > 1" (click)="confirmDelete()">
+          <mat-icon>delete_forever</mat-icon>
+          <span>Delete</span>
+        </button>
+
+        <button type="button" mat-flat-button color="primary" (click)="save()" *ngIf="!isMultiSelectMode">
           <mat-icon>save</mat-icon> Save
         </button>
 
-        <button type="button" mat-flat-button *ngIf="isNew" (click)="cancel()">
+        <button type="button" mat-flat-button *ngIf="isNew && !isMultiSelectMode" (click)="cancel()">
           <mat-icon>clear</mat-icon> Cancel
         </button>
       </mat-card-content>
