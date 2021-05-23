@@ -37,7 +37,7 @@ import { takeUntil } from "rxjs/operators";
 import { coerceNumberProperty } from "@angular/cdk/coercion";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpErrorResponse } from "@angular/common/http";
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatCheckboxChange } from "@angular/material/checkbox";
 
 @Component({
   selector: "cp-create-invoice",
@@ -188,42 +188,24 @@ export class CreateInvoiceComponent implements OnInit {
 
   toggleMultiSelectMode(isEnabled: boolean) {
     this.isMultiSelectMode = isEnabled;
-
   }
 
-  checkedMultiSelectDelete(event: MatCheckboxChange) {
-    if (event.checked) {
-      const indexParts = event.source.id.split('-');
-      const index = coerceNumberProperty(indexParts[indexParts.length - 1]) - 1;
-
-      if (index > -1) {
-        const row = this.formInvoices.at(index).value;
-
-        if (row.invoiceId > 0) {
-          this.multiSelectDeletes.push(row.invoiceId);
-        }
-      }
+  checkedMultiSelectDelete(item: any) {
+    if (item && item.invoiceId > 0) {
+      this.multiSelectDeletes.push(item.invoiceId);
     }
   }
 
   confirmDelete() {
     if (this.multiSelectDeletes && this.multiSelectDeletes.length) {
-      this.invoiceService.deleteInvoices(this.multiSelectDeletes)
-        .subscribe(res => {
+      this.invoiceService
+        .deleteInvoices(this.multiSelectDeletes)
+        .subscribe((res) => {
+          const filteredRows = this.formInvoices.value.filter(
+            (x) => !this.multiSelectDeletes.includes(x.invoiceId)
+          );
 
-          const removeIndexes: number[] = [];
-          const rows: any[] = this.formInvoices.value;
-
-          this.multiSelectDeletes.forEach(id => {
-            const rowIndex = rows.findIndex(r => r.invoiceId == id);
-
-            if (rowIndex > -1) {
-              this.formInvoices.removeAt(rowIndex);
-            }
-          });
-
-          this.invoiceDataSource.next(this.formInvoices.controls);
-          this.multiSelectDeletes = [];
+          this.patchInvoicesForm(filteredRows);
           this.isMultiSelectMode = false;
         });
     }
@@ -369,8 +351,9 @@ export class CreateInvoiceComponent implements OnInit {
     // If the row we are deleting has an invoice ID we are just going to post it to the server
     // and delete it immediately
     if (pendDel.invoiceId > 0) {
-      this.invoiceService.deleteInvoice(pendDel.invoiceId)
-        .subscribe(deletedSuccessfully => {
+      this.invoiceService
+        .deleteInvoice(pendDel.invoiceId)
+        .subscribe((deletedSuccessfully) => {
           if (deletedSuccessfully) {
             this.formInvoices.removeAt(index);
             this.invoiceDataSource.next(this.formInvoices.controls);
@@ -380,7 +363,6 @@ export class CreateInvoiceComponent implements OnInit {
       this.formInvoices.removeAt(index);
       this.invoiceDataSource.next(this.formInvoices.controls);
     }
-
   }
 
   removeOverride(index: number) {
@@ -550,7 +532,7 @@ export class CreateInvoiceComponent implements OnInit {
 
   private addEmptyInvoiceRow(): FormGroup {
     return this.fb.group({
-      invoiceId: this.fb.control(''),
+      invoiceId: this.fb.control(""),
       saleDate: this.fb.control("", [Validators.required]),
       firstName: this.fb.control("", [Validators.required]),
       lastName: this.fb.control("", [Validators.required]),

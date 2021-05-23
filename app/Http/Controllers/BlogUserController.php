@@ -18,7 +18,8 @@ class BlogUserController extends Controller
     {
         $id = ($id > -1) ? $id : auth()->user()->id;
         $posts = Post::where('author_id', $id)->where('active', 1)->orderBy('created_at', 'desc')->paginate(5);
-        $title = User::userId($id)->first()->name;
+        $user = User::byEmployeeId($id)->first();
+        $title = $user != null ? $user->name : "My Blog";
 
         return view('blog.home', ['posts' => $posts, 'title' => $title]);
     }
@@ -53,7 +54,7 @@ class BlogUserController extends Controller
 
     public function profile(Request $request, $id)
     {
-        $data['user'] = User::userId($id)->first();
+        $data['user'] = User::byEmployeeId($id)->first();
 
         if(!$data['user'])
             return redirect('/blog');

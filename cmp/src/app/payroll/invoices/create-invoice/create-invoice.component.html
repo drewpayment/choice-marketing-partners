@@ -163,7 +163,7 @@
                 </button>
               </mat-menu>
 
-              <mat-checkbox (change)="checkedMultiSelectDelete($event)" *ngIf="isMultiSelectMode && formInvoices?.length > 1">
+              <mat-checkbox (change)="checkedMultiSelectDelete($event.checked ? item?.value : null)" *ngIf="isMultiSelectMode && formInvoices?.length > 1">
                 &nbsp;
               </mat-checkbox>
             </mat-cell>
