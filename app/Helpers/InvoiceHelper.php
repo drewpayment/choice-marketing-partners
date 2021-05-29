@@ -28,17 +28,7 @@ class InvoiceHelper
 		$isAdmin = ($thisUser->is_admin == 1);
 		$isManager = ($thisUser->is_mgr == 1);
 		$date = ($params->date != -1) ? new Carbon($params->date) : $params->date;
-		$isMultiVendorSearch = false;
-
-		if (strpos($params->vendor, ',') !== false)
-		{
-			$vendor = explode(',', $params->vendor);
-			$isMultiVendorSearch = true;
-		}
-		else
-		{
-			$vendor = $params->vendor;
-		}
+		$vendor = $params->vendor;
 
 		if($params->agent == -1)
 		{

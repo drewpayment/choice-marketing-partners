@@ -22,7 +22,7 @@ export class InvoiceService {
 
   getPaystubs(
     employeeId: number,
-    vendorId: number[],
+    vendorId: number,
     date: string
   ): Observable<PaystubSummary[]> {
     const url = `payroll/employees/${employeeId}/vendors/${vendorId}/issue-dates/${date}`;

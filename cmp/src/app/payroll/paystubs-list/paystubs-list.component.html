@@ -8,87 +8,65 @@
         </div>
         <mat-card-title>Paystubs</mat-card-title>
         <mat-card-subtitle>
-          <div class="row">
-            <div class="col-md-12">
-              <!-- <div class="row">
+          <!-- <div class="row">
                         <div class="col-xs-3"> -->
-              <mat-form-field appearance="outline" hideRequiredMarker="true">
-                <mat-label>Dates</mat-label>
-                <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" required />
-                <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate" autoActiveFirstOption>
-                  <mat-option *ngFor="let date of filteredDates | async" [value]="date">
-                    {{ date | date:'shortDate' }}
-                  </mat-option>
-                </mat-autocomplete>
-                <mat-error>
-                  Please select a valid date.
-                </mat-error>
-              </mat-form-field>
-              <!-- </div>
+          <mat-form-field appearance="outline" hideRequiredMarker="true">
+            <mat-label>Dates</mat-label>
+            <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" required />
+            <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate" autoActiveFirstOption>
+              <mat-option *ngFor="let date of filteredDates | async" [value]="date">
+                {{ date | date:'shortDate' }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error>
+              Please select a valid date.
+            </mat-error>
+          </mat-form-field>
+          <!-- </div>
 
                         <div class="col-xs-3"> -->
-              <!-- <mat-form-field appearance="outline">
-                <mat-label>Campaigns</mat-label>
-                <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
-                <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign" autoActiveFirstOption>
-                  <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
-                    {{ campaign.name }}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field> -->
-              <!-- </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Campaigns</mat-label>
+            <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
+            <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign" autoActiveFirstOption>
+              <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
+                {{ campaign.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <!-- </div>
 
                         <div class="col-xs-3"> -->
-              <mat-form-field appearance="outline">
-                <mat-label>Agents</mat-label>
-                <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
-                <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent" autoActiveFirstOption>
-                  <mat-option *ngFor="let a of filteredAgents | async" [value]="a">
-                    {{ a.name }}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-              <!-- </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Agents</mat-label>
+            <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
+            <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent" autoActiveFirstOption>
+              <mat-option *ngFor="let a of filteredAgents | async" [value]="a">
+                {{ a.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <!-- </div>
 
                         <div class="col-xs-3" style="padding: 8px;"> -->
-              <!-- <button type="button" mat-raised-button (click)="search()" color="primary" [disabled]="f.invalid">
+          <!-- <button type="button" mat-raised-button (click)="search()" color="primary" [disabled]="f.invalid">
             <mat-icon>search</mat-icon>
             <span>Search</span>
           </button> -->
 
-              <ng-container *ngIf="showTools">
-                <button type="button" mat-raised-button [mat-menu-trigger-for]="menu" color="primary">
-                  <mat-icon>menu</mat-icon>
-                </button>
-                <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="sendPaytubNotifications()">
-                    <mat-icon>send</mat-icon>
-                    <span>Send Paystubs</span>
-                  </button>
-                </mat-menu>
-              </ng-container>
-              <!-- </div>
+          <ng-container *ngIf="showTools">
+            <button type="button" mat-raised-button [mat-menu-trigger-for]="menu" color="primary">
+              <mat-icon>menu</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="sendPaytubNotifications()">
+                <mat-icon>send</mat-icon>
+                <span>Send Paystubs</span>
+              </button>
+            </mat-menu>
+          </ng-container>
+          <!-- </div>
                     </div> -->
-            </div>
-
-            <div class="col-md-12 d-flex">
-              <mat-form-field appearance="outline" class="wp-100">
-                <mat-label>Campaigns</mat-label>
-                <mat-select formControlName="vendors" multiple>
-                  <mat-option *ngFor="let campaign of filteredCampaigns|async" [value]="campaign?.id">
-                    {{campaign?.name}}
-                  </mat-option>
-                </mat-select>
-                <!-- <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
-                <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign" autoActiveFirstOption>
-                  <mat-option *ngFor="let campaign of filteredCampaigns | async" [value]="campaign">
-                    {{ campaign.name }}
-                  </mat-option>
-                </mat-autocomplete> -->
-              </mat-form-field>
-            </div>
-          </div>
-
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>

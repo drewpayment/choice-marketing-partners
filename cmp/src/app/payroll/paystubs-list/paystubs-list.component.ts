@@ -1,5 +1,5 @@
 import { Component, OnInit, ElementRef, OnDestroy } from "@angular/core";
-import { FormGroup, FormBuilder, FormControl, FormArray } from "@angular/forms";
+import { FormGroup, FormBuilder, FormControl } from "@angular/forms";
 import * as moment from "moment";
 import { Vendor, Agent, SearchPaystubs, PaystubSummary } from "../../models";
 import { Observable, BehaviorSubject, Subscription, of, Subject } from "rxjs";
@@ -11,7 +11,6 @@ import { PaystubNotificationDialogComponent } from "./paystub-notification-dialo
 import { SettingsService } from "src/app/settings/settings.service";
 import { forkJoin } from "rxjs/internal/observable/forkJoin";
 import { NotificationsService } from "src/app/services/notifications.service";
-import { RecursiveTemplateAstVisitor } from '@angular/compiler';
 
 @Component({
   selector: "cp-paystubs-list",
@@ -90,16 +89,13 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     }
 
     if (this.vendors && this.vendors.length) {
-      // if (this.vendors.length > 1) {
-      //   this.vendors.unshift({
-      //     id: -1,
-      //     name: "All Campaigns",
-      //   } as Vendor);
-      // }
-      // this.f.get("campaign").setValue(this.vendors[0]);
-      this.f.get('campaign').setValue({ id: -1, name: '' });
-
-      this.f.get('vendors').setValue([...this.vendors.map(v => v.id)]);
+      if (this.vendors.length > 1) {
+        this.vendors.unshift({
+          id: -1,
+          name: "All Campaigns",
+        } as Vendor);
+      }
+      this.f.get("campaign").setValue(this.vendors[0]);
     }
 
     if (this.employees && this.employees.length) {
@@ -179,7 +175,6 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
   search() {
     const model = this.prepareModel();
-    console.dir(model);
 
     if (this.f.invalid) return;
 
@@ -313,7 +308,6 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
         },
       ]),
       campaign: this.fb.control(""),
-      vendors: this.fb.control([]),
       agent: this.fb.control(""),
     });
   }
@@ -321,13 +315,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   private prepareModel(): SearchPaystubs {
     const result = {} as SearchPaystubs;
     result.date = this.f.value.date;
-    result.campaignId = this.f.value.vendors;
-
-    if (result.campaignId && !result.campaignId.length) {
-      result.campaignId = this.vendors.map(v => v.id);
-      this.f.get('vendors').setValue(result.campaignId, { onlySelf: true, emitEvent: false });
-    }
-
+    result.campaignId = this.f.value.campaign.id;
     result.agentId = this.f.value.agent.id;
     return result;
   }

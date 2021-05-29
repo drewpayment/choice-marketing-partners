@@ -51,11 +51,6 @@ class Paystub extends Model
 
 	public function scopeVendorId($query, $id)
 	{
-		if (is_array($id))
-		{
-			return $query->whereIn('vendor_id', $id);
-		}
-
 		if($id == -1)
 		{
 			$vendors = Vendor::all();
