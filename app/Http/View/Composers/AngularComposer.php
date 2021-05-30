@@ -26,14 +26,30 @@ class AngularComposer
         
         $files = [];
         
-        $file_types = array('js', 'map');
+        $file_types = array('js', 'map', 'css');
         $base_path = public_path('dist/cmp');
         
-        $files = ScanDir::scan($base_path, $file_types);
-        $files = array_map('self::getPublicFilename', $files);
+//        $files = ScanDir::scan($base_path, $file_types);
+	    $files = ScanDir::scan($base_path);
+
+	    $files = array_map('self::getPublicFilename', $files);
+
+	    $js_files = [];
+
+	    foreach ($files as $file)
+	    {
+	    	if (str_contains($file, '.css'))
+		    {
+		    	$styles[] = $file;
+		    }
+		    else if (str_contains($file, '.js'))
+		    {
+		    	$js_files[] = $file;
+		    }
+	    }
         
         $view->with([
-            'file_paths' => $files,
+            'file_paths' => $js_files,
             'styles' => $styles
         ]);
     }

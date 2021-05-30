@@ -8,6 +8,19 @@
         </div>
         <mat-card-title>Paystubs</mat-card-title>
         <mat-card-subtitle>
+          <mat-form-field appearance="outline" hideRequiredMarker="true">
+            <mat-label>Select a Date Range</mat-label>
+            <mat-date-range-input formGroupName="range" [rangePicker]="rangePicker">
+              <input matStartDate formControlName="start" placeholder="Start Date" />
+              <input matEndDate formControlName="end" placeholder="End Date" />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker [dateClass]="dateClass" #rangePicker></mat-date-range-picker>
+
+            <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+            <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
+          </mat-form-field>
+
           <!-- <div class="row">
                         <div class="col-xs-3"> -->
           <mat-form-field appearance="outline" hideRequiredMarker="true">

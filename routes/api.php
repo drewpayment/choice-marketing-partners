@@ -37,6 +37,8 @@ Route::get('/agents/{agentId}/vendors/{vendorId}/dates/{issueDate}', 'PayrollCon
 
 Route::post('/agents/paystubs/send', 'PayrollController@sendPaystubs');
 
+Route::post('/paystubs', 'PayrollController@search');
+
 #endregion
 
 #region ADMIN SETTINGS

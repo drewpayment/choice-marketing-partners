@@ -1,16 +1,16 @@
 import { Component, OnInit, ElementRef, OnDestroy } from "@angular/core";
-import { FormGroup, FormBuilder, FormControl } from "@angular/forms";
+import { FormGroup, FormBuilder, FormControl, Validators } from "@angular/forms";
 import * as moment from "moment";
-import { Vendor, Agent, SearchPaystubs, PaystubSummary } from "../../models";
-import { Observable, BehaviorSubject, Subscription, of, Subject } from "rxjs";
+import { Vendor, Agent, SearchPaystubs, PaystubSummary, SearchPaystubsRequest } from "../../models";
+import { Observable, BehaviorSubject, Subscription, of, Subject, forkJoin } from "rxjs";
 import { startWith, map, tap, shareReplay, catchError, takeUntil } from "rxjs/operators";
 import { InvoiceService } from "../invoices/invoice.service";
 import { Location } from "@angular/common";
 import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
 import { SettingsService } from "src/app/settings/settings.service";
-import { forkJoin } from "rxjs/internal/observable/forkJoin";
 import { NotificationsService } from "src/app/services/notifications.service";
+import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 
 @Component({
   selector: "cp-paystubs-list",
@@ -46,6 +46,17 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     .pipe(shareReplay());
   private destroy$ = new Subject();
   isLoading$ = new BehaviorSubject(true);
+  get range(): FormGroup {
+    return (this.f.get('range') as FormGroup);
+  }
+
+  dateClass: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
+    const dt = moment(cellDate);
+
+    const found = this.issueDates.find(issueDate => dt.isSame(issueDate, 'd'));
+
+    return found ? 'issue-date-focus' : '';
+  }
 
   constructor(
     private ref: ElementRef,
@@ -85,7 +96,16 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.issueDates && this.issueDates.length) {
+      const firstIssueDate = moment(this.issueDates[0]);
+
       this.f.get("date").setValue(this.issueDates[0]);
+
+      const startDate = firstIssueDate.clone().startOf('week');
+      const endDate = firstIssueDate.clone().endOf('week');
+      this.range.setValue({
+        start: startDate,
+        end: endDate,
+      });
     }
 
     if (this.vendors && this.vendors.length) {
@@ -128,12 +148,15 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     this.paystubs = this.paystubs$.asObservable();
 
+    this.searchForPaystubs();
+
     // search with default values on page load
-    this.search();
+    // this.search();
 
     this.f.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.search());
+      // .subscribe(() => this.search());
+      .subscribe(() => this.searchForPaystubs());
   }
 
   ngOnDestroy() {
@@ -171,6 +194,18 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  searchForPaystubs() {
+    if (this.f.invalid) return;
+
+    const request = this.buildSearchRequest();
+
+    if (this._paystubs && this._paystubs.length) {
+      this._paystubs = [];
+      this.paystubs$.next(this._paystubs);
+      this.isLoading$.next(true);
+    }
   }
 
   search() {
@@ -307,9 +342,23 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
           return null;
         },
       ]),
+      range: this.fb.group({
+        start: this.fb.control('', []),
+        end: this.fb.control('', []),
+      }),
       campaign: this.fb.control(""),
       agent: this.fb.control(""),
     });
+  }
+
+  private buildSearchRequest(): SearchPaystubsRequest {
+    const request = {} as SearchPaystubsRequest;
+    const form = this.f.value;
+    request.employees = [-1];
+    request.vendors = [-1];
+    request.startDate = form.range.start.toISOString();
+    request.endDate = form.range.end.toISOString();
+    return request;
   }
 
   private prepareModel(): SearchPaystubs {

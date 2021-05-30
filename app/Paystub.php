@@ -2,6 +2,9 @@
 
 namespace App;
 
+use Carbon\Carbon;
+use DateTime;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -30,32 +33,42 @@ class Paystub extends Model
 	/**
 	 * Scope query to the agent(s) id that is passed into the function.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param $id
 	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @return Builder
 	 */
-	public function scopeAgentId($query, $id)
+	public function scopeAgentId( Builder $query, $id ): Builder
 	{
 		if(!is_object($id) && $id == -1) {
 			return $query;
 		}
 		else if (is_array($id))
 		{
-			return $query->whereIn('agent_id', $id);
+			return $this->scopeByAgentIds($query, $id);
 		}
 
 		return $query->where('agent_id', $id);
 	}
 
 
-	public function scopeVendorId($query, $id)
+	/**
+	 * @param Builder $query
+	 * @param $id
+	 *
+	 * @return Builder
+	 */
+	public function scopeVendorId( Builder $query, $id): Builder
 	{
-		if($id == -1)
+		if(!is_object($id) && $id == -1)
 		{
 			$vendors = Vendor::all();
 			$ids = $vendors->pluck('id')->all();
 			return $query->whereIn('vendor_id', $ids);
+		}
+		else if (is_array($id))
+		{
+			return $this->scopeByVendorIds($query, $id);
 		}
 
 		return $query->where('vendor_id', $id);
@@ -65,16 +78,85 @@ class Paystub extends Model
 	/**
 	 * Scope query to the issue date passed.
 	 *
-	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @param Builder $query
 	 * @param $date
 	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @return Builder
 	 */
-	public function scopeIssueDate($query, $date)
+	public function scopeIssueDate( Builder $query, $date ): Builder
 	{
 		return $query->where('issue_date', $date);
 	}
 
+	/**
+	 * @param Builder $query
+	 * @param $dates
+	 *
+	 * @return Builder
+	 */
+	public function scopeByIssueDates( Builder $query, $dates ): Builder
+	{
+		if (!is_array($dates))
+		{
+			if (!is_object($dates))
+			{
+				return $this->scopeIssueDate($query, $dates);
+			}
+
+			return $query;
+		}
+
+		return $query->whereIn('issue_date', $dates);
+	}
+
+	/**
+	 * @param Builder $query
+	 * @param Carbon $start_date
+	 * @param Carbon $end_date
+	 *
+	 * @return Builder
+	 */
+	public function scopeBetweenDates( Builder $query, Carbon $start_date, Carbon $end_date ): Builder
+	{
+		if (!$start_date->isValid() || !$end_date->isValid())
+		{
+			return $query;
+		}
+
+		return $query->whereBetween('issue_date', [$start_date, $end_date]);
+	}
+
+	/**
+	 * @param Builder $query
+	 * @param $ids
+	 *
+	 * @return Builder
+	 */
+	public function scopeByAgentIds( Builder $query, $ids ): Builder
+	{
+		if (count($ids) == 1 && $ids[0] == -1)
+		{
+			return $query;
+		}
+
+		return $query->whereIn('agent_id', $ids);
+	}
+
+	/**
+	 * @param Builder $query
+	 * @param $ids
+	 *
+	 * @return Builder
+	 */
+	public function scopeByVendorIds( Builder $query, $ids ): Builder
+	{
+		if (count($ids) == 1 && $ids[0] == -1)
+		{
+			return $query;
+		}
+
+		return $query->whereIn('vendor_id', $ids);
+	}
 
 	/**
 	 * Scope query to active

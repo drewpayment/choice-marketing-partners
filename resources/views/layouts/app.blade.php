@@ -7,6 +7,8 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <meta id="global-token" name="token" content="{{csrf_token()}}">
     <base href="/" />
 
@@ -45,7 +47,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     </style>
 
     @foreach ($styles as $s)
-    <link rel="styleshset" href="{{$s['path']}}" />
+    <link rel="stylesheet" href="{{url($s)}}" />
     @endforeach
     <!-- jsPDF -->
     <script src="{{url('js/jspdf.js')}}"></script>
@@ -58,7 +60,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <!-- ANGULAR ASSETS -->
     @guesturl
     @foreach ($styles as $s)
-    <link rel="styleshset" href="{{$s['path']}}" />
+    <link rel="stylesheet" href="{{url($s)}}" />
     @endforeach
     
     

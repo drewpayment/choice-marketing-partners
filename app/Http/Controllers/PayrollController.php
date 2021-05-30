@@ -23,8 +23,10 @@ use DateTime;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -73,10 +75,15 @@ class PayrollController extends Controller
 	 * This endpoints reflects the view when the user initially navigates to /payroll.
 	 * It returns information necessary to load the page on initial navigation.
 	 *
-	 * @return View
+	 * @return Application|RedirectResponse|Redirector|View
 	 */
-    public function viewPayrollList(): View
+    public function viewPayrollList()
     {
+	    if (!Auth::check())
+	    {
+	    	return redirect('/login');
+	    }
+
         $sessionUser = Auth::user()->employee;
 		$isAdmin = ($sessionUser->is_admin == 1);
 		$isManager = ($sessionUser->is_mgr == 1);
@@ -119,6 +126,127 @@ class PayrollController extends Controller
     #endregion
 
 	#region API METHODS
+
+	/**
+	 * @param Request $request
+	 * Search Params:
+	 *  - employees int[]
+	 *  - vendors int[]
+	 *  - startDate DateTime
+	 *  - endDate DateTime
+	 *
+	 * @return Application|JsonResponse|RedirectResponse|Redirector
+	 */
+	public function search(Request $request)
+	{
+		$result = new OpResult();
+
+		if (!Auth::check())
+		{
+			return redirect('/login');
+		}
+
+		$employee_ids = $request->input('employees');
+		$my_employee = $request->user()->employee;
+		$is_admin = $my_employee->is_admin == 1;
+		$is_manager = !$is_admin && $my_employee->is_mgr == 1;
+		$vendors = $request->input('vendors');
+
+		foreach ($employee_ids as $employee_id)
+		{
+			$this->invoiceHelper->hasAccessToEmployee($my_employee, $employee_id)
+				->mergeInto($result);
+
+			if ($result->hasError())
+			{
+				return $result->getResponse();
+			}
+		}
+
+		$start_date = Carbon::createFromFormat(DateTime::ATOM, $request->input('startDate'));
+		$end_date = Carbon::createFromFormat(DateTime::ATOM, $request->input('endDate'));
+
+		if (!$start_date->isValid() || !$end_date->isValid())
+		{
+			return $result->setToFail('Invalid dates')
+				->getResponse();
+		}
+
+		$issue_dates = Paystub::betweenDates($start_date, $end_date)
+		                        ->pluck('issue_date')
+								->distinct()
+								->get();
+
+		$accessible_issue_dates = [];
+		foreach ($issue_dates as $issue_date)
+		{
+			$issue_date_result = new OpResult();
+
+			$this->paystubService->checkAccessToIssueDate($my_employee->id, $issue_date)
+				->mergeInto($issue_date_result);
+
+			if ($issue_date_result->hasError())
+			{
+				continue;
+			}
+			else
+			{
+				$accessible_issue_dates[] = $issue_date;
+			}
+		}
+
+		$qry = Paystub::byVendorIds($vendors)
+			->byIssueDates($accessible_issue_dates);
+
+		if (in_array(-1, $employee_ids))
+		{
+			if ($is_admin)
+			{
+				$result->setData(
+					$qry->byAgentIds($employee_ids)
+						->orderBy('agent_name')
+						->get()
+				);
+			}
+			else
+			{
+				$accessible_employee_ids = $my_employee->permissions()->active()->get()->pluck('emp_id')->all();
+
+				if (count($accessible_employee_ids) > 0)
+				{
+					$employees_result = [];
+					$employees_result[] = $my_employee;
+					$accessible_employees = Employee::agentId($accessible_employee_ids)->get();
+
+					if ($accessible_employees->count() > 1)
+					{
+						$employees_result = array_merge($employees_result, $accessible_employees->toArray());
+					}
+					else
+					{
+						$employees_result[] = $accessible_employees->first();
+					}
+
+					$employees_result = collect($employees_result);
+					$emp_ids = $employees_result->pluck('id')->all();
+
+					$qry = $qry->byAgentIds($emp_ids);
+				}
+				else
+				{
+					$qry = $qry->agentId($my_employee->id);
+				}
+			}
+		}
+		else
+		{
+			$qry = $qry->byAgentIds($employee_ids);
+		}
+
+		$paystubs = $qry->orderBy('agent_name')->get();
+
+		return $result->setData($paystubs)->getResponse();
+	}
 
 	/**
 	 * URL: /payroll/employees/{employeeId}/vendors/{vendorId}/issue-dates/{issueDate}

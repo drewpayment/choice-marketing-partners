@@ -21,8 +21,10 @@
             "index": "src/index.php",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
+            "sourceMap": true,
             "tsConfig": "tsconfig.app.json",
-            "aot": true,
+            "aot": false,
+            "buildOptimizer": false,
             "assets": [
               "src/favicon.ico",
               "src/assets"
@@ -58,6 +60,7 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
+              "aot": true,
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
