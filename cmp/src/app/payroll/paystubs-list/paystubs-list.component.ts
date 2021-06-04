@@ -1,16 +1,53 @@
-import { Component, OnInit, ElementRef, OnDestroy } from "@angular/core";
-import { FormGroup, FormBuilder, FormControl, Validators } from "@angular/forms";
+import { Component, OnInit, ElementRef, OnDestroy, ViewChild, ChangeDetectorRef } from "@angular/core";
+import {
+  FormGroup,
+  FormBuilder,
+  FormControl,
+  Validators,
+} from "@angular/forms";
 import * as moment from "moment";
-import { Vendor, Agent, SearchPaystubs, PaystubSummary, SearchPaystubsRequest } from "../../models";
-import { Observable, BehaviorSubject, Subscription, of, Subject, forkJoin } from "rxjs";
-import { startWith, map, tap, shareReplay, catchError, takeUntil } from "rxjs/operators";
+import {
+  Vendor,
+  Agent,
+  SearchPaystubs,
+  PaystubSummary,
+  SearchPaystubsRequest,
+} from "../../models";
+import {
+  Observable,
+  BehaviorSubject,
+  Subscription,
+  of,
+  Subject,
+  forkJoin,
+  merge,
+  scheduled,
+  concat,
+} from "rxjs";
+import {
+  startWith,
+  map,
+  tap,
+  shareReplay,
+  catchError,
+  takeUntil,
+  filter,
+  switchMap,
+  take,
+  exhaustMap,
+  timestamp,
+} from "rxjs/operators";
 import { InvoiceService } from "../invoices/invoice.service";
 import { Location } from "@angular/common";
 import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
 import { SettingsService } from "src/app/settings/settings.service";
 import { NotificationsService } from "src/app/services/notifications.service";
-import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
+import { MatCalendarCellClassFunction } from "@angular/material/datepicker";
+import { PaystubsService } from "../../services/paystubs.service";
+import { COMMA, ENTER } from "@angular/cdk/keycodes";
+import { MatChipInputEvent, MatChipList } from "@angular/material/chips";
+import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 
 @Component({
   selector: "cp-paystubs-list",
@@ -30,7 +67,6 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
   filteredDates: Observable<string[]>;
   filteredCampaigns: Observable<Vendor[]>;
-  filteredAgents: Observable<Agent[]>;
   paystubs$ = new BehaviorSubject<PaystubSummary[]>(null);
   paystubs: Observable<PaystubSummary[]>;
 
@@ -38,26 +74,55 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   controlName: string;
 
   showTools = false;
-  private _allAgents: Agent[] = [];
-  private _displayedAgents: Agent[] = [];
   private _paystubs: PaystubSummary[] = [];
-  private companyOptions$ = this.settings
-    .getCompanyOptions()
-    .pipe(shareReplay());
+  private companyOptions$ = this.settings.getCompanyOptions().pipe(
+    shareReplay(),
+    catchError((err) => of(null))
+  );
   private destroy$ = new Subject();
   isLoading$ = new BehaviorSubject(true);
   get range(): FormGroup {
-    return (this.f.get('range') as FormGroup);
+    return this.f.get("range") as FormGroup;
   }
 
   dateClass: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
     const dt = moment(cellDate);
 
-    const found = this.issueDates.find(issueDate => dt.isSame(issueDate, 'd'));
+    const found = this.issueDates.find((issueDate) =>
+      dt.isSame(issueDate, "d")
+    );
 
-    return found ? 'issue-date-focus' : '';
+    return found ? "issue-date-focus" : "";
+  };
+  selectedVendors: Vendor[] = [({ id: -1, name: 'All Campaigns' } as Vendor)];
+  filteredVendors: Vendor[] = [];
+  separatorKeysCodes: number[] = [ENTER, COMMA];
+
+  selectedAgents: Agent[] = [({ id: -1, name: 'All Agents' } as Agent)];
+  filteredAgents: Agent[] = [];
+
+  @ViewChild('vendorInput') vendorInput: ElementRef<HTMLInputElement>;
+  @ViewChild('agentInput') agentInput: ElementRef<HTMLInputElement>;
+  @ViewChild('campaignList') vendorList: MatChipList;
+  @ViewChild('agentList') agentList: MatChipList;
+
+  get searchVendors(): Vendor[] {
+    return this.vendors.filter(v => !this.selectedVendors.find(sv => sv.id === v.id));
   }
 
+  get searchEmployees(): Agent[] {
+    return this.employees.filter(e => !this.selectedAgents.find(sa => sa.id === e.id));
+  }
+
+  get vendorControl(): FormControl {
+    return this.f.get('vendorSearch') as FormControl;
+  }
+
+  get agentControl(): FormControl {
+    return this.f.get('agentSearch') as FormControl;
+  }
+
+  //#region Constructors
   constructor(
     private ref: ElementRef,
     private fb: FormBuilder,
@@ -65,7 +130,8 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     private location: Location,
     private dialog: MatDialog,
     private settings: SettingsService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    private paystubsService: PaystubsService,
   ) {
     const elem = this.ref.nativeElement;
     this.isAdmin = elem.getAttribute("isAdmin") > 0;
@@ -92,16 +158,27 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
       typeof this.vendors === "object" && this.vendors !== null
         ? Object.values(this.vendors)
         : this.vendors;
+
+    this._setFilteredVendors();
+    this._setFilteredAgents();
+
+    // this.vendorControl.valueChanges.pipe(
+    //   takeUntil(this.destroy$),
+    //   startWith(null),
+    //   map((search: string | null) => search ? this._filterVendors(search) : this.searchVendors.slice()),
+    // ).subscribe(vendors => this.filteredVendors$.next(vendors));
+
+    // this.filteredAgents$ = this.agentControl.valueChanges.pipe(
+    //   startWith(null),
+    //   map((search: string | null) => search ? this._filterAgents(search) : this.searchEmployees.slice()),
+    // );
   }
 
   ngOnInit(): void {
     if (this.issueDates && this.issueDates.length) {
       const firstIssueDate = moment(this.issueDates[0]);
-
-      this.f.get("date").setValue(this.issueDates[0]);
-
-      const startDate = firstIssueDate.clone().startOf('week');
-      const endDate = firstIssueDate.clone().endOf('week');
+      const startDate = firstIssueDate.clone().startOf("week");
+      const endDate = firstIssueDate.clone().endOf("week");
       this.range.setValue({
         start: startDate,
         end: endDate,
@@ -115,7 +192,6 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
           name: "All Campaigns",
         } as Vendor);
       }
-      this.f.get("campaign").setValue(this.vendors[0]);
     }
 
     if (this.employees && this.employees.length) {
@@ -125,38 +201,19 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
           name: "All Agents",
         } as Agent);
       }
-      this.f.get("agent").setValue(this.employees[0]);
     }
-
-    this.filteredDates = this.f.get("date").valueChanges.pipe(
-      startWith(""),
-      map((value) => this.issueDates)
-    );
-
-    this.filteredCampaigns = this.f.get("campaign").valueChanges.pipe(
-      startWith(""),
-      map((value) => this.filterCampaigns(value))
-    );
-
-    this.filteredAgents = this.f.get("agent").valueChanges.pipe(
-      startWith(""),
-      map((value) => this.filterAgents(value)),
-      tap((agents) => {
-        this._allAgents = agents;
-      })
-    );
 
     this.paystubs = this.paystubs$.asObservable();
 
-    this.searchForPaystubs();
-
-    // search with default values on page load
-    // this.search();
-
-    this.f.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      // .subscribe(() => this.search());
-      .subscribe(() => this.searchForPaystubs());
+    this.range.controls.end.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        startWith(null),
+        filter(() => this.range.controls.start.valid &&
+          this.range.controls.end.valid),
+        switchMap(() => this.searchForPaystubs()),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -166,13 +223,14 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     this.destroy$.next();
   }
+  //#endregion
 
   sendPaytubNotifications() {
     this.dialog
       .open(PaystubNotificationDialogComponent, {
         width: "40vw",
         data: {
-          agents: this._displayedAgents,
+          agents: this.selectedAgents,
         },
       })
       .afterClosed()
@@ -206,26 +264,10 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
       this.paystubs$.next(this._paystubs);
       this.isLoading$.next(true);
     }
-  }
 
-  search() {
-    const model = this.prepareModel();
-
-    if (this.f.invalid) return;
-
-    if (this._paystubs && this._paystubs.length) {
-      this._paystubs = [];
-      this.paystubs$.next(this._paystubs);
-      this.isLoading$.next(true);
-    }
-
-    forkJoin([
-      this.service.getPaystubs(
-        model.agentId,
-        model.campaignId,
-        model.date as string
-      ),
-      this.companyOptions$.pipe(catchError(err => of(null))),
+    return forkJoin([
+      this.paystubsService.searchPaystubs(request),
+      this.companyOptions$,
     ])
       .pipe(
         map(([stubs, options]) => {
@@ -235,25 +277,138 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
             stubs != null &&
             stubs.length > 0;
           return stubs;
-        })
-      )
-      .subscribe((paystubs) => {
-        this._displayedAgents = this._allAgents.filter(
-          (a) => paystubs.find((p) => p.agentId == a.id) != null
-        );
-        this._paystubs = paystubs;
+        }),
+        tap(paystubs => {
+          this._paystubs = paystubs;
 
-        if (this._paystubs && this._paystubs.length) {
-          this._paystubs = this._paystubs.sort((a, b) => a.agentName < b.agentName ? -1 : a.agentName > b.agentName ? 1 : 0);
-        }
+          // if (this._paystubs && this._paystubs.length) {
+          //   this._paystubs = this._paystubs.sort((a, b) =>
+          //     a.agentName < b.agentName ? -1 : a.agentName > b.agentName ? 1 : 0
+          //   );
+          // }
 
-        setTimeout(() => {
-          this.paystubs$.next(paystubs);
-          this.isLoading$.next(false);
-        }, 500);
-
-      });
+          setTimeout(() => {
+            this.paystubs$.next(paystubs);
+            this.isLoading$.next(false);
+          }, 500);
+        }),
+      );
   }
+
+  //#region Vendor and Agent Search Filters
+
+  private _filterVendors(search: string): Vendor[] {
+    if (!isNaN((search as any))) return this.vendors;
+    search = search.trim().toLowerCase();
+    return this.searchVendors.filter(vendor => vendor.name.toLowerCase().indexOf(search) === 0);
+  }
+
+  private _filterAgents(search: string): Agent[] {
+    if (!isNaN((search as any))) return this.employees;
+    search = search.trim().toLowerCase();
+    return this.searchEmployees.filter(emp => emp.name.toLowerCase().indexOf(search) === 0);
+  }
+
+  addVendor(event: MatChipInputEvent) {
+    console.dir(event);
+  }
+
+  vendorSelected(event: MatAutocompleteSelectedEvent) {
+    const id = event.option.value;
+    const vendor = this.vendors.find(v => v.id == id);
+    const selectedAllVendorsIndex = this.selectedVendors.findIndex(sv => sv.id === -1);
+
+    if (vendor) {
+      // handle interacting with "All Campaigns" being selected or it being in the list when user selected
+      // a difference one
+      if (vendor.id === -1) {
+        this.selectedVendors = [];
+      } else if (selectedAllVendorsIndex > -1) {
+        this.selectedVendors.splice(selectedAllVendorsIndex, 1);
+      }
+
+      this.selectedVendors.push(vendor);
+      this.vendorInput.nativeElement.value = '';
+      this.vendorInput.nativeElement.blur();
+      this.vendorControl.setValue(null, { emitEvent: false });
+    }
+
+    this._setFilteredVendors();
+    this._setVendorsErrorState();
+    this.searchForPaystubs().subscribe();
+  }
+
+  private _setFilteredVendors(): void {
+    this.filteredVendors = this.vendors.filter(v => !this.selectedVendors.find(sv => sv.id === v.id));
+  }
+
+  removeVendor(vendor: Vendor) {
+    const index = this.selectedVendors.indexOf(vendor);
+    if (index > -1) {
+      this.selectedVendors.splice(index, 1);
+      this.vendorControl.updateValueAndValidity();
+    }
+
+    this._setFilteredVendors();
+    this._setVendorsErrorState();
+  }
+
+  private _setVendorsErrorState() {
+    this.vendorList.errorState = this.selectedVendors.length < 1;
+    this.vendorControl.setErrors(this.vendorList.errorState ? {required: true} : null);
+  }
+
+  addAgent(event: MatChipInputEvent) {
+
+  }
+
+  agentSelected(event: MatAutocompleteSelectedEvent) {
+    const id = event.option.value;
+    const agent = this.employees.find(a => a.id == id);
+    const selectedAllAgentsIndex = this.selectedAgents.findIndex(sa => sa.id === -1);
+
+    if (agent) {
+      // handle interacting with "All Agents" being selected or it being in the list when user selected
+      // a different agent
+      if (agent.id === -1) {
+        this.selectedAgents = [];
+      } else if (selectedAllAgentsIndex > -1) {
+        this.selectedAgents.splice(selectedAllAgentsIndex, 1);
+      }
+
+      this.selectedAgents.push(agent);
+      this.agentInput.nativeElement.value = '';
+      this.agentInput.nativeElement.blur();
+      this.agentControl.setValue(null, { emitEvent: false });
+    }
+
+    this._setFilteredAgents();
+    this._setAgentsErrorState();
+    this.searchForPaystubs().subscribe();
+  }
+
+  removeAgent(agent: Agent) {
+    const index = this.selectedAgents.indexOf(agent);
+
+    if (index > -1) {
+      this.selectedAgents.splice(index, 1);
+      this.agentControl.updateValueAndValidity();
+    }
+
+    this._setFilteredAgents();
+    this._setAgentsErrorState();
+  }
+
+  private _setFilteredAgents() {
+    this.filteredAgents = this.employees.filter(e => !this.selectedAgents.find(sa => sa.id === e.id));
+  }
+
+  private _setAgentsErrorState() {
+    this.agentList.errorState = this.selectedAgents.length < 1;
+    this.agentControl.setErrors(this.agentList.errorState ? {required: true} : null);
+  }
+
+  //#endregion
 
   sortPaystubs(event: { active: string; direction: "asc" | "desc" }) {
     let sorted;
@@ -324,48 +479,23 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
   private createForm(): FormGroup {
     return this.fb.group({
-      date: this.fb.control(this.issueDates ? this.issueDates[0] : "", [
-        (control: FormControl) => {
-          const selectedDate = moment(control.value);
-          let isValidDate = false;
-          if (!this.issueDates) return null;
-
-          this.issueDates.forEach((id) => {
-            if (isValidDate) return;
-            const testDate = moment(id, "YYYY-MM-DD");
-
-            isValidDate = selectedDate.isSame(testDate, "d");
-          });
-
-          if (!isValidDate) return { invalidDate: true };
-
-          return null;
-        },
-      ]),
+      // NEW CONTROLS
       range: this.fb.group({
-        start: this.fb.control('', []),
-        end: this.fb.control('', []),
+        start: this.fb.control("", [Validators.required]),
+        end: this.fb.control("", [Validators.required]),
       }),
-      campaign: this.fb.control(""),
-      agent: this.fb.control(""),
+      vendorSearch: this.fb.control(''),
+      agentSearch: this.fb.control(''),
     });
   }
 
   private buildSearchRequest(): SearchPaystubsRequest {
     const request = {} as SearchPaystubsRequest;
     const form = this.f.value;
-    request.employees = [-1];
-    request.vendors = [-1];
+    request.employees = this.selectedAgents.map(a => a.id);
+    request.vendors = this.selectedVendors.map(v => v.id);
     request.startDate = form.range.start.toISOString();
     request.endDate = form.range.end.toISOString();
     return request;
-  }
-
-  private prepareModel(): SearchPaystubs {
-    const result = {} as SearchPaystubs;
-    result.date = this.f.value.date;
-    result.campaignId = this.f.value.campaign.id;
-    result.agentId = this.f.value.agent.id;
-    return result;
   }
 }

@@ -20,6 +20,7 @@ use App\Services\SessionUtil;
 use App\Vendor;
 use Carbon\Carbon;
 use DateTime;
+use DateTimeZone;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
@@ -163,8 +164,8 @@ class PayrollController extends Controller
 			}
 		}
 
-		$start_date = Carbon::createFromFormat(DateTime::ATOM, $request->input('startDate'));
-		$end_date = Carbon::createFromFormat(DateTime::ATOM, $request->input('endDate'));
+		$start_date = Carbon::parse($request->input('startDate'));
+		$end_date = Carbon::parse($request->input('endDate'));
 
 		if (!$start_date->isValid() || !$end_date->isValid())
 		{
@@ -173,9 +174,9 @@ class PayrollController extends Controller
 		}
 
 		$issue_dates = Paystub::betweenDates($start_date, $end_date)
-		                        ->pluck('issue_date')
-								->distinct()
-								->get();
+								->distinct('issue_date')
+								->get()
+								->pluck('issue_date');
 
 		$accessible_issue_dates = [];
 		foreach ($issue_dates as $issue_date)
@@ -204,8 +205,10 @@ class PayrollController extends Controller
 			{
 				$result->setData(
 					$qry->byAgentIds($employee_ids)
+						->orderBy('vendor_name')
 						->orderBy('agent_name')
-						->get()
+						->get(),
+					false
 				);
 			}
 			else
@@ -243,9 +246,10 @@ class PayrollController extends Controller
 			$qry = $qry->byAgentIds($employee_ids);
 		}
 
-		$paystubs = $qry->orderBy('agent_name')->get();
+		$paystubs = $qry->orderBy('vendor_name')
+			->orderBy('agent_name')->get();
 
-		return $result->setData($paystubs)->getResponse();
+		return $result->setData($paystubs, false)->getResponse();
 	}
 
 	/**

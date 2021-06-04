@@ -8,22 +8,101 @@
         </div>
         <mat-card-title>Paystubs</mat-card-title>
         <mat-card-subtitle>
-          <mat-form-field appearance="outline" hideRequiredMarker="true">
-            <mat-label>Select a Date Range</mat-label>
-            <mat-date-range-input formGroupName="range" [rangePicker]="rangePicker">
-              <input matStartDate formControlName="start" placeholder="Start Date" />
-              <input matEndDate formControlName="end" placeholder="End Date" />
-            </mat-date-range-input>
-            <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
-            <mat-date-range-picker [dateClass]="dateClass" #rangePicker></mat-date-range-picker>
+          <div class="row">
+            <div class="col-md-12">
+              <mat-form-field appearance="outline" hideRequiredMarker="true">
+                <mat-label>Select a Date Range</mat-label>
+                <mat-date-range-input formGroupName="range" [rangePicker]="rangePicker">
+                  <input matStartDate formControlName="start" placeholder="Start Date">
+                  <input matEndDate formControlName="end" placeholder="End Date">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+                <mat-date-range-picker [dateClass]="dateClass" #rangePicker>
+                  <mat-date-range-picker-actions>
+                    <button mat-button matDateRangePickerCancel>Cancel</button>
+                    <button mat-raised-button color="primary" matDateRangePickerApply>Apply</button>
+                  </mat-date-range-picker-actions>
+                </mat-date-range-picker>
 
-            <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
-            <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
-          </mat-form-field>
+                <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+                <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
+              </mat-form-field>
+
+              <ng-container *ngIf="showTools">
+                <button type="button" mat-raised-button [mat-menu-trigger-for]="menu" color="primary">
+                  <mat-icon>menu</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="sendPaytubNotifications()">
+                    <mat-icon>send</mat-icon>
+                    <span>Send Paystubs</span>
+                  </button>
+                </mat-menu>
+              </ng-container>
+            </div>
+
+            <div class="col-md-12 d-flex">
+              <mat-form-field appearance="outline" hideRequiredMarker="true" class="wp-100">
+                <mat-label>Campaign(s)</mat-label>
+                <mat-chip-list #campaignList aria-label="Campaign selection">
+                  <mat-chip *ngFor="let v of selectedVendors"
+                    [removable]="v?.id > -1"
+                    (removed)="removeVendor(v)"
+                  >
+                    {{v.name}}
+                    <mat-icon matChipRemove *ngIf="v?.id > -1">cancel</mat-icon>
+                  </mat-chip>
+                  <input type="text" placeholder="New campaign..." #vendorInput
+                    formControlName="vendorSearch"
+                    [matAutocomplete]="vendorAuto"
+                    [matChipInputFor]="campaignList"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    (matChipInputTokenEnd)="addVendor($event)">
+                </mat-chip-list>
+                <mat-autocomplete #vendorAuto="matAutocomplete" (optionSelected)="vendorSelected($event)">
+                  <mat-option *ngFor="let v of filteredVendors" [value]="v?.id">
+                    {{v?.name}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="vendorControl.hasError('required')">
+                  Please select a campaign
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="col-md-12 d-flex">
+              <mat-form-field appearance="outline" hideRequiredMarker="true" class="wp-100">
+                <mat-label>Agent(s)</mat-label>
+                <mat-chip-list #agentList aria-label="Agent selection">
+                  <mat-chip *ngFor="let a of selectedAgents"
+                    [removable]="a?.id > -1"
+                    (removed)="removeAgent(a)"
+                  >
+                    {{a?.name}}
+                    <mat-icon matChipRemove *ngIf="a?.id > -1">cancel</mat-icon>
+                  </mat-chip>
+                  <input type="text" placeholder="New agent..." #agentInput
+                    formControlName="agentSearch"
+                    [matAutocomplete]="agentAuto"
+                    [matChipInputFor]="agentList"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    (matChipInputTokenEnd)="addAgent($event)">
+                </mat-chip-list>
+                <mat-autocomplete #agentAuto="matAutocomplete" (optionSelected)="agentSelected($event)">
+                  <mat-option *ngFor="let a of filteredAgents" [value]="a?.id">
+                    {{a?.name}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="agentControl.hasError('required')">
+                  Please select an agent
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
 
           <!-- <div class="row">
                         <div class="col-xs-3"> -->
-          <mat-form-field appearance="outline" hideRequiredMarker="true">
+          <!-- <mat-form-field appearance="outline" hideRequiredMarker="true">
             <mat-label>Dates</mat-label>
             <input type="text" matInput formControlName="date" [matAutocomplete]="dateAuto" required />
             <mat-autocomplete #dateAuto="matAutocomplete" [displayWith]="displayDate" autoActiveFirstOption>
@@ -34,11 +113,11 @@
             <mat-error>
               Please select a valid date.
             </mat-error>
-          </mat-form-field>
+          </mat-form-field> -->
           <!-- </div>
 
                         <div class="col-xs-3"> -->
-          <mat-form-field appearance="outline">
+          <!-- <mat-form-field appearance="outline">
             <mat-label>Campaigns</mat-label>
             <input type="text" matInput formControlName="campaign" [matAutocomplete]="campaignAuto" />
             <mat-autocomplete #campaignAuto="matAutocomplete" [displayWith]="displayCampaign" autoActiveFirstOption>
@@ -46,11 +125,11 @@
                 {{ campaign.name }}
               </mat-option>
             </mat-autocomplete>
-          </mat-form-field>
+          </mat-form-field> -->
           <!-- </div>
 
                         <div class="col-xs-3"> -->
-          <mat-form-field appearance="outline">
+          <!-- <mat-form-field appearance="outline">
             <mat-label>Agents</mat-label>
             <input type="text" matInput formControlName="agent" [matAutocomplete]="agentAuto" />
             <mat-autocomplete #agentAuto="matAutocomplete" [displayWith]="displayAgent" autoActiveFirstOption>
@@ -58,7 +137,7 @@
                 {{ a.name }}
               </mat-option>
             </mat-autocomplete>
-          </mat-form-field>
+          </mat-form-field> -->
           <!-- </div>
 
                         <div class="col-xs-3" style="padding: 8px;"> -->
@@ -67,17 +146,7 @@
             <span>Search</span>
           </button> -->
 
-          <ng-container *ngIf="showTools">
-            <button type="button" mat-raised-button [mat-menu-trigger-for]="menu" color="primary">
-              <mat-icon>menu</mat-icon>
-            </button>
-            <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="sendPaytubNotifications()">
-                <mat-icon>send</mat-icon>
-                <span>Send Paystubs</span>
-              </button>
-            </mat-menu>
-          </ng-container>
+
           <!-- </div>
                     </div> -->
         </mat-card-subtitle>

@@ -79,18 +79,24 @@ class OpResult
 	 * as JsonResponse.
 	 *
 	 * @param $value
+	 * @param bool $with_status Updates the OpResult success status by default
 	 *
 	 * @return $this
 	 */
-	public function setData($value): OpResult
+	public function setData($value, bool $with_status = true): OpResult
     {
         $this->data = $this->utilities->encodeJson($value);
 
-        if ($this->data != null)
+        if ($with_status)
         {
-            return $this->setToSuccess();
+	        if ($this->data != null)
+	        {
+		        return $this->setToSuccess();
+	        }
+	        return $this->setToFail();
         }
-        return $this->setToFail();
+
+	    return $this;
     }
 
 	/**
