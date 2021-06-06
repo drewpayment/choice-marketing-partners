@@ -30,7 +30,6 @@ jobs:
                 with:
                   user: drewpayment
                   host: choice-marketing-partners.com
-                  port: 22
                   path: /home/drewpayment/choice-marketing-partners.com
                   owner: drewpayment
                 env:
