@@ -19,8 +19,8 @@ jobs:
                 uses: actions/setup-node@v1
                 with:
                   node-version: '14.x'
-            -   name: Speed up the packages installation process
-                run: composer global require hirak/prestissimo
+            # -   name: Speed up the packages installation process
+            #     run: composer global require hirak/prestissimo
             -   name: Install Packages
                 run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
             -   name: Build Angular
