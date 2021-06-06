@@ -1,11 +1,10 @@
 <?php
-// require_once __DIR__ . '/vendor/autoload.php';
 
 namespace App\Plugins;
 
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
-class PDFServiceProvider extends IlluminateServiceProvider
+class PdfServiceProvider extends IlluminateServiceProvider
 {
     protected $defer = false;
 

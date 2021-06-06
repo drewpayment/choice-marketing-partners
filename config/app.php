@@ -163,7 +163,7 @@ $results = [
         Conner\Tagging\Providers\TaggingServiceProvider::class,
         App\Http\View\Composers\ViewServiceProvider::class,
         App\Providers\JsonResponseServiceProvider::class,
-        App\Plugins\PDFServiceProvider::class,
+        App\Plugins\PdfServiceProvider::class,
 	    // Meneses\LaravelMpdf\LaravelMpdfServiceProvider::class,
         App\Http\View\Composers\ViewServiceProvider::class,
         Sentry\Laravel\ServiceProvider::class,
