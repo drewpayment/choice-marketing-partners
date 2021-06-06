@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout Repository
-                uses: actions/checkout@release
+                uses: actions/checkout@v2
             -   name: Setup Enviroment
                 uses: shivammathur/setup-php@v2
                 with:
