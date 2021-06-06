@@ -1,0 +1,37 @@
+name: Build and Deploy
+on:
+    push:
+        branches:
+            -   release
+
+jobs:
+    build:
+        name: Build and Deploy
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@release
+            -   name: Setup Enviroment
+                uses: shivammathur/setup-php@v2
+                with:
+                  php-version: '7.4'
+            -   name: Use Node 14.x
+                uses: actions/setup-node@v1
+                with:
+                  node-version: '14.x'
+            -   name: Speed up the packages installation process
+                run: composer global require hirak/prestissimo
+            -   name: Install Packages
+                run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            -   name: Build Angular
+                run: npm --prefix ./cmp run deploy:ci
+            -   name: Deploy to Server
+                uses: ngocquyhoang/deploy@laravel
+                with:
+                  user: drewpayment
+                  host: choice-marketing-partners.com
+                  port: 22
+                  path: /home/drewpayment/choice-marketing-partners.com
+                  owner: drewpayment
+                env:
+                  DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}

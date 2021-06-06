@@ -8,8 +8,10 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "prod": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng build --prod --extract-css=false",
-    "postinstall": "ngcc"
+    "prod": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng build --prod",
+    "build:prod": "./node_modules/@angular/cli/bin/ng build --prod",
+    "deploy:ci": "npm install && npm run build:prod",
+    "postinstall": "ngcc --tsconfig './tsconfig.app.json'"
   },
   "private": true,
   "dependencies": {
@@ -48,6 +50,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "^4.0.1",
     "karma-jasmine-html-reporter": "^1.5.0",
+    "postcss": "^8.2.15",
     "protractor": "~7.0.0",
     "ts-node": "~10.0.0",
     "tslint": "~6.1.3",
