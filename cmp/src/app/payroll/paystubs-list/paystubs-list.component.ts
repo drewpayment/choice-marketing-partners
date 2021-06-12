@@ -43,11 +43,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
 import { SettingsService } from "src/app/settings/settings.service";
 import { NotificationsService } from "src/app/services/notifications.service";
-import { MatCalendarCellClassFunction } from "@angular/material/datepicker";
+import { MatCalendarCellClassFunction, MatEndDate, MatStartDate } from "@angular/material/datepicker";
 import { PaystubsService } from "../../services/paystubs.service";
 import { COMMA, ENTER } from "@angular/cdk/keycodes";
 import { MatChipInputEvent, MatChipList } from "@angular/material/chips";
 import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
+import { coerceNumberProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: "cp-paystubs-list",
@@ -122,6 +123,12 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     return this.f.get('agentSearch') as FormControl;
   }
 
+  get grossPayroll(): number {
+    return this._paystubs != null
+      ? this._paystubs.slice().map(p => coerceNumberProperty(p.amount)).reduce((acc, val) => acc + val)
+      : 0;
+  }
+
   //#region Constructors
   constructor(
     private ref: ElementRef,
@@ -162,16 +169,17 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     this._setFilteredVendors();
     this._setFilteredAgents();
 
-    // this.vendorControl.valueChanges.pipe(
-    //   takeUntil(this.destroy$),
-    //   startWith(null),
-    //   map((search: string | null) => search ? this._filterVendors(search) : this.searchVendors.slice()),
-    // ).subscribe(vendors => this.filteredVendors$.next(vendors));
+    this.vendorControl.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      startWith(''),
+      map(search => search ? this._filterVendors(search) : this.vendors.slice()),
+    ).subscribe(vendors => this.filteredVendors = vendors);
 
-    // this.filteredAgents$ = this.agentControl.valueChanges.pipe(
-    //   startWith(null),
-    //   map((search: string | null) => search ? this._filterAgents(search) : this.searchEmployees.slice()),
-    // );
+    this.agentControl.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      startWith(''),
+      map(search => search ? this._filterAgents(search) : this.employees.slice()),
+    ).subscribe(agents => this.filteredAgents = agents);
   }
 
   ngOnInit(): void {
@@ -205,15 +213,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
 
     this.paystubs = this.paystubs$.asObservable();
 
-    this.range.controls.end.valueChanges
-      .pipe(
-        takeUntil(this.destroy$),
-        startWith(null),
-        filter(() => this.range.controls.start.valid &&
-          this.range.controls.end.valid),
-        switchMap(() => this.searchForPaystubs()),
-      )
-      .subscribe();
+    this.searchForPaystubs().subscribe();
   }
 
   ngOnDestroy() {
@@ -281,6 +281,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
         tap(paystubs => {
           this._paystubs = paystubs;
 
+
           // if (this._paystubs && this._paystubs.length) {
           //   this._paystubs = this._paystubs.sort((a, b) =>
           //     a.agentName < b.agentName ? -1 : a.agentName > b.agentName ? 1 : 0
@@ -293,6 +294,10 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
           }, 500);
         }),
       );
+  }
+
+  dateRangeChange(start: MatStartDate<moment.Moment>, end: MatEndDate<moment.Moment>) {
+    this.searchForPaystubs().subscribe();
   }
 
   //#region Vendor and Agent Search Filters

@@ -305,6 +305,7 @@ class InvoiceController extends Controller
             }
             else 
             {
+            	$sale['invoice_id'] = null;
                 $sale_model = Invoice::create($sale);
             }
         }

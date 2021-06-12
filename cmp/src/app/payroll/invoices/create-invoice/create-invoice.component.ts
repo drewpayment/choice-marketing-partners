@@ -237,8 +237,8 @@ export class CreateInvoiceComponent implements OnInit {
 
     const fv = this.f.getRawValue();
 
-    const dto: InvoiceSaveRequest = {
-      vendorId: fv.vendor,
+    const dto = {
+      vendorId: fv.vendor || null,
       agentId: fv.agent,
       issueDate: moment(fv.issueDate, "MM-DD-YYYY").format("YYYY-MM-DD"),
       weekending: moment(fv.weekending).format("YYYY-MM-DD"),
@@ -246,7 +246,7 @@ export class CreateInvoiceComponent implements OnInit {
       overrides: fv.overrides,
       expenses: fv.expenses,
       pendingDeletes: this.pendingDeletes,
-    };
+    } as InvoiceSaveRequest;
 
     this.invoiceService.saveInvoice(dto).subscribe(
       (result) => {

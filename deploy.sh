@@ -13,11 +13,13 @@ fi
 # Build angular assets
 npm --prefix ./cmp run deploy:ci
 
-SSH_USER=drewpayment
+SSH_USER=root
 SSH_HOST=choice-marketing-partners.com
-PATH_SOURCE=/home/drewpayment/test
-SSH_KEY_PATH=/Users/drewpayment/.ssh/gh_id_rsa
+PATH_SOURCE=/home/forge/choice-marketing-partners.com
+SSH_KEY_PATH=/Users/drewpayment/.ssh/id_ecdsa
 OWNER=forge
+
+ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "rm -rf $PATH_SOURCE/public/dist/cmp"
 
 rsync --progress -avzh --rsh=ssh \
   --exclude='**.git**' \
@@ -39,7 +41,7 @@ rsync --progress -avzh --rsh=ssh \
   --exclude='deploy.sh' \
   --exclude='**.github**' \
   -e "ssh -i $SSH_KEY_PATH" \
-  --rsync-path='/usr/bin/rsync' . $SSH_USER@$SSH_HOST:$PATH_SOURCE
+  --rsync-path='sudo /usr/bin/rsync' . $SSH_USER@$SSH_HOST:$PATH_SOURCE
   
   if [ $? -eq 0 ]
   then
@@ -52,9 +54,9 @@ rsync --progress -avzh --rsh=ssh \
     # echo $'\n' "------ RELOADING PERMISSIONS ---------------" $'\n'
     
     # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chown -R $OWNER:$OWNER $PATH_SOURCE"
-    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 775 -R $OWNER:$OWNER $PATH_SOURCE"
-    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 777 -R $OWNER:$OWNER $PATH_SOURCE/storage"
-    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 777 -R $OWNER:$OWNER $PATH_SOURCE/public"
+    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 775 -R $PATH_SOURCE"
+    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 777 -R $PATH_SOURCE/storage"
+    # ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "sudo chmod 777 -R $PATH_SOURCE/public"
     
     echo $'\n' "------ DEPLOYED SUCCESSFULLY! --------------" $'\n'
     exit 0
