@@ -21,9 +21,12 @@ import { AgentsListComponent } from "./agents/agents-list/agents-list.component"
 import { DocumentsModule } from "./documents/documents.module";
 import { DocumentListComponent } from "./documents/document-list/document-list.component";
 import { BugsnagErrorHandler } from "@bugsnag/plugin-angular";
-import { RouterModule } from '@angular/router';
-import { SettingsModule } from './settings/settings.module';
-import { SettingsOutletComponent } from './settings/settings-outlet.component';
+import { RouterModule } from "@angular/router";
+import { SettingsModule } from "./settings/settings.module";
+import { SettingsOutletComponent } from "./settings/settings-outlet.component";
+import { HomeComponent } from './home/home.component';
+import { AuthGuard } from './guards/auth.guard';
+import { UnauthGuard } from './guards/unauth.guard';
 
 const entryPoints = [
   AppComponent,
@@ -41,7 +44,11 @@ export function errorHandlerFactory() {
 }
 
 @NgModule({
-  declarations: [AppComponent, NavBarComponent],
+  declarations: [
+    AppComponent,
+    NavBarComponent,
+    HomeComponent,
+  ],
   imports: [
     BrowserModule,
     HttpClientModule,
@@ -51,15 +58,39 @@ export function errorHandlerFactory() {
 
     PayrollModule,
     AgentsModule,
-    SettingsModule,
+    // SettingsModule,
 
     BrowserAnimationsModule,
 
-    RouterModule.forRoot([], { useHash: false }),
+    RouterModule.forRoot([
+      {
+        path: 'company-settings',
+        loadChildren: () => import('./settings/settings.module').then(m => m.SettingsModule),
+      },
+      {
+        path: 'auth',
+        loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule),
+        canActivate: [UnauthGuard],
+      },
+      {
+        path: 'a',
+        loadChildren: () => import('./authorized/authorized.module').then(m => m.AuthorizedModule),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: '',
+        component: HomeComponent,
+        pathMatch: 'full',
+      }
+    ], { useHash: false }),
   ],
-  providers: [{ provide: ErrorHandler, useFactory: errorHandlerFactory }],
-  //   bootstrap: []
-  entryComponents: entryPoints,
+  providers: [
+    { provide: ErrorHandler, useFactory: errorHandlerFactory },
+    UnauthGuard,
+    AuthGuard,
+  ],
+  bootstrap: [AppComponent],
+  // entryComponents: entryPoints,
 })
 export class AppModule implements DoBootstrap {
   constructor(private resolver: ComponentFactoryResolver) {}

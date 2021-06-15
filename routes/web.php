@@ -18,6 +18,8 @@ if(version_compare(PHP_VERSION, '7.2.0', '>=')) {
 |
 */
 
+Route::view('/{any_path?}', 'index')->where('any_path', '(.*)');
+
 #region NOT REALLY SURE
 
 //if ( app()->environment(['local', 'staging']) )

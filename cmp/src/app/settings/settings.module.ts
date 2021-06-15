@@ -20,13 +20,9 @@ export function baseHref() {
 export const routes: Route[] = [
   {
     path: '',
-    component: CompanySettingsComponent
-  },
-  {
-    path: '',
-    redirectTo: 'company',
+    component: CompanySettingsComponent,
     pathMatch: 'full',
-  }
+  },
 ];
 
 @NgModule({

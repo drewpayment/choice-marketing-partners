@@ -1,0 +1,40 @@
+
+<div class="container d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
+  <div class="col-auto d-flex justify-content-center">
+    <mat-card class="login-card">
+      <img mat-card-image src="dist/cmp/assets/lock.jpg" class="p-5" alt="vecteezy.com">
+      <mat-card-content class="d-flex flex-column">
+        <ng-container [formGroup]="f">
+          <mat-form-field>
+            <mat-label>Username</mat-label>
+            <input matInput type="text" formControlName="username">
+            <mat-error *ngIf="username?.hasError('required')">
+              Username is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password">
+            <mat-error *ngIf="password?.hasError('required')">
+              Password is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-checkbox formControlName="rememberMe">Keep me logged in</mat-checkbox>
+        </ng-container>
+      </mat-card-content>
+
+      <mat-card-actions class="d-flex justify-content-between">
+        <a class="fs-5 link-secondary d-flex align-items-center" routerLink="help">
+          Trouble logging in?
+        </a>
+
+        <div>
+          <button mat-button (click)="goBack()">Cancel</button>
+          <button mat-raised-button color="primary" (click)="signIn()">Submit</button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
