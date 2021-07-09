@@ -37,38 +37,38 @@ use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 class PayrollController extends Controller
 {
 	protected $session;
-    protected $issueDates = [];
-    protected $vendors = [];
-    protected $limit;
-    protected $utilities;
+	protected $issueDates = [];
+	protected $vendors = [];
+	protected $limit;
+	protected $utilities;
 	protected $invoiceHelper;
 	protected $invoiceService;
 	protected $paystubService;
 
-    public function __construct(
-    	SessionUtil $_session,
-	    InvoiceHelper $_invoiceHelper,
-	    InvoiceService $_invoiceService,
-	    PaystubService $_paystubService
-    ) {
-    	$this->session = $_session;
-    	$this->invoiceHelper = $_invoiceHelper;
-    	$this->invoiceService = $_invoiceService;
-    	$this->utilities = new Utilities();
-    	$this->paystubService = $_paystubService;
-    }
+	public function __construct(
+		SessionUtil $_session,
+		InvoiceHelper $_invoiceHelper,
+		InvoiceService $_invoiceService,
+		PaystubService $_paystubService
+	) {
+		$this->session = $_session;
+		$this->invoiceHelper = $_invoiceHelper;
+		$this->invoiceService = $_invoiceService;
+		$this->utilities = new Utilities();
+		$this->paystubService = $_paystubService;
+	}
 
-    #region WEB METHODS
+	#region WEB METHODS
 
-    public function payrollDispute()
-    {
-        return view('emails.dispute');
-    }
+	public function payrollDispute()
+	{
+		return view('emails.dispute');
+	}
 
-    public function confirmDeletePaystub()
-    {
-        return view('invoices.deletemodal');
-    }
+	public function confirmDeletePaystub()
+	{
+		return view('invoices.deletemodal');
+	}
 
 	/**
 	 * URL: /payroll
@@ -78,31 +78,30 @@ class PayrollController extends Controller
 	 *
 	 * @return Application|RedirectResponse|Redirector|View
 	 */
-    public function viewPayrollList()
-    {
-	    if (!Auth::check())
-	    {
-	    	return redirect('/login');
-	    }
+	public function viewPayrollList()
+	{
+		if (!Auth::check()) {
+			return redirect('/login');
+		}
 
-        $sessionUser = Auth::user()->employee;
-		$isAdmin = ($sessionUser->is_admin == 1);
-		$isManager = ($sessionUser->is_mgr == 1);
+		$sessionUser = Auth::user()->employee;
+		
+		if ($sessionUser == null) return redirect('/');
+		
+		$isAdmin = $sessionUser != null && ($sessionUser->is_admin == 1);
+		$isManager = $sessionUser != null && ($sessionUser->is_mgr == 1);
 
 		$role = RoleType::Employee;
-		if ($isAdmin)
-		{
+		if ($isAdmin) {
 			$role = RoleType::Admin;
-		}
-		else if ($isManager)
-		{
+		} else if ($isManager) {
 			$role = RoleType::Manager;
 		}
 
 		$this->issueDates = Paystub::latest('issue_date')
-		                           ->get()
-		                           ->unique('issue_date')
-		                           ->pluck('issue_date');
+			->get()
+			->unique('issue_date')
+			->pluck('issue_date');
 
 		$this->vendors = Vendor::active()->get();
 		$vendorDictionary = Vendor::all();
@@ -112,19 +111,19 @@ class PayrollController extends Controller
 		$agents = $this->getEmployeesByRole($role, $sessionUser->id);
 
 		$data =
-		[
-			'isAdmin' => $isAdmin,
-			'isManager' => $isManager,
-			'emps' => $this->encode($agents),
-			'issueDates' => $this->encode($this->issueDates),
-			'vendors' => $this->encode($this->vendors),
-			'vendorDictionary' => $this->encode($vendorDictionary)
-		];
+			[
+				'isAdmin' => $isAdmin,
+				'isManager' => $isManager,
+				'emps' => $this->encode($agents),
+				'issueDates' => $this->encode($this->issueDates),
+				'vendors' => $this->encode($this->vendors),
+				'vendorDictionary' => $this->encode($vendorDictionary)
+			];
 
 		return view('paystubs.paystubs', $data);
-    }
+	}
 
-    #endregion
+	#endregion
 
 	#region API METHODS
 
@@ -142,8 +141,7 @@ class PayrollController extends Controller
 	{
 		$result = new OpResult();
 
-		if (!Auth::check())
-		{
+		if (!Auth::check()) {
 			return redirect('/login');
 		}
 
@@ -152,14 +150,17 @@ class PayrollController extends Controller
 		$is_admin = $my_employee->is_admin == 1;
 		$is_manager = !$is_admin && $my_employee->is_mgr == 1;
 		$vendors = $request->input('vendors');
-
-		foreach ($employee_ids as $employee_id)
+		
+		if (!$is_admin && !$is_manager) 
 		{
+			$employee_ids = [$my_employee->id];	
+		}
+
+		foreach ($employee_ids as $employee_id) {
 			$this->invoiceHelper->hasAccessToEmployee($my_employee, $employee_id)
 				->mergeInto($result);
 
-			if ($result->hasError())
-			{
+			if ($result->hasError()) {
 				return $result->getResponse();
 			}
 		}
@@ -167,31 +168,26 @@ class PayrollController extends Controller
 		$start_date = Carbon::parse($request->input('startDate'));
 		$end_date = Carbon::parse($request->input('endDate'));
 
-		if (!$start_date->isValid() || !$end_date->isValid())
-		{
+		if (!$start_date->isValid() || !$end_date->isValid()) {
 			return $result->setToFail('Invalid dates')
 				->getResponse();
 		}
 
 		$issue_dates = Paystub::betweenDates($start_date, $end_date)
-								->distinct('issue_date')
-								->get()
-								->pluck('issue_date');
+			->distinct('issue_date')
+			->get()
+			->pluck('issue_date');
 
 		$accessible_issue_dates = [];
-		foreach ($issue_dates as $issue_date)
-		{
+		foreach ($issue_dates as $issue_date) {
 			$issue_date_result = new OpResult();
 
 			$this->paystubService->checkAccessToIssueDate($my_employee->id, $issue_date)
 				->mergeInto($issue_date_result);
 
-			if ($issue_date_result->hasError())
-			{
+			if ($issue_date_result->hasError()) {
 				continue;
-			}
-			else
-			{
+			} else {
 				$accessible_issue_dates[] = $issue_date;
 			}
 		}
@@ -199,10 +195,8 @@ class PayrollController extends Controller
 		$qry = Paystub::byVendorIds($vendors)
 			->byIssueDates($accessible_issue_dates);
 
-		if (in_array(-1, $employee_ids))
-		{
-			if ($is_admin)
-			{
+		if (in_array(-1, $employee_ids)) {
+			if ($is_admin) {
 				$result->setData(
 					$qry->byAgentIds($employee_ids)
 						->orderBy('vendor_name')
@@ -210,23 +204,17 @@ class PayrollController extends Controller
 						->get(),
 					false
 				);
-			}
-			else
-			{
+			} else {
 				$accessible_employee_ids = $my_employee->permissions()->active()->get()->pluck('emp_id')->all();
 
-				if (count($accessible_employee_ids) > 0)
-				{
+				if (count($accessible_employee_ids) > 0) {
 					$employees_result = [];
 					$employees_result[] = $my_employee;
 					$accessible_employees = Employee::agentId($accessible_employee_ids)->get();
 
-					if ($accessible_employees->count() > 1)
-					{
+					if ($accessible_employees->count() > 1) {
 						$employees_result = array_merge($employees_result, $accessible_employees->toArray());
-					}
-					else
-					{
+					} else {
 						$employees_result[] = $accessible_employees->first();
 					}
 
@@ -234,15 +222,11 @@ class PayrollController extends Controller
 					$emp_ids = $employees_result->pluck('id')->all();
 
 					$qry = $qry->byAgentIds($emp_ids);
-				}
-				else
-				{
+				} else {
 					$qry = $qry->agentId($my_employee->id);
 				}
 			}
-		}
-		else
-		{
+		} else {
 			$qry = $qry->byAgentIds($employee_ids);
 		}
 
@@ -264,7 +248,8 @@ class PayrollController extends Controller
 	 *
 	 * @return JsonResponse
 	 */
-	public function getPaystubs(Request $request, $employeeId, $vendorId, $issueDate): JsonResponse {
+	public function getPaystubs(Request $request, $employeeId, $vendorId, $issueDate): JsonResponse
+	{
 		$result = new OpResult();
 
 		$user = $request->user()->employee;
@@ -284,8 +269,7 @@ class PayrollController extends Controller
 
 		$data = $this->invoiceHelper->searchPaystubData($args);
 
-		if (!is_null($data))
-		{
+		if (!is_null($data)) {
 			$result->setDataOnSuccess($data);
 		}
 
@@ -303,21 +287,20 @@ class PayrollController extends Controller
 	 *
 	 * @return View
 	 */
-	public function showPaystubDetailByPaystubId(Request $request, $employeeId, $paystubId): View {
+	public function showPaystubDetailByPaystubId(Request $request, $employeeId, $paystubId): View
+	{
 		$result = new OpResult();
 
 		$user = $request->user()->employee;
 		$this->invoiceHelper->hasAccessToEmployee($user, $employeeId)->mergeInto($result);
 
-		if ($result->hasError())
-		{
+		if ($result->hasError()) {
 			return back()->withError($result->getResponse())->withInput();
 		}
 
 		$paystub = Paystub::find($paystubId);
 
-		if (is_null($paystub))
-		{
+		if (is_null($paystub)) {
 			return back()->withError('Fatal error, please refresh the page and try again.')->withInput();
 		}
 
@@ -341,7 +324,7 @@ class PayrollController extends Controller
 	 */
 	public function getExistingInvoice($agentID, $vendorID, $issueDate): JsonResponse
 	{
-		if($vendorID < 1) return response()->json(false, 500);
+		if ($vendorID < 1) return response()->json(false, 500);
 
 		$invoices = Invoice::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
 		$overrides = Override::agentId($agentID)->vendorId($vendorID)->issueDate($issueDate)->get();
@@ -349,7 +332,7 @@ class PayrollController extends Controller
 		$employee = Employee::find($invoices->first()->agentid);
 		$campaign = Vendor::find($invoices->first()->vendor);
 
-		$invoices = $invoices->transform(function($v, $k){
+		$invoices = $invoices->transform(function ($v, $k) {
 			$date = new DateTime($v->sale_date);
 			$v->sale_date = $date->format('m-d-Y');
 			return $v;
@@ -364,13 +347,15 @@ class PayrollController extends Controller
 		$overrides = json_encode($overrides);
 		$expenses = json_encode($expenses);
 
-		return response()->json(['invoices' => $invoices,
-		                         'employee' => $employee,
-		                         'campaign' => $campaign,
-		                         'overrides' => $overrides,
-		                         'expenses' => $expenses,
-		                         'issueDate' => $issueDate,
-		                         'weekEnding' => $weekEnding]);
+		return response()->json([
+			'invoices' => $invoices,
+			'employee' => $employee,
+			'campaign' => $campaign,
+			'overrides' => $overrides,
+			'expenses' => $expenses,
+			'issueDate' => $issueDate,
+			'weekEnding' => $weekEnding
+		]);
 	}
 
 	/**
@@ -385,8 +370,7 @@ class PayrollController extends Controller
 
 		$this->session->checkUserIsAdmin()->mergeInto($result);
 
-		if ($result->hasError())
-		{
+		if ($result->hasError()) {
 			return response('You must be an admin.', 400);
 		}
 
@@ -395,8 +379,7 @@ class PayrollController extends Controller
 
 		$paystubs = Paystub::with('agent')->whereIn('id', $paystubIds)->get();
 
-		foreach ($paystubs as $p)
-		{
+		foreach ($paystubs as $p) {
 			$accessResult = $this->invoiceHelper->hasAccessToEmployee($user, $p->agent_id);
 
 			if ($accessResult->hasError()) continue;
@@ -404,8 +387,7 @@ class PayrollController extends Controller
 			$pdfResult = $this->paystubService->buildPaystubPdf($p->agent_id, $p->vendor_id, $p->issue_date);
 			$pdfData = null;
 
-			if (!$pdfResult->hasError())
-			{
+			if (!$pdfResult->hasError()) {
 				$pdfData = $pdfResult->getData()->output();
 			}
 
@@ -418,12 +400,12 @@ class PayrollController extends Controller
 
 	#endregion
 
-    #region PRIVATE METHODS
+	#region PRIVATE METHODS
 
-    private function encode($value)
-    {
-    	return json_encode($this->utilities->encodeJson($value));
-    }
+	private function encode($value)
+	{
+		return json_encode($this->utilities->encodeJson($value));
+	}
 
 	/**
 	 * @param int $roleType
@@ -433,8 +415,7 @@ class PayrollController extends Controller
 	 */
 	private function getEmployeesByRole(int $roleType, int $userId): Collection
 	{
-		switch ($roleType)
-		{
+		switch ($roleType) {
 			case RoleType::Admin:
 				return Employee::active()->hideFromPayroll()->orderByName()->get();
 			case RoleType::Manager:
@@ -459,27 +440,21 @@ class PayrollController extends Controller
 			->unique('issue_date')
 			->pluck('issue_date');
 
-		if ($this->issueDates->isNotEmpty())
-		{
+		if ($this->issueDates->isNotEmpty()) {
 			$today = Carbon::now();
 			$newIssueDates = [];
 
-			foreach($this->issueDates as $key => &$issueDate)
-			{
+			foreach ($this->issueDates as $key => &$issueDate) {
 				$dt = Carbon::createFromFormat('Y-m-d', $issueDate);
 				$nextWednesday = new Carbon('next wednesday');
 
-				if ($dt->isBefore($today))
-				{
+				if ($dt->isBefore($today)) {
 					$newIssueDates[] = $issueDate;
-				}
-				else if ($dt->isBefore($nextWednesday))
-				{
+				} else if ($dt->isBefore($nextWednesday)) {
 					$nextIssue = Carbon::createFromFormat('Y-m-d', $issueDate);
 					$releaseRestrictionTime = $nextIssue->subDay()->setTime($this->limit->hour, $this->limit->minute);
 
-					if ($today->isAfter($releaseRestrictionTime))
-					{
+					if ($today->isAfter($releaseRestrictionTime)) {
 						$newIssueDates[] = $issueDate;
 					}
 				}
@@ -507,26 +482,21 @@ class PayrollController extends Controller
 	{
 		$agents = $this->session->getUserSubordinates($userId);
 
-		if($this->issueDates->isNotEmpty())
-		{
+		if ($this->issueDates->isNotEmpty()) {
 			$today = Carbon::now()->tz('America/Detroit');
 
-			foreach($this->issueDates as $key => &$issueDate)
-			{
+			foreach ($this->issueDates as $key => &$issueDate) {
 				$issueDate = Carbon::createFromFormat('Y-m-d', $issueDate);
 				$nextWednesday = new Carbon('next wednesday');
-				if($issueDate > $nextWednesday) {
+				if ($issueDate > $nextWednesday) {
 					unset($this->issueDates[$key]);
 					// $issueDates = $issueDates->slice(1);
 					// $issueDates = array_values((array)$issueDates);
-				}
-				else
-				{
+				} else {
 					$nextIssue = Carbon::createFromFormat('Y-m-d', $this->issueDates[$key]);
 					$release = $nextIssue->subDay()->setTime($this->limit->hour, $this->limit->minute, 0);
 
-					if($today < $release)
-					{
+					if ($today < $release) {
 						unset($this->issueDates[$key]);
 						// $issueDates = $issueDates->slice(1);
 					}
@@ -539,4 +509,3 @@ class PayrollController extends Controller
 
 	#endregion
 }
-

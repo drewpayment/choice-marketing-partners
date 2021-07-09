@@ -103,7 +103,7 @@
 
         <ng-container *ngIf="(isLoading$|async) === false && (paystubs$ | async)?.length > 0; else noPaystubs">
           <div class="row">
-            <div class="col-md-12 d-flex justify-content-center align-items-center">
+            <!-- <div class="col-md-12 d-flex justify-content-center align-items-center">
               <mat-card>
                 <mat-card-header>
                   <mat-card-title>
@@ -114,7 +114,7 @@
                   </mat-card-content>
                 </mat-card-header>
               </mat-card>
-            </div>
+            </div> -->
 
             <div class="col-md-12">
               <mat-table matSort class="mat-elevation-z2" [dataSource]="paystubs"

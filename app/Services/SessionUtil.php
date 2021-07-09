@@ -66,7 +66,7 @@ class SessionUtil
         $result = new OpResult();
 
         $user = auth()->user();
-        $isAdmin = $user->employee->is_admin;
+        $isAdmin = $user->employee != null ? $user->employee->is_admin : false;
 
         if (!$isAdmin)
             return $result->setToFail('Unauthorized.');
