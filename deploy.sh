@@ -15,7 +15,7 @@ npm --prefix ./cmp run deploy:ci
 
 SSH_USER=root
 SSH_HOST=choice-marketing-partners.com
-PATH_SOURCE=/home/forge/choice-marketing-partners.com
+PATH_SOURCE=/home/drewpayment/choice-marketing-partners.com
 SSH_KEY_PATH=/Users/drewpayment/.ssh/id_ecdsa
 OWNER=forge
 

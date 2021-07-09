@@ -10,7 +10,7 @@
     "e2e": "ng e2e",
     "prod": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng build --prod",
     "build:prod": "./node_modules/@angular/cli/bin/ng build --prod",
-    "deploy:ci": "npm install && npm run build:prod",
+    "deploy:ci": "npm ci && npm run build:prod",
     "postinstall": "ngcc --tsconfig './tsconfig.app.json'"
   },
   "private": true,
