@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnDestroy } from '@angular/core';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { interval, Observable, Subject } from 'rxjs';
 import { scan, switchMap, takeUntil, takeWhile, tap } from 'rxjs/operators';
 
@@ -7,12 +8,14 @@ import { scan, switchMap, takeUntil, takeWhile, tap } from 'rxjs/operators';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'cmp';
   destroy$ = new Subject();
   scrollTo = new Subject<number>();
+  isDesktopView = false;
+  copyrightYear = new Date().getFullYear();
 
-  constructor() {
+  constructor(private bo: BreakpointObserver) {
     this.scrollTo.pipe(
       takeUntil(this.destroy$),
       switchMap(targetYPos => {
@@ -24,6 +27,18 @@ export class AppComponent implements OnDestroy {
           );
       }),
     ).subscribe();
+  }
+
+  ngOnInit() {
+    this.bo.observe([Breakpoints.Web])
+      .pipe(
+        scan((acc, curr) => {
+          this.isDesktopView = curr.matches;
+          return curr;
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
