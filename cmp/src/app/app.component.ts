@@ -12,7 +12,7 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'cmp';
   destroy$ = new Subject();
   scrollTo = new Subject<number>();
-  isDesktopView = false;
+  isMobileView = false;
   copyrightYear = new Date().getFullYear();
 
   constructor(private bo: BreakpointObserver) {
@@ -31,14 +31,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.bo.observe([Breakpoints.Web])
-      .pipe(
-        scan((acc, curr) => {
-          this.isDesktopView = curr.matches;
-          return curr;
-        }),
-        takeUntil(this.destroy$),
-      )
-      .subscribe();
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(state => {
+        this.isMobileView = !state.matches;
+      });
   }
 
   ngOnDestroy() {

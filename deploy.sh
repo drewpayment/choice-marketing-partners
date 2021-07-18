@@ -1,5 +1,31 @@
 #!/bin/zsh
 
+while getopts s:p: flag 
+do 
+  case "${flag}" in 
+    s) ssh_path=${OPTARG};;
+    p) path_source=${OPTARG};;
+  esac
+done
+
+if [ -z "$ssh_path" ] 
+then
+  ssh_path="/Users/drewpayment/.ssh/id_ecdsa";
+  echo "Using default path: $ssh_path";
+fi
+
+if [ -z "$path_source" ]
+then
+  path_source="/home/drewpayment/choice-marketing-partners.com";
+  echo "Using default deployment path: $path_source";
+fi
+
+SSH_USER=drewpayment
+SSH_HOST=choice-marketing-partners.com
+PATH_SOURCE="$path_source"
+SSH_KEY_PATH="$ssh_path"
+OWNER=forge
+
 # Uncomment to force pull from release branch regardless of when this is run
 # git pull --force origin release
 
@@ -12,12 +38,6 @@ fi
 
 # Build angular assets
 npm --prefix ./cmp run deploy:ci
-
-SSH_USER=root
-SSH_HOST=choice-marketing-partners.com
-PATH_SOURCE=/home/drewpayment/choice-marketing-partners.com
-SSH_KEY_PATH=/Users/drewpayment/.ssh/id_ecdsa
-OWNER=forge
 
 ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "rm -rf $PATH_SOURCE/public/dist/cmp"
 
