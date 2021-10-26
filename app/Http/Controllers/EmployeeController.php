@@ -487,7 +487,7 @@ class EmployeeController extends Controller
         if ($result->hasError()) 
             return $result->getResponse();
 
-        $user = User::find($request->id);
+        $user = User::byEmployeeId($request->id)->first();
 
         if ($user == null) {
             return $result->setToFail('Could not find the specified agent.')
