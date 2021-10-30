@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700">
 
     <!-- Styles -->
-    {{-- <link href="{{ elixir('css/app.css') }}" rel="stylesheet"> --}}
+    {{-- <link href="{{ url('css/app.css') }}" rel="stylesheet"> --}}
     <link rel="stylesheet" href="{{url('css/bootstrap/bootstrap.css')}}">
     <link rel="stylesheet" href="{{url('css/ionicons/ionicons.min.css')}}">
     <link rel="stylesheet" href="{{url('css/user.css')}}">

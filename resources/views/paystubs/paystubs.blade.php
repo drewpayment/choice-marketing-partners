@@ -28,6 +28,6 @@
 
 {{--@section('scripts')
 
-    <script src="{{elixir('js/views/paystubs/paystubs.js')}}"></script>
+    <script src="{{url('js/views/paystubs/paystubs.js')}}"></script>
 
 @endsection--}}

@@ -32,7 +32,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="{{url('css/app.css')}}" type="text/css">
     <link rel="stylesheet" href="{{url('css/user.css')}}">
-    <link rel="stylesheet" href="{{elixir('css/all.css')}}">
+    <link rel="stylesheet" href="{{url('css/all.css')}}">
     
     @yield('topCSS')
 
@@ -241,7 +241,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
-    <script src="{{ elixir('js/all.js') }}"></script>
+    <script src="{{ url('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
     <script src="{{url('js/jquery.webui-popover.js')}}"></script>
@@ -385,7 +385,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
     <script src="{{url('js/bootstrap-confirmation.min.js')}}"></script>
     <script src="{{url('js/config.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
-    <script src="{{ elixir('js/all.js') }}"></script>
+    <script src="{{ url('js/all.js') }}"></script>
     <!-- Latest compiled and minified Bootstrap select/option js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
     <script src="{{url('js/jquery.webui-popover.js')}}"></script>

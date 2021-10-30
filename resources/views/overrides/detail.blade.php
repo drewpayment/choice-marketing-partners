@@ -42,6 +42,6 @@
 
 @section('scripts')
     <span id="jsobject" hidden>@php echo json_encode($employees); @endphp</span>
-    <script src="{{elixir('js/views/overrides/detail.js')}}"></script>
+    <script src="{{url('js/views/overrides/detail.js')}}"></script>
 
 @endsection

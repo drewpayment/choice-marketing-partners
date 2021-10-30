@@ -54,6 +54,6 @@
 
 @section('scripts')
 
-    <script src="{{elixir('js/views/invoices/search.js')}}"></script>
+    <script src="{{url('js/views/invoices/search.js')}}"></script>
 
 @endsection
