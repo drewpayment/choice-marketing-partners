@@ -13,17 +13,18 @@ export class ZipcodeService {
   constructor(private http: HttpClient) {}
 
   getStatus(): Observable<ZipcodeStatus> {
-    const apiKey = environment.zipcode;
+    const apikey = environment.zipcode;
     const url = `${this.zipcodeApiUrl}/status`;
     return this.http.get<ZipcodeStatus>(url, {
-      headers: {
-        apiKey,
+      params: {
+        apikey,
+        country: 'US',
       }
     });
   }
 
   search(...codes: number[]): Observable<ZipcodeSearchResponse> {
-    const apiKey = environment.zipcode;
+    const apikey = environment.zipcode;
     let url = `${this.zipcodeApiUrl}/search`;
 
     const codesQueryParams = codes.map((code, i, a) => {
@@ -32,11 +33,10 @@ export class ZipcodeService {
     });
 
     return this.http.get<ZipcodeSearchResponse>(`${url}`, {
-      headers: {
-        apiKey,
-      },
       params: {
         codes: codesQueryParams,
+        apikey,
+        country: 'US',
       },
     });
   }

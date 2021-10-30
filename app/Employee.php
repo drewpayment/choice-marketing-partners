@@ -2,10 +2,11 @@
 
 namespace App;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
+use DateTimeInterface;
 
 class Employee extends Model
 {
@@ -44,18 +45,18 @@ class Employee extends Model
 	}
 
 
-	/**
-	 * Format date helper function.
-	 * @param $date
-	 * @param $format
-	 *
-	 * @return string
-	 */
-	function formatDate($date, $format)
-	{
-		$dt = Carbon::createFromFormat($format, $date);
+		/**
+		 * Format date helper function.
+		 * @param $date
+		 * @param $format
+		 *
+		 * @return string
+		 */
+		function formatDate($date, $format)
+		{
+			$dt = Carbon::parse($date);
 
-		return $dt->format('m-d-Y');
+			return $dt->format('m-d-Y');
     }
     
     public function getIsActiveAttribute()

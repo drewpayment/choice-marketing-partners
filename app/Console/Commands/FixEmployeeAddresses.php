@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Employee;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class FixEmployeeAddresses extends Command
 {
@@ -74,5 +75,13 @@ class FixEmployeeAddresses extends Command
         //         })
         //         ->update(['has_been_fixed' => true]);
         // }
+    }
+    
+    private function getZipStatus(int $zipcode)
+    {
+        $url = env('ZIPCODE_URL') . '/status';
+        $api_key = env('ZIPCODE_KEY');
+        
+        // $response = Http::get($url);
     }
 }

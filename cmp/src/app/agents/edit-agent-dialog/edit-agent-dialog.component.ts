@@ -79,17 +79,36 @@ export class EditAgentDialogComponent implements OnInit {
   }
 
   saveAgent() {
-    const agent = this.prepareModel();
+    const deferredFormValidationCheck$ = (ag: Agent) => iif(() => this.f.valid, this.service.updateAgent(ag));
+    const agent = this.f.value as Agent;
+
+    this.parseAddressFieldConversion(agent)
+      .pipe(
+        // update form with newly parsed address values
+        tap(agent => {
+          console.dir(agent);
+          this.f.patchValue({
+            address: agent.address,
+            address2: agent.address2,
+            city: agent.city,
+            state: agent.state,
+            country: agent.country,
+            postalCode: agent.postalCode,
+          });
+        }),
+        map(() => this.prepareModel()),
+        switchMap(deferredFormValidationCheck$),
+      ).subscribe((result) => this.dialogRef.close(result));
     // this doesn't work, we need to:
     // - PARSE THE ADDRESS FIRST
     // - THEN UPDATE THE ANGULAR FORM
     // -- THEN CHECK THE FORM'S VALIDITY AGAIN
-    const deferredFormValidationCheck$ = (ag: Agent) => iif(() => this.f.valid, this.service.updateAgent(ag));
+
 
     // send model to save
-    this.parseAddressFieldConversion(agent)
-      .pipe(switchMap(deferredFormValidationCheck$))
-      .subscribe((result) => this.dialogRef.close(result));
+    // this.parseAddressFieldConversion(agent)
+    //   .pipe(switchMap(deferredFormValidationCheck$))
+    //   .subscribe((result) => this.dialogRef.close(result));
   }
 
   closeDialog() {
@@ -108,24 +127,36 @@ export class EditAgentDialogComponent implements OnInit {
     const val = this.f.value;
     const result = {
       id: val && val.id ? val.id : null,
+      name: val.name,
+      phoneNo: val.phoneNo,
+      address: val.address,
+      address2: val.address2,
+      city: val.city,
+      state: typeof val.state === 'object' && val.state !== null ? val.state.StateName : val.state,
+      country: typeof val.country === 'object' && val.country !== null ? val.countryCountryName : val.country,
+      postalCode: val.postalCode,
+      isMgr: val.isManager,
+      salesId1: val.salesId1,
+      salesId2: val.salesId2,
+      salesId3: val.salesId3,
     } as Agent;
 
-    if (this.data.name != val.name) result.name = val.name;
-    if (this.data.email != val.email) result.email = val.email;
-    if (this.data.phoneNo != val.phoneNo) result.phoneNo = val.phoneNo;
-    if (this.data.address != val.address) result.address = val.address;
-    if (this.data.address2 != val.address2) result.address2 = val.address2;
-    if (this.data.city != val.city) result.city = val.city;
-    if (val.state != null && this.data.state != val.state.StateName)
-      result.state = val.state.StateName;
-    if (val.country != null && this.data.country != val.country.CountryName)
-      result.country = val.country.CountryName;
-    if (this.data.postalCode != val.postalCode)
-      result.postalCode = val.postalCode;
-    if (this.data.isMgr != val.isManager) result.isMgr = val.isManager;
-    if (this.data.salesId1 != val.id1) result.salesId1 = val.id1;
-    if (this.data.salesId2 != val.id2) result.salesId2 = val.id2;
-    if (this.data.salesId3 != val.id3) result.salesId3 = val.id3;
+    // if (this.data.name != val.name) result.name = val.name;
+    // if (this.data.email != val.email) result.email = val.email;
+    // if (this.data.phoneNo != val.phoneNo) result.phoneNo = val.phoneNo;
+    // if (this.data.address != val.address) result.address = val.address;
+    // if (this.data.address2 != val.address2) result.address2 = val.address2;
+    // if (this.data.city != val.city) result.city = val.city;
+    // if (val.state != null && this.data.state != val.state.StateName)
+    //   result.state = val.state.StateName;
+    // if (val.country != null && this.data.country != val.country.CountryName)
+    //   result.country = val.country.CountryName;
+    // if (this.data.postalCode != val.postalCode)
+    //   result.postalCode = val.postalCode;
+    // if (this.data.isMgr != val.isManager) result.isMgr = val.isManager;
+    // if (this.data.salesId1 != val.id1) result.salesId1 = val.id1;
+    // if (this.data.salesId2 != val.id2) result.salesId2 = val.id2;
+    // if (this.data.salesId3 != val.id3) result.salesId3 = val.id3;
 
     return result;
   }
@@ -162,6 +193,10 @@ export class EditAgentDialogComponent implements OnInit {
         agent.city = result.city;
         agent.state = result.state;
         agent.postalCode = `${maybeZipCode}`;
+        agent.country = result.country_code;
+
+        const addrParts = agent.address.split(agent.city);
+        agent.address = addrParts[0].trim();
 
         return agent;
       })

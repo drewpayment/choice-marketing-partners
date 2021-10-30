@@ -38,6 +38,8 @@ export class AgentsService {
   }
 
   updateAgent(agent: Agent): Observable<Agent> {
+    console.dir(agent);
+    return of(agent);
     const url = `ng/agents/${agent.id}`;
     return this.http.put<Agent>(url, agent);
   }
