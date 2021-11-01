@@ -18,6 +18,7 @@ export class AccountService {
             const countries = result.Countries;
             const usaIndex = countries.findIndex(c => c.CountryName.replace(/\s/g, '').trim().toLowerCase() === 'unitedstates');
             const usa = countries.splice(usaIndex, 1)[0];
+            usa.CountryName = 'US';
             countries.unshift(usa);
             return countries;
         }));
@@ -28,7 +29,7 @@ export class AccountService {
         .pipe(shareReplay());
 
     private _getCountries(): Observable<NationStateResult> {
-        const url = `https://raw.githubusercontent.com/sagarshirbhate/Country-State-City-Database/master/Contries.json`;
+        const url = `https://raw.githubusercontent.com/drewpayment/Country-State-City-Database/master/Contries.json`;
         return this.http.get<NationStateResult>(url).pipe(shareReplay());
     }
 }

@@ -42,25 +42,26 @@ class LoginController extends Controller
         $this->middleware('guest', ['except' => 'logout']);
     }
 
-	public function showLoginForm()
-	{
-		$users = User::with('employee')
-		             ->orderBy('name', 'asc')
-		             ->get();
+    public function showLoginForm()
+    {
+        $users = User::with('employee')
+            ->has('employee')
+            ->orderBy('name', 'asc')
+            ->get();
 
-		return view('auth.login', [
-			'users' => $users,
-		]);
-	}
+        return view('auth.login', [
+            'users' => $users,
+        ]);
+    }
 
-	public function login(Request $request)
-	{
-		$email = $request->input('email');
+    public function login(Request $request)
+    {
+        $email = $request->input('email');
 
-		$user = User::byEmail($email)->first();
+        $user = User::byEmail($email)->first();
 
-		Auth::login($user);
+        Auth::login($user);
 
-		return $this->sendLoginResponse($request);
-	}
+        return $this->sendLoginResponse($request);
+    }
 }

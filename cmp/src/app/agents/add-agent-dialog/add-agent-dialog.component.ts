@@ -84,7 +84,6 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
   saveAgent() {
     // do some work...
     const dto = this.prepareModel();
-    console.dir(dto);
 
     const isFormAgentValid = this.f.valid;
     const isFormUserValid = this.f.valid;

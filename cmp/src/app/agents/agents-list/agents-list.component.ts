@@ -216,6 +216,14 @@ export class AgentsListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  isAddressValid(f: Agent): boolean {
+    return f.address != null &&
+      f.city != null &&
+      f.state != null &&
+      f.country != null &&
+      f.postalCode != null;
+  }
+
   private _showSuccess(msg: string) {
     this.snack.open(msg, "dismiss", { duration: 3000 });
   }

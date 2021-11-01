@@ -8,6 +8,7 @@ import { AddAgentDialogComponent } from "./add-agent-dialog/add-agent-dialog.com
 import { EditAgentDialogComponent } from "./edit-agent-dialog/edit-agent-dialog.component";
 import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-password-dialog.component";
 import { NotificationSettingsDialogComponent } from './agents-list/notification-settings-dialog/notification-settings-dialog.component';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { NotificationSettingsDialogComponent } from './agents-list/notification-
     MaterialModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    SharedModule,
   ],
   exports: [AgentsListComponent],
   entryComponents: [

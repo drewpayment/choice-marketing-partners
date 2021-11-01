@@ -1,6 +1,6 @@
 
 <div mat-dialog-title style="display:flex !important;">
-    <div>Edit</div>
+    <div>Edit Agent - {{ data?.name }}</div>
     <div class="spacer"></div>
     <button type="button" mat-icon-button (click)="closeDialog()">
         <mat-icon>clear</mat-icon>
@@ -27,7 +27,7 @@
 
         <mat-form-field>
             <mat-label>Phone</mat-label>
-            <input type="text" matInput formControlName="phoneNo" required />
+            <input type="text" matInput formControlName="phoneNo" required (ngModelChange)="phoneMask($event)" />
             <mat-error *ngIf="f.get('phoneNo').hasError('required')">
                 Please enter a phone number.
             </mat-error>
@@ -44,7 +44,6 @@
         <mat-form-field>
             <mat-label>Apt/Unit</mat-label>
             <input type="text" matInput formControlName="address2" />
-            <mat-hint>Optional</mat-hint>
         </mat-form-field>
 
         <mat-form-field>
@@ -96,7 +95,6 @@
                 <mat-form-field>
                     <mat-label>Sales ID {{x}}</mat-label>
                     <input type="text" matInput [formControl]="f.get('id' + x)" />
-                    <mat-hint>Optional</mat-hint>
                 </mat-form-field>
             </ng-container>
         </div>
