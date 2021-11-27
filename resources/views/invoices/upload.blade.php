@@ -132,6 +132,6 @@
 <!-- @section('scripts')
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-<script src="{{elixir('js/views/invoices/upload.js')}}"></script>
+<script src="{{url('js/views/invoices/upload.js')}}"></script>
 
 @endsection -->

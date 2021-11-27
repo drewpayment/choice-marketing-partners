@@ -11,18 +11,19 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
-    use Notifiable, SoftDeletes;
+	use Notifiable, SoftDeletes;
 
-    #region TABLE PROPERTIES
+	#region TABLE PROPERTIES
 
-    /**
-     * dates used by the model
-     */
-    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+	/**
+	 * dates used by the model
+	 */
+	protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
 	/**
 	 * table used by model
@@ -34,45 +35,45 @@ class User extends Authenticatable
 	 */
 	protected $primaryKey = 'uid';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'id', 'name', 'email', 'password', 'created_at', 'updated_at', 'role'
-    ];
+	/**
+	 * The attributes that are mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $fillable = [
+		'id', 'name', 'email', 'password', 'created_at', 'updated_at', 'role'
+	];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+	/**
+	 * The attributes that should be hidden for arrays.
+	 *
+	 * @var array
+	 */
+	protected $hidden = [
+		'password', 'remember_token',
+	];
 
-    #endregion
+	#endregion
 
-    /**
-     * Get employee related to logged in user
-     *
-     * @return BelongsTo
-     */
-    public function employee(): BelongsTo
-    {
-    	return $this->belongsTo(Employee::class, 'id');
-    }
+	/**
+	 * Get employee related to logged in user
+	 *
+	 * @return BelongsTo
+	 */
+	public function employee(): BelongsTo
+	{
+		return $this->belongsTo(Employee::class, 'id');
+	}
 
-    /**
-     * Returns active employee IDs this user has access to.
-     *
-     * @return HasMany
-     */
-    public function employeePermissions(): HasMany
-    {
-        return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
-    }
+	/**
+	 * Returns active employee IDs this user has access to.
+	 *
+	 * @return HasMany
+	 */
+	public function employeePermissions(): HasMany
+	{
+		return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
+	}
 
 	/**
 	 * @param Builder $query
@@ -80,7 +81,7 @@ class User extends Authenticatable
 	 *
 	 * @return Builder
 	 */
-	public function scopeByUserId( Builder $query, int $id ): Builder
+	public function scopeByUserId(Builder $query, int $id): Builder
 	{
 		return $query->where('uid', $id);
 	}
@@ -91,7 +92,7 @@ class User extends Authenticatable
 	 *
 	 * @return Builder
 	 */
-	public function scopeByEmployeeId( Builder $query, int $id ): Builder
+	public function scopeByEmployeeId(Builder $query, int $id): Builder
 	{
 		return $query->where('id', $id);
 	}
@@ -159,15 +160,28 @@ class User extends Authenticatable
 		$role = $this->role;
 
 		return ($role == 'admin');
-    }
-    
-    public function getApiTokenAttribute()
-    {
-        return json_decode($this->attributes['api_token']);
-    }
+	}
 
-    public function setApiTokenAttribute($value)
-    {
-        $this->attributes['api_token'] = json_encode($value);
-    }
+	public function getApiTokenAttribute()
+	{
+		return json_decode($this->attributes['api_token']);
+	}
+
+	public function setApiTokenAttribute($value)
+	{
+		$this->attributes['api_token'] = json_encode($value);
+	}
+	
+	public function getCreatedAtAttribute($value)
+	{
+		$dt = Carbon::parse($value);
+		return $dt->format('Y-m-d');
+	}
+	
+	public function getUpdatedAtAttribute($value)
+	{
+		$dt = Carbon::parse($value);
+		return $dt->format('Y-m-d');
+	}
+	
 }

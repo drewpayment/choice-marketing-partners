@@ -32,18 +32,19 @@
     <ng-container *ngIf="agents$ | async as agents">
       <mat-table [dataSource]="agents">
 
-        <ng-container matColumnDef="edit">
-          <mat-header-cell *matHeaderCellDef>&nbsp;</mat-header-cell>
-          <mat-cell *matCellDef="let item">
-            <button type="button" mat-icon-button *ngIf="item.isActive" (click)="editAgent(item)">
-              <mat-icon>edit</mat-icon>
-            </button>
-          </mat-cell>
-        </ng-container>
-
         <ng-container matColumnDef="name">
           <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-          <mat-cell *matCellDef="let item">{{ item.name }}</mat-cell>
+          <mat-cell *matCellDef="let item">
+            {{ item.name }}
+
+            <ng-container *ngIf="!isAddressValid(item)">
+              <button type="button" mat-icon-button matTooltip="Address invalid" (click)="$event.stopPropagation(); editAgent(item)"
+                aria-label="Agent's address is invalid."
+                class="mat-accent">
+                <mat-icon aria-hidden="true">wrong_location</mat-icon>
+              </button>
+            </ng-container>
+          </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="email">
@@ -53,7 +54,7 @@
 
         <ng-container matColumnDef="phone">
           <mat-header-cell *matHeaderCellDef>Phone</mat-header-cell>
-          <mat-cell *matCellDef="let item">{{ item.phoneNo }}</mat-cell>
+          <mat-cell *matCellDef="let item">{{ item.phoneNo | phone }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="isActive">
@@ -61,30 +62,38 @@
           <mat-cell *matCellDef="let item">
             <button type="button" mat-icon-button
               *ngIf="item?.isActive && item.user && (companyOptions$|async)?.hasPaystubNotifications"
-              (click)="openNotificationSettingsDialog(item)">
+              (click)="$event.stopPropagation(); openNotificationSettingsDialog(item)">
               <mat-icon>edit_notifications</mat-icon>
             </button>
 
             <button type="button" mat-icon-button *ngIf="item.isActive && item.user" [matTooltip]="'Reset Password'"
-              [matTooltipPosition]="'above'" (click)="resetPassword(item)">
+              [matTooltipPosition]="'above'" (click)="$event.stopPropagation(); resetPassword(item)">
               <mat-icon>https</mat-icon>
             </button>
 
+            <ng-container *ngIf="!item.user">
+              <button type="button" mat-icon-button disabled (click)="$event.stopPropagation();">
+                <mat-icon matTooltip="No user account associated with this agent.">person_off</mat-icon>
+              </button>
+            </ng-container>
+
             <!-- ENABLE OR DISABLE -->
-            <button type="button" mat-icon-button *ngIf="item && item.isActive && item.id != user.id"
-              (click)="disableAgent(item.id)" [matTooltip]="'Disable'" [matTooltipPosition]="'above'">
-              <mat-icon>remove_circle_outline</mat-icon>
-            </button>
-            <button type="button" mat-icon-button *ngIf="!item.isActive" (click)="restoreAgent(item.id)"
-              [matTooltip]="'Restore'" [matTooltipPosition]="'above'">
-              <mat-icon>cached</mat-icon>
-            </button>
+            <ng-container *ngIf="item != null">
+              <button type="button" mat-icon-button *ngIf="item && item?.isActive && item?.id != user?.id"
+                (click)="$event.stopPropagation(); disableAgent(item?.id)" [matTooltip]="'Disable agent. Removes future payroll access.'" [matTooltipPosition]="'above'">
+                <mat-icon>remove_circle_outline</mat-icon>
+              </button>
+              <button type="button" mat-icon-button *ngIf="!item?.isActive" (click)="$event.stopPropagation(); restoreAgent(item?.id)"
+                [matTooltip]="'Restore Agent'" [matTooltipPosition]="'above'">
+                <mat-icon>cached</mat-icon>
+              </button>
+            </ng-container>
           </mat-cell>
         </ng-container>
 
-        <mat-header-row *matHeaderRowDef="['edit', 'name', 'email', 'phone', 'isActive']"></mat-header-row>
-        <mat-row [class.agent-disabled]="!row.isActive"
-          *matRowDef="let row; columns: ['edit', 'name', 'email', 'phone', 'isActive']"></mat-row>
+        <mat-header-row *matHeaderRowDef="['name', 'email', 'phone', 'isActive']"></mat-header-row>
+        <mat-row [class.agent-disabled]="!row.isActive" (click)="editAgent(row)" class="click-row"
+          *matRowDef="let row; columns: ['name', 'email', 'phone', 'isActive']"></mat-row>
       </mat-table>
       <mat-paginator #matPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons [length]="paginator?.total"
         [pageSize]="paginator?.perPage" (page)="paging($event)"></mat-paginator>

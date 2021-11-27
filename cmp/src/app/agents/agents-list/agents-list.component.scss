@@ -24,3 +24,7 @@ $text-muted: rgba(0, 0, 0, 0.54);
 ::ng-deep .mat-form-field-suffix {
   cursor: pointer;
 }
+
+.click-row {
+  cursor: pointer !important;
+}

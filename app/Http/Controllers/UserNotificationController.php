@@ -7,6 +7,8 @@ use App\Services\SessionUtil;
 use App\UserNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\User;
 
 class UserNotificationController extends Controller
 {
@@ -30,8 +32,26 @@ class UserNotificationController extends Controller
 
         if ($result->hasError())
         	return $result->getResponse();
+            
+        $notifications = UserNotification::where('user_id', $userId)->first();
+        
+        if ($notifications == null) 
+        {
+            $user = User::find($userId);
+            
+            $notifications = new UserNotification([
+                'user_id' => $userId,
+                'employee_id' => $user->id,
+                'has_paystub_notifier' => false,
+                'notifier_destination' => $user->email,
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
+            ]);
+            
+            $notifications->save();
+        }
 
-        $result->setData(UserNotification::where('user_id', $userId)->first());
+        $result->setData($notifications);
 
         return $result->getResponse();
     }

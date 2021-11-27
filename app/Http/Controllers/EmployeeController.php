@@ -18,8 +18,8 @@ use Illuminate\View\View;
 class EmployeeController extends Controller
 {
 
-    protected $employeeService;
-    protected $sessionUtil;
+	protected $employeeService;
+	protected $sessionUtil;
 
 
 	/**
@@ -29,8 +29,8 @@ class EmployeeController extends Controller
 	{
 		$this->middleware('auth');
 
-        $this->employeeService = $employee_service;
-        $this->sessionUtil = $session_util;
+		$this->employeeService = $employee_service;
+		$this->sessionUtil = $session_util;
 	}
 
 
@@ -47,7 +47,7 @@ class EmployeeController extends Controller
 			'message' => null
 		];
 
-		if($request->ajax()){
+		if ($request->ajax()) {
 			$return['success'] = true;
 		} else {
 			$return['success'] = false;
@@ -65,12 +65,9 @@ class EmployeeController extends Controller
 	 */
 	public function updateUserRecord($userId, $isActive)
 	{
-		if($isActive == 'true')
-		{
+		if ($isActive == 'true') {
 			User::userId($userId)->first()->delete();
-		}
-		else
-		{
+		} else {
 			User::withTrashed()->userId($userId)->first()->restore();
 		}
 	}
@@ -97,11 +94,11 @@ class EmployeeController extends Controller
 	 */
 	public function refreshEmployeeRowData(Request $request)
 	{
-		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
+		if (!$this->validateAjaxCall($request)['success']) return response()->json(false);
 
 		$all = $request->all()['showAll'];
 
-		if($all == 'true') {
+		if ($all == 'true') {
 			$employees = Employee::showAll()->get()->sortBy('name');
 		} else {
 			$employees = Employee::active()->get()->sortBy('name');
@@ -121,7 +118,7 @@ class EmployeeController extends Controller
 	 */
 	public function getExistingEmployee(Request $request)
 	{
-		if(!$request->ajax()) return response()->json(false);
+		if (!$request->ajax()) return response()->json(false);
 		$employee = Employee::find($request->all()['id']);
 
 		return view('employees.partials.existingemployeemodal', ['emp' => $employee]);
@@ -137,52 +134,52 @@ class EmployeeController extends Controller
 	public function updateExistingEmployee(Request $request)
 	{
 		$success = false;
-		if(!$this->validateAjaxCall($request)['success']) return response()->json(false);
+		if (!$this->validateAjaxCall($request)['success']) return response()->json(false);
 
 		$ee = Employee::agentId($request->id)->first();
 		$hasChanges = false;
 
-		if($ee->name != $request->name) {
+		if ($ee->name != $request->name) {
 			$ee->name = $request->name;
 			$hasChanges = true;
 		}
-		if($ee->email != $request->email) {
+		if ($ee->email != $request->email) {
 			$ee->email = $request->email;
 			$hasChanges = true;
 		}
-		if($ee->phone_no != $request->phoneNo) {
+		if ($ee->phone_no != $request->phoneNo) {
 			$ee->phone_no = $request->phoneNo;
 			$hasChanges = true;
 		}
-		if($ee->address != $request->address) {
+		if ($ee->address != $request->address) {
 			$ee->address = $request->address;
 			$hasChanges = true;
 		}
-		if($ee->is_mgr != $request->isMgr) {
+		if ($ee->is_mgr != $request->isMgr) {
 			$ee->is_mgr = $request->isMgr;
 			$hasChanges = true;
 		}
-		if($ee->sales_id1 != $request->salesId1) {
+		if ($ee->sales_id1 != $request->salesId1) {
 			$ee->sales_id1 = $request->salesId1;
 			$hasChanges = true;
 		}
-		if($ee->sales_id2 != $request->salesId2) {
+		if ($ee->sales_id2 != $request->salesId2) {
 			$ee->sales_id2 = $request->salesId2;
 			$hasChanges = true;
 		}
-		if($ee->sales_id3 != $request->salesId3) {
+		if ($ee->sales_id3 != $request->salesId3) {
 			$ee->sales_id3 = $request->salesId3;
 			$hasChanges = true;
 		}
 
-		if($hasChanges)
+		if ($hasChanges)
 			$success = $ee->save();
 
-		if(!$success) return response()->json(false, 500);
+		if (!$success) return response()->json(false, 500);
 
 		$user = User::where('id', $ee->id)->first();
 
-		if($user->email != $ee->email) {
+		if ($user->email != $ee->email) {
 			$user->email = $ee->email;
 			$success = $user->save();
 		}
@@ -200,7 +197,7 @@ class EmployeeController extends Controller
 	public function createNewEmployee(Request $request)
 	{
 		$errors = [];
-		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
+		if (!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
 
 		$params = $request->all();
 		$e = new Employee([
@@ -219,12 +216,12 @@ class EmployeeController extends Controller
 		try {
 			$e->save();
 			DB::commit();
-		} catch (\mysqli_sql_exception $e){
+		} catch (\mysqli_sql_exception $e) {
 			DB::rollback();
 			$errors[] = $e;
 		}
 
-		if(count($errors) > 0) return response()->json($errors, 500);
+		if (count($errors) > 0) return response()->json($errors, 500);
 
 		$newEmpId = $e->id;
 
@@ -237,19 +234,19 @@ class EmployeeController extends Controller
 		$user->password = bcrypt($randomPass);
 
 		DB::beginTransaction();
-		try{
+		try {
 			$user->save();
 			DB::commit();
-		} catch (\mysqli_sql_exception $err){
+		} catch (\mysqli_sql_exception $err) {
 			DB::rollback();
 			$errors[] = $err;
 		}
 
-		if(count($errors) > 0) return response()->json($errors, 500);
+		if (count($errors) > 0) return response()->json($errors, 500);
 
 		$result = $this->employeeService->registerPermissionableUser($newEmpId);
 
-		if(!$result) return response()->json(false, 500);
+		if (!$result) return response()->json(false, 500);
 
 		return response()->json(true);
 	}
@@ -258,7 +255,7 @@ class EmployeeController extends Controller
 	public function updateEmployeeActiveStatus(Request $request)
 	{
 		$errors = [];
-		if(!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
+		if (!$this->validateAjaxCall($request)['success']) return response()->json(false, 500);
 
 		$params = $request->all();
 		$e = Employee::agentId($params['id'])->first();
@@ -269,18 +266,18 @@ class EmployeeController extends Controller
 		try {
 			$e->save();
 			DB::commit();
-		} catch (\mysqli_sql_exception $err){
+		} catch (\mysqli_sql_exception $err) {
 			DB::rollback();
 			$errors[] = $err;
 		}
 
-		if(count($errors) > 0) return response()->json($errors, 500);
+		if (count($errors) > 0) return response()->json($errors, 500);
 
 		$this->updateUserRecord($e->id, $activeStatus);
 
 
 		return response()->json(true);
-    }
+	}
 
 	/**
 	 * URL: /ng/agents
@@ -291,217 +288,226 @@ class EmployeeController extends Controller
 	 *
 	 * @return JsonResponse
 	 */
-    public function getAgents(Request $request): JsonResponse
-    {
-        $result = new OpResult();
+	public function getAgents(Request $request): JsonResponse
+	{
+		$result = new OpResult();
 
-        $user = auth()->user();
-        $isAdmin = $user->employee->is_admin;
+		$user = auth()->user();
+		$isAdmin = $user->employee->is_admin;
 
-        if (!$isAdmin) 
-            return $result->setToFail('Unauthorized.')->getResponse();
-            
-        $showAll = strtolower($request->query('showall')) === 'true';
-        $size = $request->query('size', 10);
-        $page = $request->query('page');
-        $search = $request->query('q');
+		if (!$isAdmin)
+			return $result->setToFail('Unauthorized.')->getResponse();
 
-        return $result->trySetData(function ($showAll, $size, $page) use (&$search) {
-            $qry = Employee::with('user.notifications')
-                ->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
-	            ->whereLike('name', $search)
-                ->orderBy('name');
+		$showAll = strtolower($request->query('showall')) === 'true';
+		$size = $request->query('size', 10);
+		$page = $request->query('page');
+		$search = $request->query('q');
 
-            return $showAll 
-                ? $qry->showAll()->paginate($size, ['*'], 'page', $page)
-                : $qry->active()->paginate($size, ['*'], 'page', $page);
-        }, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
-    }
+		return $result->trySetData(function ($showAll, $size, $page) use (&$search) {
+			$qry = Employee::with('user.notifications')
+				->whereNotIn('id', [5, 6]) //TODO: hack in place to keep Terri/Chris from showing up on agents list until user-types are released
+				->whereLike('name', $search)
+				->orderBy('name');
 
-    public function updateAgent(Request $req)
-    {
-        $result = new OpResult();
+			return $showAll
+				? $qry->showAll()->paginate($size, ['*'], 'page', $page)
+				: $qry->active()->paginate($size, ['*'], 'page', $page);
+		}, ['showAll' => $showAll, 'size' => $size, 'page' => $page])->getResponse();
+	}
 
-        $user = auth()->user();
-        $isAdmin = $user->employee->is_admin;
+	public function updateAgent(Request $req)
+	{
+		$result = new OpResult();
 
-        if (!$isAdmin)
-            return $result->setToFail('Unauthorized.')->getResponse();
+		$user = auth()->user();
+		$isAdmin = $user->employee->is_admin;
 
-        $employeeId = intval($req->id);
+		if (!$isAdmin)
+			return $result->setToFail('Unauthorized.')->getResponse();
 
-        if ($employeeId < 1) 
-            return $result->setToFail('Unable to find a valid employee.')->getResponse();
+		$employeeId = intval($req->id);
 
-        $employee = Employee::find($employeeId);
+		if ($employeeId < 1)
+			return $result->setToFail('Unable to find a valid employee.')->getResponse();
 
-        $data = $req->all();
-        unset($data['id']);
+		$employee = Employee::find($employeeId);
 
-        $data = $this->sessionUtil->fromCamelCase($data);
+		$data = $this->sessionUtil->fromCamelCase($req->all());
+		
+		$employee->name = $data['name'];
+		$employee->email = $data['email'];
+		$employee->phone_no = $data['phone_no'];
+		$employee->address = $data['address'];
+		$employee->address_2 = $data['address_2'];
+		$employee->city = $data['city'];
+		$employee->state = $data['state']['StateName'];
+		$employee->country = $data['country']['CountryName'];
+		$employee->postal_code = $data['postal_code'];
+		$employee->is_mgr = $data['is_manager'];
+		$employee->sales_id1 = $data['id_1'];
+		$employee->sales_id2 = $data['id_2'];
+		$employee->sales_id3 = $data['id_3'];
+		$employee->has_been_fixed = true;
 
-        foreach ($data as $k => $v)
-        {
-            $employee[$k] = $v;
-        }
+		$saved = $employee->save();
 
-        $saved = $employee->save();
+		if (!$saved)
+			return $result
+				->setToFail('Failed to save the updated employee.')
+				->getResponse();
 
-        if (!$saved) 
-            return $result
-                ->setToFail('Failed to save the updated employee.')
-                ->getResponse();
+		return $result->setData($employee)->getResponse();
+	}
 
-        return $result->setData($employee)->getResponse();
-    }
+	public function createAgent(Request $request)
+	{
+		$result = new OpResult();
 
-    public function createAgent(Request $request)
-    {
-        $result = new OpResult();
+		$user = auth()->user();
+		$isAdmin = $user->employee->is_admin;
 
-        $user = auth()->user();
-        $isAdmin = $user->employee->is_admin;
+		if (!$isAdmin)
+			return $result->setToFail('Unauthorized.')->getResponse();
 
-        if (!$isAdmin)
-            return $result->setToFail('Unauthorized.')->getResponse();
+		$employee = new Employee([
+			'name' => $request->name,
+			'email' => $request->email,
+			'phone_no' => $request->phoneNo,
+			'address' => $request->address,
+			'address_2' => $request->address2,
+			'city' => $request->city,
+			'state' => $request->state,
+			'country' => $request->country,
+			'is_active' => true,
+			'is_admin' => false,
+			'sales_id1' => $request->salesId1,
+			'sales_id2' => $request->salesId2,
+			'sales_id3' => $request->salesId3,
+			'hidden_payroll' => false
+		]);
 
-        $employee = new Employee([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone_no' => $request->phoneNo,
-            'address' => $request->address,
-            'address_2' => $request->address2,
-            'city' => $request->city,
-            'state' => $request->state,
-            'country' => $request->country,
-            'is_active' => true,
-            'is_admin' => false,
-            'sales_id1' => $request->salesId1,
-            'sales_id2' => $request->salesId2, 
-            'sales_id3' => $request->salesId3,
-            'hidden_payroll' => false
-        ]);
+		$useSalesIdPW = $request->salesId1 != null;
 
-        DB::beginTransaction();
+		DB::beginTransaction();
+		try {
+			$saved = $employee->save();
 
-        try {
-            $saved = $employee->save();
+			if (!$saved)
+				return $result->setToFail('Agent save failed.')->getResponse();
 
-            if (!$saved) 
-                return $result->setToFail('Agent save failed.')->getResponse();
+			$dto = [
+				'agent' => $employee
+			];
 
-            $dto = [
-                'agent' => $employee
-            ];
-                
-            if (boolval($request->isCreatingUser)) {
-                $user = new User([
-                    'id' => $employee->id,
-                    'name' => $request->name,
-                    'user_type' => $request->userType,
-                    'email' => $request->email
-                ]);
+			if (boolval($request->isCreatingUser)) {
+				$user = new User([
+					'id' => $employee->id,
+					'name' => $request->name,
+					'user_type' => $request->userType,
+					'email' => $request->email
+				]);
 
-                if (is_null($request->password)) {
-                    $random = str_random(10);
-                    $user->password = bcrypt($random);
-                } else {
-                    $user->password = bcrypt($request->password);
-                }
+				if (is_null($request->password) && $useSalesIdPW) {
+					$user->password = bcrypt($request->salesId1);
+				} else if (is_null($request->password)) {
+					$random = str_random(10);
+					$user->password = bcrypt($random);
+				} else {
+					$user->password = bcrypt($request->password);
+				}
 
-                $userSaved = $user->save();
+				$userSaved = $user->save();
 
-                if (!$userSaved) 
-                    return $result->setToFail('Agent saved, but failed to save user.')->getResponse();
+				if (!$userSaved)
+					return $result->setToFail('Agent saved, but failed to save user.')->getResponse();
 
-                $dto['user'] = $user;
-            }
+				$dto['user'] = $user;
+			}
 
-            DB::commit();
-        } catch (\Exception $e) {
-            Log::error($e);
-            DB::rollback();
+			DB::commit();
+		} catch (\Exception $e) {
+			Log::error($e);
+			DB::rollback();
 
-            return $result->setToFail($e->getMessage())->getResponse();
-        }
+			return $result->setToFail($e->getMessage())->getResponse();
+		}
 
-        return $result->setData($dto)->getResponse();
-    }
+		return $result->setData($dto)->getResponse();
+	}
 
-    public function deleteAgent(Request $request)
-    {
-        $result = new OpResult();
+	public function deleteAgent(Request $request)
+	{
+		$result = new OpResult();
 
-        $emp = Employee::withTrashed()->where('id', '=', $request->id)->first();
-        $emp->is_active = false;
-        $emp->save();
-        $deleted = $emp->delete() > 0;
-        // $deleted = Employee::destroy($request->id) > 0;
+		$emp = Employee::withTrashed()->where('id', '=', $request->id)->first();
+		$emp->is_active = false;
+		$emp->save();
+		$deleted = $emp->delete() > 0;
+		// $deleted = Employee::destroy($request->id) > 0;
 
-        if (!$deleted) $result->setToFail('Failed to disable the agent.');
+		if (!$deleted) $result->setToFail('Failed to disable the agent.');
 
-        return $result->getResponse();
-    }
+		return $result->getResponse();
+	}
 
 	/**
 	 * @param Request $request
 	 *
 	 * @return JsonResponse
 	 */
-    public function restoreAgent(Request $request): JsonResponse
-    {
-        $result = new OpResult();
+	public function restoreAgent(Request $request): JsonResponse
+	{
+		$result = new OpResult();
 
-        $emp = Employee::withTrashed()->byEmployeeId($request->id)->first();
-        $restored = $emp->restore();
+		$emp = Employee::withTrashed()->byEmployeeId($request->id)->first();
+		$restored = $emp->restore();
 
-        if (!$restored) $result->setToFail('Failed to restore agent.');
+		if (!$restored) $result->setToFail('Failed to restore agent.');
 
-        $emp->is_active = true;
-        $saved = $emp->save();
+		$emp->is_active = true;
+		$saved = $emp->save();
 
-        if (!$saved) $result->setToFail('Employee was restored, but failed to update the "Active" status.');
+		if (!$saved) $result->setToFail('Employee was restored, but failed to update the "Active" status.');
 
-	    $empUser = User::onlyTrashed()->byEmployeeId($emp->id)->first();
+		$empUser = User::onlyTrashed()->byEmployeeId($emp->id)->first();
 
-	    if ($empUser != null)
-	    {
-		    $empUser->restore();
-	    }
+		if ($empUser != null) {
+			$empUser->restore();
+		}
 
-        return $result->getResponse();
-    }
+		return $result->getResponse();
+	}
 
-    /**
-     * Admins make a call to this endpoint from Angular to reset an employee's password.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function resetPassword(Request $request)
-    {
-        $result = new OpResult();
+	/**
+	 * Admins make a call to this endpoint from Angular to reset an employee's password.
+	 *
+	 * @param Request $request
+	 * @return void
+	 */
+	public function resetPassword(Request $request)
+	{
+		$result = new OpResult();
 
-        $this->sessionUtil->checkUserIsAdmin()->mergeInto($result);
+		$this->sessionUtil->checkUserIsAdmin()->mergeInto($result);
 
-        if ($result->hasError()) 
-            return $result->getResponse();
+		if ($result->hasError())
+			return $result->getResponse();
 
-        $user = User::find($request->id);
+		$user = User::byEmployeeId($request->id)->first();
 
-        if ($user == null) {
-            return $result->setToFail('Could not find the specified agent.')
-                ->getResponse();
-        }
+		if ($user == null) {
+			return $result->setToFail('Could not find the specified agent.')
+				->getResponse();
+		}
 
-        $user->password = bcrypt($request->password);
+		$user->password = bcrypt($request->password);
 
-        $saved = $user->save();
+		$saved = $user->save();
 
-        if (!$saved) $result->setTofail('Changing passwords failed.');
+		if (!$saved) $result->setTofail('Changing passwords failed.');
 
-        return $result->getResponse();
-    }
+		return $result->getResponse();
+	}
 
 	#region API Endpoints
 
@@ -520,15 +526,13 @@ class EmployeeController extends Controller
 
 		$email = $request->input('email');
 
-		if (is_null($email))
-		{
+		if (is_null($email)) {
 			return $result->setToFail('Email is required')->getResponse();
 		}
 
 		$user = User::withTrashed()->where('email', $email)->first();
 
-		if ($user == null)
-		{
+		if ($user == null) {
 			return $result->getResponse();
 		}
 

@@ -2,18 +2,19 @@
 
 namespace App;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
+use DateTimeInterface;
 
 class Employee extends Model
 {
-    use SoftDeletes;
+	use SoftDeletes;
 
-    #region TABLE PROPERTIES
+	#region TABLE PROPERTIES
 
-    protected $primaryKey = 'id';
+	protected $primaryKey = 'id';
 
 	/**
 	 * table that model references
@@ -29,9 +30,9 @@ class Employee extends Model
 	 * @var array
 	 */
 	protected $fillable = [
-        'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
-        'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
-    ];
+		'name', 'address', 'phone_no', 'email', 'is_active', 'is_mgr', 'sales_id1', 'sales_id2', 'sales_id3',
+		'created_at', 'updated_at', 'hidden_payroll', 'deleted_at'
+	];
 
 	#endregion
 
@@ -53,30 +54,40 @@ class Employee extends Model
 	 */
 	function formatDate($date, $format)
 	{
-		$dt = Carbon::createFromFormat($format, $date);
+		$dt = Carbon::parse($date);
 
 		return $dt->format('m-d-Y');
-    }
-    
-    public function getIsActiveAttribute()
-    {
-        return $this->attributes['is_active'] == 1;
-    }
+	}
 
-    public function setIsActiveAttribute($value)
-    {
-        $this->attributes['is_active'] = $value == 'true' || $value == 1 ? 1 : 0;
-    }
+	public function getIsActiveAttribute()
+	{
+		return $this->attributes['is_active'] == 1;
+	}
 
-    public function getIsMgrAttribute()
-    {
-        return $this->attributes['is_mgr'] == 1;
-    }
+	public function setIsActiveAttribute($value)
+	{
+		$this->attributes['is_active'] = $value == 'true' || $value == 1 ? 1 : 0;
+	}
 
-    public function setIsMgrAttribute($value)
-    {
-        $this->attributes['is_mgr'] = $value == 'true' || $value == 1 ? 1 : 0;
-    }
+	public function getIsMgrAttribute()
+	{
+		return $this->attributes['is_mgr'] == 1;
+	}
+
+	public function setIsMgrAttribute($value)
+	{
+		$this->attributes['is_mgr'] = $value == 'true' || $value == 1 ? 1 : 0;
+	}
+
+	public function getHasBeenFixedAttribute()
+	{
+		return $this->attributes['has_been_fixed'] == 1;
+	}
+	
+	public function setHasBeenFixedAttribute($value)
+	{
+		$this->attributes['has_been_fixed'] = $value == 'true' || $value == 1 ? 1 : 0; 
+	}
 
 
 	/**
@@ -125,7 +136,7 @@ class Employee extends Model
 	 */
 	public function invoices()
 	{
-        return $this->hasMany(Invoice::class, 'agentid');
+		return $this->hasMany(Invoice::class, 'agentid');
 	}
 
 
@@ -212,7 +223,7 @@ class Employee extends Model
 	 *
 	 * @return Builder
 	 */
-	public function scopeShowAll( Builder $query ): Builder
+	public function scopeShowAll(Builder $query): Builder
 	{
 		return $query->withTrashed();
 	}
@@ -225,7 +236,7 @@ class Employee extends Model
 	 *
 	 * @return Builder
 	 */
-	public function scopeOrderByName( Builder $query ): Builder
+	public function scopeOrderByName(Builder $query): Builder
 	{
 		return $query->orderBy('name', 'asc');
 	}
@@ -238,7 +249,7 @@ class Employee extends Model
 	 *
 	 * @return Builder
 	 */
-	public function scopeHideFromPayroll( Builder $query ): Builder
+	public function scopeHideFromPayroll(Builder $query): Builder
 	{
 		return $query->where('hidden_payroll', 0);
 	}
@@ -252,13 +263,11 @@ class Employee extends Model
 	 *
 	 * @return Builder
 	 */
-	public function scopeAgentId( Builder $query, $id ): Builder
+	public function scopeAgentId(Builder $query, $id): Builder
 	{
-		if(!is_object($id) && $id == -1) {
+		if (!is_object($id) && $id == -1) {
 			return $query;
-		}
-		else if (is_array($id))
-		{
+		} else if (is_array($id)) {
 			return $query->whereIn('id', $id);
 		}
 
@@ -274,7 +283,7 @@ class Employee extends Model
 	 *
 	 * @return Builder
 	 */
-	public function scopeListOfAgents( Builder $query, $arr ): Builder
+	public function scopeListOfAgents(Builder $query, $arr): Builder
 	{
 		return $query->whereIn('id', $arr);
 	}
