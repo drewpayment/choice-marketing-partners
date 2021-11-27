@@ -53,6 +53,15 @@
         </mat-card-title>
 
         <div>
+          <button type="button" mat-flat-button (click)="toggleMultiSelectMode(false)" *ngIf="isMultiSelectMode">
+            <mat-icon>clear</mat-icon> Cancel
+          </button>
+
+          <button mat-raised-button color="warn" *ngIf="isMultiSelectMode && formInvoices?.length > 1" (click)="confirmDelete()">
+            <mat-icon>delete_forever</mat-icon>
+            <span>Delete</span>
+          </button>
+
           <button mat-icon-button [matMenuTriggerFor]="menu">
             <mat-icon>more_vert</mat-icon>
           </button>

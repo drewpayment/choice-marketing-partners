@@ -149,19 +149,21 @@ class InvoiceController extends Controller
         }
         
         $salesTotal = array_reduce($request['sales'], function ($a, $b) {
-            $a['amount'] = $a['amount'] + $b['amount'];
+            $a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
             return $a;
         })['amount'];
         
-        $overridesTotal = array_reduce($request['overrides'], function ($a, $b) {
-            $a['total'] = $a['total'] + $b['total'];
-            return $a;
-        })['total'];
+				$overrides = array_reduce($request['overrides'], function ($a, $b) {
+					$a['total'] = (is_null($a) ? 0 : $a['total']) + (is_null($b) ? 0 : $b['total']);
+					return $a;
+				});
+        $overridesTotal = !is_null($overrides) ? $overrides['total'] : 0;
         
-        $expensesTotal = array_reduce($request['expenses'], function ($a, $b) {
-            $a['amount'] = $a['amount'] + $b['amount'];
-            return $a;
-        })['amount'];
+				$expenses = array_reduce($request['expenses'], function ($a, $b) {
+					$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
+					return $a;
+				});
+        $expensesTotal = !is_null($expenses) ? $expenses['amount'] : 0;
         
         $totals = [
             'sales' => $salesTotal,

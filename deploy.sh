@@ -1,12 +1,19 @@
 #!/bin/zsh
 
-while getopts s:p: flag 
+while getopts d:s:p: flag 
 do 
   case "${flag}" in 
+    d) source_dir=${OPTARG};;
     s) ssh_path=${OPTARG};;
     p) path_source=${OPTARG};;
   esac
 done
+
+if [ -z "$source_dir" ]
+then
+  echo $'\n' "------ DEPLOYED FAILED! --------------------" $'\n'
+  exit 1
+fi
 
 if [ -z "$ssh_path" ] 
 then
@@ -16,11 +23,12 @@ fi
 
 if [ -z "$path_source" ]
 then
-  path_source="/home/drewpayment/choice-marketing-partners.com";
+  path_source="/home/forge/release/choice-marketing-partners.com";
   echo "Using default deployment path: $path_source";
 fi
 
-SSH_USER=drewpayment
+SOURCE_DIR="$source_dir"
+SSH_USER=root
 SSH_HOST=choice-marketing-partners.com
 PATH_SOURCE="$path_source"
 SSH_KEY_PATH="$ssh_path"
@@ -30,38 +38,38 @@ OWNER=forge
 # git pull --force origin release
 
 # PHP Composer Install Dependencies
-composer install --no-interaction --prefer-dist --optimize-autoloader
+# composer install --no-interaction --prefer-dist --optimize-autoloader
 
 if [ -f artisan ]; then 
   php artisan optimize:clear
 fi
 
 # Build angular assets
-npm --prefix ./cmp run deploy:ci
+# npm --prefix ./cmp run deploy:ci
 
-ssh -i $SSH_KEY_PATH -t $SSH_USER@$SSH_HOST "rm -rf $PATH_SOURCE/public/dist/cmp"
+ssh -t $SSH_USER@$SSH_HOST "[ -d $path_source ] && rm -rf $path_source/*;"
 
-rsync --progress -avzh --rsh=ssh \
-  --exclude='**.git**' \
-  --exclude='.editorconfig' \
-  --exclude='_ide_helper.php' \
-  --exclude='.babelrc' \
-  --exclude='.env' \
-  --exclude='.env.example' \
-  --exclude='.gitattributes' \
-  --exclude='.gitignore' \
-  --exclude='**node_modules**' \
-  --exclude='./tests/' \
-  --exclude='.phpstorm.meta.php' \
-  --exclude='db-tunnel.sh' \
-  --exclude='gulpfile.js' \
-  --exclude='phpunit.xml' \
-  --exclude='readme.md' \
-  --exclude='webpack.config.js' \
-  --exclude='deploy.sh' \
-  --exclude='**.github**' \
-  -e "ssh -i $SSH_KEY_PATH" \
-  --rsync-path='sudo /usr/bin/rsync' . $SSH_USER@$SSH_HOST:$PATH_SOURCE
+rsync --progress -av ssh \
+  --exclude '**.git**' \
+  --exclude '.editorconfig' \
+  --exclude '_ide_helper.php' \
+  --exclude '.babelrc' \
+  --exclude '.env' \
+  --exclude '.env.example' \
+  --exclude '.gitattributes' \
+  --exclude '.gitignore' \
+  --exclude 'node_modules' \
+  --exclude './tests/' \
+  --exclude '.phpstorm.meta.php' \
+  --exclude 'db-tunnel.sh' \
+  --exclude 'gulpfile.js' \
+  --exclude 'phpunit.xml' \
+  --exclude 'readme.md' \
+  --exclude 'webpack.config.js' \
+  --exclude 'deploy.sh' \
+  --exclude '**.github**' \
+  # -e "ssh -i $SSH_KEY_PATH" \
+  $SOURCE_DIR $SSH_USER@$SSH_HOST:$PATH_SOURCE
   
   if [ $? -eq 0 ]
   then
