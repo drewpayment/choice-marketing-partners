@@ -47,18 +47,18 @@ RUN docker-php-ext-install gd
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+RUN groupadd -g 1001 www
+RUN useradd -u 1001 -ms /bin/bash -g www www
 
 # Copy existing application directory contents
 COPY . /var/www/
+RUN mkdir -p /var/www/storage/logs
 # RUN mkdir -p /var/www/public/dist/cmp
 # COPY --from=node /usr/src/app/public/dist /var/www/public/dist/
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www/
 
-RUN mkdir -p /var/www/storage/logs
 RUN chown -R www: /var/www/storage/logs
 
 # Change current user to www
