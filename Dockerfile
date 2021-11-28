@@ -11,7 +11,7 @@ RUN npm install
 
 COPY . /usr/src/app/
 
-RUN ./node_modules/.bin/ng build --configuration production
+RUN npm run build:prod
 
 
 FROM php:8.0-fpm
