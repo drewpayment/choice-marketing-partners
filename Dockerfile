@@ -1,17 +1,17 @@
-FROM node:latest as node 
+# FROM node:latest as node 
 
-RUN mkdir -p /usr/src/app/cmp
+# RUN mkdir -p /usr/src/app/cmp
 
-COPY ./cmp/package.json ./cmp/package-lock.json /usr/src/app/cmp/
+# COPY ./cmp/package.json ./cmp/package-lock.json /usr/src/app/cmp/
 
-WORKDIR /usr/src/app/cmp
-ENV NODE_OPTIONS=--openssl-legacy-provider
+# WORKDIR /usr/src/app/cmp
+# ENV NODE_OPTIONS=--openssl-legacy-provider
 
-RUN npm install 
+# RUN npm install 
 
-COPY . /usr/src/app/
+# COPY . /usr/src/app/
 
-RUN npm run build:prod
+# RUN npm run build:prod
 
 
 FROM php:8.0-fpm
@@ -52,8 +52,8 @@ RUN useradd -u 1000 -ms /bin/bash -g www www
 
 # Copy existing application directory contents
 COPY . /var/www
-RUN mkdir -p /var/www/public/dist/cmp
-COPY --from=node /usr/src/app/public/dist /var/www/public/dist/
+# RUN mkdir -p /var/www/public/dist/cmp
+# COPY --from=node /usr/src/app/public/dist /var/www/public/dist/
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
