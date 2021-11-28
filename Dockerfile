@@ -64,7 +64,7 @@ RUN chown -R www: /var/www/storage/logs
 # Change current user to www
 USER www
 
-RUN composer install --ignore-platform-reqs
+RUN composer install
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000

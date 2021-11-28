@@ -36,7 +36,8 @@ services:
 
   #MySQL Service
   db:
-    image: mysql:5.7.22
+    # image: mysql:5.7.22
+    image: mariadb:latest
     container_name: db
     restart: unless-stopped
     tty: true
@@ -46,8 +47,8 @@ services:
       - dbdata:/var/lib/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: choice
+      MYSQL_ROOT_PASSWORD: root
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     networks:
