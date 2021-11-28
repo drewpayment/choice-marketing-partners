@@ -63,14 +63,18 @@ class OpResult
 	 */
 	private function isJson($value): bool
 	{
-		try
+		if (is_string($value))
 		{
-			json_decode($value);
+			try
+			{
+				json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+			}
+			catch (\Exception $e)
+			{
+				// silence is golden
+			}	
 		}
-		catch (\Exception $e)
-		{
-			// silence is golden
-		}
+		
 		return json_last_error() === JSON_ERROR_NONE;
 	}
 
