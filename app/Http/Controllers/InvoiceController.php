@@ -148,10 +148,11 @@ class InvoiceController extends Controller
             $this->deletePendingInvoiceItems($pending_deletes);
         }
         
-        $salesTotal = array_reduce($request['sales'], function ($a, $b) {
-            $a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
-            return $a;
-        })['amount'];
+				$sales = array_reduce($request['sales'], function ($a, $b) {
+					$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
+					return $a;
+				});
+        $salesTotal = !is_null($sales) ? $sales['amount'] : 0;
         
 				$overrides = array_reduce($request['overrides'], function ($a, $b) {
 					$a['total'] = (is_null($a) ? 0 : $a['total']) + (is_null($b) ? 0 : $b['total']);
