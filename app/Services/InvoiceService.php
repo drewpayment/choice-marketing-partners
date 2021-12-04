@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: drewpayment
@@ -21,7 +22,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class InvoiceService {
+class InvoiceService
+{
 
 	protected $invoiceHelper;
 	protected $paystubService;
@@ -59,15 +61,15 @@ class InvoiceService {
 		$expenses = $hasExpenses ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
-		if($existingInvoice) {
+		if ($existingInvoice) {
 
 			DB::beginTransaction();
-			try{
+			try {
 				Invoice::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
 				Payroll::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
 
-				if($hasOverrides) Override::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
-				if($hasExpenses) Expense::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+				if ($hasOverrides) Override::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
+				if ($hasExpenses) Expense::agentId($employeeId)->vendorId($vendorId)->issueDate($date)->delete();
 
 				DB::commit();
 			} catch (\mysqli_sql_exception $e) {
@@ -76,7 +78,6 @@ class InvoiceService {
 				$result['status'] = false;
 				$result['message'] = 'A SQL error has occurred, please try again. If the problem persists, please email your development team.';
 			}
-
 		}
 
 		// create empty arrays to fill that match database objects
@@ -84,14 +85,11 @@ class InvoiceService {
 		$formattedOverrides = [];
 		$formattedExpenses = [];
 
-		$payrollTotal = (
-			collect($sales)->pluck('amount')->sum() +
+		$payrollTotal = (collect($sales)->pluck('amount')->sum() +
 			collect($overrides)->pluck('total')->sum() +
-			collect($expenses)->pluck('amount')->sum()
-		);
+			collect($expenses)->pluck('amount')->sum());
 
-		if(sizeof($sales) == 0) 
-		{
+		if (sizeof($sales) == 0) {
 			$formattedSales[] = new Invoice([
 				'vendor' => $vendorId,
 				'sale_date' => new Carbon($date),
@@ -105,11 +103,8 @@ class InvoiceService {
 				'issue_date' => $date,
 				'wkending' => $endDate
 			]);
-		}
-		else 
-		{
-			foreach($sales as $s)
-			{
+		} else {
+			foreach ($sales as $s) {
 				$formattedSales[] = new Invoice([
 					'vendor' => $vendorId,
 					'sale_date' => Carbon::createFromFormat('m-d-Y', $s['date']),
@@ -128,8 +123,7 @@ class InvoiceService {
 
 		$hasSales = (count($sales) > 0);
 
-		foreach($overrides as $o)
-		{
+		foreach ($overrides as $o) {
 			$formattedOverrides[] = new Override([
 				'vendor_id' => $vendorId,
 				'name' => $o['name'],
@@ -142,8 +136,7 @@ class InvoiceService {
 			]);
 		}
 
-		foreach($expenses as $e)
-		{
+		foreach ($expenses as $e) {
 			$formattedExpenses[] = new Expense([
 				'vendor_id' => $vendorId,
 				'type' => $e['type'],
@@ -157,11 +150,11 @@ class InvoiceService {
 
 		DB::beginTransaction();
 
-		try{
+		try {
 			$emp = Employee::agentId($employeeId)->first();
-			if(sizeof($formattedSales) > 0) $emp->invoices()->saveMany($formattedSales);
-			if(sizeof($formattedOverrides) > 0) $emp->overrides()->saveMany($formattedOverrides);
-			if(sizeof($formattedExpenses) > 0) $emp->expenses()->saveMany($formattedExpenses);
+			if (sizeof($formattedSales) > 0) $emp->invoices()->saveMany($formattedSales);
+			if (sizeof($formattedOverrides) > 0) $emp->overrides()->saveMany($formattedOverrides);
+			if (sizeof($formattedExpenses) > 0) $emp->expenses()->saveMany($formattedExpenses);
 
 			Payroll::create([
 				'agent_id' => $employeeId,
@@ -184,8 +177,7 @@ class InvoiceService {
 		$result['status'] = true;
 		$result['message'] = 'Your invoice information has been successfully stored and processed.';
 
-		if($result['status'] && !is_null($date))
-		{
+		if ($result['status'] && !is_null($date)) {
 			$this->paystubService->processPaystubJob($date);
 		}
 
@@ -207,8 +199,7 @@ class InvoiceService {
 		$expenses = $hasExpenses ? $input['expenses'] : [];
 
 		$existingInvoice = $this->invoiceHelper->checkForExistingInvoice($employeeId, $vendorId, $date);
-		if($existingInvoice)
-		{
+		if ($existingInvoice) {
 			$result['status'] = false;
 			$result['message'] = 'An existing invoice has already been created for this employee, matching this date and vendor codes.';
 		}
@@ -225,20 +216,20 @@ class InvoiceService {
 		$salesAmt = 0;
 		$overAmt = 0;
 		$expAmt = 0;
-		if(is_numeric($salesColl->pluck('amount')->sum())) {
+		if (is_numeric($salesColl->pluck('amount')->sum())) {
 			$salesAmt = $salesAmt + $salesColl->pluck('amount')->sum();
 		}
-		if(is_numeric($overColl->pluck('total')->sum())) {
+		if (is_numeric($overColl->pluck('total')->sum())) {
 			$overAmt = $overAmt + $overColl->pluck('total')->sum();
 		}
-		if(is_numeric($expColl->pluck('amount')->sum())) {
+		if (is_numeric($expColl->pluck('amount')->sum())) {
 			$expAmt = $expAmt + $expColl->pluck('amount')->sum();
 		}
 
 		$payrollTotal = $salesAmt + $overAmt + $expAmt;
 
 
-		if(sizeof($sales) == 0){
+		if (sizeof($sales) == 0) {
 			$formattedSales[] = new Invoice([
 				'vendor' => $vendorId,
 				'sale_date' => new Carbon($date),
@@ -254,8 +245,7 @@ class InvoiceService {
 			]);
 		} else {
 
-			foreach($sales as $s)
-			{
+			foreach ($sales as $s) {
 				$formattedSales[] = new Invoice([
 					'vendor' => $vendorId,
 					'sale_date' => new Carbon($s['date']),
@@ -270,13 +260,11 @@ class InvoiceService {
 					'wkending' => $endDate
 				]);
 			}
-
 		}
 
 		$hasSales = (sizeof($formattedSales) > 0);
 
-		foreach($overrides as $o)
-		{
+		foreach ($overrides as $o) {
 			$formattedOverrides[] = new Override([
 				'vendor_id' => $vendorId,
 				'name' => $o['name'],
@@ -289,8 +277,7 @@ class InvoiceService {
 			]);
 		}
 
-		foreach($expenses as $e)
-		{
+		foreach ($expenses as $e) {
 			$formattedExpenses[] = new Expense([
 				'vendor_id' => $vendorId,
 				'type' => $e['type'],
@@ -304,12 +291,12 @@ class InvoiceService {
 
 		DB::beginTransaction();
 
-		try{
+		try {
 			$emp = Employee::agentId($employeeId)->first();
 
-			if($hasSales) $emp->invoices()->saveMany($formattedSales);
-			if($hasOverrides) $emp->overrides()->saveMany($formattedOverrides);
-			if($hasExpenses) $emp->expenses()->saveMany($formattedExpenses);
+			if ($hasSales) $emp->invoices()->saveMany($formattedSales);
+			if ($hasOverrides) $emp->overrides()->saveMany($formattedOverrides);
+			if ($hasExpenses) $emp->expenses()->saveMany($formattedExpenses);
 
 			Payroll::create([
 				'agent_id' => $employeeId,
@@ -329,65 +316,61 @@ class InvoiceService {
 			$result['message'] = 'A SQL error has occurred, please try again. If the problem persists, please email your development team.';
 		}
 
-		if(sizeof($result) < 1)
-		{
+		if (sizeof($result) < 1) {
 			$result['status'] = true;
 			$result['message'] = 'Your invoice information has been successfully stored and processed.';
 		}
 
-		if($result['status'] && !is_null($date))
-		{
+		if ($result['status'] && !is_null($date)) {
 			$this->paystubService->processPaystubJob($date);
 		}
 
 		return $result;
-    }
-    
-    /**
-     * Gets paystubs view associated with /paystubs/pdf-detail in web.php
-     *
-     * @param int $agentId
-     * @param int $vendorId
-     * @param Carbon $date
-     * @return View
-     */
-    public function getPaystubView(int $agentId, int $vendorId, Carbon $date): View {
-        $gross = 0;
-        $invoiceDt = $date->format('m-d-Y');
-        $issueDate = $date->format('Y-m-d');
+	}
+
+	/**
+	 * Gets paystubs view associated with /paystubs/pdf-detail in web.php
+	 *
+	 * @param int $agentId
+	 * @param int $vendorId
+	 * @param Carbon $date
+	 * @return View
+	 */
+	public function getPaystubView(int $agentId, int $vendorId, Carbon $date): View
+	{
+		$gross = 0;
+		$invoiceDt = $date->format('m-d-Y');
+		$issueDate = $date->format('Y-m-d');
 		$stubs = Invoice::agentId($agentId)->vendorId($vendorId)->issueDate($date->format('Y-m-d'))->get();
 		$emp = Employee::find($agentId);
-        $vendorName = Vendor::find($vendorId)->name;
-        
-        /**
-         * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
-         * the one record they did have and it needs to be recreated for the pages to work properly. 
-         */
-        if (count($stubs) < 1 || is_null($stubs)) 
-        {
-            $this->insertBlankStub($agentId, $vendorId, $date);
-        }
+		$vendorName = Vendor::find($vendorId)->name;
 
-		foreach($stubs as $s)
-		{
-			if(is_numeric($s->amount))
-			{
+		/**
+		 * At this point, the user MUST have at least one paystub... if they don't, this means that someone deleted 
+		 * the one record they did have and it needs to be recreated for the pages to work properly. 
+		 */
+		if (count($stubs) < 1 || is_null($stubs)) {
+			$stubs = $this->insertBlankStub($agentId, $vendorId, $date);
+		}
+
+		foreach ($stubs as $s) {
+			if (is_numeric($s->amount)) {
 				$gross = $gross + $s->amount;
 			}
 
 			$s->sale_date = strtotime($s->sale_date);
 			$s->sale_date = date('m-d-Y', $s->sale_date);
-        }
+		}
 
 		$overrides = Override::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
-        $expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
+		$expenses = Expense::agentId($agentId)->vendorId($vendorId)->issueDate($issueDate)->get();
 
-		$ovrGross = $overrides->sum(function($ovr){
+		$ovrGross = $overrides->sum(function ($ovr) {
 			global $ovrGross;
 			return $ovrGross + floatval($ovr->total);
 		});
 
-		$expGross = $expenses->sum(function($exp){
+		$expGross = $expenses->sum(function ($exp) {
 			global $expGross;
 			return $expGross + floatval($exp->amount);
 		});
@@ -410,30 +393,32 @@ class InvoiceService {
 			'vendorId' => $vendorId,
 			'isAdmin' => $isAdmin
 		]);
-    }
+	}
 
-    public function insertBlankStub($agentId, $vendorId, $date)
-    {
-        try {
-            $dt = Carbon::parse($date);
-        } catch (\Exception $e) {}
-        
-        // $dt = Carbon::createFromFormat('Y-m-d', $date);
-        $blankInvoice = new Invoice([
-            'vendor' => $vendorId,
-            'sale_date' => $date,
-            'first_name' => '-------',
-            'last_name' => '---------', 
-            'address' => '-----', 
-            'city' => '-----',
-            'status' => '-----', 
-            'amount' => 0,
-            'agentid' => $agentId,
-            'issue_date' => $date,
-            'wkending' => $dt->subDays(11)->format('Y-m-d')
-        ]);
+	public function insertBlankStub($agentId, $vendorId, $date)
+	{
+		try {
+			$dt = Carbon::parse($date);
+		} catch (\Exception $e) {
+		}
 
-        $blankInvoice->save();
-    }
+		// $dt = Carbon::createFromFormat('Y-m-d', $date);
+		$blankInvoice = new Invoice([
+			'vendor' => $vendorId,
+			'sale_date' => $date,
+			'first_name' => '-------',
+			'last_name' => '---------',
+			'address' => '-----',
+			'city' => '-----',
+			'status' => '-----',
+			'amount' => 0,
+			'agentid' => $agentId,
+			'issue_date' => $date,
+			'wkending' => $dt->subDays(11)->format('Y-m-d')
+		]);
 
+		$blankInvoice->save();
+		
+		return collect([$blankInvoice]);
+	}
 }
