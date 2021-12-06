@@ -225,9 +225,4 @@ $results = [
 
 ];
 
-//if(env('APP_ENV') === 'local'){
-//	$results['providers'][] = 'Barryvdh\Debugbar\ServiceProvider';
-//	$results['aliases']['Debugbar'] = 'Barryvdh\Debugbar\Facade';
-//}
-
 return $results;
