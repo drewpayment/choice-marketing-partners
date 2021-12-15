@@ -133,6 +133,7 @@ class InvoiceController extends Controller
 
 	/**
 	 * Replaces UploadInvoice()
+	 * Saves from editing an invoice.
 	 *
 	 * @param Request $request
 	 *
@@ -265,27 +266,40 @@ class InvoiceController extends Controller
 
 	private function deletePendingInvoiceItems($pending_deletes)
 	{
-		if (isset($pending_deletes['sales']) && count($pending_deletes['sales']) > 0) {
-			Invoice::destroy($pending_deletes['sales']);
-		}
-
-		if (isset($pending_deletes['overrides']) && count($pending_deletes['overrides']) > 0) {
-			$ids = [];
-			foreach ($pending_deletes['overrides'] as $key => $value) {
-				$ids[] = $value['overrideId'];
+		DB::beginTransaction();
+		
+		try {
+			if (isset($pending_deletes['sales']) && count($pending_deletes['sales']) > 0) {
+				Invoice::destroy($pending_deletes['sales']);
+				$sales_ids = [];
+				foreach ($pending_deletes['sales'] as $key => $value) {
+					$sales_ids[] = $value['invoiceId'];
+				}
+				
+				DB::table('invoices')->whereIn('invoice_id', $sales_ids)->delete();
 			}
-
-			DB::beginTransaction();
-			try {
-				DB::table('overrides')->whereIn('ovrid', $ids)->delete();
-			} catch (\Exception $ex) {
-				DB::rollBack();
+	
+			if (isset($pending_deletes['overrides']) && count($pending_deletes['overrides']) > 0) {
+				$override_ids = [];
+				foreach ($pending_deletes['overrides'] as $key => $value) {
+					$override_ids[] = $value['overrideId'];
+				}
+	
+				DB::table('overrides')->whereIn('ovrid', $override_ids)->delete();
 			}
+	
+			if (isset($pending_deletes['expenses']) && count($pending_deletes['expenses']) > 0) {
+				$expense_ids = [];
+				foreach ($pending_deletes['expenses'] as $key => $value) {
+					$expense_ids[] = $value['expenseId'];
+				}
+				
+				DB::table('expenses')->whereIn('expid', $expense_ids)->delete();
+			}	
+		} catch (\Exception $ex) {
+			DB::rollback();
 		}
-
-		if (isset($pending_deletes['expenses']) && count($pending_deletes['expenses']) > 0) {
-			Expense::destroy($pending_deletes['expenses']);
-		}
+		
 	}
 
 	/**
