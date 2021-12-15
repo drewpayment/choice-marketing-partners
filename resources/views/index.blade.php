@@ -2,7 +2,7 @@
 
 @section('title', 'Choice Marketing Partners')
 
-@section('content')
+@section('content') 
 
 <div class="row pt-0 mobile-hidden mt-neg-60" id="drawer-holder">
     <div class="col-md-12">

@@ -89,6 +89,13 @@ class PaystubService {
 			$this->createAgentPaystubRows($a, $aInvoices, $aOverrides, $aExpenses, $issueDate, $vendors);
 		}
 	}
+	
+	public function get_numeric($val) {
+		if (is_numeric($val)) {
+			return $val + 0;
+		}
+		return 0;
+	}
 
 
 	/**
@@ -145,14 +152,25 @@ class PaystubService {
 			$total = 0;
 			DB::beginTransaction();
 
-			if($hasInvoices)
-				$total += $invoices->where('vendor', $v['id'])->values()->sum('amount');
+			if ($hasInvoices) {
+				$invoice_raw_totals = $invoices->where('vendor', $v['id'])->values()->sum(function ($invoice) {
+					return is_numeric($invoice['amount']) ? $invoice['amount'] + 0 : 0;
+				});
+				$invoice_total_amount = is_numeric($invoice_raw_totals) ? $invoice_raw_totals + 0 : 0;
+				$total += $invoice_total_amount;
+			}
 
-			if($hasOverrides)
-				$total += $overrides->where('vendor_id', $v['id'])->values()->sum('total');
+			if ($hasOverrides) {
+				$override_raw_totals = $overrides->where('vendor_id', $v['id'])->values()->sum('total');	
+				$override_total_amount = is_numeric($override_raw_totals) ? $override_raw_totals + 0 : 0;
+				$total += $override_total_amount;
+			}
 
-			if($hasExpenses)
-				$total += $expenses->where('vendor_id', $v['id'])->values()->sum('amount');
+			if ($hasExpenses) {
+				$expense_raw_totals = $expenses->where('vendor_id', $v['id'])->values()->sum('amount');
+				$expense_total_amount = is_numeric($expense_raw_totals) ? $expense_raw_totals + 0 : 0;
+				$total += $expense_total_amount;	
+			}
 
 			$paystub = new Paystub;
 			$paystub->agent_id = $agent->id;

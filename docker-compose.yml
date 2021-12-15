@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        XDEBUG: ${XDEBUG}
     image: digitalocean.com/php
     container_name: app
     restart: unless-stopped
@@ -18,6 +20,8 @@ services:
     volumes:
       - ./:/var/www
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   #Nginx Service
   webserver:
@@ -36,7 +40,6 @@ services:
 
   #MySQL Service
   db:
-    # image: mysql:5.7.22
     image: mariadb:latest
     container_name: db
     restart: unless-stopped
@@ -62,3 +65,4 @@ networks:
 volumes:
   dbdata:
     driver: local
+  

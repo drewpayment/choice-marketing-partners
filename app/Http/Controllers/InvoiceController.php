@@ -148,27 +148,24 @@ class InvoiceController extends Controller
 
 		$pending_deletes = $request['pendingDeletes'];
 
-		if (isset($pending_deletes)) {
+		if (isset($pending_deletes) && count($pending_deletes) > 0) {
 			$this->deletePendingInvoiceItems($pending_deletes);
 		}
+		
+		$salesTotal = 0;
+		foreach ($request['sales'] as $sale) {
+			$salesTotal += is_numeric($sale['amount']) ? $sale['amount'] + 0 : 0;
+		}
 
-		$sales = array_reduce($request['sales'], function ($a, $b) {
-			$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
-			return $a;
-		});
-		$salesTotal = !is_null($sales) ? $sales['amount'] : 0;
+		$overridesTotal = 0;
+		foreach ($request['overrides'] as $override) {
+			$overridesTotal += is_numeric($override['total']) ? $override['total'] + 0 : 0;
+		}
 
-		$overrides = array_reduce($request['overrides'], function ($a, $b) {
-			$a['total'] = (is_null($a) ? 0 : $a['total']) + (is_null($b) ? 0 : $b['total']);
-			return $a;
-		});
-		$overridesTotal = !is_null($overrides) ? $overrides['total'] : 0;
-
-		$expenses = array_reduce($request['expenses'], function ($a, $b) {
-			$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
-			return $a;
-		});
-		$expensesTotal = !is_null($expenses) ? $expenses['amount'] : 0;
+		$expensesTotal = 0;
+		foreach ($request['expenses'] as $expense) {
+			$expensesTotal += floatval($expense['amount']);
+		}
 
 		$totals = [
 			'sales' => $salesTotal,
@@ -316,19 +313,23 @@ class InvoiceController extends Controller
 	{
 		foreach ($pending['sales'] as $sale) {
 			$s = Invoice::find($sale['invoice_id']);
-
-			if ($s != null) {
-				$s->first_name = $sale['first_name'];
-				$s->last_name = $sale['last_name'];
-				$s->address = $sale['address'];
-				$s->city = $sale['city'];
-				$s->status = $sale['status'];
-				$s->amount = $sale['amount'];
-				$s->save();
-			} else {
-				$sale['invoice_id'] = null;
-				$sale_model = Invoice::create($sale);
+			
+			if ($s == null) {
+				$s = new Invoice();
 			}
+			
+			$s->vendor = $sale['vendor'];
+			$s->sale_date = $sale['sale_date'];
+			$s->first_name = $sale['first_name'];
+			$s->last_name = $sale['last_name'];
+			$s->address = $sale['address'];
+			$s->city = $sale['city'];
+			$s->status = $sale['status'];
+			$s->amount = $sale['amount'];
+			$s->agentid = $sale['agentid'];
+			$s->issue_date = $sale['issue_date'];
+			$s->wkending = $sale['wkending'];
+			$s->save();
 		}
 
 		foreach ($pending['overrides'] as $override) {
@@ -345,16 +346,33 @@ class InvoiceController extends Controller
 			}
 		}
 
-		foreach ($pending['expenses'] as $expense) {
-			$e = Expense::find($expense['expid']);
-
-			if ($e != null) {
+		foreach ($pending['expenses'] as $key => $expense) {
+			if ($expense['expid'] != null) {
+				$e = Expense::find($expense['expid']);
+				if ($e == null) continue;
+				
 				$e->type = $expense['type'];
 				$e->amount = $expense['amount'];
 				$e->notes = $expense['notes'];
-				$e->save();
 			} else {
-				$e = Expense::create($expense);
+				$e = new Expense([
+					'vendor_id' => intval($expense['vendor_id']),
+					'type' => $expense['type'],
+					'amount' => floatval($expense['amount']),
+					'notes' => $expense['notes'],
+					'agentid' => intval($expense['agentid']),
+					'issue_date' => $expense['issue_date'],
+					'wkending' => $expense['wkending'],
+					'created_at' => $expense['created_at'],
+					'updated_at' => $expense['updated_at']
+				]);
+			}
+			
+			$save_success = $e->save();
+			
+			if ($save_success) {
+				$expense = $e->toArray();
+				$pending['expenses'][$key] = $expense;
 			}
 		}
 	}
@@ -383,7 +401,7 @@ class InvoiceController extends Controller
 				'address' => $sale['address'],
 				'city' => $sale['city'],
 				'status' => $sale['status'],
-				'amount' => $sale['amount'],
+				'amount' => is_numeric($sale['amount']) ? $sale['amount'] + 0 : 0,
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
 				'wkending' => $week_ending,
@@ -399,7 +417,7 @@ class InvoiceController extends Controller
 				'name' => $ovr['name'],
 				'sales' => $ovr['sales'],
 				'commission' => $ovr['commission'],
-				'total' => $ovr['total'],
+				'total' => is_numeric($ovr['total']) ? $ovr['total'] + 0 : 0,
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
 				'wkending' => $week_ending,
@@ -413,7 +431,7 @@ class InvoiceController extends Controller
 				'expid' => isset($exp['expenseId']) ? $exp['expenseId'] : null,
 				'vendor_id' => $vendor_id,
 				'type' => $exp['type'],
-				'amount' => $exp['amount'],
+				'amount' => is_numeric($exp['amount']) ? $exp['amount'] + 0 : 0,
 				'notes' => $exp['notes'],
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
