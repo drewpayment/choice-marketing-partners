@@ -23,7 +23,7 @@ const MAT_INPUT_INVALID_TYPES = [
 ];
 
 @Directive({
-    // tslint:disable-next-line: directive-selector
+    // eslint-disable-next-line @angular-eslint/directive-selector
     selector: 'input[matInputCurrency]',
     exportAs: 'matInputCurrency',
     providers: [
@@ -60,7 +60,7 @@ const MAT_INPUT_INVALID_TYPES = [
 export class MatInputCurrencyDirective {
     // @HostBinding('style.border') border = 'none';
     protected _uid = `mat-input-currency-${nextUniqueId++}`;
-    // tslint:disable-next-line: variable-name
+    // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle, id-blacklist, id-match
     private _inputValueAccessor: { value: any };
 
     /**
@@ -88,10 +88,14 @@ export class MatInputCurrencyDirective {
     autofilled = false;
 
     /** Whether the component is a native html select. */
-    readonly _isNativeSelect: boolean;
+    /** Whether the component is a native html select. */
+
+  readonly _isNativeSelect!: boolean;
 
     /** Whether the component is a textarea. */
-    readonly _isTextarea: boolean;
+    /** Whether the component is a textarea. */
+
+  readonly _isTextarea!: boolean;
 
     /**
      * Implemented as part of MatFormFieldControl.
@@ -123,13 +127,19 @@ export class MatInputCurrencyDirective {
     @Input()
     get id(): string { return this._id; }
     set id(value: string) { this._id = value || this._uid; }
-    protected _id: string;
+    protected _id!: string;
 
     /**
      * Implemented as part of MatFormFieldControl.
      * @docs-private
      */
-    @Input() placeholder: string;
+    /**
+   * Implemented as part of MatFormFieldControl.
+   * @docs-private
+   */
+
+  @Input()
+  placeholder!: string;
 
     /**
      * Implemented as part of MatFormFieldControl.
@@ -144,7 +154,13 @@ export class MatInputCurrencyDirective {
    * Implemented as part of MatFormFieldControl.
    * @docs-private
    */
-    @Input('aria-describedby') userAriaDescribedBy: string;
+    /**
+  * Implemented as part of MatFormFieldControl.
+  * @docs-private
+  */
+
+  @Input('aria-describedby')
+  userAriaDescribedBy!: string;
 
     get value(): string | null {
         return this._inputValueAccessor.value;
@@ -213,11 +229,11 @@ export class MatInputCurrencyDirective {
     }
 
     private unformatValue(value: string | null): string | null {
-        return value.replace(/[^\d.-]/g, '');
+        return (<any>value).replace(/[^\d.-]/g, '');
     }
 
     @HostListener('input', ['$event.target.value'])
-    onInput(value) {
+    onInput(value: any) {
         // here we cut any non numerical symbols
         this._inputValueAccessor.value = this.unformatValue(value);
         this._onChange(this._inputValueAccessor.value);

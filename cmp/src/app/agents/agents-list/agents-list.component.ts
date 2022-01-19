@@ -1,25 +1,23 @@
 import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
 import { AgentsService } from "../agents.service";
-import { Agent, Paginator, PaginatorEvent, User, AgentSearchRequest } from "../../models";
+import {
+  Agent,
+  Paginator,
+  PaginatorEvent,
+  User,
+  AgentSearchRequest,
+} from "../../models";
 import {
   Observable,
   BehaviorSubject,
-  merge,
-  zip,
-  concat,
   combineLatest,
   Subject,
-  fromEvent,
-  NEVER,
 } from "rxjs";
 import { MatSlideToggleChange } from "@angular/material/slide-toggle";
 import {
   switchMap,
   tap,
   map,
-  withLatestFrom,
-  startWith,
-  debounceTime,
   takeUntil,
   shareReplay,
 } from "rxjs/operators";
@@ -32,8 +30,8 @@ import { ResetPasswordDialogComponent } from "../reset-password-dialog/reset-pas
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatPaginator } from "@angular/material/paginator";
 import { FormControl } from "@angular/forms";
-import { SettingsService } from 'src/app/settings/settings.service';
-import { NotificationSettingsDialogComponent } from './notification-settings-dialog/notification-settings-dialog.component';
+import { SettingsService } from "src/app/settings/settings.service";
+import { NotificationSettingsDialogComponent } from "./notification-settings-dialog/notification-settings-dialog.component";
 
 @Component({
   selector: "cp-agents-list",
@@ -41,11 +39,12 @@ import { NotificationSettingsDialogComponent } from './notification-settings-dia
   styleUrls: ["./agents-list.component.scss"],
 })
 export class AgentsListComponent implements OnInit, OnDestroy {
-  user: User;
-  @ViewChild("matPaginator") matPaginator: MatPaginator;
-  paginator: Paginator<Agent>;
-  private agents: Agent[];
-  agents$: Observable<Agent[]>;
+  user!: User;
+  @ViewChild("matPaginator")
+  matPaginator!: MatPaginator;
+  paginator!: Paginator<Agent>;
+  private agents!: Agent[];
+  agents$!: Observable<Agent[]>;
   paging$ = new BehaviorSubject<PaginatorEvent>({
     pageIndex: 0,
     pageSize: 10,
@@ -54,9 +53,9 @@ export class AgentsListComponent implements OnInit, OnDestroy {
   pageSize$ = new BehaviorSubject<number>(10);
   pageIndex$ = new BehaviorSubject<number>(0);
   searchControl = new FormControl();
-  filteredAgents: Observable<Agent[]>;
+  filteredAgents!: Observable<Agent[]>;
   destroy$ = new Subject();
-  search$ = new BehaviorSubject(null);
+  search$ = new BehaviorSubject<string | null>(null);
   showSearchIcon = true;
 
   companyOptions$ = this.settings.getCompanyOptions().pipe(shareReplay());
@@ -66,7 +65,7 @@ export class AgentsListComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private account: AccountService,
     private snack: MatSnackBar,
-    private settings: SettingsService,
+    private settings: SettingsService
   ) {}
 
   ngOnInit(): void {
@@ -83,7 +82,7 @@ export class AgentsListComponent implements OnInit, OnDestroy {
         const showAll = coerceBooleanProperty(value[0]);
         const size = value[1].pageSize;
         const page = value[1].pageIndex;
-        const search = value[2] || '';
+        const search = value[2] || "";
 
         const req: AgentSearchRequest = {
           showAll,
@@ -113,17 +112,22 @@ export class AgentsListComponent implements OnInit, OnDestroy {
   }
 
   openNotificationSettingsDialog(agent: Agent) {
-    this.dialog.open(NotificationSettingsDialogComponent, {
-      height: '40vh',
-      width: '40vw',
-      data: {
-        agent,
-      },
-    }).afterClosed().subscribe(result => {
-      if (!result) return;
+    this.dialog
+      .open(NotificationSettingsDialogComponent, {
+        height: "40vh",
+        width: "40vw",
+        data: {
+          agent,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
 
-      this.snack.open('Notification preferences updated!', 'dismiss', { duration: 7500 });
-    });
+        this.snack.open("Notification preferences updated!", "dismiss", {
+          duration: 7500,
+        });
+      });
   }
 
   searchButtonClick(fromClick: boolean) {
@@ -131,13 +135,13 @@ export class AgentsListComponent implements OnInit, OnDestroy {
       this.showSearchIcon = false;
     }
 
-    this.search$.next('');
+    this.search$.next("");
   }
 
   clearSearch() {
     this.showSearchIcon = true;
-    this.searchControl.setValue('');
-    this.search$.next('');
+    this.searchControl.setValue("");
+    this.search$.next("");
   }
 
   displayFn(agent: Agent) {
@@ -217,11 +221,13 @@ export class AgentsListComponent implements OnInit, OnDestroy {
   }
 
   isAddressValid(f: Agent): boolean {
-    return f.address != null &&
+    return (
+      f.address != null &&
       f.city != null &&
       f.state != null &&
       f.country != null &&
-      f.postalCode != null;
+      f.postalCode != null
+    );
   }
 
   private _showSuccess(msg: string) {

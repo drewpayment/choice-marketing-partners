@@ -33,7 +33,7 @@ export class DocumentService {
                     someone will get it taken care of for you asap. Refresh the page and we may have already fixed it.`,
                     'dismiss', { duration: 15000 });
 
-                    return of(null);
+                    return of(null as unknown as number[]);
                 })
             );
     }
@@ -42,7 +42,7 @@ export class DocumentService {
         return this.http.get<any>(`/api/documents/${filename}/download`);
     }
 
-    saveDocument(dto: SaveDocumentRequest): Observable<IDocument> {
+    saveDocument(dto: SaveDocumentRequest): Observable<IDocument | null> {
         const data = new FormData();
 
         data.append('file', dto.file);

@@ -23,6 +23,7 @@ import {
   merge,
   scheduled,
   concat,
+  EMPTY,
 } from "rxjs";
 import {
   startWith,
@@ -66,13 +67,11 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   overrides: any;
   expenses: any;
 
-  filteredDates: Observable<string[]>;
-  filteredCampaigns: Observable<Vendor[]>;
-  paystubs$ = new BehaviorSubject<PaystubSummary[]>(null);
-  paystubs: Observable<PaystubSummary[]>;
+  paystubs$ = new BehaviorSubject<PaystubSummary[]>((<unknown>null) as PaystubSummary[]);
+  paystubs!: Observable<PaystubSummary[]>;
 
   subscriptions: Subscription[] = [];
-  controlName: string;
+  controlName!: string;
 
   showTools = false;
   private _paystubs: PaystubSummary[] = [];
@@ -102,10 +101,14 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   selectedAgents: Agent[] = [({ id: -1, name: 'All Agents' } as Agent)];
   filteredAgents: Agent[] = [];
 
-  @ViewChild('vendorInput') vendorInput: ElementRef<HTMLInputElement>;
-  @ViewChild('agentInput') agentInput: ElementRef<HTMLInputElement>;
-  @ViewChild('campaignList') vendorList: MatChipList;
-  @ViewChild('agentList') agentList: MatChipList;
+  @ViewChild('vendorInput')
+  vendorInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('agentInput')
+  agentInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('campaignList')
+  vendorList!: MatChipList;
+  @ViewChild('agentList')
+  agentList!: MatChipList;
 
   get searchVendors(): Vendor[] {
     return this.vendors.filter(v => !this.selectedVendors.find(sv => sv.id === v.id));
@@ -254,8 +257,8 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
       });
   }
 
-  searchForPaystubs() {
-    if (this.f.invalid) return;
+  searchForPaystubs(): Observable<any> {
+    if (this.f.invalid) return EMPTY;
 
     const request = this.buildSearchRequest();
 
@@ -442,7 +445,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
     const second = isAsc ? -1 : 1;
     if (!paystubs || !paystubs.length) return [];
 
-    return paystubs.sort((a, b) => {
+    return paystubs.sort((a: any, b: any) => {
       return this._normalizeValue(a[propertyName]) <
         this._normalizeValue(b[propertyName])
         ? first
@@ -497,7 +500,7 @@ export class PaystubsListComponent implements OnInit, OnDestroy {
   private buildSearchRequest(): SearchPaystubsRequest {
     const request = {} as SearchPaystubsRequest;
     const form = this.f.value;
-    request.employees = this.selectedAgents.map(a => a.id);
+    request.employees = this.selectedAgents.map(a => a.id) as number[];
     request.vendors = this.selectedVendors.map(v => v.id);
     request.startDate = form.range.start.toISOString();
     request.endDate = form.range.end.toISOString();

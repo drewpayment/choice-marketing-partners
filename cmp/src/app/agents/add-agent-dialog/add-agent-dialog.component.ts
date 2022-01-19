@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy } from "@angular/core";
 import { MatDialogRef } from "@angular/material/dialog";
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { FormGroup, FormBuilder, Validators, FormControl } from "@angular/forms";
 import { AccountService } from "../../account.service";
 import { Country, State, Agent, UserType, AgentRequest } from "../../models";
 import { Observable, of, Subject } from "rxjs";
@@ -21,14 +21,26 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
   f: FormGroup = this.createForm();
   fUser: FormGroup = this.createUserForm();
   isCreatingUser = false;
-  countries$: Observable<Country[]>;
-  states$: Observable<State[]>;
+  countries$!: Observable<Country[]>;
+  states$!: Observable<State[]>;
   @ViewChild("overridePassword", { static: false })
-  overridePassword: MatSlideToggle;
+
   isPasswordReadonly = true;
   userTypes = {};
   destroy$ = new Subject();
   private isEmailFormValueValidated = false;
+
+  get countryCtrl(): FormControl {
+    return this.f.get('country') as FormControl;
+  }
+
+  get emailCtrl(): FormControl {
+    return this.f.get('email') as FormControl;
+  }
+
+  get passwordCtrl(): FormControl {
+    return this.f.get('password') as FormControl;
+  }
 
   constructor(
     public dialogRef: MatDialogRef<AddAgentDialogComponent>,
@@ -46,7 +58,7 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
 
     this.countries$ = this.account.getCountries;
 
-    this.states$ = this.f.get("country").valueChanges.pipe(
+    this.states$ = this.countryCtrl.valueChanges.pipe(
       map((value: Country) => {
         if (value) {
           return value.States;
@@ -56,7 +68,7 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.f.get('email').valueChanges
+    this.emailCtrl.valueChanges
       .pipe(
         takeUntil(this.destroy$),
         debounceTime(500),
@@ -69,7 +81,7 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
       )
       .subscribe(isAvailable => {
         if (!isAvailable) {
-          this.f.get('email').setErrors({
+          this.emailCtrl.setErrors({
             notUnique: true,
           });
           this.snack.open(`Email in use by existing user already. Check to see if the user you're attempting to add is disabled.`, 'dismiss', { duration: 10000 });
@@ -105,7 +117,7 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
     );
   }
 
-  getUserTypeValue(key: string): UserType {
+  getUserTypeValue(key: any): any {
     return UserType[key];
   }
 
@@ -120,12 +132,11 @@ export class AddAgentDialogComponent implements OnInit, OnDestroy {
 
   overridePasswordChange(event: MatSlideToggleChange) {
     this.isPasswordReadonly = !event.checked;
-    const passwordCtrl = this.fUser.get("password");
 
     if (event.checked) {
-      passwordCtrl.enable();
+      this.passwordCtrl.enable();
     } else {
-      passwordCtrl.disable();
+      this.passwordCtrl.disable();
     }
   }
 

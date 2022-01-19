@@ -10,8 +10,8 @@ import { tap } from 'rxjs/operators';
     styleUrls: ['./nav-bar.component.scss']
 })
 export class NavBarComponent implements OnInit {
-    private user: User;
-    user$: Observable<User>;
+    private user!: User;
+    user$!: Observable<User>;
 
     constructor(private accountService: AccountService) { }
 

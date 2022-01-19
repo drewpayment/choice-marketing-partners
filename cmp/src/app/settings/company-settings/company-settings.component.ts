@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Subject } from 'rxjs';
@@ -15,8 +15,12 @@ import { SettingsService } from '../settings.service';
 })
 export class CompanySettingsComponent implements OnInit, OnDestroy {
   f = this.createForm();
-  options: CompanyOptions;
+  options!: CompanyOptions;
   destroy$ = new Subject();
+
+  get hasPaystubNotificationsCtrl(): FormControl {
+    return this.f.get('hasPaystubNotifications') as FormControl;
+  }
 
   constructor(
     private dialog: MatDialog,
@@ -35,7 +39,7 @@ export class CompanySettingsComponent implements OnInit, OnDestroy {
             hasPaystubNotifications: this.options.hasPaystubNotifications
           });
         }),
-        switchMap(() => this.f.get('hasPaystubNotifications').valueChanges),
+        switchMap(() => this.hasPaystubNotificationsCtrl.valueChanges),
         takeUntil(this.destroy$),
       )
       .subscribe(value => {

@@ -23,21 +23,17 @@ import {
   EditInvoiceResources,
   Expense,
   Invoice,
-  InvoicePageResources,
   InvoiceSaveRequest,
   Override,
   Vendor,
 } from "../../../models";
 import { Moment } from "moment";
-import { ActivatedRoute } from "@angular/router";
 import * as moment from "moment";
-import { MatTable, MatTableDataSource } from "@angular/material/table";
-import { DOCUMENT, Location } from "@angular/common";
+import { DOCUMENT } from "@angular/common";
 import { takeUntil } from "rxjs/operators";
 import { coerceNumberProperty } from "@angular/cdk/coercion";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpErrorResponse } from "@angular/common/http";
-import { MatCheckboxChange } from "@angular/material/checkbox";
 
 @Component({
   selector: "cp-create-invoice",
@@ -45,14 +41,13 @@ import { MatCheckboxChange } from "@angular/material/checkbox";
   styleUrls: ["./create-invoice.component.scss"],
 })
 export class CreateInvoiceComponent implements OnInit {
-  user: User;
+  user!: User;
 
   f = this.createForm();
 
-  private editInvoiceResources: EditInvoiceResources;
   vendorOptions$ = new Subject<Vendor[]>();
   agentOptions$ = new Subject<Agent[]>();
-  private issueDates: Date[] | Moment[] | string[];
+  private issueDates!: Date[] | Moment[] | string[];
   issueDates$ = new Subject<Date[] | Moment[] | string[]>();
 
   salesCols = [
@@ -85,7 +80,7 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
   isNew = false;
-  destroy$ = new Subject();
+  destroy$ = new Subject<void>();
 
   pendingDeletes: DeleteInvoiceItems = {
     sales: [],
@@ -98,21 +93,36 @@ export class CreateInvoiceComponent implements OnInit {
 
   pendingTotals: number = 0;
 
+  get vendorCtrl(): FormControl {
+    return this.f.get('vendor') as FormControl;
+  }
+
+  get agentCtrl(): FormControl {
+    return this.f.get('agent') as FormControl;
+  }
+
+  get issueDateCtrl(): FormControl {
+    return this.f.get('issueDate') as FormControl;
+  }
+
+  get weekendingCtrl(): FormControl {
+    return this.f.get('weekending') as FormControl;
+  }
+
   constructor(
     private account: AccountService,
     private invoiceService: InvoiceService,
     private fb: FormBuilder,
     private el: ElementRef<HTMLElement>,
     private cd: ChangeDetectorRef,
-    private location: Location,
     private bar: MatSnackBar,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: any
   ) {
     this.formOverrides.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         let hasUpdates = false;
-        this.formOverrides.controls.forEach((ctrl: FormGroup) => {
+        this.formOverrides.controls.forEach((ctrl: AbstractControl, i: number, arr: AbstractControl[]) => {
           if (ctrl.value.sales !== null && ctrl.value.commission !== null) {
             const currTotal = coerceNumberProperty(ctrl.value.total);
             const newTotal = coerceNumberProperty(
@@ -148,7 +158,7 @@ export class CreateInvoiceComponent implements OnInit {
       this.isNew = data == null;
 
       if (!this.isNew) {
-        const parsed = JSON.parse(data) as EditInvoiceResources;
+        const parsed = JSON.parse(<string>data) as EditInvoiceResources;
 
         parsed.expenses = JSON.parse(parsed.expenses as any);
         parsed.invoices = JSON.parse(parsed.invoices as any);
@@ -165,18 +175,18 @@ export class CreateInvoiceComponent implements OnInit {
         parsed.issueDate = issueDate;
 
         for (const p in parsed) {
-          if (Array.isArray(parsed[p])) {
-            parsed[p] = parsed[p].map((item) => {
+          const parsedProperty: unknown = (<any>parsed)[p];
+          if (Array.isArray(parsedProperty)) {
+            (<any>parsed)[p] = parsedProperty.map((item) => {
               const fixed = this.convertToCamelCase(item);
               return fixed || item;
             });
           } else {
-            const fixed = this.convertToCamelCase(parsed[p]);
-            parsed[p] = fixed || parsed[p];
+            const fixed = this.convertToCamelCase((<any>parsed)[p]);
+            (<any>parsed)[p] = fixed || (<any>parsed)[p];
           }
         }
 
-        this.editInvoiceResources = parsed;
 
         this.updateForm(parsed);
       }
@@ -204,7 +214,7 @@ export class CreateInvoiceComponent implements OnInit {
         .deleteInvoices(this.multiSelectDeletes)
         .subscribe((res) => {
           const filteredRows = this.formInvoices.value.filter(
-            (x) => !this.multiSelectDeletes.includes(x.invoiceId)
+            (x: any) => !this.multiSelectDeletes.includes(x.invoiceId)
           );
 
           this.patchInvoicesForm(filteredRows);
@@ -294,14 +304,14 @@ export class CreateInvoiceComponent implements OnInit {
 
     const rows = clipText
       .split(/\n|\r/)
-      .filter((row) => row.length)
-      .map((row) => row.split(/\t/));
+      .filter((row: any) => row.length)
+      .map((row: any) => row.split(/\t/));
 
     console.dir(rows);
 
     if (rows && rows.length) {
       this.formInvoices.clear();
-      rows.forEach((row) => {
+      rows.forEach((row: any) => {
         const isExcelNegative = this.isExcelNegative(row[6]);
         const rgx = /[^-\d]/gi;
         const amtParts = row[6].trim().split(".");
@@ -336,7 +346,7 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
   clearInvoiceTable() {
-    const pendDels = this.formInvoices.value.filter((inv) => inv.invoiceId > 0);
+    const pendDels = this.formInvoices.value.filter((inv: any) => inv.invoiceId > 0);
 
     if (pendDels.length) {
       this.pendingDeletes.sales = [...this.pendingDeletes.sales, ...pendDels];
@@ -425,16 +435,16 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
   private convertToCamelCase<T>(item: any): T {
-    if (moment.isMoment(item)) return null;
+    if (moment.isMoment(item)) return null as unknown as T;
     if (typeof item === "object" && item !== null) {
       const corrected = {} as T;
       for (const p in item) {
-        corrected[p.replace(/_([a-zA-Z0-9])/g, (g) => g[1].toUpperCase())] =
+        (<any>corrected)[p.replace(/_([a-zA-Z0-9])/g, (g) => g[1].toUpperCase())] =
           item[p];
       }
       return corrected;
     } else {
-      return null;
+      return null as unknown as any;
     }
   }
 
@@ -458,10 +468,10 @@ export class CreateInvoiceComponent implements OnInit {
       weekending: d.weekending,
     });
 
-    this.f.get("vendor").disable({ emitEvent: false });
-    this.f.get("agent").disable({ emitEvent: false });
-    this.f.get("issueDate").disable({ emitEvent: false });
-    this.f.get("weekending").disable({ emitEvent: false });
+    this.vendorCtrl.disable({ emitEvent: false });
+    this.agentCtrl.disable({ emitEvent: false });
+    this.issueDateCtrl.disable({ emitEvent: false });
+    this.weekendingCtrl.disable({ emitEvent: false });
 
     this.patchInvoicesForm(d.invoices);
     this.patchOverridesForm(d.overrides);

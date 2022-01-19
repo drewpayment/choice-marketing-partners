@@ -18,10 +18,13 @@ import { PhonePipe } from 'src/app/shared/pipes/phone.pipe';
 })
 export class EditAgentDialogComponent implements OnInit {
   f: FormGroup = this.createForm();
-  private _countries: Country[];
-  countries$: Observable<Country[]>;
-  states$: Observable<State[]>;
-  private _states: State[];
+  private _countries!: Country[];
+  countries$!: Observable<Country[]>;
+  states$!: Observable<State[]>;
+  private _states!: State[];
+  get countryCtrl(): FormControl {
+    return this.f.get('country') as FormControl;
+  }
 
   constructor(
     public dialogRef: MatDialogRef<EditAgentDialogComponent>,
@@ -40,7 +43,7 @@ export class EditAgentDialogComponent implements OnInit {
       tap((old) => (this._countries = old)),
     );
 
-    this.states$ = this.f.get("country").valueChanges.pipe(
+    this.states$ = this.countryCtrl.valueChanges.pipe(
       map((value: Country) => {
         if (typeof value === "object" && value !== null) {
           return value.States;

@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { Agent, User } from "../../models";
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { FormGroup, FormBuilder, Validators, FormControl } from "@angular/forms";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { AgentsService } from "../agents.service";
 import { catchError } from "rxjs/operators";
@@ -18,6 +18,10 @@ interface DialogData {
 })
 export class ResetPasswordDialogComponent implements OnInit {
   f: FormGroup = this.createForm();
+
+  get verifyPasswordCtrl(): FormControl {
+    return this.f.get('verifyPassword') as FormControl;
+  }
 
   constructor(
     private dialogRef: MatDialogRef<ResetPasswordDialogComponent>,
@@ -47,7 +51,7 @@ export class ResetPasswordDialogComponent implements OnInit {
     if (this.f.invalid) return;
 
     if (!this.validatePasswordsMatch()) {
-      this.f.get("verifyPassword").setErrors({ mismatch: true });
+      this.verifyPasswordCtrl.setErrors({ mismatch: true });
       return;
     }
 
@@ -83,6 +87,7 @@ export class ResetPasswordDialogComponent implements OnInit {
 
   private prepareModel(): User {
     const agent = this.data;
+    if (!agent.user)  agent.user = {} as User;
     agent.user.password = this.f.value.password;
     return agent.user;
   }
