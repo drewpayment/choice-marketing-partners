@@ -2,13 +2,12 @@ import { Component, OnInit, Inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { Agent, Country, State } from "../../models";
 import { FormGroup, FormBuilder, Validators, FormControl } from "@angular/forms";
-import { EMPTY, iif, NEVER, Observable, Observer, of } from "rxjs";
+import { Observable } from "rxjs";
 import { AccountService } from "../../account.service";
-import { map, tap, first, skipWhile, switchMap } from "rxjs/operators";
+import { map, tap, first, skipWhile } from "rxjs/operators";
 import { AgentsService } from "../agents.service";
-import { environment } from "src/environments/environment";
 import { ZipcodeService } from "../../services/zipcode.service";
-import { PhonePipe } from 'src/app/shared/pipes/phone.pipe';
+import { PhonePipe } from '../../shared/pipes/phone.pipe';
 
 @Component({
   selector: "cp-edit-agent-dialog",

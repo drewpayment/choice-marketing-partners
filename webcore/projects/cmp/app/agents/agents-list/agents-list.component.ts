@@ -30,8 +30,8 @@ import { ResetPasswordDialogComponent } from "../reset-password-dialog/reset-pas
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatPaginator } from "@angular/material/paginator";
 import { FormControl } from "@angular/forms";
-import { SettingsService } from "src/app/settings/settings.service";
 import { NotificationSettingsDialogComponent } from "./notification-settings-dialog/notification-settings-dialog.component";
+import { SettingsService } from '../../settings/settings.service';
 
 @Component({
   selector: "cp-agents-list",

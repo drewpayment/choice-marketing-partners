@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "newProjectRoot": "projects",
+  "newProjectRoot": "webcore/projects",
   "projects": {
     "cmp": {
       "projectType": "application",
@@ -11,45 +11,45 @@
         }
       },
       "root": "",
-      "sourceRoot": "src",
+      "sourceRoot": "webcore/projects/cmp",
       "prefix": "cp",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "../public/dist/cmp",
-            "index": "src/index.php",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "outputPath": "./public/dist/cmp",
+            "index": "webcore/projects/cmp/index.php",
+            "main": "webcore/projects/cmp/main.ts",
+            "polyfills": "webcore/projects/cmp/polyfills.ts",
             "sourceMap": true,
-            "tsConfig": "tsconfig.app.json",
+            "tsConfig": "webcore/projects/cmp/tsconfig.app.json",
             "aot": false,
             "buildOptimizer": false,
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "webcore/projects/cmp/favicon.ico",
+              "webcore/projects/cmp/assets"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
-              "src/styles.scss",
-              "../resources/assets/sass/app.scss"
+              "webcore/projects/cmp/styles.scss",
+              "./resources/assets/sass/app.scss"
             ],
             "scripts": [
-              "../resources/assets/js/conf/employee.js",
-              "../resources/assets/js/welcome.js",
-              "../resources/assets/js/paystubs.js",
-              "../resources/assets/js/employees.js",
-              "../resources/assets/js/upload.js",
-              "../resources/assets/js/custom.js",
-              "../resources/assets/js/dashboard.js",
-              "../resources/assets/js/home.js",
-              "../resources/assets/js/approvals.js",
-              "../resources/assets/js/views/invoices/edit.js",
-              "../resources/assets/js/views/invoices/historical.js",
-              "../resources/assets/js/views/invoices/search.js",
-              "../resources/assets/js/views/invoices/upload.js",
-              "../resources/assets/js/views/overrides/detail.js",
-              "../resources/assets/js/views/paystubs/paystubs.js"
+              "./resources/assets/js/conf/employee.js",
+              "./resources/assets/js/welcome.js",
+              "./resources/assets/js/paystubs.js",
+              "./resources/assets/js/employees.js",
+              "./resources/assets/js/upload.js",
+              "./resources/assets/js/custom.js",
+              "./resources/assets/js/dashboard.js",
+              "./resources/assets/js/home.js",
+              "./resources/assets/js/approvals.js",
+              "./resources/assets/js/views/invoices/edit.js",
+              "./resources/assets/js/views/invoices/historical.js",
+              "./resources/assets/js/views/invoices/search.js",
+              "./resources/assets/js/views/invoices/upload.js",
+              "./resources/assets/js/views/overrides/detail.js",
+              "./resources/assets/js/views/paystubs/paystubs.js"
             ],
             "vendorChunk": true,
             "extractLicenses": false,
@@ -60,8 +60,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "webcore/projects/cmp/environments/environment.ts",
+                  "with": "webcore/projects/cmp/environments/environment.prod.ts"
                 }
               ],
               "aot": true,
@@ -107,17 +107,17 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
+            "main": "webcore/projects/cmp/test.ts",
+            "polyfills": "webcore/projects/cmp/polyfills.ts",
+            "tsConfig": "webcore/projects/cmp/tsconfig.spec.json",
+            "karmaConfig": "webcore/projects/cmp/karma.conf.js",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "webcore/projects/cmp/favicon.ico",
+              "webcore/projects/cmp/assets"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
-              "src/styles.scss"
+              "webcore/projects/cmp/styles.scss"
             ],
             "scripts": []
           }
@@ -126,8 +126,8 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
+              "webcore/projects/cmp/**/*.ts",
+              "webcore/projects/cmp/**/*.html"
             ]
           }
         },

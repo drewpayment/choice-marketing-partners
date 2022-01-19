@@ -22,7 +22,7 @@ import {
   takeWhile,
   tap,
 } from "rxjs/operators";
-import { IDocument } from "src/app/models";
+import { IDocument } from '../../models';
 import { AddDocumentDialogComponent } from "../add-document/add-document-dialog.component";
 import { ConfirmDeletesDialogComponent } from "../confirm-deletes/confirm-deletes-dialog.component";
 import { DocumentService } from "../documents.service";

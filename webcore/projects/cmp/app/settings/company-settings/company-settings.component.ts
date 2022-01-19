@@ -4,7 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { CompanyOptions } from 'src/app/models';
+import { CompanyOptions } from '../../models';
 import { RunPayrollDialogComponent } from "../run-payroll-dialog/run-payroll-dialog.component";
 import { SettingsService } from '../settings.service';
 

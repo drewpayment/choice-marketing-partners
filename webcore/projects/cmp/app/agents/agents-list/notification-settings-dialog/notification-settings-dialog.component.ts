@@ -3,7 +3,6 @@ import { Component, Inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { filter, tap } from "rxjs/operators";
-import { SettingsService } from "src/app/settings/settings.service";
 import { Agent, PaystubNotifierType, UserNotification } from "../../../models";
 import { NotificationsService } from "../../../services/notifications.service";
 

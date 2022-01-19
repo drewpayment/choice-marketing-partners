@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, OnDestroy, ViewChild, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ElementRef, OnDestroy, ViewChild } from "@angular/core";
 import {
   FormGroup,
   FormBuilder,
@@ -9,7 +9,6 @@ import * as moment from "moment";
 import {
   Vendor,
   Agent,
-  SearchPaystubs,
   PaystubSummary,
   SearchPaystubsRequest,
 } from "../../models";
@@ -20,9 +19,6 @@ import {
   of,
   Subject,
   forkJoin,
-  merge,
-  scheduled,
-  concat,
   EMPTY,
 } from "rxjs";
 import {
@@ -32,24 +28,19 @@ import {
   shareReplay,
   catchError,
   takeUntil,
-  filter,
-  switchMap,
-  take,
-  exhaustMap,
-  timestamp,
 } from "rxjs/operators";
 import { InvoiceService } from "../invoices/invoice.service";
 import { Location } from "@angular/common";
 import { MatDialog } from "@angular/material/dialog";
 import { PaystubNotificationDialogComponent } from "./paystub-notification-dialog/paystub-notification-dialog.component";
-import { SettingsService } from "src/app/settings/settings.service";
-import { NotificationsService } from "src/app/services/notifications.service";
 import { MatCalendarCellClassFunction, MatEndDate, MatStartDate } from "@angular/material/datepicker";
 import { PaystubsService } from "../../services/paystubs.service";
 import { COMMA, ENTER } from "@angular/cdk/keycodes";
 import { MatChipInputEvent, MatChipList } from "@angular/material/chips";
 import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 import { coerceNumberProperty } from '@angular/cdk/coercion';
+import { NotificationsService } from '../../services/notifications.service';
+import { SettingsService } from '../../settings/settings.service';
 
 @Component({
   selector: "cp-paystubs-list",
