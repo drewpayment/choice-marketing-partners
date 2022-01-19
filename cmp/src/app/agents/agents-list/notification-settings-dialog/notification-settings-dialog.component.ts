@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Component, Inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
@@ -21,14 +22,13 @@ export class NotificationSettingsDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
-    private settings: SettingsService,
     private notificationService: NotificationsService,
     private ref: MatDialogRef<NotificationSettingsDialogComponent>,
     private fb: FormBuilder
   ) {
-    if (!!data.agent.user) {
+    if (!!this.data.agent.user) {
       this.notificationService
-        .getUserNotificationPreferences(data.agent.user.uid)
+        .getUserNotificationPreferences(this.data.agent.user.uid)
         .pipe(
           filter((result) => !!result),
           tap((result) => (this.notification = result))
