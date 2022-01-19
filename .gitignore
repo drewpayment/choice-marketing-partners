@@ -13,3 +13,4 @@ public/dist/cmp
 .phpstorm.meta.php
 _ide_helper.php
 .DS_Store
+cmp/.angular

@@ -466,6 +466,7 @@ export class CreateInvoiceComponent implements OnInit {
     this.patchInvoicesForm(d.invoices);
     this.patchOverridesForm(d.overrides);
     this.patchExpensesForm(d.expenses);
+    this.setPendingTotals(d.invoices, d.overrides, d.expenses);
   }
 
   private setPendingTotals(
