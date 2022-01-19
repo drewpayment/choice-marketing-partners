@@ -305,6 +305,10 @@
   <div>
     <mat-card>
       <mat-card-content class="invoice-tables action-row">
+        <div *ngIf="pendingTotals > 0">
+          <h3>{{ pendingTotals | currency }}</h3>
+        </div>
+
         <button type="button" mat-flat-button (click)="toggleMultiSelectMode(false)" *ngIf="isMultiSelectMode">
           <mat-icon>clear</mat-icon> Cancel
         </button>

@@ -96,6 +96,8 @@ export class CreateInvoiceComponent implements OnInit {
   isMultiSelectMode = false;
   multiSelectDeletes: number[] = [];
 
+  pendingTotals: number = 0;
+
   constructor(
     private account: AccountService,
     private invoiceService: InvoiceService,
@@ -464,6 +466,31 @@ export class CreateInvoiceComponent implements OnInit {
     this.patchInvoicesForm(d.invoices);
     this.patchOverridesForm(d.overrides);
     this.patchExpensesForm(d.expenses);
+  }
+
+  private setPendingTotals(
+    invoices: Invoice[],
+    overrides: Override[],
+    expenses: Expense[]
+  ) {
+    let total = 0;
+
+    total += (<unknown>invoices.reduce((a, b) => {
+      a.amount += b.amount;
+      return a;
+    }).amount) as number;
+
+    total += (<unknown>overrides.reduce((a, b) => {
+      a.total += b.total;
+      return a;
+    }).total) as number;
+
+    total += (<unknown>expenses.reduce((a, b) => {
+      a.amount += b.amount;
+      return a;
+    }).amount) as number;
+
+    this.pendingTotals = total;
   }
 
   private patchOverridesForm(overrides: Override[]) {

@@ -43,6 +43,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
 RUN docker-php-ext-install gd
 
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && install-php-extensions xdebug 
+
+RUN if [ ${XDEBUG} ] ; then \
+    apt-get install -y inetutils-ping netcat; \    
+fi;
+
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
@@ -53,8 +60,6 @@ RUN useradd -u 1001 -ms /bin/bash -g www www
 # Copy existing application directory contents
 COPY . /var/www/
 RUN mkdir -p /var/www/storage/logs
-# RUN mkdir -p /var/www/public/dist/cmp
-# COPY --from=node /usr/src/app/public/dist /var/www/public/dist/
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www/

@@ -141,65 +141,207 @@ class InvoiceController extends Controller
 	 */
 	public function saveApiInvoice(Request $request): JsonResponse
 	{
-		$vendor_id = $request['vendorId'];
-		$agent_id = $request['agentId'];
-		$issue_date = $request['issueDate'];
-		$week_ending = $request['weekending'];
+		$result = new OpResult();
+		DB::beginTransaction();
 
-		$pending_deletes = $request['pendingDeletes'];
+		try {
+			$this->deletePendingInvoiceItems($request['pendingDeletes']);
+			$sales = $this->saveSaleRecords($request)->getData();
+			$overrides = $this->saveOverrideRecords($request)->getData();
+			$expenses = $this->saveExpenseRecords($request)->getData();
 
-		if (isset($pending_deletes)) {
-			$this->deletePendingInvoiceItems($pending_deletes);
+			$payroll = $this->savePayrollInfo($request, $sales, $overrides, $expenses)->getData();
+
+			$this->paystubService->processPaystubJob($request['issueDate']);
+			
+			DB::commit();
+
+			return $result->setData([
+				'sales' => $sales,
+				'overrides' => $overrides,
+				'expenses' => $expenses,
+				'payroll' => $payroll
+			])->getResponse();
+			
+		} catch (\Exception $ex) {
+			DB::rollBack();
+
+			return $result->setToFail($ex)
+				->getResponse();
+		}
+	}
+	
+	#region API INVOICE PRIVATE METHODS
+
+	private function savePayrollInfo($request, $sales, $overrides, $expenses)
+	{
+		$result = new OpResult();
+		$total = 0;
+
+		foreach ($sales as $sale) {
+			$total += $sale['amount'];
 		}
 
-		$sales = array_reduce($request['sales'], function ($a, $b) {
-			$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
-			return $a;
-		});
-		$salesTotal = !is_null($sales) ? $sales['amount'] : 0;
+		foreach ($overrides as $override) {
+			$total += $override['total'];
+		}
 
-		$overrides = array_reduce($request['overrides'], function ($a, $b) {
-			$a['total'] = (is_null($a) ? 0 : $a['total']) + (is_null($b) ? 0 : $b['total']);
-			return $a;
-		});
-		$overridesTotal = !is_null($overrides) ? $overrides['total'] : 0;
+		foreach ($expenses as $expense) {
+			$total += $expense['amount'];
+		}
 
-		$expenses = array_reduce($request['expenses'], function ($a, $b) {
-			$a['amount'] = (is_null($a) ? 0 : $a['amount']) + (is_null($b) ? 0 : $b['amount']);
-			return $a;
-		});
-		$expensesTotal = !is_null($expenses) ? $expenses['amount'] : 0;
-
-		$totals = [
-			'sales' => $salesTotal,
-			'overrides' => $overridesTotal,
-			'expenses' => $expensesTotal
-		];
-
-		$pending = $this->mapToPendingInvoice($request, $vendor_id, $agent_id, $issue_date, $week_ending, $totals);
-
-		$result = $this->updateOrInsertInvoices($pending);
-
-		// Update/Create new payroll record which gets used on the /payroll screen to show a list of payroll information
-		// NOT to be confused with the insanely duplicated entity called "Paystub" that creates a very similar screen... WTF
-		$pending_payroll = $pending['payroll'];
-		$payroll = Payroll::find($pending_payroll['id']);
+		$payroll = Payroll::agentId($request['agentid'])
+			->vendor($request['vendorId'])
+			->payDate($request['issueDate'])
+			->first();
 
 		if ($payroll != null) {
-			$payroll->agent_name = $pending_payroll['agent_name'];
-			$payroll->amount = $pending_payroll['amount'];
-			$payroll->is_paid = $pending_payroll['is_paid'];
-			$payroll->vendor_id = $pending_payroll['vendor_id'];
-			$payroll->pay_date = $pending_payroll['pay_date'];
-			$payroll->save();
+			$payroll->amount = $total;
 		} else {
-			Payroll::insert($pending_payroll);
+			$agent = Employee::find($request['agentid']);
+
+			$payroll = new Payroll([
+				'agent_id' => $request['agentId'],
+				'agent_name' => $agent != null ? $agent->name : '',
+				'amount' => $total,
+				'is_paid' => false,
+				'vendor_id' => $request['vendorId'],
+				'pay_date' => $request['issueDate']
+			]);
 		}
 
-		$this->paystubService->processPaystubJob($issue_date);
+		$saved = $payroll->save();
 
-		return response()->json($pending);
+		return $result->setStatus($saved)
+			->setDataOnSuccess($payroll);
 	}
+
+	private function saveExpenseRecords($request)
+	{
+		$result = new OpResult();
+		$expenses = [];
+
+		foreach ($request['expenses'] as $e) {
+			$expense = Expense::firstOrNew([ 'expid' => $e['expenseId'] ]);
+			
+			$expense->vendor_id = $request['vendorId'];
+			$expense->agentid = $request['agentId'];
+			$expense->issue_date = $request['issueDate'];
+			$expense->wkending = $request['weekending'];
+			$expense->amount = is_numeric($e['amount']) ? $e['amount'] + 0 : 0;
+			$expense->type = $e['type'];			
+			$expense->notes = $e['notes'];
+			
+			if ($expense->expid < 0) {
+				$expense->expid = null;
+			}
+
+			$save_success = $expense->save();
+
+			if ($save_success) {
+				$expenses[] = $expense;
+			}
+		}
+
+		return $result->setDataOnSuccess($expenses);
+	}
+
+	private function saveOverrideRecords($request)
+	{
+		$result = new OpResult();
+		$overrides = [];
+
+		foreach ($request['overrides'] as $o) {
+			$override = Override::firstOrNew([
+				'vendor_id' => $request['vendorId'],
+				'sales' => $o['sales'],
+				'commission' => is_numeric($o['commission']) ? $o['commission'] + 0 : 0,
+				'total' => is_numeric($o['total']) ? $o['total'] + 0 : 0,
+				'agentid' => $request['agentId'],
+				'issue_date' => $request['issueDate'],
+				'wkending' => $request['weekending']
+			]);
+			
+			$override->name = $o['name'];
+
+			$save_success = $override->save();
+
+			if ($save_success) {
+				$overrides[] = $override;
+			}
+		}
+
+		return $result->setDataOnSuccess($overrides);
+	}
+
+	private function saveSaleRecords($request)
+	{
+		$result = new OpResult();
+
+		$sales = [];
+		foreach ($request['sales'] as $invoice) {
+			$sale = Invoice::firstOrNew([
+				'invoice_id' => $invoice['invoiceId']
+			]);
+			
+			$sale->vendor = $request['vendorId'];
+			$sale->sale_date = Carbon::parse($invoice['saleDate'])->format('Y-m-d');
+			$sale->first_name = $invoice['firstName'];
+			$sale->last_name = $invoice['lastName'];
+			$sale->address = $invoice['address'];
+			$sale->city = $invoice['city'];
+			$sale->status = $invoice['status'];
+			$sale->amount = is_numeric($invoice['amount']) ? $invoice['amount'] + 0 : 0;
+			$sale->agentid = $request['agentId'];
+			$sale->issue_date = $request['issueDate'];
+			$sale->wkending = $request['weekending'];
+			
+			if ($sale->invoice_id < 1) {
+				$sale->invoice_id = null;
+			}
+
+			$save_success = $sale->save();
+
+			if ($save_success) {
+				$sales[] = $sale;
+			}
+		}
+
+		return $result->setDataOnSuccess($sales);
+	}
+	
+	private function deletePendingInvoiceItems($pending_deletes)
+	{
+		if (isset($pending_deletes['sales']) && count($pending_deletes['sales']) > 0) {
+			Invoice::destroy($pending_deletes['sales']);
+			$sales_ids = [];
+			foreach ($pending_deletes['sales'] as $key => $value) {
+				$sales_ids[] = $value['invoiceId'];
+			}
+
+			DB::table('invoices')->whereIn('invoice_id', $sales_ids)->delete();
+		}
+
+		if (isset($pending_deletes['overrides']) && count($pending_deletes['overrides']) > 0) {
+			$override_ids = [];
+			foreach ($pending_deletes['overrides'] as $key => $value) {
+				$override_ids[] = $value['overrideId'];
+			}
+
+			DB::table('overrides')->whereIn('ovrid', $override_ids)->delete();
+		}
+
+		if (isset($pending_deletes['expenses']) && count($pending_deletes['expenses']) > 0) {
+			$expense_ids = [];
+			foreach ($pending_deletes['expenses'] as $key => $value) {
+				$expense_ids[] = $value['expenseId'];
+			}
+
+			DB::table('expenses')->whereIn('expid', $expense_ids)->delete();
+		}
+	}
+	
+	#endregion
 
 	/**
 	 * @param Request $request
@@ -259,49 +401,6 @@ class InvoiceController extends Controller
 
 	#endregion
 
-	private function mapToModelIds(&$item, $model_id_key)
-	{
-		$item = $item[$model_id_key];
-	}
-
-	private function deletePendingInvoiceItems($pending_deletes)
-	{
-		DB::beginTransaction();
-		
-		try {
-			if (isset($pending_deletes['sales']) && count($pending_deletes['sales']) > 0) {
-				Invoice::destroy($pending_deletes['sales']);
-				$sales_ids = [];
-				foreach ($pending_deletes['sales'] as $key => $value) {
-					$sales_ids[] = $value['invoiceId'];
-				}
-				
-				DB::table('invoices')->whereIn('invoice_id', $sales_ids)->delete();
-			}
-	
-			if (isset($pending_deletes['overrides']) && count($pending_deletes['overrides']) > 0) {
-				$override_ids = [];
-				foreach ($pending_deletes['overrides'] as $key => $value) {
-					$override_ids[] = $value['overrideId'];
-				}
-	
-				DB::table('overrides')->whereIn('ovrid', $override_ids)->delete();
-			}
-	
-			if (isset($pending_deletes['expenses']) && count($pending_deletes['expenses']) > 0) {
-				$expense_ids = [];
-				foreach ($pending_deletes['expenses'] as $key => $value) {
-					$expense_ids[] = $value['expenseId'];
-				}
-				
-				DB::table('expenses')->whereIn('expid', $expense_ids)->delete();
-			}	
-		} catch (\Exception $ex) {
-			DB::rollback();
-		}
-		
-	}
-
 	/**
 	 * Updates or Inserts new invoice records for a paystub.
 	 * 
@@ -317,45 +416,57 @@ class InvoiceController extends Controller
 		foreach ($pending['sales'] as $sale) {
 			$s = Invoice::find($sale['invoice_id']);
 
-			if ($s != null) {
-				$s->first_name = $sale['first_name'];
-				$s->last_name = $sale['last_name'];
-				$s->address = $sale['address'];
-				$s->city = $sale['city'];
-				$s->status = $sale['status'];
-				$s->amount = $sale['amount'];
-				$s->save();
-			} else {
-				$sale['invoice_id'] = null;
-				$sale_model = Invoice::create($sale);
+			if ($s == null) {
+				$s = new Invoice;
 			}
+
+			$s->vendor = $sale['vendor'];
+			$s->sale_date = $sale['sale_date'];
+			$s->first_name = $sale['first_name'];
+			$s->last_name = $sale['last_name'];
+			$s->address = $sale['address'];
+			$s->city = $sale['city'];
+			$s->status = $sale['status'];
+			$s->amount = $sale['amount'];
+			$s->agentid = $sale['agentid'];
+			$s->issue_date = $sale['issue_date'];
+			$s->wkending = $sale['wkending'];
+			$s->save();
 		}
 
 		foreach ($pending['overrides'] as $override) {
 			$o = Override::find($override['ovrid']);
 
-			if ($o != null) {
-				$o->name = $override['name'];
-				$o->sales = $override['sales'];
-				$o->commission = $override['commission'];
-				$o->total = $override['total'];
-				$o->save();
-			} else {
-				$o = Override::create($override);
+			if ($o == null) {
+				$o = new Override;
 			}
+
+			$o->name = $override['name'];
+			$o->vendor_id = $override['vendor_id'];
+			$o->sales = $override['sales'];
+			$o->commission = $override['commission'];
+			$o->total = $override['total'];
+			$o->agentid = $override['agentid'];
+			$o->issue_date = $override['issue_date'];
+			$o->wkending = $override['wkending'];
+			$o->save();
 		}
 
-		foreach ($pending['expenses'] as $expense) {
+		foreach ($pending['expenses'] as $key => $expense) {
 			$e = Expense::find($expense['expid']);
 
-			if ($e != null) {
-				$e->type = $expense['type'];
-				$e->amount = $expense['amount'];
-				$e->notes = $expense['notes'];
-				$e->save();
-			} else {
-				$e = Expense::create($expense);
+			if ($e == null) {
+				$e = new Expense;
 			}
+
+			$e->vendor_id = intval($expense['vendor_id']);
+			$e->type = $expense['type'];
+			$e->amount = floatval($expense['amount']);
+			$e->notes = $expense['notes'];
+			$e->agentid = $expense['agentid'];
+			$e->issue_date = $expense['issue_date'];
+			$e->wkending = $expense['wkending'];
+			$e->save();
 		}
 	}
 
@@ -383,7 +494,7 @@ class InvoiceController extends Controller
 				'address' => $sale['address'],
 				'city' => $sale['city'],
 				'status' => $sale['status'],
-				'amount' => $sale['amount'],
+				'amount' => is_numeric($sale['amount']) ? $sale['amount'] + 0 : 0,
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
 				'wkending' => $week_ending,
@@ -399,7 +510,7 @@ class InvoiceController extends Controller
 				'name' => $ovr['name'],
 				'sales' => $ovr['sales'],
 				'commission' => $ovr['commission'],
-				'total' => $ovr['total'],
+				'total' => is_numeric($ovr['total']) ? $ovr['total'] + 0 : 0,
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
 				'wkending' => $week_ending,
@@ -413,7 +524,7 @@ class InvoiceController extends Controller
 				'expid' => isset($exp['expenseId']) ? $exp['expenseId'] : null,
 				'vendor_id' => $vendor_id,
 				'type' => $exp['type'],
-				'amount' => $exp['amount'],
+				'amount' => is_numeric($exp['amount']) ? $exp['amount'] + 0 : 0,
 				'notes' => $exp['notes'],
 				'agentid' => $agent_id,
 				'issue_date' => $issue_date,
