@@ -18,7 +18,7 @@
           {{ d | date: 'shortDate' }}
         </mat-option>
       </mat-select>
-      <mat-error *ngIf="f.get('date').hasError('required')">
+      <mat-error *ngIf="f.get('date')?.hasError('required')">
         Please select a date.
       </mat-error>
     </mat-form-field>

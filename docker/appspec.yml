@@ -1,0 +1,43 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+envs:
+- key: DB_CONNECTION
+  scope: RUN_AND_BUILD_TIME
+  value: mysql
+- key: DB_HOST
+  scope: RUN_AND_BUILD_TIME
+  value: db-mysql-nyc3-91454-do-user-1647041-0.b.db.ondigitalocean.com
+- key: DB_PORT
+  scope: RUN_AND_BUILD_TIME
+  value: "25060"
+- key: DB_DATABASE
+  scope: RUN_AND_BUILD_TIME
+  value: defaultdb
+- key: DB_USERNAME
+  scope: RUN_AND_BUILD_TIME
+  value: doadmin
+- key: DB_PASSWORD
+  scope: RUN_AND_BUILD_TIME
+  value: nE8e9XoPlaxfmLFg
+- key: DB_SSLMODE
+  SCOPE: RUN_AND_BUILD_TIME
+  value: require
+- key: APP_URL
+  scope: RUN_AND_BUILD_TIME
+  value: ${APP_URL}
+name: choice-marketing-partners
+region: nyc
+services:
+- dockerfile_path: Dockerfile
+  image:
+    registry_type: "DOCR"
+    repository: "choice-marketing-partners"
+    tag: "latest"
+  http_port: 9000
+  instance_count: 2
+  instance_size_slug: professional-xs
+  name: choice-marketing-partners
+  routes:
+  - path: /
+  source_dir: /

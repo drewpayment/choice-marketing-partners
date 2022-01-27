@@ -12,7 +12,7 @@
         <mat-form-field>
             <mat-label>Full Name</mat-label>
             <input type="text" matInput formControlName="name" required />
-            <mat-error *ngIf="f.get('name').hasError('required')">
+            <mat-error *ngIf="f.get('name')?.hasError('required')">
                 Please enter name.
             </mat-error>
         </mat-form-field>
@@ -20,7 +20,7 @@
         <mat-form-field>
             <mat-label>Email</mat-label>
             <input type="email" matInput formControlName="email" required />
-            <mat-error *ngIf="f.get('email').hasError('required')">
+            <mat-error *ngIf="f.get('email')?.hasError('required')">
                 Please enter an email address.
             </mat-error>
         </mat-form-field>
@@ -28,7 +28,7 @@
         <mat-form-field>
             <mat-label>Phone</mat-label>
             <input type="text" matInput formControlName="phoneNo" required (ngModelChange)="phoneMask($event)" />
-            <mat-error *ngIf="f.get('phoneNo').hasError('required')">
+            <mat-error *ngIf="f.get('phoneNo')?.hasError('required')">
                 Please enter a phone number.
             </mat-error>
         </mat-form-field>
@@ -36,7 +36,7 @@
         <mat-form-field>
             <mat-label>Street</mat-label>
             <input type="text" matInput formControlName="address" required />
-            <mat-error *ngIf="f.get('address').hasError('required')">
+            <mat-error *ngIf="f.get('address')?.hasError('required')">
                 Please enter a street address.
             </mat-error>
         </mat-form-field>
@@ -49,7 +49,7 @@
         <mat-form-field>
             <mat-label>City</mat-label>
             <input type="text" matInput formControlName="city" required />
-            <mat-error *ngIf="f.get('city').hasError('required')">
+            <mat-error *ngIf="f.get('city')?.hasError('required')">
                 Please enter a city.
             </mat-error>
         </mat-form-field>
@@ -85,7 +85,7 @@
         <mat-form-field>
             <mat-label>Postal Code</mat-label>
             <input type="text" matInput formControlName="postalCode" required />
-            <mat-error *ngIf="f.get('postalCode').hasError('required')">
+            <mat-error *ngIf="f.get('postalCode')?.hasError('required')">
                 Please enter a postal code.
             </mat-error>
         </mat-form-field>

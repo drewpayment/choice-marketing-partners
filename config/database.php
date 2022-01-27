@@ -2,7 +2,7 @@
 
 return [
 
-    /*
+  /*
     |--------------------------------------------------------------------------
     | PDO Fetch Style
     |--------------------------------------------------------------------------
@@ -13,9 +13,9 @@ return [
     |
     */
 
-    'fetch' => PDO::FETCH_OBJ,
+  'fetch' => PDO::FETCH_OBJ,
 
-    /*
+  /*
     |--------------------------------------------------------------------------
     | Default Database Connection Name
     |--------------------------------------------------------------------------
@@ -26,12 +26,12 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+  'default' => env('DB_CONNECTION', 'mysql'),
 
-	// uncomment this to use remote db configured from .env
-//	'default' => env('REMOTE_DB_CONNECTION', 'mysql-remote'),
+  // uncomment this to use remote db configured from .env
+  //	'default' => env('REMOTE_DB_CONNECTION', 'mysql-remote'),
 
-    /*
+  /*
     |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
@@ -47,66 +47,68 @@ return [
     |
     */
 
-    'connections' => [
+  'connections' => [
 
-        'sqlite' => [
-            'driver' => 'sqlite',
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
-            'prefix' => '',
-        ],
-
-        'mysql' => [
-            'driver' => 'mysql',
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
-            'collation' => 'utf8_unicode_ci',
-            'prefix' => '',
-            'strict' => true,
-            'engine' => null,
-            'modes'  => [
-                'ONLY_FULL_GROUP_BY',
-                'STRICT_TRANS_TABLES',
-                'NO_ZERO_IN_DATE',
-                'NO_ZERO_DATE',
-                'ERROR_FOR_DIVISION_BY_ZERO',
-                'NO_ENGINE_SUBSTITUTION',
-            ],
-        ],
-
-	    'mysql-remote' => [
-	    	'driver' => 'mysql',
-		    'host' => env('REMOTE_DB_HOST', 'localhost'),
-		    'port' => env('REMOTE_DB_PORT', '13306'),
-		    'database' => env('REMOTE_DB_DATABASE', 'choice'),
-		    'username' => env('REMOTE_DB_USERNAME', 'root'),
-		    'password' => env('REMOTE_DB_PASSWORD', ''),
-		    'charset' => 'utf8',
-		    'collation' => 'utf8_unicode_ci',
-		    'prefix' => '',
-		    'strict' => true,
-		    'engine' => null,
-	    ],
-
-        'pgsql' => [
-            'driver' => 'pgsql',
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'schema' => 'public',
-            'sslmode' => 'prefer',
-        ],
-
+    'sqlite' => [
+      'driver' => 'sqlite',
+      'database' => env('DB_DATABASE', database_path('database.sqlite')),
+      'prefix' => '',
     ],
 
-    /*
+    'mysql' => [
+      'driver' => 'mysql',
+      'host' => env('DB_HOST', '127.0.0.1'),
+      'port' => env('DB_PORT', '3306'),
+      'database' => env('DB_DATABASE', 'forge'),
+      'username' => env('DB_USERNAME', 'forge'),
+      'password' => env('DB_PASSWORD', ''),
+      'charset' => 'utf8',
+      'collation' => 'utf8_unicode_ci',
+      'prefix' => '',
+      'strict' => true,
+      'engine' => null,
+      'modes'  => [
+        'ONLY_FULL_GROUP_BY',
+        'STRICT_TRANS_TABLES',
+        'NO_ZERO_IN_DATE',
+        'NO_ZERO_DATE',
+        'ERROR_FOR_DIVISION_BY_ZERO',
+        'NO_ENGINE_SUBSTITUTION',
+      ],
+    ],
+
+    'do' => [
+      'driver' => 'mysql',
+      'host' => env('DB_HOST', 'db-mysql-nyc3-91454-do-user-1647041-0.b.db.ondigitalocean.com'),
+      'port' => env('DB_PORT', '25060'),
+      'database' => env('DB_DATABASE', 'defaultdb'),
+      'username' => env('DB_USERNAME', 'doadmin'),
+      'password' => env('DB_PASSWORD', ''),
+      'charset' => 'utf8',
+      'collation' => 'utf8_unicode_ci',
+      'prefix' => '',
+      'strict' => true,
+      'engine' => null,
+      'sslmode' => env('DB_SSLMODE', 'require'),
+      'modes'  => [
+        'ONLY_FULL_GROUP_BY',
+        'STRICT_TRANS_TABLES',
+        'NO_ZERO_IN_DATE',
+        'NO_ZERO_DATE',
+        'ERROR_FOR_DIVISION_BY_ZERO',
+        'NO_ENGINE_SUBSTITUTION',
+      ],
+      'options' => array(
+        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+        // PDO::MYSQL_ATTR_SSL_KEY => '../database/certs/client-key.pem',
+        PDO::MYSQL_ATTR_SSL_CERT => '../database/certs/ca-certificate.crt',
+        // PDO::MYSQL_ATTR_SSL_CA => '../database/certs/ca.pem',
+      )
+    ],
+
+  ],
+
+  /*
     |--------------------------------------------------------------------------
     | Migration Repository Table
     |--------------------------------------------------------------------------
@@ -117,9 +119,9 @@ return [
     |
     */
 
-    'migrations' => 'migrations',
+  'migrations' => 'migrations',
 
-    /*
+  /*
     |--------------------------------------------------------------------------
     | Redis Databases
     |--------------------------------------------------------------------------
@@ -130,17 +132,17 @@ return [
     |
     */
 
-    'redis' => [
+  'redis' => [
 
-        'cluster' => false,
+    'cluster' => false,
 
-        'default' => [
-            'host' => env('REDIS_HOST', 'localhost'),
-            'password' => env('REDIS_PASSWORD', null),
-            'port' => env('REDIS_PORT', 6379),
-            'database' => 0,
-        ],
-
+    'default' => [
+      'host' => env('REDIS_HOST', 'localhost'),
+      'password' => env('REDIS_PASSWORD', null),
+      'port' => env('REDIS_PORT', 6379),
+      'database' => 0,
     ],
+
+  ],
 
 ];
