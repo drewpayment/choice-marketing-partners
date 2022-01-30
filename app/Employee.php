@@ -83,10 +83,10 @@ class Employee extends Model
 	{
 		return $this->attributes['has_been_fixed'] == 1;
 	}
-	
+
 	public function setHasBeenFixedAttribute($value)
 	{
-		$this->attributes['has_been_fixed'] = $value == 'true' || $value == 1 ? 1 : 0; 
+		$this->attributes['has_been_fixed'] = $value == 'true' || $value == 1 ? 1 : 0;
 	}
 
 
@@ -160,6 +160,11 @@ class Employee extends Model
 	{
 		return $this->hasMany(Expense::class, 'agentid', 'id');
 	}
+
+  public function managedEmployees()
+  {
+    return $this->hasManyThrough(Employee::class, ManagerEmployee::class, 'manager_id', 'id', 'id', 'employee_id');
+  }
 
 
 	/**

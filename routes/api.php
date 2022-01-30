@@ -66,3 +66,11 @@ Route::put('/user-notifications/{userId}', 'UserNotificationController@update');
 Route::post('/employees/email-available', 'EmployeeController@checkEmailAvailability');
 
 #endregion
+
+#region Overrides
+
+Route::get('/overrides', 'Api\OverridesController@getManagers');
+
+Route::get('/overrides/employees', 'Api\OverridesController@getActiveEmployees');
+
+#endregion

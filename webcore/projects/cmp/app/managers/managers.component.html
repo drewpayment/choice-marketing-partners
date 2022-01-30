@@ -1,0 +1,36 @@
+<div class="row" cdkDropListGroup>
+  <div class="col-md-4 example-container">
+    <h4>
+      Select a Manager
+    </h4>
+    <mat-list class="example-list">
+      <mat-list-item *ngFor="let m of managers">
+        <button type="button" mat-button (click)="selectManager(m)">
+          {{ m?.name }}
+        </button>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
+  <div class="col-md-4 example-container">
+    <h4>
+      Available Employees
+    </h4>
+    <div class="example-list" cdkDropList cdkDropListSortingDisabled [cdkDropListData]="employees"
+      (cdkDropListDropped)="dropped($event)">
+      <div *ngFor="let employee of employees" cdkDrag class="example-box" [cdkDragDisabled]="!manager">
+        {{ employee?.name }}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 example-container">
+    <h4>
+      {{ !!manager ? manager?.name + '\'s' : 'Selected' }} Employees
+    </h4>
+    <div class="example-list" cdkDropList [cdkDropListData]="manager?.managedEmployees" (cdkDropListDropped)="dropped($event)">
+      <div class="example-box" *ngFor="let employee of manager?.managedEmployees" cdkDrag [cdkDragDisabled]="!manager">{{ employee?.name }}</div>
+    </div>
+  </div>
+
+</div>

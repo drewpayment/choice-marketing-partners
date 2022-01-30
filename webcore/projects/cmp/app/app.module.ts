@@ -21,9 +21,10 @@ import { AgentsListComponent } from "./agents/agents-list/agents-list.component"
 import { DocumentsModule } from "./documents/documents.module";
 import { DocumentListComponent } from "./documents/document-list/document-list.component";
 import { BugsnagErrorHandler } from "@bugsnag/plugin-angular";
-import { RouterModule } from '@angular/router';
-import { SettingsModule } from './settings/settings.module';
-import { SettingsOutletComponent } from './settings/settings-outlet.component';
+import { RouterModule } from "@angular/router";
+import { SettingsModule } from "./settings/settings.module";
+import { SettingsOutletComponent } from "./settings/settings-outlet.component";
+import { ManagersComponent } from "./managers/managers.component";
 
 const entryPoints = [
   AppComponent,
@@ -33,6 +34,7 @@ const entryPoints = [
   AgentsListComponent,
   DocumentListComponent,
   SettingsOutletComponent,
+  ManagersComponent,
 ];
 
 // create a factory which will return the Bugsnag error handler
@@ -41,7 +43,7 @@ export function errorHandlerFactory() {
 }
 
 @NgModule({
-  declarations: [AppComponent, NavBarComponent],
+  declarations: [AppComponent, NavBarComponent, ManagersComponent],
   imports: [
     BrowserModule,
     HttpClientModule,

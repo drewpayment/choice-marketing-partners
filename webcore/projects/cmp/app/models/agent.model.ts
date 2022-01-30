@@ -42,3 +42,7 @@ export interface AgentSearchRequest {
   size: number;
   qry: string;
 }
+
+export interface Manager extends Agent {
+  managedEmployees: Agent[];
+}

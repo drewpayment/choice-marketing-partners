@@ -64,3 +64,19 @@ docker tag <my-image> registry.digitalocean.com/choice-marketing-partners
 // push the image to the DO registry container
 docker push registry.digitalocean.com/choice-marketing-partners
 ```
+
+## MySql Backup/Restore
+
+1. SSH into production server and create backup: 
+```
+(on local cli)
+> ssh username@choice-marketing-partners.com
+
+(on ssh terminal)
+> mysqldump --protocol=tcp --no-create-info --column-statistics=0 -u root -p <database_name> > ./<backupname>_<data>.sql
+> (logout)
+
+(on local cli)
+> scp username@choice-marketing-partners.com:<backupname>_<data>.sql ~/folder/backup_filename.sql
+```
+2. Import into your development SQL database with GUI tool or `mysqldump` import
