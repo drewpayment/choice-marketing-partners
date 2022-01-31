@@ -19,4 +19,8 @@ export class ManagersService {
     return this.http.get<Agent[]>(`/api/overrides/employees`);
   }
 
+  updateManagerEmployees(manager: Manager): Observable<Manager> {
+    return this.http.post<Manager>(`/api/overrides/employees`, manager);
+  }
+
 }

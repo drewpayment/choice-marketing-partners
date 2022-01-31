@@ -9,8 +9,12 @@
   border-radius: 4px;
   overflow: hidden;
   max-height: 60vh;
-  overflow-y: scroll;
+  overflow-y: auto;
   display: block;
+
+  &.mat-list-base {
+    padding: 0;
+  }
 }
 
 .example-box {

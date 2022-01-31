@@ -1,5 +1,7 @@
 import {
+  CdkDrag,
   CdkDragDrop,
+  CdkDropList,
   moveItemInArray,
   transferArrayItem,
 } from "@angular/cdk/drag-drop";
@@ -36,7 +38,7 @@ export class ManagersComponent implements OnInit {
 
     if (!!this.manager) {
       const ids = this.manager.managedEmployees.map((e) => e.id);
-      const filteredEmps = this._employees.filter((e) => !ids.includes(e.id));
+      const filteredEmps = this._employees.filter((e) => !ids.includes(e.id) && e.id !== this.manager.id);
       this.employees = filteredEmps;
     } else {
       this.employees = this._employees;
@@ -59,6 +61,29 @@ export class ManagersComponent implements OnInit {
       );
 
       this.employees = this.employees.sort((a, b) => a.name < b.name ? -1 : 1);
+
+      this.updateManagerEmployees();
     }
   }
+
+  removeFromSelected(event: PointerEvent, employee: Agent, availableList: CdkDropList, selectedList: CdkDropList, index: number) {
+    const pos = selectedList.data.find((e: Agent) => e.id == employee.id);
+
+    transferArrayItem(
+      selectedList.data,
+      availableList.data,
+      index,
+      0
+    );
+
+    this.employees = this.employees.sort((a, b) => a.name < b.name ? -1 : 1);
+
+    this.updateManagerEmployees();
+  }
+
+  updateManagerEmployees() {
+    this.service.updateManagerEmployees(this.manager)
+      .subscribe(res => console.dir(res));
+  }
+
 }

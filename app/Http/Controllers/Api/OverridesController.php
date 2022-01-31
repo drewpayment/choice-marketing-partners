@@ -24,7 +24,7 @@ class OverridesController extends Controller
 
     $this->checkAdmin($request)->mergeInto($result);
 
-    if ($result->hasError()) return $result;
+    if ($result->hasError()) return $result->getResponse();
 
     $result->setData(Employee::with('managedEmployees')->managersOnly(true)->active()->get());
 
@@ -37,9 +37,28 @@ class OverridesController extends Controller
 
     $this->checkAdmin($request)->mergeInto($result);
 
-    if ($result->hasError()) return $result;
+    if ($result->hasError()) return $result->getResponse();
 
     $result->setData(Employee::active()->orderBy('name')->get());
+
+    return $result->getResponse();
+  }
+
+  public function updateManagerEmployees(Request $request)
+  {
+    $result = new OpResult();
+
+    $this->checkAdmin($request)->mergeInto($result);
+
+    if ($result->hasError()) return $result->getResponse();
+
+    $ids = array_map(fn ($value): int => $value['id'], $request->managedEmployees);
+
+    $manager = Employee::with('managedEmployees')->find($request->id);
+
+    $manager->managedEmployees()->sync($ids);
+
+    $result->setData($manager->fresh(['managedEmployees']));
 
     return $result->getResponse();
   }

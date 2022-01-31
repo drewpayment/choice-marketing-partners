@@ -73,4 +73,6 @@ Route::get('/overrides', 'Api\OverridesController@getManagers');
 
 Route::get('/overrides/employees', 'Api\OverridesController@getActiveEmployees');
 
+Route::post('/overrides/employees', 'Api\OverridesController@updateManagerEmployees');
+
 #endregion

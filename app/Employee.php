@@ -163,7 +163,7 @@ class Employee extends Model
 
   public function managedEmployees()
   {
-    return $this->hasManyThrough(Employee::class, ManagerEmployee::class, 'manager_id', 'id', 'id', 'employee_id');
+    return $this->belongsToMany(Employee::class, 'manager_employees', 'manager_id', 'employee_id');
   }
 
 
