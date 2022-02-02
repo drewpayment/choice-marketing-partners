@@ -59,7 +59,7 @@ Now you have a working CLI:
 doctl registry login
 
 // tag a docker image 
-docker tag <my-image> registry.digitalocean.com/choice-marketing-partners
+docker tag choice:latest registry.digitalocean.com/choice-marketing-partners
 
 // push the image to the DO registry container
 docker push registry.digitalocean.com/choice-marketing-partners

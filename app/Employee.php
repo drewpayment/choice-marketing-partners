@@ -118,16 +118,6 @@ class Employee extends Model
 
 	#region RELATIONSHIPS
 
-	/**
-	 * Get the permission associated with the employee
-	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-	 */
-	public function permissions()
-	{
-		return $this->belongsToMany(Permission::class, 'employee_permission', 'employee_id', 'permission_id');
-	}
-
 
 	/**
 	 * Get invoices associated with the employee

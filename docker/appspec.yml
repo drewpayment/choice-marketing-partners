@@ -21,7 +21,7 @@ envs:
   scope: RUN_AND_BUILD_TIME
   value: nE8e9XoPlaxfmLFg
 - key: DB_SSLMODE
-  SCOPE: RUN_AND_BUILD_TIME
+  scope: RUN_AND_BUILD_TIME
   value: require
 - key: APP_URL
   scope: RUN_AND_BUILD_TIME
@@ -31,9 +31,10 @@ region: nyc
 services:
 - dockerfile_path: Dockerfile
   image:
-    registry_type: "DOCR"
-    repository: "choice-marketing-partners"
-    tag: "latest"
+    registry_type: DOCKER_HUB
+    registry: drewpayment
+    repository: choice-marketing-partners
+    tag: latest
   http_port: 9000
   instance_count: 2
   instance_size_slug: professional-xs

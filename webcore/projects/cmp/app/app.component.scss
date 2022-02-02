@@ -357,3 +357,14 @@ $bg-primary: get-theme(background-color, primary);
 
   }
 }
+
+.mat-card-image {
+  border-radius: 1rem !important;
+  margin: unset;
+}
+
+.img-container {
+  max-height: 400px;
+  overflow: hidden;
+  border-radius: 1rem;
+}

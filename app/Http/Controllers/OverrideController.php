@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Employee;
 use App\Override;
-use App\Permission;
 use App\Services\OverrideService;
 use Illuminate\Http\Request;
 
