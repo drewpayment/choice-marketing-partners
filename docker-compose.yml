@@ -21,7 +21,7 @@ services:
 
   #Nginx Service
   webserver:
-    image: drewpayment/cmp-web:latest
+    image: nginx:alpine
     container_name: webserver
     restart: unless-stopped
     tty: true
@@ -37,7 +37,7 @@ services:
   #MySQL Service
   db:
     # image: mysql:5.7.22
-    image: drewpayment/cmp-db:latest
+    image: mariadb:latest
     container_name: db
     restart: unless-stopped
     tty: true
