@@ -2,9 +2,6 @@ version: '3.3'
 services:
   #PHP Service
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: drewpayment/cmp-app:latest
     container_name: app
     restart: unless-stopped
