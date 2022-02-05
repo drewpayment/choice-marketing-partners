@@ -94,19 +94,19 @@ export class CreateInvoiceComponent implements OnInit {
   pendingTotals: number = 0;
 
   get vendorCtrl(): FormControl {
-    return this.f.get('vendor') as FormControl;
+    return this.f.get("vendor") as FormControl;
   }
 
   get agentCtrl(): FormControl {
-    return this.f.get('agent') as FormControl;
+    return this.f.get("agent") as FormControl;
   }
 
   get issueDateCtrl(): FormControl {
-    return this.f.get('issueDate') as FormControl;
+    return this.f.get("issueDate") as FormControl;
   }
 
   get weekendingCtrl(): FormControl {
-    return this.f.get('weekending') as FormControl;
+    return this.f.get("weekending") as FormControl;
   }
 
   constructor(
@@ -122,19 +122,21 @@ export class CreateInvoiceComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         let hasUpdates = false;
-        this.formOverrides.controls.forEach((ctrl: AbstractControl, i: number, arr: AbstractControl[]) => {
-          if (ctrl.value.sales !== null && ctrl.value.commission !== null) {
-            const currTotal = coerceNumberProperty(ctrl.value.total);
-            const newTotal = coerceNumberProperty(
-              ctrl.value.sales * ctrl.value.commission
-            );
+        this.formOverrides.controls.forEach(
+          (ctrl: AbstractControl, i: number, arr: AbstractControl[]) => {
+            if (ctrl.value.sales !== null && ctrl.value.commission !== null) {
+              const currTotal = coerceNumberProperty(ctrl.value.total);
+              const newTotal = coerceNumberProperty(
+                ctrl.value.sales * ctrl.value.commission
+              );
 
-            if (currTotal !== newTotal) {
-              ctrl.patchValue({ total: newTotal });
-              hasUpdates = true;
+              if (currTotal !== newTotal) {
+                ctrl.patchValue({ total: newTotal });
+                hasUpdates = true;
+              }
             }
           }
-        });
+        );
 
         if (hasUpdates)
           this.overrideDataSource.next(this.formOverrides.controls);
@@ -186,7 +188,6 @@ export class CreateInvoiceComponent implements OnInit {
             (<any>parsed)[p] = fixed || (<any>parsed)[p];
           }
         }
-
 
         this.updateForm(parsed);
       }
@@ -346,7 +347,9 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
   clearInvoiceTable() {
-    const pendDels = this.formInvoices.value.filter((inv: any) => inv.invoiceId > 0);
+    const pendDels = this.formInvoices.value.filter(
+      (inv: any) => inv.invoiceId > 0
+    );
 
     if (pendDels.length) {
       this.pendingDeletes.sales = [...this.pendingDeletes.sales, ...pendDels];
@@ -439,8 +442,9 @@ export class CreateInvoiceComponent implements OnInit {
     if (typeof item === "object" && item !== null) {
       const corrected = {} as T;
       for (const p in item) {
-        (<any>corrected)[p.replace(/_([a-zA-Z0-9])/g, (g) => g[1].toUpperCase())] =
-          item[p];
+        (<any>corrected)[
+          p.replace(/_([a-zA-Z0-9])/g, (g) => g[1].toUpperCase())
+        ] = item[p];
       }
       return corrected;
     } else {
@@ -486,20 +490,26 @@ export class CreateInvoiceComponent implements OnInit {
   ) {
     let total = 0;
 
-    total += (<unknown>invoices.reduce((a, b) => {
-      a.amount += b.amount;
-      return a;
-    }).amount) as number;
+    if (invoices && invoices.length) {
+      total += (<unknown>invoices.reduce((a, b) => {
+        a.amount += b.amount;
+        return a;
+      }).amount) as number;
+    }
 
-    total += (<unknown>overrides.reduce((a, b) => {
-      a.total += b.total;
-      return a;
-    }).total) as number;
+    if (overrides && overrides.length) {
+      total += (<unknown>overrides.reduce((a, b) => {
+        a.total += b.total;
+        return a;
+      }).total) as number;
+    }
 
-    total += (<unknown>expenses.reduce((a, b) => {
-      a.amount += b.amount;
-      return a;
-    }).amount) as number;
+    if (expenses && expenses.length) {
+      total += (<unknown>expenses.reduce((a, b) => {
+        a.amount += b.amount;
+        return a;
+      }).amount) as number;
+    }
 
     this.pendingTotals = total;
   }
