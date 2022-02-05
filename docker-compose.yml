@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: digitalocean.com/php
+    image: drewpayment/cmp-app:latest
     container_name: app
     restart: unless-stopped
     tty: true
@@ -21,7 +21,7 @@ services:
 
   #Nginx Service
   webserver:
-    image: nginx:alpine
+    image: drewpayment/cmp-web:latest
     container_name: webserver
     restart: unless-stopped
     tty: true
@@ -37,7 +37,7 @@ services:
   #MySQL Service
   db:
     # image: mysql:5.7.22
-    image: mariadb:latest
+    image: drewpayment/cmp-db:latest
     container_name: db
     restart: unless-stopped
     tty: true
