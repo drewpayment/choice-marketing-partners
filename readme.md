@@ -58,6 +58,11 @@ Now you have a working CLI:
 // login
 doctl registry login
 
+// This builds and names the image "choice" and tags it "latest" 
+// "latest" is an indication to Docker's software that this image should never be cached, 
+// good for CI/CD
+docker build . -t choice:latest
+
 // tag a docker image 
 docker tag choice:latest registry.digitalocean.com/choice-marketing-partners
 
