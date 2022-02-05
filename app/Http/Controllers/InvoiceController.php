@@ -155,19 +155,19 @@ class InvoiceController extends Controller
       $this->paystubService->processPaystubJob($request['issueDate']);
 
       DB::commit();
-
-      return $result->setData([
-        'sales' => $sales,
-        'overrides' => $overrides,
-        'expenses' => $expenses,
-        'payroll' => $payroll
-      ])->getResponse();
     } catch (\Exception $ex) {
       DB::rollBack();
 
       return $result->setToFail($ex)
         ->getResponse();
     }
+
+    return $result->setData([
+      'sales' => $sales,
+      'overrides' => $overrides,
+      'expenses' => $expenses,
+      'payroll' => $payroll
+    ])->getResponse();
   }
 
   #region API INVOICE PRIVATE METHODS
