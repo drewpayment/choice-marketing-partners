@@ -58,8 +58,6 @@ RUN useradd -u 1001 -ms /bin/bash -g www www
 
 # Copy existing application directory contents
 COPY . /var/www/
-RUN rm /var/www/.env
-COPY ./docker/.env /var/www/.env
 
 RUN rm -rf /var/www/public/dist
 COPY --from=node /app/public/dist /var/www/public/dist
