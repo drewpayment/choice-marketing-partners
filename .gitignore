@@ -4,7 +4,7 @@
 /.idea
 Homestead.json
 Homestead.yaml
-.env
+./.env
 /public/uploads/
 cmp/package-lock.json
 public/dist
