@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -60,7 +61,21 @@ class LoginController extends Controller
 
         $user = User::byEmail($email)->first();
 
-        Auth::login($user);
+        if ($user)
+        {
+          $passwords_match = Hash::check($request->password, $user->password);
+
+          if ($passwords_match)
+          {
+            Auth::login($user);
+
+            // add access/refresh tokens to DB so .NET microservice can read them from the database
+          }
+        }
+        else
+        {
+          return response(['Invalid credentials. Please try again.', 401]);
+        }
 
         return $this->sendLoginResponse($request);
     }

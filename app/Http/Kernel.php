@@ -35,6 +35,8 @@ class Kernel extends HttpKernel
         'api' => [
             'throttle:60,1',
             'bindings',
+            'json.response',
+            'cors',
         ],
     ];
 
@@ -53,5 +55,7 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'role' => \App\Http\Middleware\CheckRole::class,
+        'json.response' => \App\Http\Middleware\ForceJsonResponse::class,
+        'cors' => \App\Http\Middleware\Cors::class,
     ];
 }
