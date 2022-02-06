@@ -244,10 +244,6 @@ class EmployeeController extends Controller
 
 		if (count($errors) > 0) return response()->json($errors, 500);
 
-		$result = $this->employeeService->registerPermissionableUser($newEmpId);
-
-		if (!$result) return response()->json(false, 500);
-
 		return response()->json(true);
 	}
 
@@ -333,7 +329,7 @@ class EmployeeController extends Controller
 		$employee = Employee::find($employeeId);
 
 		$data = $this->sessionUtil->fromCamelCase($req->all());
-		
+
 		$employee->name = $data['name'];
 		$employee->email = $data['email'];
 		$employee->phone_no = $data['phone_no'];

@@ -1,0 +1,47 @@
+<div class="row" cdkDropListGroup>
+  <div class="col-md-4 example-container">
+    <h4 [ngClass]="!manager ? 'text-primary' : 'text-muted'">
+      Select a Manager
+    </h4>
+    <mat-selection-list class="example-list" [multiple]="false">
+      <mat-list-option *ngFor="let m of managers" (click)="selectManager(m)">
+        {{ m?.name }}
+      </mat-list-option>
+    </mat-selection-list>
+  </div>
+
+  <div class="col-md-4 example-container">
+    <h4 [ngClass]="!!manager ? 'text-primary' : 'text-muted'">
+      Available Employees
+    </h4>
+    <div class="example-list" cdkDropList #availableEmployees="cdkDropList" cdkDropListSortingDisabled [cdkDropListData]="employees"
+      (cdkDropListDropped)="dropped($event)">
+      <div *ngFor="let employee of employees" cdkDrag class="example-box" [cdkDragDisabled]="!manager">
+        {{ employee?.name }}
+        <mat-icon *ngIf="!!manager">drag_indicator</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 example-container">
+    <h4 [ngClass]="!!manager ? 'text-primary' : 'text-muted'">
+      {{ !!manager ? manager?.name + '\'s' : 'Selected' }} Employees
+    </h4>
+    <div class="example-list" cdkDropList #selectedList="cdkDropList" [cdkDropListData]="manager?.managedEmployees" (cdkDropListDropped)="dropped($event)">
+      <div class="example-box" *ngFor="let employee of manager?.managedEmployees; index as i" cdkDrag [cdkDragDisabled]="!manager" #dragEmp="cdkDrag">
+        {{ employee?.name }}
+        <span *ngIf="!!manager">
+          <button type="button" mat-icon-button (click)="removeFromSelected($event, employee, availableEmployees, selectedList, i)">
+            <mat-icon>playlist_remove</mat-icon>
+          </button>
+        </span>
+      </div>
+      <ng-container *ngIf="!!manager && !manager?.managedEmployees?.length">
+        <div class="example-box text-muted cdk-drag-disabled">
+          No selected employees
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+</div>

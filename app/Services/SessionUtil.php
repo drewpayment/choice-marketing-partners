@@ -13,22 +13,19 @@ class SessionUtil
     {
     }
 
+    /**
+     * Poorly named method and even more poorly named parameter since the parameter is actually the PK from the Employee table.
+     */
     public function getUserSubordinates($userId)
     {
-        $user = User::with('employee')->byEmployeeId($userId)->first();
-        $list = $user->employee->permissions()->active()->get(['emp_id'])->pluck('emp_id');
-        $agents = collect([$user->employee]);
+      $manager = Employee::with('managedEmployees')->find($userId);
+      $agents = array_merge([$manager], $manager->managedEmployees->toArray());
 
-        if ($list->isNotEmpty()) {
-            $ees = Employee::agentId($list->all())->get();
-            $agents = $agents->concat($ees);
-        }
-
-        return $agents;
+      return collect($agents);
     }
 
     /**
-     * I'm awful at regex in PHP. Humbly stolen from: 
+     * I'm awful at regex in PHP. Humbly stolen from:
      * https://stackoverflow.com/questions/40514051/using-preg-replace-to-convert-camelcase-to-snake-case
      *
      * @param array $input Map of inputs from HTTP call
@@ -61,7 +58,7 @@ class SessionUtil
         return $result;
     }
 
-    public function checkUserIsAdmin() 
+    public function checkUserIsAdmin()
     {
         $result = new OpResult();
 

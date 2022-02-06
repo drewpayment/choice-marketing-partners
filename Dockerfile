@@ -1,20 +1,19 @@
-# FROM node:latest as node 
+FROM node:latest as build
 
-# RUN mkdir -p /usr/src/app/cmp
+COPY ./package.json /app/package.json
+COPY ./angular.json /app/angular.json
+COPY ./tsconfig.json /app/tsconfig.json
+COPY ./pnpm-lock.yaml /app/pnpm-lock.yaml
+COPY webcore /app/webcore
+COPY resources/assets /app/resources/assets
 
-# COPY ./cmp/package.json ./cmp/package-lock.json /usr/src/app/cmp/
-
-# WORKDIR /usr/src/app/cmp
-# ENV NODE_OPTIONS=--openssl-legacy-provider
-
-# RUN npm install 
-
-# COPY . /usr/src/app/
-
-# RUN npm run build:prod
-
+WORKDIR /app
+RUN npm install -g pnpm
+RUN pnpm install
+RUN pnpm build:prod
 
 FROM php:8.0-fpm
+LABEL maintainer="Andrew Payment"
 
 COPY composer.lock composer.json /var/www/
 
@@ -43,6 +42,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
 RUN docker-php-ext-install gd
 
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && install-php-extensions xdebug
+
+# RUN if [ ${XDEBUG} ] ; then \
+#     apt-get install -y inetutils-ping netcat; \
+# fi;
+
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
@@ -52,12 +58,14 @@ RUN useradd -u 1001 -ms /bin/bash -g www www
 
 # Copy existing application directory contents
 COPY . /var/www/
+
+RUN rm -rf /var/www/public/dist
+COPY --from=build /app/public/dist /var/www/public/dist
+
 RUN mkdir -p /var/www/storage/logs
-# RUN mkdir -p /var/www/public/dist/cmp
-# COPY --from=node /usr/src/app/public/dist /var/www/public/dist/
 
 # Copy existing application directory permissions
-COPY --chown=www:www . /var/www/
+COPY --chown=www:www . /var/www
 
 RUN chown -R www: /var/www/storage/logs
 

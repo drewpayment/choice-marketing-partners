@@ -2,7 +2,6 @@
 
 namespace App;
 
-use App\EmployeePermission;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -63,16 +62,6 @@ class User extends Authenticatable
 	public function employee(): BelongsTo
 	{
 		return $this->belongsTo(Employee::class, 'id');
-	}
-
-	/**
-	 * Returns active employee IDs this user has access to.
-	 *
-	 * @return HasMany
-	 */
-	public function employeePermissions(): HasMany
-	{
-		return $this->hasMany(EmployeePermission::class, 'employee_id', 'id');
 	}
 
 	/**
@@ -171,17 +160,17 @@ class User extends Authenticatable
 	{
 		$this->attributes['api_token'] = json_encode($value);
 	}
-	
+
 	public function getCreatedAtAttribute($value)
 	{
 		$dt = Carbon::parse($value);
 		return $dt->format('Y-m-d');
 	}
-	
+
 	public function getUpdatedAtAttribute($value)
 	{
 		$dt = Carbon::parse($value);
 		return $dt->format('Y-m-d');
 	}
-	
+
 }

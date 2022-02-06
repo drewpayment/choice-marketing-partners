@@ -11,12 +11,10 @@ services:
     tty: true
     environment:
       SERVICE_NAME: app
-      SERVICE_TAGS: dev
     working_dir: /var/www
     networks:
       - app-network
     volumes:
-      - ./:/var/www
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
 
   #Nginx Service
@@ -31,8 +29,7 @@ services:
     networks:
       - app-network
     volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
 
   #MySQL Service
   db:
@@ -61,4 +58,6 @@ networks:
 
 volumes:
   dbdata:
+    driver: local
+  appdata:
     driver: local

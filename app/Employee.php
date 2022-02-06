@@ -83,10 +83,10 @@ class Employee extends Model
 	{
 		return $this->attributes['has_been_fixed'] == 1;
 	}
-	
+
 	public function setHasBeenFixedAttribute($value)
 	{
-		$this->attributes['has_been_fixed'] = $value == 'true' || $value == 1 ? 1 : 0; 
+		$this->attributes['has_been_fixed'] = $value == 'true' || $value == 1 ? 1 : 0;
 	}
 
 
@@ -117,16 +117,6 @@ class Employee extends Model
 
 
 	#region RELATIONSHIPS
-
-	/**
-	 * Get the permission associated with the employee
-	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-	 */
-	public function permissions()
-	{
-		return $this->belongsToMany(Permission::class, 'employee_permission', 'employee_id', 'permission_id');
-	}
 
 
 	/**
@@ -160,6 +150,11 @@ class Employee extends Model
 	{
 		return $this->hasMany(Expense::class, 'agentid', 'id');
 	}
+
+  public function managedEmployees()
+  {
+    return $this->belongsToMany(Employee::class, 'manager_employees', 'manager_id', 'employee_id');
+  }
 
 
 	/**

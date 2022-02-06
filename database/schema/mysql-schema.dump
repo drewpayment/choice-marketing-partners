@@ -1,0 +1,572 @@
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+DROP TABLE IF EXISTS `comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comments` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `on_post` int unsigned NOT NULL DEFAULT '0',
+  `from_user` int unsigned NOT NULL DEFAULT '0',
+  `body` text COLLATE utf8_unicode_ci NOT NULL,
+  `active` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `comments_on_post_foreign` (`on_post`),
+  KEY `comments_from_user_foreign` (`from_user`),
+  CONSTRAINT `comments_from_user_foreign` FOREIGN KEY (`from_user`) REFERENCES `users` (`uid`) ON DELETE CASCADE,
+  CONSTRAINT `comments_on_post_foreign` FOREIGN KEY (`on_post`) REFERENCES `posts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `company_options`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `company_options` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `has_paystub_notifications` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `documents` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `description` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `file_path` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `mime_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `uploaded_by` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `employee_invoice`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employee_invoice` (
+  `employee_id` int unsigned NOT NULL,
+  `invoice_id` int unsigned NOT NULL,
+  PRIMARY KEY (`employee_id`,`invoice_id`),
+  KEY `employee_invoice_invoice_id_foreign` (`invoice_id`),
+  CONSTRAINT `employee_invoice_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+  CONSTRAINT `employee_invoice_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`invoice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `employee_permission`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employee_permission` (
+  `employee_id` int unsigned NOT NULL,
+  `permission_id` int unsigned NOT NULL,
+  PRIMARY KEY (`employee_id`,`permission_id`),
+  KEY `employee_permission_permission_id_foreign` (`permission_id`),
+  CONSTRAINT `employee_permission_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+  CONSTRAINT `employee_permission_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `employee_user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employee_user` (
+  `employee_id` int unsigned NOT NULL,
+  `user_id` int unsigned NOT NULL,
+  PRIMARY KEY (`employee_id`,`user_id`),
+  KEY `employee_user_user_id_foreign` (`user_id`),
+  CONSTRAINT `employee_user_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+  CONSTRAINT `employee_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `employees`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employees` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `phone_no` varchar(13) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `address_2` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `city` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `state` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `postal_code` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `country` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `is_admin` tinyint(1) NOT NULL DEFAULT '0',
+  `is_mgr` tinyint(1) NOT NULL DEFAULT '0',
+  `sales_id1` varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `sales_id2` varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `sales_id3` varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `hidden_payroll` tinyint(1) NOT NULL DEFAULT '0',
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `expenses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `expenses` (
+  `expid` int unsigned NOT NULL AUTO_INCREMENT,
+  `vendor_id` int NOT NULL DEFAULT '1',
+  `type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `amount` decimal(19,4) NOT NULL DEFAULT '0.0000',
+  `notes` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `agentid` int NOT NULL,
+  `issue_date` date NOT NULL,
+  `wkending` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`expid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `invoices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `invoices` (
+  `invoice_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `vendor` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
+  `sale_date` date NOT NULL,
+  `first_name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `last_name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `address` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
+  `city` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
+  `status` mediumtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `amount` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `agentid` int NOT NULL,
+  `issue_date` date NOT NULL,
+  `wkending` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`invoice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `payload` longtext COLLATE utf8_unicode_ci NOT NULL,
+  `attempts` tinyint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `jobs_queue_index` (`queue`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `links` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `migrations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_access_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `client_id` bigint unsigned NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `scopes` text COLLATE utf8_unicode_ci,
+  `revoked` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `oauth_access_tokens_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_auth_codes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_auth_codes` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `client_id` bigint unsigned NOT NULL,
+  `scopes` text COLLATE utf8_unicode_ci,
+  `revoked` tinyint(1) NOT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `oauth_auth_codes_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_clients`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_clients` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `secret` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `provider` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `redirect` text COLLATE utf8_unicode_ci NOT NULL,
+  `personal_access_client` tinyint(1) NOT NULL,
+  `password_client` tinyint(1) NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `oauth_clients_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_personal_access_clients`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_personal_access_clients` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `client_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_refresh_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_refresh_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `access_token_id` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `oauth_refresh_tokens_access_token_id_index` (`access_token_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `overrides`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `overrides` (
+  `ovrid` int unsigned NOT NULL AUTO_INCREMENT,
+  `vendor_id` int NOT NULL DEFAULT '1',
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `sales` int NOT NULL,
+  `commission` decimal(19,4) NOT NULL DEFAULT '0.0000',
+  `total` decimal(19,4) NOT NULL DEFAULT '0.0000',
+  `agentid` int NOT NULL,
+  `issue_date` date NOT NULL,
+  `wkending` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`ovrid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `password_resets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `password_resets` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `password_resets_email_index` (`email`),
+  KEY `password_resets_token_index` (`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `payroll`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payroll` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `agent_id` int unsigned NOT NULL,
+  `agent_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `amount` decimal(19,4) NOT NULL DEFAULT '0.0000',
+  `is_paid` tinyint(1) NOT NULL,
+  `vendor_id` int NOT NULL DEFAULT '1',
+  `pay_date` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `payroll_restriction`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payroll_restriction` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `hour` int NOT NULL,
+  `minute` int NOT NULL,
+  `modified_by` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `paystubs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `paystubs` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `agent_id` int NOT NULL,
+  `agent_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `vendor_id` int NOT NULL,
+  `vendor_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `amount` decimal(19,4) NOT NULL DEFAULT '0.0000',
+  `issue_date` date NOT NULL,
+  `weekend_date` date NOT NULL,
+  `modified_by` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `paystubs_agent_id_issue_date_vendor_id_unique` (`agent_id`,`issue_date`,`vendor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `permissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `permissions` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `emp_id` int NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `permissions_emp_id_unique` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `personal_access_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `tokenable_id` bigint unsigned NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `token` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `abilities` text COLLATE utf8_unicode_ci,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `posts` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `author_id` int unsigned NOT NULL DEFAULT '0',
+  `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `body` text COLLATE utf8_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `active` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `posts_title_unique` (`title`),
+  UNIQUE KEY `posts_slug_unique` (`slug`),
+  KEY `posts_author_id_foreign` (`author_id`),
+  CONSTRAINT `posts_author_id_foreign` FOREIGN KEY (`author_id`) REFERENCES `users` (`uid`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `tagging_tag_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tagging_tag_groups` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tagging_tag_groups_slug_index` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `tagging_tagged`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tagging_tagged` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `taggable_id` int unsigned NOT NULL,
+  `taggable_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `tag_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `tag_slug` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tagging_tagged_taggable_id_index` (`taggable_id`),
+  KEY `tagging_tagged_taggable_type_index` (`taggable_type`),
+  KEY `tagging_tagged_tag_slug_index` (`tag_slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `tagging_tags`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tagging_tags` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `tag_group_id` int unsigned DEFAULT NULL,
+  `slug` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `suggest` tinyint(1) NOT NULL DEFAULT '0',
+  `count` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `tagging_tags_slug_index` (`slug`),
+  KEY `tagging_tags_tag_group_id_foreign` (`tag_group_id`),
+  CONSTRAINT `tagging_tags_tag_group_id_foreign` FOREIGN KEY (`tag_group_id`) REFERENCES `tagging_tag_groups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `testimonial_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `testimonial_types` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `type` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `testimonials`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `testimonials` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `content` text COLLATE utf8_unicode_ci NOT NULL,
+  `location` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `testimonial_type` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `user_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_notifications` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `employee_id` int unsigned NOT NULL,
+  `has_paystub_notifier` tinyint(1) NOT NULL DEFAULT '0',
+  `paystub_notifier_type` tinyint unsigned DEFAULT NULL,
+  `notifier_destination` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_notifications_user_id_foreign` (`user_id`),
+  KEY `user_notifications_employee_id_foreign` (`employee_id`),
+  CONSTRAINT `user_notifications_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+  CONSTRAINT `user_notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `uid` int unsigned NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `remember_token` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `role` enum('admin','author','subscriber') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'author',
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `users_email_unique` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `vendors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vendors` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(300) COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `is_active` tinyint NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+INSERT INTO `migrations` VALUES (1,'2014_01_07_073615_create_tagged_table',1);
+INSERT INTO `migrations` VALUES (2,'2014_01_07_073615_create_tags_table',1);
+INSERT INTO `migrations` VALUES (3,'2014_10_12_000000_create_users_table',1);
+INSERT INTO `migrations` VALUES (4,'2014_10_12_100000_create_password_resets_table',1);
+INSERT INTO `migrations` VALUES (5,'2016_06_01_000001_create_oauth_auth_codes_table',1);
+INSERT INTO `migrations` VALUES (6,'2016_06_01_000002_create_oauth_access_tokens_table',1);
+INSERT INTO `migrations` VALUES (7,'2016_06_01_000003_create_oauth_refresh_tokens_table',1);
+INSERT INTO `migrations` VALUES (8,'2016_06_01_000004_create_oauth_clients_table',1);
+INSERT INTO `migrations` VALUES (9,'2016_06_01_000005_create_oauth_personal_access_clients_table',1);
+INSERT INTO `migrations` VALUES (10,'2016_06_29_073615_create_tag_groups_table',1);
+INSERT INTO `migrations` VALUES (11,'2016_06_29_073615_update_tags_table',1);
+INSERT INTO `migrations` VALUES (12,'2016_07_24_192508_create_documents_table',1);
+INSERT INTO `migrations` VALUES (13,'2016_09_20_214249_create_employees_table',1);
+INSERT INTO `migrations` VALUES (14,'2016_10_03_020446_update_employees_table',1);
+INSERT INTO `migrations` VALUES (15,'2017_01_14_194203_create_invoices_table',1);
+INSERT INTO `migrations` VALUES (16,'2017_01_19_054231_add_columns_invoices_table',1);
+INSERT INTO `migrations` VALUES (17,'2017_01_20_005050_create_vendors_table',1);
+INSERT INTO `migrations` VALUES (18,'2017_01_30_031603_create_overrides_table',1);
+INSERT INTO `migrations` VALUES (19,'2017_01_30_032340_create_expenses_table',1);
+INSERT INTO `migrations` VALUES (20,'2017_02_10_000227_add_permission_columns_employees_table',1);
+INSERT INTO `migrations` VALUES (21,'2017_02_10_001350_add_permissions_table',1);
+INSERT INTO `migrations` VALUES (22,'2017_02_10_031836_update_bool_fields_employees_table',1);
+INSERT INTO `migrations` VALUES (23,'2017_03_01_042819_add_sales_ids_to_employees_table',1);
+INSERT INTO `migrations` VALUES (24,'2017_03_06_023106_update_pk_users_table',1);
+INSERT INTO `migrations` VALUES (25,'2017_03_06_025503_remove_unique_id_key_users_table',1);
+INSERT INTO `migrations` VALUES (26,'2017_03_08_011920_change_sales_id_column_types_employees_table',1);
+INSERT INTO `migrations` VALUES (27,'2017_03_20_013230_create_payroll_table',1);
+INSERT INTO `migrations` VALUES (28,'2017_03_24_010234_add_agentid_column_payroll_table',1);
+INSERT INTO `migrations` VALUES (29,'2017_04_21_133957_create_links_table',1);
+INSERT INTO `migrations` VALUES (30,'2017_05_10_020833_create_testimonials_table',1);
+INSERT INTO `migrations` VALUES (31,'2017_05_10_025729_create_testimonial_types_table',1);
+INSERT INTO `migrations` VALUES (32,'2017_06_15_005918_update_permissions_table',1);
+INSERT INTO `migrations` VALUES (33,'2017_06_24_025328_update_employees_table_hide_from_payroll',1);
+INSERT INTO `migrations` VALUES (34,'2017_06_25_180758_create_employee_invoice_table',1);
+INSERT INTO `migrations` VALUES (35,'2017_06_26_000339_create_employee_user_table',1);
+INSERT INTO `migrations` VALUES (36,'2017_06_27_041652_update_vendors_table',1);
+INSERT INTO `migrations` VALUES (37,'2017_07_13_002553_update_payroll_table_add_vendor',1);
+INSERT INTO `migrations` VALUES (38,'2017_07_13_013328_update_overrides_table_add_vendor',1);
+INSERT INTO `migrations` VALUES (39,'2017_07_13_013340_update_expenses_table_add_vendor',1);
+INSERT INTO `migrations` VALUES (40,'2017_08_08_032403_remove_useless_id_column_overrides_table',1);
+INSERT INTO `migrations` VALUES (41,'2017_08_08_032415_remove_useless_id_column_invoices_table',1);
+INSERT INTO `migrations` VALUES (42,'2017_09_12_023505_update_users_table',1);
+INSERT INTO `migrations` VALUES (43,'2017_10_02_013548_create_paystubs_table',1);
+INSERT INTO `migrations` VALUES (44,'2017_10_21_184815_posts',1);
+INSERT INTO `migrations` VALUES (45,'2017_10_21_184820_comments',1);
+INSERT INTO `migrations` VALUES (46,'2017_10_21_185703_alter_users_support_blog_posts',1);
+INSERT INTO `migrations` VALUES (47,'2017_10_25_232637_payroll_restriction',1);
+INSERT INTO `migrations` VALUES (48,'2017_11_02_205950_add_comment_active',1);
+INSERT INTO `migrations` VALUES (49,'2018_03_24_130900_update_overrides_currency_columns',1);
+INSERT INTO `migrations` VALUES (50,'2018_03_24_130914_update_expenses_amount_column',1);
+INSERT INTO `migrations` VALUES (51,'2018_03_24_130940_update_payroll_amount_column',1);
+INSERT INTO `migrations` VALUES (52,'2018_03_24_130956_update_paystubs_amount_column',1);
+INSERT INTO `migrations` VALUES (53,'2019_12_14_000001_create_personal_access_tokens_table',1);
+INSERT INTO `migrations` VALUES (54,'2020_03_07_214905_employees_table_normalize_address_fields',1);
+INSERT INTO `migrations` VALUES (55,'2020_03_07_215752_employees_table_add_soft_deletes',1);
+INSERT INTO `migrations` VALUES (56,'2020_03_07_222253_employees_table_add_country',1);
+INSERT INTO `migrations` VALUES (57,'2021_05_10_202245_create_company_options_table',1);
+INSERT INTO `migrations` VALUES (58,'2021_05_11_214639_create_user_notifications_table',1);
+INSERT INTO `migrations` VALUES (59,'2021_05_15_210902_create_jobs_table',1);
+INSERT INTO `migrations` VALUES (60,'2021_12_05_181314_update_invoices_change_status_column',1);
