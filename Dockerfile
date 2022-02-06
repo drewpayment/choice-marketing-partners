@@ -1,21 +1,20 @@
-FROM node:latest as node
+FROM node:latest as build
 
 COPY ./package.json /app/package.json
 COPY ./angular.json /app/angular.json
 COPY ./tsconfig.json /app/tsconfig.json
-COPY webcore/. /app/webcore
-COPY resources/assets/. /app/resources/assets
+COPY webcore /app/webcore
+COPY resources/assets /app/resources/assets
 
 WORKDIR /app
 RUN npm install -g pnpm
 RUN pnpm install
 RUN pnpm build:prod
 
-
 FROM php:8.0-fpm
 LABEL maintainer="Andrew Payment"
 
-COPY composer.lock composer.json /var/www/
+COPY composer.lock composer.json /var/www
 
 WORKDIR /var/www
 
@@ -60,12 +59,12 @@ RUN useradd -u 1001 -ms /bin/bash -g www www
 COPY . /var/www/
 
 RUN rm -rf /var/www/public/dist
-COPY --from=node /app/public/dist /var/www/public/dist
+COPY --from=build /app/public/dist /var/www/public/dist
 
 RUN mkdir -p /var/www/storage/logs
 
 # Copy existing application directory permissions
-COPY --chown=www:www . /var/www/
+COPY --chown=www:www . /var/www
 
 RUN chown -R www: /var/www/storage/logs
 

@@ -11,7 +11,11 @@
     "prod": "node --max_old_space_size=8192 ./node_modules/@angular/cli/bin/ng build --configuration production",
     "build:prod": "node --max_old_space_size=8192 ./node_modules/@angular/cli/bin/ng build --configuration production",
     "deploy:ci": "npm ci && npm run build:prod",
-    "watch": "ng build --watch"
+    "watch": "ng build --watch",
+    "docker-compose:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build",
+    "compose:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build",
+    "docker-compose:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
+    "compose:prod": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build"
   },
   "private": true,
   "dependencies": {

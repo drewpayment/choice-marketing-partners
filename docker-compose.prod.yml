@@ -1,2 +1,17 @@
 version: "3.3"
+services:
+  app:
+    environment:
+      SERVICE_TAGS: prod
+    volumes:
+      - appdata:/var/www
+      - .env:/var/www/.env
 
+  db:
+    environment:
+      MYSQL_DATABASE: choice
+      SERVICE_TAGS: prod
+
+  webserver:
+    volumes:
+      - appdata:/var/www
