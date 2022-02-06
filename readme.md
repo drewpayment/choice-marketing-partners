@@ -20,54 +20,27 @@ docker exec CONTAINER /usr/bin/mysqldump -u root --password=root DATABASE > back
 cat backup.sql | docker exec -i CONTAINER /usr/bin/mysql -u root --password=root DATABASE
 ```
 
-### How to deploy to Digital Ocean Container Registry 
+## Deploy the site with Docker 
 
----
-
-First, you have to make sure you're authenticated with Digital Ocean's CLI tool (doctl).
-
+1. SSH into production server 
+2. Run the follow commands:
 ```
-// check homebrew
-brew ls doctl 
-
-// if it doesn't exist 
-brew install doctl 
-
-// list authenticated users (contexts)
-doctl auth list 
-
-// copy DO API token and run, you will be prompted for the API key
-doctl auth init --context <CONTEXT_NAME>
-
-// switch between contexts while working
-doctl auth switch --context <CONTEXT_NAME>
-
-// get account information 
-doctl account get
-
-// CREATE A DROPLET 
-doctl compute droplet create --region tor1 --image ubuntu-18-04-x64 --size s-1vcpu-1gb <DROPLET-NAME>
-
-// DESTROY A DROPLET (DROPLET-ID returned by the create command)
-doctl compute droplet delete <DROPLET-ID>
+> ssh drewpayment@choice-marketing-partners.com
+! Thanks for logging in!! 
+> cd www/choice-marketing-partners.com
+> git pull
+> docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+3. You may have to clear the cache, because Laravel hates you and weird things 
+may happen otherwise:
+```
+> php artisan optimize:clear
 ```
 
-Now you have a working CLI: 
-
+## Docker in Development
+So, I stopped using Laravel Sail because it's dumb that it doesn't have a production release option at all and causes insane amounts of confusion for releasing code. Instead, I made a custom Dockerfile and use Docker Compose. I merge the compose files and use compose in production as well. The command to run both are very similar, but Docker Compose doesn't have the latest version released for Linux yet so the command is a bit different: 
 ```
-// login
-doctl registry login
-
-// This builds and names the image "choice" and tags it "latest" 
-// "latest" is an indication to Docker's software that this image should never be cached, 
-// good for CI/CD
-docker build . -t choice:latest
-
-// tag a docker image 
-docker tag choice:latest registry.digitalocean.com/choice-marketing-partners
-
-// push the image to the DO registry container
-docker push registry.digitalocean.com/choice-marketing-partners
+> docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
 ## MySql Backup/Restore
