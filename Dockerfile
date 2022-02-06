@@ -3,6 +3,7 @@ FROM node:latest as build
 COPY ./package.json /app/package.json
 COPY ./angular.json /app/angular.json
 COPY ./tsconfig.json /app/tsconfig.json
+COPY ./pnpm-lock.yaml /app/pnpm-lock.yaml
 COPY webcore /app/webcore
 COPY resources/assets /app/resources/assets
 
