@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-	use Notifiable, SoftDeletes;
+	use HasApiTokens, Notifiable, SoftDeletes;
 
 	#region TABLE PROPERTIES
 
