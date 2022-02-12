@@ -9,6 +9,7 @@ public static class DIServiceCollectionExtensionMethods
   public static void AddServiceDependencies(this IServiceCollection services)
   {
     services.AddScoped<IUserService, UserService>();
+    services.AddScoped<IPayrollService, PayrollService>();
   }
 
 }

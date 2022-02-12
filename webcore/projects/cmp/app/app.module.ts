@@ -6,12 +6,13 @@ import {
   ApplicationRef,
   CUSTOM_ELEMENTS_SCHEMA,
   ErrorHandler,
+  Injector,
 } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppComponent } from "./app.component";
 import { PayrollModule } from "./payroll/payroll.module";
 import { CreateInvoiceComponent } from "./payroll/invoices/create-invoice/create-invoice.component";
-import { HttpClientModule } from "@angular/common/http";
+import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
 import { PaystubsListComponent } from "./payroll/paystubs-list/paystubs-list.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { MaterialModule } from "./shared/material/material.module";
@@ -25,6 +26,10 @@ import { RouterModule } from "@angular/router";
 import { SettingsModule } from "./settings/settings.module";
 import { SettingsOutletComponent } from "./settings/settings-outlet.component";
 import { ManagersComponent } from "./managers/managers.component";
+import { GetAudComponent } from "./shared/get-aud.component";
+import { createCustomElement } from "@angular/elements";
+import { TokenInterceptor } from './shared/token.interceptor';
+import { NgxWebstorageModule } from 'ngx-webstorage';
 
 const entryPoints = [
   AppComponent,
@@ -35,6 +40,7 @@ const entryPoints = [
   DocumentListComponent,
   SettingsOutletComponent,
   ManagersComponent,
+  GetAudComponent,
 ];
 
 // create a factory which will return the Bugsnag error handler
@@ -43,7 +49,12 @@ export function errorHandlerFactory() {
 }
 
 @NgModule({
-  declarations: [AppComponent, NavBarComponent, ManagersComponent],
+  declarations: [
+    AppComponent,
+    NavBarComponent,
+    ManagersComponent,
+    GetAudComponent,
+  ],
   imports: [
     BrowserModule,
     HttpClientModule,
@@ -56,15 +67,22 @@ export function errorHandlerFactory() {
     SettingsModule,
 
     BrowserAnimationsModule,
+    NgxWebstorageModule.forRoot(),
 
     RouterModule.forRoot([], { useHash: false }),
   ],
-  providers: [{ provide: ErrorHandler, useFactory: errorHandlerFactory }],
+  providers: [
+    { provide: ErrorHandler, useFactory: errorHandlerFactory },
+    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true, },
+  ],
   //   bootstrap: []
   entryComponents: entryPoints,
 })
 export class AppModule implements DoBootstrap {
-  constructor(private resolver: ComponentFactoryResolver) {}
+  constructor(
+    private resolver: ComponentFactoryResolver,
+    private injector: Injector
+  ) {}
 
   ngDoBootstrap(appRef: ApplicationRef) {
     entryPoints.forEach((p: any) => {
@@ -72,5 +90,10 @@ export class AppModule implements DoBootstrap {
       const elem = document.getElementsByTagName(factory.selector);
       if (elem && elem.length) appRef.bootstrap(p);
     });
+
+    const el = createCustomElement(GetAudComponent, {
+      injector: this.injector,
+    });
+    customElements.define("get-aud", el);
   }
 }

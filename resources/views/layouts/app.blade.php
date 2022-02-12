@@ -115,6 +115,7 @@ $container = isset($containerClass) ? $containerClass : 'container';
           </li>
           @endguest
           @auth
+          <get-aud></get-aud>
           <li>
             <a href="{{url('/')}}" class="navbar-title-text">
               <i class="fa fa-home"></i>

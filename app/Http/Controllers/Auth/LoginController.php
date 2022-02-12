@@ -70,8 +70,7 @@ class LoginController extends Controller
             Auth::login($user);
 
             // add access/refresh tokens to DB so .NET microservice can read them from the database
-            $token = $user->createToken('auth_token');
-            dd($token);
+            $token = $user->createToken($user->email)->plainTextToken;
           }
         }
         else
@@ -79,6 +78,13 @@ class LoginController extends Controller
           return response(['Invalid credentials. Please try again.', 401]);
         }
 
-        return $this->sendLoginResponse($request);
+        $response = $this->sendLoginResponse($request);
+
+        if ($token != null)
+        {
+          session(['aud' => $token]);
+        }
+
+        return $response;
     }
 }

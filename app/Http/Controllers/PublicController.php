@@ -4,17 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
 {
     // MAIN VIEWS
 
-	public function index()
+	public function index(Request $request)
 	{
 		$data['customers'] = DB::table('testimonials')->where('testimonial_type', 1)->get();
 		$data['agents'] = DB::table('testimonials')->where('testimonial_type', 2)->get();
 		$data['posts'] = Post::latest('created_at')->where('active', 1)->paginate(5);
+
+    // if (Auth::check()) {
+    //   $token = $request->session()->pull('aud');
+
+    //   if ($token != null) {
+    //     return response()
+    //       ->view('index', $data)
+    //       ->header('aud', $token);
+    //   }
+    // }
 
 		return view('index', $data);
 	}

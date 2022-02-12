@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/users")]
+[Route("api/v2/users")]
 [ApiController]
 public class UserController : ControllerBase
 {
@@ -15,11 +15,11 @@ public class UserController : ControllerBase
     _userService = userService;
   }
 
-  [Route("{uid:int}")]
+  [Route("{id:int}")]
   [HttpGet]
-  public async Task<ActionResult<UserDto>> GetUser(int uid)
+  public async Task<ActionResult<UserDto>> GetUser(int id)
   {
-    var user = await _userService.GetUser(uid);
+    var user = await _userService.GetUserByEmployeeId(id);
 
     if (user != null) return user;
 

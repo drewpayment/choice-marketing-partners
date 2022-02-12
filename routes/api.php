@@ -13,6 +13,12 @@ use Illuminate\Http\Request;
 |
 */
 
+#region Authorization
+
+Route::get('/authorization/aud', 'Api\AuthorizationController@getAud');
+
+#endregion
+
 #region INVOICES
 
 Route::get('/invoices', 'InvoiceController@getInvoicePageResources');

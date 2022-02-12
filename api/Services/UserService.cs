@@ -8,12 +8,12 @@ namespace api.Services;
 public class UserService : IUserService
 {
 
-  async Task<UserDto> IUserService.GetUser(int userId)
+  async Task<UserDto> IUserService.GetUserByEmployeeId(int employeeId)
   {
     await using var context = new DataContext();
 
     var user = await context.Users.AsNoTracking()
-      .Where(x => x.Uid == userId)
+      .Where(x => x.Id == employeeId)
       .Select(x => new UserDto
       {
         Uid = x.Uid,

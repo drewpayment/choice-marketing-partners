@@ -4,6 +4,8 @@ using api.Data;
 using api.Extensions;
 using Microsoft.AspNetCore.Http.Json;
 
+const string useCorsPolicy = "_useCorsWhoCares";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Database
@@ -16,6 +18,20 @@ builder.Services.AddSwaggerGen();
 
 // Register Service classes to DI
 builder.Services.AddServiceDependencies();
+
+if (builder.Environment.IsDevelopment())
+{
+  builder.Services.AddCors(options =>
+  {
+    options.AddPolicy(name: useCorsPolicy,
+      builder =>
+      {
+        builder.AllowAnyOrigin()
+          .AllowAnyHeader()
+          .AllowAnyMethod();
+      });
+  });
+}
 
 // add authentication/authorization
 
@@ -33,6 +49,8 @@ if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
   app.UseSwaggerUI();
+
+  app.UseCors(useCorsPolicy);
 }
 else
 {

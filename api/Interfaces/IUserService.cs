@@ -4,5 +4,5 @@ namespace api.Interfaces;
 
 public interface IUserService
 {
-  Task<UserDto> GetUser(int userId);
+  Task<UserDto> GetUserByEmployeeId(int userId);
 }
