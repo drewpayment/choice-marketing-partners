@@ -13,3 +13,4 @@ composer-setup.php
 docker-compose.yml
 readme.md
 .env
+public/dist

@@ -1,3 +1,4 @@
+# STEP 1 - ANGULAR BUILD
 FROM node:latest as build
 
 COPY ./package.json /app/package.json
@@ -12,6 +13,7 @@ RUN npm install -g pnpm
 RUN pnpm install
 RUN pnpm build:prod
 
+# STEP 2 - LARAVEL BUILD
 FROM php:8.0-fpm
 LABEL maintainer="Andrew Payment"
 
