@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { requireAuth } from '@/lib/auth/utils'
 import SignOutButton from './SignOutButton'
-import { signOut } from 'next-auth/react'
 
 interface NavigationProps {
   user: {
@@ -31,17 +30,12 @@ function Navigation({ user }: NavigationProps) {
       show: true
     },
     {
-      href: '/account',
-      label: 'Account',
-      show: true
-    },
-    {
-      href: '/manager/dashboard',
-      label: 'Manager Portal',
+      href: '/invoices',
+      label: 'Invoices',
       show: user.isManager || user.isAdmin
     },
     {
-      href: '/admin/dashboard',
+      href: '/admin',
       label: 'Admin Portal',
       show: user.isAdmin
     }

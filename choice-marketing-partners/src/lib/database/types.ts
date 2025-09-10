@@ -39,6 +39,26 @@ export interface Documents {
   uploaded_by: string;
 }
 
+export interface DocumentFiles {
+  id: Generated<number>;
+  name: string;
+  description: string | null;
+  original_filename: string;
+  storage_type: "vercel_blob";
+  blob_url: string;
+  blob_pathname: string;
+  download_url: string | null;
+  mime_type: string;
+  file_size: number;
+  uploaded_by: string;
+  upload_ip: string | null;
+  tags: string | null; // JSON
+  metadata: string | null; // JSON
+  status: "uploading" | "active" | "archived" | "deleted";
+  created_at: Date | null;
+  updated_at: Date | null;
+}
+
 export interface EmployeeInvoice {
   employee_id: number;
   invoice_id: number;
@@ -347,6 +367,7 @@ export interface Vendors {
 export interface DB {
   comments: Comments;
   company_options: CompanyOptions;
+  document_files: DocumentFiles;
   documents: Documents;
   employee_invoice: EmployeeInvoice;
   employee_permission: EmployeePermission;

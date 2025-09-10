@@ -100,7 +100,7 @@ export default function AdminToolsPage() {
   const pollJobStatus = async (jobId: string) => {
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/admin/payroll/reprocess/${jobId}`);
+        const response = await fetch(`/api/admin/payroll/reprocess?jobId=${jobId}`);
         if (!response.ok) {
           clearInterval(pollInterval);
           return;
@@ -146,7 +146,7 @@ export default function AdminToolsPage() {
 
   const cancelJob = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/admin/payroll/reprocess/${jobId}`, {
+      const response = await fetch(`/api/admin/payroll/reprocess?jobId=${jobId}`, {
         method: 'DELETE',
       });
 

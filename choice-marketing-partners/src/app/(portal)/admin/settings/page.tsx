@@ -26,7 +26,12 @@ import {
   Settings as SettingsIcon,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Trash2,
+  Calendar,
+  RefreshCw,
+  Play
 } from 'lucide-react';
 import { 
   CompanyOptionsResponse, 
@@ -44,8 +49,13 @@ const payrollRestrictionSchema = z.object({
   minute: z.number().min(0).max(59),
 });
 
+const payrollDateSchema = z.object({
+  date: z.string().min(1, 'Date is required'),
+});
+
 type EmailSettingsForm = z.infer<typeof emailSettingsSchema>;
 type PayrollRestrictionForm = z.infer<typeof payrollRestrictionSchema>;
+type PayrollDateForm = z.infer<typeof payrollDateSchema>;
 
 interface SettingsState {
   companyOptions: CompanyOptionsResponse | null;
@@ -65,6 +75,7 @@ export default function AdminSettingsPage() {
   });
   
   const [activeTab, setActiveTab] = useState('email');
+  const [showAddDateForm, setShowAddDateForm] = useState(false);
   const { toast } = useToast();
 
   // Email settings form
@@ -81,6 +92,14 @@ export default function AdminSettingsPage() {
     defaultValues: {
       hour: 9,
       minute: 0,
+    },
+  });
+
+  // Payroll date form
+  const dateForm = useForm<PayrollDateForm>({
+    resolver: zodResolver(payrollDateSchema),
+    defaultValues: {
+      date: '',
     },
   });
 
@@ -204,6 +223,86 @@ export default function AdminSettingsPage() {
         description: 'Failed to save restriction settings.',
         variant: 'destructive',
       });
+      setState(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const addPayrollDate = async (data: PayrollDateForm) => {
+    try {
+      setState(prev => ({ ...prev, saving: true }));
+
+      const response = await fetch('/api/admin/payroll/dates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to add payroll date');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: 'Success',
+        description: result.message,
+      });
+
+      // Reload payroll dates
+      await loadSettingsData();
+      
+      // Reset form and hide it
+      dateForm.reset();
+      setShowAddDateForm(false);
+      
+    } catch (error) {
+      console.error('Error adding payroll date:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to add payroll date.',
+        variant: 'destructive',
+      });
+    } finally {
+      setState(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const deletePayrollDate = async (date: string) => {
+    if (!confirm('Are you sure you want to delete this payroll date? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setState(prev => ({ ...prev, saving: true }));
+
+      const response = await fetch(`/api/admin/payroll/dates?date=${encodeURIComponent(date)}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete payroll date');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: 'Success',
+        description: result.message,
+      });
+
+      // Reload payroll dates
+      await loadSettingsData();
+      
+    } catch (error) {
+      console.error('Error deleting payroll date:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete payroll date.',
+        variant: 'destructive',
+      });
+    } finally {
       setState(prev => ({ ...prev, saving: false }));
     }
   };
@@ -387,19 +486,98 @@ export default function AdminSettingsPage() {
             {/* Payroll Dates */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Payroll Dates</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Payroll Dates Management</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddDateForm(!showAddDateForm)}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Date
+                  </Button>
+                </CardTitle>
                 <CardDescription>
-                  Last 10 payroll processing dates in the system.
+                  Manage payroll processing dates in the system.
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Add New Date Form */}
+                {showAddDateForm && (
+                  <div className="mb-4 p-4 border rounded-lg bg-blue-50">
+                    <Form {...dateForm}>
+                      <form onSubmit={dateForm.handleSubmit(addPayrollDate)} className="space-y-4">
+                        <FormField
+                          control={dateForm.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>New Payroll Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  disabled={state.saving}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            size="sm"
+                            disabled={state.saving}
+                          >
+                            {state.saving ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Adding...
+                              </>
+                            ) : (
+                              'Add Date'
+                            )}
+                          </Button>
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setShowAddDateForm(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </div>
+                )}
+
+                {/* Existing Dates List */}
                 <div className="space-y-2">
                   {state.payrollDates?.dates.map((date, index) => (
-                    <div key={date.issueDate} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                      <span className="text-sm font-medium">{date.displayDate}</span>
-                      {index === 0 && <Badge variant="secondary">Latest</Badge>}
+                    <div key={date.issueDate} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium">{date.displayDate}</span>
+                        {index === 0 && <Badge variant="secondary">Latest</Badge>}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deletePayrollDate(date.issueDate)}
+                        disabled={state.saving}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
+                  {(!state.payrollDates?.dates || state.payrollDates.dates.length === 0) && (
+                    <div className="text-center py-4 text-gray-500">
+                      No payroll dates found. Add one to get started.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

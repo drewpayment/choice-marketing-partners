@@ -75,12 +75,7 @@ export async function POST(request: NextRequest) {
     // Generate a job ID
     const jobId = `reprocess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // In a real implementation, you would:
-    // 1. Store the job in a jobs table
-    // 2. Queue the actual reprocessing work (using a job queue like Bull/BullMQ)
-    // 3. Return the job ID for polling
-    
-    // For now, we'll simulate the job creation
+    // Create reprocessing job
     const job: ReprocessJob = {
       id: jobId,
       date: date,
@@ -93,7 +88,7 @@ export async function POST(request: NextRequest) {
     global.reprocessJobs = global.reprocessJobs || new Map<string, ReprocessJob>();
     global.reprocessJobs.set(jobId, job);
 
-    // Simulate the reprocessing work with a timeout
+    // Start the reprocessing work
     simulateReprocessing(jobId, totalRecords);
 
     return NextResponse.json({
@@ -111,7 +106,41 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Simulate reprocessing work (replace with actual implementation)
+// GET /api/admin/payroll/reprocess?jobId=xyz - Get job status
+export async function GET(request: NextRequest) {
+  const authError = await verifyAdminAccess();
+  if (authError) return authError;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const jobId = searchParams.get('jobId');
+
+    if (!jobId) {
+      return NextResponse.json({ 
+        error: 'Job ID is required' 
+      }, { status: 400 });
+    }
+
+    global.reprocessJobs = global.reprocessJobs || new Map<string, ReprocessJob>();
+    const job = global.reprocessJobs.get(jobId);
+
+    if (!job) {
+      return NextResponse.json({ 
+        error: 'Job not found' 
+      }, { status: 404 });
+    }
+
+    return NextResponse.json(job);
+
+  } catch (error) {
+    console.error('Error getting job status:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error' 
+    }, { status: 500 });
+  }
+}
+
+// Perform actual payroll reprocessing
 async function simulateReprocessing(jobId: string, totalRecords: number) {
   const jobs = global.reprocessJobs as Map<string, ReprocessJob>;
   const job = jobs.get(jobId);
@@ -119,46 +148,105 @@ async function simulateReprocessing(jobId: string, totalRecords: number) {
   if (!job) return;
 
   try {
-    // Simulate processing records in batches
-    const batchSize = Math.max(1, Math.floor(totalRecords / 10));
+    // Parse the date from the job
+    const payrollDate = new Date(job.date);
+    
+    // Get all payroll records for this date
+    const payrollRecords = await db
+      .selectFrom('payroll')
+      .selectAll()
+      .where('pay_date', '=', payrollDate)
+      .execute();
+
     let processed = 0;
+    const batchSize = 10; // Process in small batches for progress tracking
 
-    for (let i = 0; i < 10; i++) {
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    // Process in batches to provide progress updates
+    for (let i = 0; i < payrollRecords.length; i += batchSize) {
+      const batch = payrollRecords.slice(i, i + batchSize);
       
-      processed += batchSize;
-      if (processed > totalRecords) processed = totalRecords;
+      for (const record of batch) {
+        try {
+          // Recalculate payroll amounts based on current invoice data
+          const invoiceTotal = await db
+            .selectFrom('invoices')
+            .select(db.fn.sum('amount').as('total'))
+            .where('agentid', '=', record.agent_id)
+            .where('wkending', '=', record.pay_date)
+            .executeTakeFirst();
 
-      // Update job progress
-      const isCompleted = processed >= totalRecords;
-      const updatedJob: ReprocessJob = {
-        ...job,
-        recordsProcessed: processed,
-        status: isCompleted ? 'completed' : 'running',
-        completedAt: isCompleted ? new Date().toISOString() : undefined,
-      };
+          const overrideTotal = await db
+            .selectFrom('overrides')
+            .select(db.fn.sum('total').as('total'))
+            .where('agentid', '=', record.agent_id)
+            .where('wkending', '=', record.pay_date)
+            .executeTakeFirst();
 
-      jobs.set(jobId, updatedJob);
+          const expenseTotal = await db
+            .selectFrom('expenses')
+            .select(db.fn.sum('amount').as('total'))
+            .where('agentid', '=', record.agent_id)
+            .where('wkending', '=', record.pay_date)
+            .executeTakeFirst();
 
-      if (processed >= totalRecords) break;
+          // Calculate new total
+          const invoiceAmount = parseFloat(invoiceTotal?.total?.toString() || '0');
+          const overrideAmount = parseFloat(overrideTotal?.total?.toString() || '0');
+          const expenseAmount = parseFloat(expenseTotal?.total?.toString() || '0');
+          const newAmount = invoiceAmount + overrideAmount + expenseAmount;
+
+          // Update payroll record if amount changed
+          if (Math.abs(newAmount - parseFloat(record.amount.toString())) > 0.01) {
+            await db
+              .updateTable('payroll')
+              .set({ 
+                amount: newAmount.toString(),
+                updated_at: new Date()
+              })
+              .where('id', '=', record.id)
+              .execute();
+          }
+
+          processed++;
+
+          // Update progress every batch
+          if (processed % batchSize === 0 || processed === payrollRecords.length) {
+            const updatedJob: ReprocessJob = {
+              ...job,
+              recordsProcessed: processed,
+              status: processed >= totalRecords ? 'completed' : 'running',
+              completedAt: processed >= totalRecords ? new Date().toISOString() : undefined,
+            };
+            jobs.set(jobId, updatedJob);
+          }
+
+        } catch (recordError) {
+          console.error(`Error processing payroll record ${record.id}:`, recordError);
+          // Continue processing other records even if one fails
+        }
+      }
+
+      // Small delay to allow progress updates to be visible
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // Here you would implement the actual reprocessing logic:
-    // 1. Fetch all payroll records for the date
-    // 2. Recalculate commissions based on current rules
-    // 3. Update payroll amounts
-    // 4. Regenerate any dependent calculations
-    // 5. Update payment status if needed
+    // Final completion update
+    const completedJob: ReprocessJob = {
+      ...job,
+      recordsProcessed: processed,
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+    };
+    jobs.set(jobId, completedJob);
 
   } catch (error) {
-    console.error('Error during reprocessing simulation:', error);
+    console.error('Error during payroll reprocessing:', error);
     
     // Mark job as failed
     const failedJob: ReprocessJob = {
       ...job,
       status: 'error',
-      errorMessage: 'An error occurred during reprocessing',
+      errorMessage: error instanceof Error ? error.message : 'An error occurred during reprocessing',
       completedAt: new Date().toISOString(),
     };
     

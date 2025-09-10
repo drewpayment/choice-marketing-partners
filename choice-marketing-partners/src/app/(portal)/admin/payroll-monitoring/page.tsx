@@ -42,7 +42,8 @@ import {
   Loader2,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Download
 } from 'lucide-react';
 
 interface PayrollRecord {
@@ -68,6 +69,11 @@ interface PayrollStatusResponse {
   summary: PayrollSummary;
 }
 
+interface VendorOption {
+  id: number;
+  name: string;
+}
+
 interface FilterState {
   vendorId: string;
   payDate: string;
@@ -82,8 +88,10 @@ interface SortState {
 
 export default function PayrollMonitoringPage() {
   const [data, setData] = useState<PayrollStatusResponse | null>(null);
+  const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50); // Fixed items per page
@@ -126,9 +134,62 @@ export default function PayrollMonitoringPage() {
     }
   }, [filters, toast]);
 
+  const loadVendorOptions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/payroll/vendors');
+      if (!response.ok) throw new Error('Failed to load vendor options');
+      
+      const vendorData = await response.json();
+      setVendors(vendorData);
+    } catch (error) {
+      console.error('Error loading vendor options:', error);
+      // Don't show error toast for this as it's not critical
+    }
+  }, []);
+
+  const exportPayrollData = useCallback(async () => {
+    try {
+      setExporting(true);
+      
+      const params = new URLSearchParams();
+      if (filters.vendorId !== 'all') params.append('vendorId', filters.vendorId);
+      if (filters.payDate) params.append('payDate', filters.payDate);
+      if (filters.status !== 'all') params.append('status', filters.status);
+      params.append('export', 'true');
+
+      const response = await fetch(`/api/admin/payroll/status?${params}`);
+      if (!response.ok) throw new Error('Failed to export payroll data');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `payroll-data-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Success',
+        description: 'Payroll data exported successfully.',
+      });
+    } catch (error) {
+      console.error('Error exporting payroll data:', error);
+      toast({
+        title: 'Export Error',
+        description: 'Failed to export payroll data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
+    }
+  }, [filters, toast]);
+
   useEffect(() => {
     loadPayrollData();
-  }, [loadPayrollData]);
+    loadVendorOptions();
+  }, [loadPayrollData, loadVendorOptions]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -366,6 +427,20 @@ export default function PayrollMonitoringPage() {
               </div>
             </div>
             
+            <Select value={filters.vendorId} onValueChange={(value) => handleFilterChange('vendorId', value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Vendor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vendors</SelectItem>
+                {vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                    {vendor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
             <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Payment Status" />
@@ -385,6 +460,20 @@ export default function PayrollMonitoringPage() {
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
+            </Button>
+
+            <Button 
+              variant="outline" 
+              onClick={exportPayrollData}
+              disabled={exporting || loading}
+              className="flex items-center gap-2"
+            >
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              Export
             </Button>
           </div>
 

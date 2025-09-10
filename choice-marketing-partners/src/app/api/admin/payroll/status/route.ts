@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const vendorId = searchParams.get('vendorId');
     const payDate = searchParams.get('payDate');
     const status = searchParams.get('status'); // 'paid', 'unpaid', or 'all'
+    const exportFormat = searchParams.get('export'); // 'true' for CSV export
 
     let query = db
       .selectFrom('payroll')
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       .orderBy('employees.name', 'asc');    // Then by employee name
 
     // Apply filters
-    if (vendorId && vendorId !== '-1') {
+    if (vendorId && vendorId !== 'all' && vendorId !== '-1') {
       query = query.where('payroll.vendor_id', '=', parseInt(vendorId));
     }
 
@@ -73,6 +74,37 @@ export async function GET(request: NextRequest) {
       amount: parseFloat(record.amount.toString()),
       isPaid: record.is_paid === 1,
     }));
+
+    // Handle CSV export
+    if (exportFormat === 'true') {
+      const csvHeaders = [
+        'Employee Name',
+        'Vendor Name', 
+        'Pay Date',
+        'Amount',
+        'Status'
+      ];
+      
+      const csvRows = formattedRecords.map(record => [
+        record.employeeName,
+        record.vendorName,
+        record.payDate,
+        record.amount.toFixed(2),
+        record.isPaid ? 'Paid' : 'Unpaid'
+      ]);
+
+      const csvContent = [
+        csvHeaders.join(','),
+        ...csvRows.map(row => row.map(field => `"${field}"`).join(','))
+      ].join('\n');
+
+      return new Response(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="payroll-data-${new Date().toISOString().split('T')[0]}.csv"`
+        }
+      });
+    }
 
     return NextResponse.json({
       records: formattedRecords,
