@@ -10,7 +10,8 @@ import {
   Wrench, 
   Home,
   ChevronLeft,
-  Menu
+  Menu,
+  Users
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -33,6 +34,12 @@ const adminNavItems = [
     icon: BarChart3,
     label: 'Payroll Monitor',
     description: 'Track paid/unpaid status'
+  },
+  {
+    href: '/admin/overrides',
+    icon: Users,
+    label: 'Agents & Overrides',
+    description: 'Manage manager assignments'
   },
   {
     href: '/admin/tools',
