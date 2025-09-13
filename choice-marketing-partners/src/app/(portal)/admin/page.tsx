@@ -13,6 +13,7 @@ import {
   Clock
 } from 'lucide-react';
 import Link from 'next/link';
+import dayjs from 'dayjs';
 
 // This would be fetched from the database in a real implementation
 async function getAdminStats() {
@@ -84,7 +85,7 @@ async function AdminStats() {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.lastPayrollRun}</div>
+          <div className="text-2xl font-bold">{dayjs(stats.lastPayrollRun, 'YYYY-MM-DD').format('MMM D, YYYY')}</div>
           <p className="text-xs text-muted-foreground">Processing date</p>
         </CardContent>
       </Card>

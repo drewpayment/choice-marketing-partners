@@ -304,39 +304,27 @@ export class ManagerEmployeeRepository {
   async updateAssignments(assignments: Assignment[]): Promise<boolean> {
     try {
       return await db.transaction().execute(async (trx) => {
-        // Group assignments by manager for efficient updates
-        const assignmentsByManager = assignments.reduce((acc, assignment) => {
-          if (!acc[assignment.managerId]) {
-            acc[assignment.managerId] = []
-          }
-          acc[assignment.managerId].push(assignment.employeeId)
-          return acc
-        }, {} as Record<number, number[]>)
-
-        // Update assignments for each manager
-        for (const [managerId, employeeIds] of Object.entries(assignmentsByManager)) {
-          const managerIdNum = Number(managerId)
-          
-          // Remove existing assignments for these employees
+        // Process each assignment individually to handle unassignments (managerId = 0)
+        for (const assignment of assignments) {
+          // Remove existing assignment for this employee
           await trx
             .deleteFrom('manager_employees')
-            .where('employee_id', 'in', employeeIds)
+            .where('employee_id', '=', assignment.employeeId)
             .execute()
 
-          // Add new assignments
-          const newAssignments = employeeIds.map(employeeId => ({
-            manager_id: managerIdNum,
-            employee_id: employeeId,
-            created_at: new Date(),
-            updated_at: new Date()
-          }))
-
-          if (newAssignments.length > 0) {
+          // If managerId is not 0, create new assignment
+          if (assignment.managerId !== 0) {
             await trx
               .insertInto('manager_employees')
-              .values(newAssignments)
+              .values({
+                manager_id: assignment.managerId,
+                employee_id: assignment.employeeId,
+                created_at: new Date(),
+                updated_at: new Date()
+              })
               .execute()
           }
+          // If managerId is 0, we just delete (unassign) - no insert needed
         }
 
         return true
@@ -405,24 +393,27 @@ export class ManagerEmployeeRepository {
     valid: boolean
     error?: string
   }> {
-    // Check if manager exists and is active
-    const manager = await db
-      .selectFrom('employees')
-      .select(['id', 'is_mgr', 'is_active'])
-      .where('id', '=', managerId)
-      .where('deleted_at', 'is', null)
-      .executeTakeFirst()
+    // If managerId is 0, this is an unassignment - skip manager validation
+    if (managerId !== 0) {
+      // Check if manager exists and is active
+      const manager = await db
+        .selectFrom('employees')
+        .select(['id', 'is_mgr', 'is_active'])
+        .where('id', '=', managerId)
+        .where('deleted_at', 'is', null)
+        .executeTakeFirst()
 
-    if (!manager) {
-      return { valid: false, error: 'Manager not found' }
-    }
+      if (!manager) {
+        return { valid: false, error: 'Manager not found' }
+      }
 
-    if (!manager.is_mgr) {
-      return { valid: false, error: 'Employee is not a manager' }
-    }
+      if (!manager.is_mgr) {
+        return { valid: false, error: 'Employee is not a manager' }
+      }
 
-    if (!manager.is_active) {
-      return { valid: false, error: 'Manager is not active' }
+      if (!manager.is_active) {
+        return { valid: false, error: 'Manager is not active' }
+      }
     }
 
     // Check if employee exists and is active
