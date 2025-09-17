@@ -1,51 +1,58 @@
 # Active Context
 
-## Current Focus: CREATIVE Mode - Phase 7 Design Phase
+## Current Focus: PLAN Mode - Phase 8 Urgent Cutover Planning
 
 ### Session Overview
-- **Mode**: CREATIVE (Design & Architecture)
-- **Started**: September 10, 2025
-- **Primary Goal**: Design UX and architecture for Phase 7 (Agents and Overrides)
-- **Status**: Creative phase complete - Design decisions documented
+- **Mode**: PLAN (Task Planning)
+- **Started**: September 13, 2025
+- **Primary Goal**: Create comprehensive urgent plan for Phase 8 cleanup and cutover
+- **Status**: Level 3 comprehensive planning complete
 
-### Phase 7 Design Completion Summary
-- **Phases 0-6**: ✅ COMPLETE (All core functionality operational)
-- **Phase 7**: 🎨 DESIGN COMPLETE (Ready for implementation)
-- **Current Focus**: Agent management and manager-employee relationships
+### Phase 8 Planning Completion Summary
+- **Phases 0-7**: ✅ COMPLETE (All core functionality operational)
+- **Phase 8**: 📋 URGENT PLAN COMPLETE (Ready for immediate implementation)
+- **Current Focus**: Production cutover execution planning
 
-### Creative Design Decisions Made
-1. ✅ **Architecture**: Hybrid Modular-Page approach with reusable components
-2. ✅ **UI/UX**: Progressive disclosure card interface with drag-and-drop assignment
-3. ✅ **Search Algorithm**: Progressive loading with client-side fuzzy search
-4. ✅ **Password Reset**: Admin-set password with validation and audit logging
-5. ✅ **Database Integration**: Extends existing patterns from payroll system
-6. ✅ **Security Model**: Role-based access with comprehensive audit trails
+### Planning Decisions Made
+1. ✅ **Complexity Level**: Level 3 (comprehensive testing + production deployment)
+2. ✅ **Timeline**: Urgent 5-day accelerated schedule
+3. ✅ **Strategy**: Blue-green deployment with zero downtime cutover
+4. ✅ **Testing Approach**: Critical path focus with performance benchmarking
+5. ✅ **Monitoring**: Production-grade observability from day one
+6. ✅ **Rollback Plan**: DNS revert + legacy application fallback
 
-### Technical Design Specifications
-- **Frontend**: React components using shadcn/ui with @dnd-kit for drag-and-drop
-- **Backend**: RESTful APIs following existing patterns with Kysely ORM
-- **Validation**: Zod schemas with React Hook Form for consistent UX
-- **Search**: Fuse.js for client-side fuzzy search with server-side pagination
-- **Mobile**: Responsive design with touch-friendly alternatives to drag-and-drop
+### Detailed Implementation Plan
+- **Phase 8A**: Urgent Testing Sprint (Days 1-2)
+- **Phase 8B**: Production Infrastructure (Day 2.5)
+- **Phase 8C**: Cutover Execution (Day 3)
+- **Phase 8D**: Post-Migration Monitoring (Days 3.5-5)
 
-### Components Designed
-1. **Employee Management**: CRUD operations with optional user account creation
-2. **Manager Assignment Interface**: Visual drag-and-drop for employee assignments  
-3. **Password Reset Dialog**: Secure admin-initiated password management
-4. **Search and Filtering**: Progressive loading with real-time client search
+### Risk Mitigation Strategies
+1. **Database Connection Limits**: Connection pooling + load testing
+2. **Legacy File Access**: Dual file system + proxy API
+3. **PDF Performance**: Template optimization + async generation
+4. **Email Configuration**: Production testing + legacy bridge
+5. **User Training**: UI consistency + enhanced error messaging
+
+### Production Requirements Documented
+- Vercel production environment configuration
+- DNS cutover procedures with rollback triggers
+- Monitoring setup (Sentry + Vercel Analytics + custom dashboards)
+- Performance benchmarks and success metrics
+- Business continuity validation checklist
 
 ### Ready for Implementation Phase
-- ✅ All architectural decisions documented
-- ✅ UX flows designed with mobile considerations
-- ✅ Database integration patterns established
-- ✅ Security requirements defined and validated
-- ✅ Component hierarchy and routing structure planned
+- ✅ All technical requirements documented
+- ✅ Infrastructure setup procedures detailed
+- ✅ Cutover sequence with precise timing
+- ✅ Risk mitigation strategies defined
+- ✅ Success criteria and verification checklists complete
 
 ### Next Steps: IMPLEMENT Mode
 **Implementation Priority**:
-1. **TASK-701**: Employee list page with search and filtering
-2. **TASK-702**: Employee CRUD operations with user account integration
-3. **TASK-703**: Manager-employee assignment interface
-4. **TASK-704**: Password reset functionality with audit logging
+1. **TASK-801**: Critical path regression testing with performance benchmarking
+2. **TASK-802**: Production monitoring and infrastructure setup
+3. **TASK-803**: Execute zero-downtime DNS cutover
+4. **TASK-804**: Post-migration stability monitoring and validation
 
-Updated: September 10, 2025 - CREATIVE Mode Phase 7 Design Complete
+Updated: September 13, 2025 - PLAN Mode Phase 8 Urgent Cutover Plan Complete
