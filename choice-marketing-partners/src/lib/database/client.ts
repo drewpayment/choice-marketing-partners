@@ -51,10 +51,6 @@ const pool = createPool({
   ...dbConfig,
   // Connection pool settings optimized for serverless
   connectionLimit: 1,
-  // SSL configuration - use from URL params first, then environment-based fallback
-  ssl: dbConfig.ssl || (process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false
-  } : undefined),
   // MySQL data type handling
   supportBigNumbers: true,
   bigNumberStrings: true,
