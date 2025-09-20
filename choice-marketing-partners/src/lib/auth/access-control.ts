@@ -81,8 +81,8 @@ export function hasRouteAccess(
  */
 export function getAccessDeniedRedirect(
   pathname: string,
-  isAdmin: boolean = false,
-  isManager: boolean = false,
+  _isAdmin: boolean = false,
+  _isManager: boolean = false,
   isAuthenticated: boolean = false
 ): string {
   // If not authenticated at all, redirect to login

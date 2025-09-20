@@ -29,9 +29,7 @@ import {
   AlertCircle,
   Plus,
   Trash2,
-  Calendar,
-  RefreshCw,
-  Play
+  Calendar
 } from 'lucide-react';
 import { 
   CompanyOptionsResponse, 

@@ -7,14 +7,30 @@ function getDatabaseConfig() {
   const databaseUrl = process.env.DATABASE_URL
   
   if (databaseUrl) {
-    // Parse DATABASE_URL format: mysql://user:password@host:port/database
+    // Parse DATABASE_URL format: mysql://user:password@host:port/database?ssl=params
     const url = new URL(databaseUrl)
+    
+    // Extract SSL configuration from URL search params
+    const sslParam = url.searchParams.get('ssl')
+    let sslConfig = null
+    
+    if (sslParam) {
+      try {
+        // Handle JSON SSL configuration
+        sslConfig = JSON.parse(sslParam)
+      } catch {
+        // Handle simple boolean SSL configuration
+        sslConfig = sslParam === 'true' ? { rejectUnauthorized: false } : null
+      }
+    }
+    
     return {
       host: url.hostname,
       port: parseInt(url.port) || 3306,
       user: url.username,
       password: url.password,
       database: url.pathname.slice(1), // Remove leading slash
+      ssl: sslConfig
     }
   }
   
@@ -33,14 +49,12 @@ const dbConfig = getDatabaseConfig()
 
 const pool = createPool({
   ...dbConfig,
-  // Connection pool settings
+  // Connection pool settings optimized for serverless
   connectionLimit: 1,
-  // SSL configuration for production
-  ...(process.env.NODE_ENV === 'production' && {
-    ssl: {
-      rejectUnauthorized: false
-    }
-  }),
+  // SSL configuration - use from URL params first, then environment-based fallback
+  ssl: dbConfig.ssl || (process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false
+  } : undefined),
   // MySQL data type handling
   supportBigNumbers: true,
   bigNumberStrings: true,
