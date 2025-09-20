@@ -8,13 +8,16 @@ export default withAuth(
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
     const pathname = req.nextUrl.pathname
     
-    // Redirect to dashboard if accessing auth pages while authenticated
-    if (isAuth && isAuthPage) {
+    // Prevent redirect loops by checking if we're already on the target page
+    if (isAuth && isAuthPage && req.nextUrl.searchParams.get('callbackUrl') !== pathname) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     
     // Check admin routes
     if (pathname.startsWith('/admin')) {
+      if (!isAuth) {
+        return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, req.url))
+      }
       if (!token?.isAdmin) {
         return NextResponse.redirect(new URL('/forbidden', req.url))
       }
@@ -22,6 +25,9 @@ export default withAuth(
     
     // Check manager routes  
     if (pathname.startsWith('/manager')) {
+      if (!isAuth) {
+        return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, req.url))
+      }
       if (!token?.isAdmin && !token?.isManager) {
         return NextResponse.redirect(new URL('/forbidden', req.url))
       }
@@ -29,6 +35,9 @@ export default withAuth(
     
     // Check agent-specific routes
     if (pathname.startsWith('/agents')) {
+      if (!isAuth) {
+        return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, req.url))
+      }
       if (!token?.isAdmin) {
         return NextResponse.redirect(new URL('/forbidden', req.url))
       }
@@ -36,6 +45,9 @@ export default withAuth(
     
     // Check settings routes
     if (pathname.startsWith('/settings')) {
+      if (!isAuth) {
+        return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, req.url))
+      }
       if (!token?.isAdmin) {
         return NextResponse.redirect(new URL('/forbidden', req.url))
       }

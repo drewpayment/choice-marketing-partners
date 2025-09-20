@@ -107,6 +107,24 @@ export const authOptions: NextAuthOptions = {
         }
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle redirects properly for Vercel deployments
+      const redirectUrl = new URL(url, baseUrl)
+      const baseURL = new URL(baseUrl)
+      
+      // If redirect is to same origin, allow it
+      if (redirectUrl.origin === baseURL.origin) {
+        return redirectUrl.href
+      }
+      
+      // If redirect is relative, resolve against base URL
+      if (url.startsWith('/')) {
+        return `${baseURL.origin}${url}`
+      }
+      
+      // Default to base URL for external redirects
+      return baseUrl
     }
   },
   pages: {
@@ -115,6 +133,10 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Use NEXTAUTH_URL environment variable or default to current host
+  ...(process.env.NODE_ENV === 'production' && {
+    useSecureCookies: true,
+  }),
 }
 
 export default NextAuth(authOptions)
