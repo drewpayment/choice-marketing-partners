@@ -11,7 +11,8 @@ import {
   Home,
   ChevronLeft,
   Menu,
-  Users
+  Users,
+  UserCheck
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -22,6 +23,12 @@ const adminNavItems = [
     icon: Home,
     label: 'Overview',
     description: 'Admin dashboard overview'
+  },
+  {
+    href: '/admin/employees',
+    icon: UserCheck,
+    label: 'Employee Management',
+    description: 'Manage employees and user accounts'
   },
   {
     href: '/admin/settings',

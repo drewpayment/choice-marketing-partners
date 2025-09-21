@@ -10,7 +10,8 @@ import {
   DollarSign,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  UserCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -95,6 +96,13 @@ async function AdminStats() {
 
 const adminQuickActions = [
   {
+    title: 'Employee Management',
+    description: 'Manage employees, user accounts, and access permissions',
+    href: '/admin/employees',
+    icon: UserCheck,
+    badge: null,
+  },
+  {
     title: 'Company Settings',
     description: 'Manage email notifications, payroll restrictions, and system configuration',
     href: '/admin/settings',
@@ -142,7 +150,7 @@ export default function AdminOverviewPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {adminQuickActions.map((action) => (
             <Card key={action.href} className="hover:shadow-md transition-shadow">
               <CardHeader>
