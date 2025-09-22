@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   Menu,
   Users,
-  UserCheck
+  UserCheck,
+  SearchIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -29,6 +30,12 @@ const adminNavItems = [
     icon: UserCheck,
     label: 'Employee Management',
     description: 'Manage employees and user accounts'
+  },
+  {
+    href: '/admin/invoice-search',
+    icon: SearchIcon,
+    label: 'Invoice Investigation',
+    description: 'Search and investigate invoice audit trails'
   },
   {
     href: '/admin/settings',

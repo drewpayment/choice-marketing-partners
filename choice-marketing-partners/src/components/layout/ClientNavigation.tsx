@@ -40,6 +40,11 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
       show: user.isManager || user.isAdmin
     },
     {
+      href: '/admin/invoice-search',
+      label: 'Investigation',
+      show: user.isManager || user.isAdmin
+    },
+    {
       href: '/admin',
       label: 'Admin Portal',
       show: user.isAdmin

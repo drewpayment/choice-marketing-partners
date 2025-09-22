@@ -24,17 +24,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const content = (
+    <Providers>
+      {children}
+    </Providers>
+  );
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        <PostHogProvider>
-          <Providers>
-            {children}
-          </Providers>
-        </PostHogProvider>
+        {process.env.NODE_ENV === 'production' ? (
+          <PostHogProvider>
+            {content}
+          </PostHogProvider>
+        ) : (
+          content
+        )}
       </body>
     </html>
   );

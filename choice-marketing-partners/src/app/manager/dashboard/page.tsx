@@ -117,6 +117,14 @@ export default async function ManagerDashboard() {
                 </a>
                 
                 <a 
+                  href="/admin/invoice-search" 
+                  className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="font-medium text-gray-900">Invoice Investigation</h3>
+                  <p className="text-sm text-gray-600">Search and investigate invoice audit trails</p>
+                </a>
+                
+                <a 
                   href="/manager/reports" 
                   className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >

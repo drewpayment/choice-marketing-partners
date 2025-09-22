@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import { invoiceAuditRepository } from './InvoiceAuditRepository'
 
 /**
  * Convert MM-DD-YYYY date format to YYYY-MM-DD for database
@@ -106,6 +107,9 @@ export interface InvoiceSaveRequest {
   vendorId: number
   issueDate: string
   weekending: string
+  changedBy?: number // User ID who made the changes (for audit)
+  changeReason?: string // Optional reason for the change
+  ipAddress?: string // IP address for audit trail
   sales: Array<{
     invoiceId?: number
     saleDate: string
@@ -371,7 +375,7 @@ export class InvoiceRepository {
         }
       }
 
-      // Save sales records
+      // Save sales records with audit trail
       const savedSales: Invoice[] = []
       for (const sale of request.sales) {
         const saleData = {
@@ -390,12 +394,56 @@ export class InvoiceRepository {
         }
 
         if (sale.invoiceId && sale.invoiceId > 0) {
+          // Get previous state for audit trail
+          const previousInvoice = await trx
+            .selectFrom('invoices')
+            .selectAll()
+            .where('invoice_id', '=', sale.invoiceId)
+            .executeTakeFirst()
+
           // Update existing
           await trx
             .updateTable('invoices')
             .set(saleData)
             .where('invoice_id', '=', sale.invoiceId)
             .execute()
+
+          // Create audit record if user provided and there was a previous state
+          if (request.changedBy && previousInvoice) {
+            await invoiceAuditRepository.createAuditRecord(
+              sale.invoiceId,
+              'UPDATE',
+              {
+                vendor: previousInvoice.vendor,
+                sale_date: previousInvoice.sale_date,
+                first_name: previousInvoice.first_name,
+                last_name: previousInvoice.last_name,
+                address: previousInvoice.address,
+                city: previousInvoice.city,
+                status: previousInvoice.status,
+                amount: parseFloat(previousInvoice.amount),
+                agentid: previousInvoice.agentid,
+                issue_date: previousInvoice.issue_date,
+                wkending: previousInvoice.wkending
+              },
+              {
+                vendor: saleData.vendor,
+                sale_date: saleData.sale_date,
+                first_name: saleData.first_name,
+                last_name: saleData.last_name,
+                address: saleData.address,
+                city: saleData.city,
+                status: saleData.status,
+                amount: sale.amount,
+                agentid: saleData.agentid,
+                issue_date: saleData.issue_date,
+                wkending: saleData.wkending
+              },
+              request.changedBy,
+              request.changeReason,
+              request.ipAddress
+            )
+          }
           
           savedSales.push({
             invoice_id: sale.invoiceId,
@@ -665,30 +713,120 @@ export class InvoiceRepository {
   }
 
   /**
-   * Delete single invoice
+   * Delete single invoice with audit trail
    */
-  async deleteInvoice(invoiceId: number): Promise<boolean> {
-    const result = await db
-      .deleteFrom('invoices')
-      .where('invoice_id', '=', invoiceId)
-      .execute()
+  async deleteInvoice(invoiceId: number, deletedBy?: number, reason?: string, ipAddress?: string): Promise<boolean> {
+    return await db.transaction().execute(async (trx) => {
+      // Get invoice data before deletion for audit trail
+      let previousInvoice = null
+      if (deletedBy) {
+        previousInvoice = await trx
+          .selectFrom('invoices')
+          .selectAll()
+          .where('invoice_id', '=', invoiceId)
+          .executeTakeFirst()
+      }
 
-    return result.length > 0
+      // Delete the invoice
+      const result = await trx
+        .deleteFrom('invoices')
+        .where('invoice_id', '=', invoiceId)
+        .execute()
+
+      // Create audit record if user provided and invoice existed
+      if (deletedBy && previousInvoice) {
+        await invoiceAuditRepository.createAuditRecord(
+          invoiceId,
+          'DELETE',
+          {
+            vendor: previousInvoice.vendor,
+            sale_date: previousInvoice.sale_date,
+            first_name: previousInvoice.first_name,
+            last_name: previousInvoice.last_name,
+            address: previousInvoice.address,
+            city: previousInvoice.city,
+            status: previousInvoice.status,
+            amount: parseFloat(previousInvoice.amount),
+            agentid: previousInvoice.agentid,
+            issue_date: previousInvoice.issue_date,
+            wkending: previousInvoice.wkending
+          },
+          null, // No current data for DELETE
+          deletedBy,
+          reason,
+          ipAddress
+        )
+      }
+
+      return result.length > 0
+    })
   }
 
   /**
-   * Bulk delete invoices
+   * Bulk delete invoices with audit trail
    */
-  async deleteInvoices(invoiceIds: number[]): Promise<{ deletedCount: number; expectedCount: number }> {
-    const result = await db
-      .deleteFrom('invoices')
-      .where('invoice_id', 'in', invoiceIds)
-      .execute()
+  async deleteInvoices(
+    invoiceIds: number[], 
+    deletedBy?: number, 
+    reason?: string, 
+    ipAddress?: string
+  ): Promise<{ deletedCount: number; expectedCount: number }> {
+    return await db.transaction().execute(async (trx) => {
+      let deletedCount = 0
 
-    return {
-      deletedCount: result.length,
-      expectedCount: invoiceIds.length
-    }
+      // Process each invoice individually to capture audit trail
+      for (const invoiceId of invoiceIds) {
+        // Get invoice data before deletion for audit trail
+        let previousInvoice = null
+        if (deletedBy) {
+          previousInvoice = await trx
+            .selectFrom('invoices')
+            .selectAll()
+            .where('invoice_id', '=', invoiceId)
+            .executeTakeFirst()
+        }
+
+        // Delete the invoice
+        const result = await trx
+          .deleteFrom('invoices')
+          .where('invoice_id', '=', invoiceId)
+          .execute()
+
+        if (result.length > 0) {
+          deletedCount++
+
+          // Create audit record if user provided and invoice existed
+          if (deletedBy && previousInvoice) {
+            await invoiceAuditRepository.createAuditRecord(
+              invoiceId,
+              'DELETE',
+              {
+                vendor: previousInvoice.vendor,
+                sale_date: previousInvoice.sale_date,
+                first_name: previousInvoice.first_name,
+                last_name: previousInvoice.last_name,
+                address: previousInvoice.address,
+                city: previousInvoice.city,
+                status: previousInvoice.status,
+                amount: parseFloat(previousInvoice.amount),
+                agentid: previousInvoice.agentid,
+                issue_date: previousInvoice.issue_date,
+                wkending: previousInvoice.wkending
+              },
+              null, // No current data for DELETE
+              deletedBy,
+              reason,
+              ipAddress
+            )
+          }
+        }
+      }
+
+      return {
+        deletedCount,
+        expectedCount: invoiceIds.length
+      }
+    })
   }
 
   /**

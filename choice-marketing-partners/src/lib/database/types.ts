@@ -111,6 +111,38 @@ export interface Expenses {
   wkending: Date;
 }
 
+export interface InvoiceAudit {
+  id: Generated<number>;
+  invoice_id: number;
+  action_type: "UPDATE" | "DELETE";
+  changed_by: number;
+  changed_at: Generated<Date>;
+  previous_vendor: string | null;
+  previous_sale_date: Date | null;
+  previous_first_name: string | null;
+  previous_last_name: string | null;
+  previous_address: string | null;
+  previous_city: string | null;
+  previous_status: string | null;
+  previous_amount: Generated<string> | null;
+  previous_agentid: number | null;
+  previous_issue_date: Date | null;
+  previous_wkending: Date | null;
+  current_vendor: string | null;
+  current_sale_date: Date | null;
+  current_first_name: string | null;
+  current_last_name: string | null;
+  current_address: string | null;
+  current_city: string | null;
+  current_status: string | null;
+  current_amount: Generated<string> | null;
+  current_agentid: number | null;
+  current_issue_date: Date | null;
+  current_wkending: Date | null;
+  change_reason: string | null;
+  ip_address: string | null;
+}
+
 export interface Invoices {
   address: string;
   agentid: number;
@@ -374,6 +406,7 @@ export interface DB {
   employee_user: EmployeeUser;
   employees: Employees;
   expenses: Expenses;
+  invoice_audit: InvoiceAudit;
   invoices: Invoices;
   jobs: Jobs;
   links: Links;

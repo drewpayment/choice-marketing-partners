@@ -23,23 +23,6 @@ const nextConfig: NextConfig = {
   // External packages for server components
   serverExternalPackages: ['mysql2', 'kysely'],
 
-  // Bundle analyzer and optimization
-  webpack: (config, { dev, isServer }) => {
-    // Optimize bundle size
-    if (!dev && !isServer) {
-      config.optimization.splitChunks.cacheGroups = {
-        ...config.optimization.splitChunks.cacheGroups,
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-          maxSize: 244000, // 244kb chunks for better caching
-        },
-      };
-    }
-    return config;
-  },
-
   // Production security and performance headers
   async headers() {
     return [
