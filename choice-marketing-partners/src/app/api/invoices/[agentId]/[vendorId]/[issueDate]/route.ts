@@ -9,7 +9,7 @@ import { getEmployeeContext } from '@/lib/auth/payroll-access'
  */
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string; vendorId: string; issueDate: string }> }
+  context: { params: Promise<{ agentId: string; vendorId: string; issueDate: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -31,14 +31,14 @@ export async function GET(
 
     // Get params
     const params = await context.params
-    const agentId = parseInt(params.id)
+    const agentId = parseInt(params.agentId)
     const vendorId = parseInt(params.vendorId)
     const issueDate = params.issueDate
 
     console.log('🔍 API Route - Parsed params:', { agentId, vendorId, issueDate })
 
     if (isNaN(agentId) || isNaN(vendorId)) {
-      console.error('❌ API Route - Invalid parameters:', { agentId: params.id, vendorId: params.vendorId })
+      console.error('❌ API Route - Invalid parameters:', { agentId: params.agentId, vendorId: params.vendorId })
       return NextResponse.json(
         { error: 'Invalid agent ID or vendor ID' },
         { status: 400 }

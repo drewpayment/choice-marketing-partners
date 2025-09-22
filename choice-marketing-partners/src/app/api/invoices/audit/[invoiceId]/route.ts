@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { invoiceAuditRepository } from '@/lib/repositories/InvoiceAuditRepository'
 
 /**
- * GET /api/invoices/[invoiceId]/audit - Get audit history for specific invoice
+ * GET /api/invoices/audit/[invoiceId] - Get audit history for specific invoice
  * Restricted to manager and admin users only
  */
 export async function GET(
