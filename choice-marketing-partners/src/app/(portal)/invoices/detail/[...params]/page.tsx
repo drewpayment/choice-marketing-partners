@@ -9,13 +9,14 @@ interface EditInvoicePageProps {
   }>;
 }
 
-export default async function EditInvoicePage({ params }: EditInvoicePageProps) {
+export default async function EditInvoicePage({ params: paramsPromise }: EditInvoicePageProps) {
+  const params = await paramsPromise;
   console.log('🚀 EditInvoicePage reached with params:', params);
 
   await requireManagerAccess();
   
   // Extract parameters from the catch-all route
-  const vals = await params;
+  const vals = params;
   console.log(vals);
   
   const routeParams = vals.params;

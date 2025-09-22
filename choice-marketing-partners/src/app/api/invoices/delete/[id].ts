@@ -40,8 +40,15 @@ export async function DELETE(
       )
     }
 
-    // Delete invoice
-    const success = await invoiceRepository.deleteInvoice(invoiceId)
+    // Delete invoice with audit trail
+    const success = await invoiceRepository.deleteInvoice(
+      invoiceId,
+      session.user.employeeId, // deletedBy
+      'Invoice deleted via web interface', // reason
+      request.headers.get('x-forwarded-for') || 
+      request.headers.get('x-real-ip') || 
+      'unknown' // ipAddress
+    )
 
     if (!success) {
       return NextResponse.json(
