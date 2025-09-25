@@ -36,13 +36,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        {process.env.NODE_ENV === 'production' ? (
-          <PostHogProvider>
-            {content}
-          </PostHogProvider>
-        ) : (
-          content
-        )}
+        <PostHogProvider>
+          {content}
+        </PostHogProvider>
       </body>
     </html>
   );
