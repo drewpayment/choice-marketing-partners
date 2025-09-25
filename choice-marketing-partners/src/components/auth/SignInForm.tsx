@@ -29,9 +29,9 @@ export default function SignInForm() {
         // Get the session to check user role and redirect appropriately
         const session = await getSession()
         if (session?.user.isAdmin) {
-          router.push('/admin/dashboard')
+          router.push('/admin')
         } else if (session?.user.isManager) {
-          router.push('/manager/dashboard')
+          router.push('/manager')
         } else {
           router.push('/dashboard')
         }

@@ -16,7 +16,7 @@ export async function loginAsAdmin(page: Page) {
   await page.click('button[type="submit"]');
   
   // Wait for redirect to admin dashboard
-  await page.waitForURL('/admin/dashboard');
+  await page.waitForURL('/admin');
 }
 
 export async function loginAsManager(page: Page) {

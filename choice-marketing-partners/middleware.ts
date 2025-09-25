@@ -8,9 +8,26 @@ export default withAuth(
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
     const pathname = req.nextUrl.pathname
     
+    // Handle root path redirects for authenticated users
+    if (isAuth && pathname === '/') {
+      if (token?.isAdmin) {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      } else if (token?.isManager) {
+        return NextResponse.redirect(new URL('/manager', req.url))
+      } else {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
+    }
+    
     // Prevent redirect loops by checking if we're already on the target page
     if (isAuth && isAuthPage && req.nextUrl.searchParams.get('callbackUrl') !== pathname) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      if (token?.isAdmin) {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      } else if (token?.isManager) {
+        return NextResponse.redirect(new URL('/manager', req.url))
+      } else {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
     }
     
     // Check admin routes
@@ -77,6 +94,8 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    // Root path for authenticated user redirects
+    '/',
     // Protected routes that require authentication
     '/dashboard/:path*',
     '/payroll/:path*', 

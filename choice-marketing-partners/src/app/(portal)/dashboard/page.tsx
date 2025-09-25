@@ -76,7 +76,7 @@ export default async function PortalDashboard() {
               
               {session.user.isAdmin && (
                 <Link 
-                  href="/admin/dashboard" 
+                  href="/admin" 
                   className="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <h3 className="font-medium text-gray-900">Admin Portal</h3>

@@ -9,7 +9,7 @@ test.describe('Authentication System', () => {
     await auth.loginAsAdmin();
     
     // Verify we're on admin dashboard
-    await expect(page).toHaveURL('/admin/dashboard');
+    await expect(page).toHaveURL('/admin');
     
     // Check for admin-specific content
     await expect(page.locator('h1')).toContainText('Admin Dashboard');

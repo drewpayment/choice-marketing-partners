@@ -22,7 +22,7 @@ Comprehensive Playwright testing framework now operational for the Choice Market
 ### ✅ Authentication Testing
 - **Login Flow Validation**: All user roles tested across browsers
 - **Client Hydration Handling**: Proper wait for form availability
-- **Role-Based Redirects**: Admin → `/admin/dashboard`, Manager → `/manager/dashboard`, Employee → `/dashboard`
+- **Role-Based Redirects**: Admin → `/admin`, Manager → `/manager`, Employee → `/dashboard`
 - **Cross-Browser Compatibility**: Chrome, Firefox, Safari, Mobile Safari, Mobile Chrome
 
 ### ✅ Test Categories Implemented
