@@ -9,13 +9,17 @@ import { identifyUser, resetUser } from '@/components/posthog-provider'
  * This will associate all PostHog events and session replays with the authenticated user
  */
 export function usePostHogIdentify() {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
   const hasIdentified = useRef(false)
   const lastUserId = useRef<string | null>(null)
+  
+  // Safely destructure session data
+  const session = sessionResult?.data
+  const status = sessionResult?.status
 
   useEffect(() => {
     // Only run on client side and when PostHog is available
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !session || !status) return
 
     // User is authenticated and we have session data
     if (status === 'authenticated' && session?.user) {
