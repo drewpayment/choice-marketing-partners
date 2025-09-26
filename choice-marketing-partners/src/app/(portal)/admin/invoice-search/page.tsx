@@ -46,6 +46,8 @@ export default function InvoiceSearchPage() {
   const { data: session } = useSession()
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [availableAgents, setAvailableAgents] = useState<Array<{ id: number; name: string }>>([])
+  const [availableVendors, setAvailableVendors] = useState<Array<{ id: number; name: string }>>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,8 +60,36 @@ export default function InvoiceSearchPage() {
   useEffect(() => {
     if (hasAccess) {
       loadDashboardData()
+      loadAgentsAndVendors()
     }
   }, [hasAccess])
+
+  const loadAgentsAndVendors = async () => {
+    try {
+      // Load agents
+      const agentsResponse = await fetch('/api/payroll/agents')
+      if (agentsResponse.ok) {
+        const agentsData = await agentsResponse.json()
+        setAvailableAgents(agentsData.map((agent: { id: number; name: string; sales_id1: string }) => ({
+          id: agent.id,
+          name: `${agent.name} (${agent.sales_id1})`
+        })))
+      }
+
+      // Load vendors  
+      const vendorsResponse = await fetch('/api/payroll/vendors')
+      if (vendorsResponse.ok) {
+        const vendorsData = await vendorsResponse.json()
+        setAvailableVendors(vendorsData.map((vendor: { id: number; name: string }) => ({
+          id: vendor.id,
+          name: vendor.name
+        })))
+      }
+    } catch (error) {
+      console.error('Error loading agents and vendors:', error)
+      // Don't show error toast for this as it's not critical for the main functionality
+    }
+  }
 
   const loadDashboardData = async () => {
     try {
@@ -346,8 +376,8 @@ export default function InvoiceSearchPage() {
             onSearch={handleSearch}
             onClear={handleClearSearch}
             isLoading={isSearching}
-            availableAgents={[]} // You'd populate this from an API
-            availableVendors={[]} // You'd populate this from an API
+            availableAgents={availableAgents}
+            availableVendors={availableVendors}
           />
         </TabsContent>
 
