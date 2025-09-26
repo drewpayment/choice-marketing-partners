@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,6 +105,8 @@ export default function PayrollMonitoringPage() {
     status: 'all',
     search: '',
   });
+  const [searchInput, setSearchInput] = useState(''); // Local search input state
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { toast } = useToast();
 
@@ -196,6 +198,46 @@ export default function PayrollMonitoringPage() {
     setSelectedRecords(new Set()); // Clear selections when filters change
     setCurrentPage(1); // Reset to first page when filters change
   };
+
+  // Debounced search function
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      handleFilterChange('search', value);
+    }, 500); // 500ms delay
+  };
+
+  const handleSearchBlur = () => {
+    // Apply search immediately on blur
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    handleFilterChange('search', searchInput);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    handleFilterChange('search', searchInput);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelectRecord = (recordId: number) => {
     setSelectedRecords(prev => {
@@ -416,15 +458,27 @@ export default function PayrollMonitoringPage() {
         <CardContent>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search employees or vendors..."
-                  className="pl-8"
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                />
-              </div>
+              <form onSubmit={handleSearchSubmit} className="relative flex">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search employees or vendors..."
+                    className="pl-8 pr-20"
+                    value={searchInput}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onBlur={handleSearchBlur}
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  disabled={loading}
+                >
+                  Search
+                </Button>
+              </form>
             </div>
             
             <Select value={filters.vendorId} onValueChange={(value) => handleFilterChange('vendorId', value)}>
