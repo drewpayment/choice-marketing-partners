@@ -44,7 +44,7 @@ interface PayrollListProps {
 export default function PayrollList({ data, pagination, userContext }: PayrollListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [sortField, setSortField] = useState<keyof PayrollSummary>('issueDate')
+  const [sortField, setSortField] = useState<keyof PayrollSummary>('lastUpdated')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   // Build returnUrl from current search params to preserve filters
@@ -99,6 +99,13 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
   const sortedData = [...data].sort((a, b) => {
     const aValue = a[sortField]
     const bValue = b[sortField]
+    
+    // Special handling for date fields (issueDate and lastUpdated)
+    if (sortField === 'issueDate' || sortField === 'lastUpdated') {
+      const aDate = new Date(aValue as string).getTime()
+      const bDate = new Date(bValue as string).getTime()
+      return sortDirection === 'asc' ? aDate - bDate : bDate - aDate
+    }
     
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       return sortDirection === 'asc' 
@@ -244,6 +251,19 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   )}
                 </div>
               </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('lastUpdated')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Last Updated</span>
+                  {sortField === 'lastUpdated' && (
+                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                      ↑
+                    </span>
+                  )}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -265,6 +285,14 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   <span className={`font-medium ${item.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatCurrency(item.netPay)}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <div className="text-xs text-gray-900">
+                    {new Date(item.lastUpdated).toLocaleDateString()}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(item.lastUpdated).toLocaleTimeString()}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <Link

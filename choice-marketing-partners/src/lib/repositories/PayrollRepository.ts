@@ -37,6 +37,7 @@ export interface PayrollSummary {
   totalExpenses: number
   netPay: number
   paystubCount: number
+  lastUpdated: string // ISO timestamp of most recent update to any paystub in this group
 }
 
 export interface PaystubDetail {
@@ -128,6 +129,7 @@ export class PayrollRepository {
         'paystubs.vendor_id as vendorId',
         'vendors.name as vendorName',
         'paystubs.issue_date as issueDate',
+        db.fn.max('paystubs.updated_at').as('lastUpdated')
       ])
       .groupBy([
         'employees.id',
@@ -345,7 +347,8 @@ export class PayrollRepository {
         totalOverrides: overridesTotal,
         totalExpenses: expensesTotal,
         netPay: salesTotal + overridesTotal + expensesTotal,
-        paystubCount
+        paystubCount,
+        lastUpdated: result.lastUpdated?.toISOString() || new Date().toISOString()
       })
     }
     
