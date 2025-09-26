@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { formatDate } from '@/lib/utils/date'
+import { TypeaheadSelect } from '@/components/ui/typeahead-select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 interface PayrollFiltersProps {
   initialFilters: {
@@ -108,119 +113,129 @@ export default function PayrollFilters({ initialFilters }: PayrollFiltersProps) 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Employee Filter */}
           <div>
-            <label htmlFor="employee" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="employee" className="text-sm font-medium text-gray-700">
               Employee
-            </label>
-            <select
-              id="employee"
-              value={filters.employeeId || ''}
-              onChange={(e) => handleFilterChange('employeeId', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">All Employees</option>
-              {agents.map((agent) => (
-                <option key={agent.id} value={agent.id}>
-                  {agent.name} ({agent.sales_id1})
-                </option>
-              ))}
-            </select>
+            </Label>
+            <TypeaheadSelect
+              options={[
+                { key: '', value: 'All Employees' },
+                ...agents.map(agent => ({
+                  key: String(agent.id),
+                  value: `${agent.name} (${agent.sales_id1})`
+                }))
+              ]}
+              value={String(filters.employeeId || '')}
+              onValueChange={(value) => handleFilterChange('employeeId', String(value || ''))}
+              placeholder="All Employees"
+              className="mt-1"
+            />
           </div>
 
           {/* Vendor Filter */}
           <div>
-            <label htmlFor="vendor" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
               Vendor
-            </label>
-            <select
-              id="vendor"
-              value={filters.vendorId || ''}
-              onChange={(e) => handleFilterChange('vendorId', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            </Label>
+            <Select
+              value={String(filters.vendorId || 'all')}
+              onValueChange={(value) => handleFilterChange('vendorId', value === 'all' ? '' : value)}
             >
-              <option value="">All Vendors</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="All Vendors" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vendors</SelectItem>
+                {vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={String(vendor.id)}>
+                    {vendor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Issue Date Filter */}
           <div>
-            <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="issueDate" className="text-sm font-medium text-gray-700">
               Issue Date
-            </label>
-            <select
-              id="issueDate"
-              value={filters.issueDate || ''}
-              onChange={(e) => handleFilterChange('issueDate', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            </Label>
+            <Select
+              value={filters.issueDate || 'all'}
+              onValueChange={(value) => handleFilterChange('issueDate', value === 'all' ? '' : value)}
             >
-              <option value="">All Dates</option>
-              {issueDates.map((date) => (
-                <option key={date} value={date}>
-                  {formatDate(date)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="All Dates" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Dates</SelectItem>
+                {issueDates.map((date) => (
+                  <SelectItem key={date} value={date}>
+                    {formatDate(date)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Status Filter */}
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="status" className="text-sm font-medium text-gray-700">
               Status
-            </label>
-            <select
-              id="status"
+            </Label>
+            <Select
               value={filters.status || 'all'}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              onValueChange={(value) => handleFilterChange('status', value)}
             >
-              <option value="all">All Status</option>
-              <option value="paid">Paid</option>
-              <option value="unpaid">Unpaid</option>
-            </select>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Date Range Filters */}
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">
               Start Date
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               id="startDate"
               value={filters.startDate || ''}
               onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1"
             />
           </div>
           
           <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">
               End Date
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               id="endDate"
               value={filters.endDate || ''}
               onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1"
             />
           </div>
         </div>
 
         {/* Filter Actions */}
         <div className="mt-4 flex justify-between items-center">
-          <button
+          <Button
+            variant="outline"
             onClick={clearFilters}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="text-sm"
           >
             Clear Filters
-          </button>
+          </Button>
           
           <div className="text-sm text-gray-500">
             {Object.values(filters).filter(Boolean).length > 0 && (

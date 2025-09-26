@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TypeaheadSelect } from '@/components/ui/typeahead-select';
 import { Edit, Plus, Calendar, DollarSign, User, Building2, Search } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -254,19 +255,16 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
             </div>
             
             <div>
-              <Select value={filters.employeeId} onValueChange={(value) => handleFilterChange('employeeId', value === 'all' ? '' : value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Employees" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {filterOptions.employees.map(employee => (
-                    <SelectItem key={employee.id} value={employee.id.toString()}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TypeaheadSelect
+                options={[
+                  { key: 'all', value: 'All Employees' },
+                  ...filterOptions.employees.map(employee => ({ key: employee.id, value: employee.name }))
+                ]}
+                value={filters.employeeId || 'all'}
+                onValueChange={(value) => handleFilterChange('employeeId', value === 'all' ? '' : value as string)}
+                placeholder="All Employees"
+                searchPlaceholder="Search employees..."
+              />
             </div>
 
             <div>

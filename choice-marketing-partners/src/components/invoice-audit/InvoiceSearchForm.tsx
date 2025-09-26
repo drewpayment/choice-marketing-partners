@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { TypeaheadSelect } from '@/components/ui/typeahead-select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -181,22 +182,16 @@ export const InvoiceSearchForm: React.FC<InvoiceSearchFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="agentId">Agent</Label>
-            <Select 
-              value={filters.agentId?.toString() || ''} 
-              onValueChange={(value) => updateFilter('agentId', value ? parseInt(value) : undefined)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Agent" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Agents</SelectItem>
-                {availableAgents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id.toString()}>
-                    {agent.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <TypeaheadSelect
+              options={[
+                { key: 'all', value: 'All Agents' },
+                ...availableAgents.map(agent => ({ key: agent.id, value: agent.name }))
+              ]}
+              value={filters.agentId?.toString() || 'all'}
+              onValueChange={(value) => updateFilter('agentId', value === 'all' ? undefined : parseInt(value as string))}
+              placeholder="Select Agent"
+              searchPlaceholder="Search agents..."
+            />
           </div>
 
           <div className="space-y-2">

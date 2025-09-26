@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TypeaheadSelect } from '@/components/ui/typeahead-select';
 // import { useToast } from '@/hooks/use-toast';
 import InvoiceSalesTable from './InvoiceSalesTable';
 import InvoiceOverridesTable from './InvoiceOverridesTable';
@@ -335,22 +336,14 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
 
             <div>
               <Label htmlFor="agent">Agent</Label>
-              <Select
-                value={formData.agentId.toString()}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, agentId: parseInt(value) }))}
+              <TypeaheadSelect
+                options={agents.map(agent => ({ key: agent.id, value: agent.name }))}
+                value={formData.agentId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, agentId: typeof value === 'number' ? value : parseInt(value as string) }))}
+                placeholder="Select agent"
+                searchPlaceholder="Search agents..."
                 disabled={mode === 'edit'}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map(agent => (
-                    <SelectItem key={agent.id} value={agent.id.toString()}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             <div>
