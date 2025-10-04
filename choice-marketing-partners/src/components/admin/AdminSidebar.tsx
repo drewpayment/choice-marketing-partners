@@ -13,7 +13,8 @@ import {
   Menu,
   Users,
   UserCheck,
-  SearchIcon
+  SearchIcon,
+  Building2
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -30,6 +31,12 @@ const adminNavItems = [
     icon: UserCheck,
     label: 'Employee Management',
     description: 'Manage employees and user accounts'
+  },
+  {
+    href: '/admin/vendors',
+    icon: Building2,
+    label: 'Vendor Management',
+    description: 'Manage vendors and their status'
   },
   {
     href: '/admin/invoice-search',
