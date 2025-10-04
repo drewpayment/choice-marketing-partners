@@ -105,10 +105,15 @@ export default function InvoiceSalesTable({ sales, onSalesChange }: InvoiceSales
               </TableCell>
               <TableCell>
                 <Input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={sale.amount}
-                  onChange={(e) => updateSale(index, 'amount', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
+                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
+                      updateSale(index, 'amount', value === '' || value === '-' ? 0 : parseFloat(value));
+                    }
+                  }}
                   placeholder="0.00"
                 />
               </TableCell>

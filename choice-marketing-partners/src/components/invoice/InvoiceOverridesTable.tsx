@@ -71,25 +71,35 @@ export default function InvoiceOverridesTable({ overrides, onOverridesChange }: 
               </TableCell>
               <TableCell>
                 <Input
-                  type="number"
+                  type="text"
                   value={override.sales}
-                  onChange={(e) => updateOverride(index, 'sales', parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow empty, minus sign, and valid integers (including negatives)
+                    if (value === '' || value === '-' || /^-?\d*$/.test(value)) {
+                      updateOverride(index, 'sales', value === '' || value === '-' ? 0 : parseInt(value));
+                    }
+                  }}
                   placeholder="0"
                 />
               </TableCell>
               <TableCell>
                 <Input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={override.commission}
-                  onChange={(e) => updateOverride(index, 'commission', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
+                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
+                      updateOverride(index, 'commission', value === '' || value === '-' ? 0 : parseFloat(value));
+                    }
+                  }}
                   placeholder="0.00"
                 />
               </TableCell>
               <TableCell>
                 <Input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={override.total}
                   readOnly
                   className="bg-gray-50"

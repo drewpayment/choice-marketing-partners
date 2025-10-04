@@ -61,10 +61,15 @@ export default function InvoiceExpensesTable({ expenses, onExpensesChange }: Inv
               </TableCell>
               <TableCell>
                 <Input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={expense.amount}
-                  onChange={(e) => updateExpense(index, 'amount', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
+                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
+                      updateExpense(index, 'amount', value === '' || value === '-' ? 0 : parseFloat(value));
+                    }
+                  }}
                   placeholder="0.00"
                 />
               </TableCell>
