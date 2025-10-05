@@ -477,10 +477,10 @@ export class InvoiceRepository {
     console.log('📊 Getting invoice page resources')
     
     try {
-      // Get active agents
+      // Get active agents with all sales IDs for filtering
       const agents = await db
         .selectFrom('employees')
-        .select(['id', 'name', 'sales_id1'])
+        .select(['id', 'name', 'sales_id1', 'sales_id2', 'sales_id3'])
         .where('is_active', '=', 1)
         .where('deleted_at', 'is', null)
         .orderBy('name')

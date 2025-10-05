@@ -1,16 +1,23 @@
 'use client';
 
-import { InvoiceSaleFormData } from '@/types/database';
+import { useState } from 'react';
+import { InvoiceSaleFormData, AgentWithSalesIds } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Upload } from 'lucide-react';
+import ExcelImportDialog from '@/components/excel-import/ExcelImportDialog';
+import { ParseError } from '@/lib/excel-import/parser';
 
 interface InvoiceSalesTableProps {
   sales: InvoiceSaleFormData[];
   onSalesChange: (sales: InvoiceSaleFormData[]) => void;
+  selectedAgent?: AgentWithSalesIds;
 }
 
-export default function InvoiceSalesTable({ sales, onSalesChange }: InvoiceSalesTableProps) {
+export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent }: InvoiceSalesTableProps) {
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
   const addSale = () => {
     const newSale: InvoiceSaleFormData = {
       sale_date: new Date().toISOString().split('T')[0],
@@ -36,13 +43,30 @@ export default function InvoiceSalesTable({ sales, onSalesChange }: InvoiceSales
     onSalesChange(updatedSales);
   };
 
+  const handleImportComplete = (importedSales: InvoiceSaleFormData[], errors?: ParseError[]) => {
+    // Merge imported sales with existing sales
+    onSalesChange([...sales, ...importedSales]);
+
+    // If there were validation errors in single mode, show a toast or notification
+    if (errors && errors.length > 0) {
+      console.warn('Import completed with validation warnings:', errors);
+      // You could show a toast notification here
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Sales</h3>
-        <Button onClick={addSale} size="sm">
-          Add Sale
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setImportDialogOpen(true)} size="sm" variant="outline">
+            <Upload className="w-4 h-4 mr-2" />
+            Import from Excel
+          </Button>
+          <Button onClick={addSale} size="sm">
+            Add Sale
+          </Button>
+        </div>
       </div>
       
       <Table>
@@ -138,6 +162,14 @@ export default function InvoiceSalesTable({ sales, onSalesChange }: InvoiceSales
           )}
         </TableBody>
       </Table>
+
+      <ExcelImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        mode="single"
+        onImportComplete={handleImportComplete}
+        selectedAgent={selectedAgent}
+      />
     </div>
   );
 }

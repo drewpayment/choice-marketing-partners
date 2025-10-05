@@ -142,6 +142,12 @@ export interface Agent {
   name: string;
 }
 
+export interface AgentWithSalesIds extends Agent {
+  sales_id1: string | null;
+  sales_id2: string | null;
+  sales_id3: string | null;
+}
+
 export interface Vendor {
   id: number;
   name: string;

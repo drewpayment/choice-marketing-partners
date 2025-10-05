@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
-import { InvoiceFormData, InvoiceDetailResponse, InvoiceSaleFormData, InvoiceOverrideFormData, InvoiceExpenseFormData, Agent, Vendor } from '@/types/database';
+import { InvoiceFormData, InvoiceDetailResponse, InvoiceSaleFormData, InvoiceOverrideFormData, InvoiceExpenseFormData, Agent, AgentWithSalesIds, Vendor } from '@/types/database';
 import { InvoiceDetail } from '@/lib/repositories/InvoiceRepository';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +56,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
     expenses: []
   });
 
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<AgentWithSalesIds[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [issueDates, setIssueDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(mode === 'edit');
@@ -387,6 +387,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
           <InvoiceSalesTable
             sales={formData.sales}
             onSalesChange={(sales: InvoiceSaleFormData[]) => setFormData(prev => ({ ...prev, sales }))}
+            selectedAgent={agents.find(a => a.id === formData.agentId)}
           />
         </CardContent>
       </Card>

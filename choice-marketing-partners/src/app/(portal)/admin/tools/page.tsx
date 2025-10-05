@@ -15,7 +15,8 @@ import {
   Clock,
   Loader2,
   PlayCircle,
-  StopCircle
+  StopCircle,
+  Upload
 } from 'lucide-react';
 
 interface ReprocessJob {
@@ -372,6 +373,19 @@ export default function AdminToolsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">Batch Sales Upload</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Import sales records from Excel files
+              </p>
+              <Button variant="outline" size="sm" asChild>
+                <a href="/admin/tools/batch-upload">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Sales
+                </a>
+              </Button>
+            </div>
+
             <div className="p-4 border rounded-lg">
               <h3 className="font-medium mb-2">Cache Management</h3>
               <p className="text-sm text-muted-foreground mb-3">

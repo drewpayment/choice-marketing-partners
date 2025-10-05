@@ -261,7 +261,7 @@ export class EmployeeRepository {
    * Create a new employee
    */
   async createEmployee(data: CreateEmployeeData): Promise<EmployeeDetail> {
-    const employee = await db
+    const result = await db
       .insertInto('employees')
       .values({
         name: data.name,
@@ -283,10 +283,10 @@ export class EmployeeRepository {
         created_at: new Date(),
         updated_at: new Date()
       })
-      .returning('id')
       .executeTakeFirstOrThrow()
 
-    const createdEmployee = await this.getEmployeeById(employee.id)
+    const employeeId = Number(result.insertId)
+    const createdEmployee = await this.getEmployeeById(employeeId)
     if (!createdEmployee) {
       throw new Error('Failed to retrieve created employee')
     }
@@ -374,7 +374,7 @@ export class EmployeeRepository {
     // Create user record
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     
-    const user = await db
+    const userResult = await db
       .insertInto('users')
       .values({
         id: employeeId, // Use employee ID as user ID for consistency
@@ -385,15 +385,16 @@ export class EmployeeRepository {
         created_at: new Date(),
         updated_at: new Date()
       })
-      .returning('uid')
       .executeTakeFirstOrThrow()
+
+    const userId = Number(userResult.insertId)
 
     // Link employee to user
     await db
       .insertInto('employee_user')
       .values({
         employee_id: employeeId,
-        user_id: user.uid
+        user_id: userId
       })
       .execute()
 
@@ -411,7 +412,7 @@ export class EmployeeRepository {
         email: employee.email,
         updated_at: new Date()
       })
-      .where('uid', '=', user.uid)
+      .where('uid', '=', userId)
       .execute()
   }
 
@@ -424,7 +425,7 @@ export class EmployeeRepository {
   ): Promise<EmployeeDetail> {
     return await db.transaction().execute(async (trx) => {
       // Create employee
-      const employee = await trx
+      const employeeResult = await trx
         .insertInto('employees')
         .values({
           name: employeeData.name,
@@ -446,17 +447,18 @@ export class EmployeeRepository {
           created_at: new Date(),
           updated_at: new Date()
         })
-        .returning('id')
         .executeTakeFirstOrThrow()
+
+      const employeeId = Number(employeeResult.insertId)
 
       // Create user account if requested
       if (userData) {
         const hashedPassword = await bcrypt.hash(userData.password, 12)
         
-        const user = await trx
+        const userResult = await trx
           .insertInto('users')
           .values({
-            id: employee.id,
+            id: employeeId,
             name: employeeData.name,
             email: employeeData.email,
             password: hashedPassword,
@@ -464,15 +466,16 @@ export class EmployeeRepository {
             created_at: new Date(),
             updated_at: new Date()
           })
-          .returning('uid')
           .executeTakeFirstOrThrow()
+
+        const userId = Number(userResult.insertId)
 
         // Link employee to user
         await trx
           .insertInto('employee_user')
           .values({
-            employee_id: employee.id,
-            user_id: user.uid
+            employee_id: employeeId,
+            user_id: userId
           })
           .execute()
       }
@@ -507,7 +510,7 @@ export class EmployeeRepository {
           'users.role as user_role',
           'users.created_at as user_created_at'
         ])
-        .where('employees.id', '=', employee.id)
+        .where('employees.id', '=', employeeId)
         .executeTakeFirstOrThrow()
 
       return {
