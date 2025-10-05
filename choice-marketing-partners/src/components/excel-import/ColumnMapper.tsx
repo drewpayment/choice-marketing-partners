@@ -16,9 +16,12 @@ import { CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
 interface ColumnMapperProps {
   mappings: ColumnMapping[];
   onMappingsChange: (mappings: ColumnMapping[]) => void;
-  onConfirm: () => void;
+  onConfirm: (mappings: ColumnMapping[]) => void;
   onCancel: () => void;
   isBatchMode: boolean;
+  hasHeaders?: boolean;
+  firstRowData?: (string | number)[];
+  showHeaderWarning?: boolean;
 }
 
 export default function ColumnMapper({
@@ -26,7 +29,10 @@ export default function ColumnMapper({
   onMappingsChange,
   onConfirm,
   onCancel,
-  isBatchMode
+  isBatchMode,
+  hasHeaders = true,
+  firstRowData = [],
+  showHeaderWarning = false
 }: ColumnMapperProps) {
   const [localMappings, setLocalMappings] = useState<ColumnMapping[]>(mappings);
 
@@ -52,25 +58,42 @@ export default function ColumnMapper({
       return m;
     });
 
+    console.log('Updated mappings after change:', updated);
     setLocalMappings(updated);
   };
 
   const handleConfirm = () => {
+    console.log('Confirming mappings:', localMappings);
+    console.log('Mapped fields:', mappedFieldKeys);
+    console.log('Missing fields:', missingFields);
     onMappingsChange(localMappings);
-    onConfirm();
+    onConfirm(localMappings);
   };
 
   // Get list of unmapped required fields
   const mappedFieldKeys = new Set(localMappings.filter(m => m.fieldKey).map(m => m.fieldKey!));
+  
+  // Check name field requirements: either (first_name AND last_name) OR full_name
+  const hasFullName = mappedFieldKeys.has('full_name');
+  const hasFirstName = mappedFieldKeys.has('first_name');
+  const hasLastName = mappedFieldKeys.has('last_name');
+  const hasValidNameFields = hasFullName || (hasFirstName && hasLastName);
+  
   const missingFields = SALES_FIELD_DEFINITIONS.filter(field => {
     // Vendor is only required in batch mode
     if (field.key === 'vendor' && !isBatchMode) return false;
     // Address and City are only required in batch mode
     if ((field.key === 'address' || field.key === 'city') && !isBatchMode) return false;
+    // Name fields have special handling
+    if (field.key === 'first_name' || field.key === 'last_name') {
+      return !hasValidNameFields;
+    }
+    // Full name is never required (it's an alternative)
+    if (field.key === 'full_name') return false;
     return field.required && !mappedFieldKeys.has(field.key);
   });
 
-  const canConfirm = missingFields.length === 0;
+  const canConfirm = missingFields.length === 0 && hasValidNameFields;
 
   // Get confidence icon
   const getConfidenceIcon = (confidence: number, suggested: boolean) => {
@@ -98,9 +121,63 @@ export default function ColumnMapper({
       <div>
         <h3 className="text-lg font-semibold mb-2">Map Excel Columns to Fields</h3>
         <p className="text-sm text-muted-foreground">
-          Review and confirm the suggested field mappings. Fields marked with high confidence are auto-suggested based on column names.
+          {hasHeaders 
+            ? 'Review and confirm the suggested field mappings. Fields marked with high confidence are auto-suggested based on column names.'
+            : 'Map each column to the appropriate field. Sample data from the first row is shown to help identify columns.'
+          }
         </p>
       </div>
+
+      {!hasHeaders && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-blue-900">File Without Headers</h4>
+              <p className="text-sm text-blue-800 mt-1">
+                Your file doesn&apos;t have headers. Use the sample data from the first row to identify which column contains which data.
+                Columns are labeled as Column A, Column B, etc.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHeaderWarning && !hasHeaders && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-yellow-900">First Row Looks Like Headers</h4>
+              <p className="text-sm text-yellow-800 mt-1">
+                The first row appears to contain header-like text (e.g., &quot;Name&quot;, &quot;Date&quot;, &quot;Amount&quot;). 
+                If your file actually has headers, please go back and uncheck &quot;My file doesn&apos;t have headers&quot; 
+                to ensure proper data parsing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasFullName && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-green-900">Full Name Will Be Auto-Split</h4>
+              <p className="text-sm text-green-800 mt-1">
+                The Full Name field will be automatically split into First Name and Last Name. 
+                Supported formats: &quot;First Last&quot;, &quot;Last, First&quot;, or &quot;First Middle Last&quot;.
+                {(hasFirstName || hasLastName) && (
+                  <span className="block mt-1 font-medium">
+                    Note: Full Name will override any separate {hasFirstName && 'First Name'}{hasFirstName && hasLastName && ' and '}{hasLastName && 'Last Name'} mappings.
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {missingFields.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -122,6 +199,7 @@ export default function ColumnMapper({
             <TableRow>
               <TableHead className="w-10"></TableHead>
               <TableHead>Excel Column</TableHead>
+              {!hasHeaders && <TableHead>Sample Data</TableHead>}
               <TableHead>Maps To</TableHead>
               <TableHead className="w-32">Confidence</TableHead>
             </TableRow>
@@ -129,6 +207,12 @@ export default function ColumnMapper({
           <TableBody>
             {localMappings.map((mapping) => {
               const availableFields = getAvailableFields(mapping);
+              
+              // Safety check - skip invalid mappings
+              if (!mapping || !mapping.excelColumn) {
+                console.warn('Invalid mapping detected:', mapping);
+                return null;
+              }
 
               return (
                 <TableRow key={mapping.excelColumn}>
@@ -138,6 +222,29 @@ export default function ColumnMapper({
                   <TableCell className="font-medium">
                     {mapping.excelColumn}
                   </TableCell>
+                  {!hasHeaders && (
+                    <TableCell className="text-muted-foreground">
+                      {(() => {
+                        // Extract column index from "Column A" format
+                        if (!mapping.excelColumn) return <span className="text-gray-400">-</span>;
+                        
+                        const match = mapping.excelColumn.match(/Column ([A-Z]+)/);
+                        if (match) {
+                          const letters = match[1];
+                          let index = 0;
+                          for (let i = 0; i < letters.length; i++) {
+                            index = index * 26 + (letters.charCodeAt(i) - 64);
+                          }
+                          index -= 1; // Convert to 0-based
+                          const sample = firstRowData[index];
+                          if (sample !== undefined && sample !== null && sample !== '') {
+                            return <span className="font-mono text-sm">&quot;{String(sample)}&quot;</span>;
+                          }
+                        }
+                        return <span className="text-gray-400">-</span>;
+                      })()}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Select
                       value={mapping.fieldKey || 'none'}

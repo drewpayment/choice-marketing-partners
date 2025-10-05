@@ -44,12 +44,16 @@ interface DateFormatSelectorProps {
   onSelect: (format: DateFormat) => void;
   onCancel: () => void;
   isProcessing?: boolean;
+  hasHeaders?: boolean;
+  onHasHeadersChange?: (hasHeaders: boolean) => void;
 }
 
 export default function DateFormatSelector({
   onSelect,
   onCancel,
-  isProcessing = false
+  isProcessing = false,
+  hasHeaders = true,
+  onHasHeadersChange
 }: DateFormatSelectorProps) {
   const [selectedFormat, setSelectedFormat] = useState<DateFormat>('auto');
 
@@ -78,6 +82,27 @@ export default function DateFormatSelector({
           </div>
         </div>
       </div>
+
+      {/* Optional header checkbox */}
+      {onHasHeadersChange && (
+        <div className="border rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="has-headers-toggle"
+              checked={!hasHeaders}
+              onChange={(e) => onHasHeadersChange(!e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <label htmlFor="has-headers-toggle" className="text-sm font-medium cursor-pointer">
+              My file doesn&apos;t have headers
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2 ml-6">
+            Check this if your first row contains data instead of column names.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {DATE_FORMAT_OPTIONS.map((option) => (

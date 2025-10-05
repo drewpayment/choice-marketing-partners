@@ -4,12 +4,13 @@ import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
-import { 
-  parseFileHeaders, 
-  parseFileWithMappings, 
+import {
+  parseFileHeaders,
+  parseFileWithMappings,
   validateAllRows,
   getExcelWorksheets,
   setDateFormat,
+  detectPotentialHeaders,
   ParseError,
   WorksheetInfo,
   DateFormat
@@ -59,6 +60,9 @@ export default function ExcelImportDialog({
   const [errors, setErrors] = useState<ParseError[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasHeaders, setHasHeaders] = useState(true);
+  const [firstRowData, setFirstRowData] = useState<(string | number)[]>([]);
+  const [showHeaderWarning, setShowHeaderWarning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isBatchMode = mode === 'batch';
@@ -70,6 +74,9 @@ export default function ExcelImportDialog({
     setWorksheets([]);
     setSelectedWorksheet(null);
     setDateFormat('auto'); // Reset global date format
+    setHasHeaders(true);
+    setFirstRowData([]);
+    setShowHeaderWarning(false);
     setMappings([]);
     setParsedData([]);
     setErrors([]);
@@ -136,11 +143,37 @@ export default function ExcelImportDialog({
   };
 
   const proceedToMapping = async (selectedFile: File, worksheetName: string | null) => {
-    // Parse headers
-    const fileHeaders = await parseFileHeaders(selectedFile, worksheetName || undefined);
-    
-    if (fileHeaders.length === 0) {
-      throw new Error('No headers found in file');
+    let fileHeaders: string[];
+    let firstRow: (string | number)[] = [];
+
+    if (hasHeaders) {
+      // Parse headers normally
+      const result = await parseFileHeaders(selectedFile, worksheetName || undefined, true);
+      fileHeaders = result.headers;
+      
+      console.log('Headers with hasHeaders=true:', fileHeaders);
+      
+      if (fileHeaders.length === 0) {
+        throw new Error('No headers found in file');
+      }
+    } else {
+      // For headerless files, generate column labels and get first row data
+      const result = await parseFileHeaders(selectedFile, worksheetName || undefined, false);
+      firstRow = result.firstRow || [];
+      fileHeaders = result.headers;
+      
+      console.log('Headers with hasHeaders=false:', fileHeaders);
+      console.log('First row data:', firstRow);
+      
+      if (fileHeaders.length === 0) {
+        throw new Error('No columns found in file');
+      }
+      
+      // Check if first row looks like headers
+      const looksLikeHeaders = detectPotentialHeaders(firstRow);
+      setShowHeaderWarning(looksLikeHeaders);
+      
+      setFirstRowData(firstRow);
     }
 
     // Generate initial mappings
@@ -150,32 +183,38 @@ export default function ExcelImportDialog({
       fileHeaders,
       SALES_FIELD_DEFINITIONS,
       previousMappings,
-      filePattern
+      filePattern,
+      !hasHeaders
     );
+
+    console.log('Generated mappings:', initialMappings);
 
     setMappings(initialMappings);
     setStep('mapping');
   };
 
-  const handleMappingsConfirm = async () => {
+  const handleMappingsConfirm = async (confirmedMappings: ColumnMapping[]) => {
     if (!file) return;
 
     setError(null);
     setIsProcessing(true);
 
     try {
+      // Update state with confirmed mappings
+      setMappings(confirmedMappings);
+      
       // Validate mappings
-      const validation = validateMappings(mappings, SALES_FIELD_DEFINITIONS, isBatchMode);
+      const validation = validateMappings(confirmedMappings, SALES_FIELD_DEFINITIONS, isBatchMode);
       if (!validation.valid) {
         throw new Error(`Missing required fields: ${validation.missingFields.join(', ')}`);
       }
 
       // Save mappings for future use
       const filePattern = getFilePattern(file.name);
-      saveMappingMemory(filePattern, mappings);
+      saveMappingMemory(filePattern, confirmedMappings);
 
       // Parse file with mappings (pass selected worksheet if Excel)
-      const parsed = await parseFileWithMappings(file, mappings, selectedWorksheet || undefined);
+      const parsed = await parseFileWithMappings(file, confirmedMappings, selectedWorksheet || undefined, hasHeaders);
 
       // Check row limit
       if (parsed.totalRows > maxRows) {
@@ -360,12 +399,31 @@ export default function ExcelImportDialog({
                   <Upload className="w-4 h-4 mr-2" />
                   {isProcessing ? 'Processing...' : 'Choose File'}
                 </Button>
+
+                {/* Headerless file checkbox */}
+                <div className="mt-4 flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="no-headers"
+                    checked={!hasHeaders}
+                    onChange={(e) => setHasHeaders(!e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="no-headers" className="text-sm font-medium cursor-pointer">
+                    My file doesn&apos;t have headers
+                  </label>
+                </div>
+                {!hasHeaders && (
+                  <p className="text-xs text-muted-foreground mt-2 ml-6">
+                    You&apos;ll map columns using their position (Column A, B, C...) and sample data from the first row.
+                  </p>
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-900 mb-2">Requirements:</h4>
                 <ul className="text-sm text-blue-800 space-y-1 ml-4">
-                  <li>• File must have a header row with column names</li>
+                  <li>• {hasHeaders ? 'File must have a header row with column names' : 'First row will be treated as data (no headers expected)'}</li>
                   {isBatchMode ? (
                     <>
                       <li>• Required fields: Sale Date, First Name, Last Name, Address, City, Status, Amount, Vendor</li>
@@ -401,6 +459,8 @@ export default function ExcelImportDialog({
               onSelect={handleDateFormatSelect}
               onCancel={handleCancel}
               isProcessing={isProcessing}
+              hasHeaders={hasHeaders}
+              onHasHeadersChange={setHasHeaders}
             />
           )}
 
@@ -412,6 +472,9 @@ export default function ExcelImportDialog({
               onConfirm={handleMappingsConfirm}
               onCancel={handleCancel}
               isBatchMode={isBatchMode}
+              hasHeaders={hasHeaders}
+              firstRowData={firstRowData}
+              showHeaderWarning={showHeaderWarning}
             />
           )}
 

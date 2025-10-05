@@ -10,6 +10,7 @@ export interface ParsedData {
   headers: string[];
   rows: Record<string, unknown>[];
   totalRows: number;
+  firstRow?: (string | number)[]; // For headerless files
 }
 
 export interface ParseError {
@@ -27,6 +28,67 @@ export interface WorksheetInfo {
 export type DateFormat = 'auto' | 'US' | 'ISO' | 'EU';
 
 let globalDateFormat: DateFormat = 'auto';
+
+/**
+ * Generate Excel-style column labels (A, B, C, ..., Z, AA, AB, ...)
+ */
+function getExcelColumnLabel(index: number): string {
+  let label = '';
+  let num = index;
+  
+  while (num >= 0) {
+    label = String.fromCharCode(65 + (num % 26)) + label;
+    num = Math.floor(num / 26) - 1;
+  }
+  
+  return `Column ${label}`;
+}
+
+/**
+ * Detect if a row likely contains headers
+ * Checks for text-heavy content and common header keywords
+ */
+export function detectPotentialHeaders(row: (string | number)[]): boolean {
+  if (row.length === 0) return false;
+  
+  const headerKeywords = [
+    'name', 'date', 'amount', 'total', 'price', 'address', 'city', 'status',
+    'first', 'last', 'customer', 'sale', 'employee', 'vendor', 'id', 'type',
+    'email', 'phone', 'number', 'value', 'quantity', 'description'
+  ];
+  
+  let textCells = 0;
+  let numericCells = 0;
+  let headerLikeText = 0;
+  
+  for (const cell of row) {
+    if (cell === null || cell === undefined || cell === '') continue;
+    
+    const cellStr = String(cell).toLowerCase().trim();
+    
+    if (typeof cell === 'string') {
+      textCells++;
+      
+      // Check if cell contains header-like keywords
+      if (headerKeywords.some(keyword => cellStr.includes(keyword))) {
+        headerLikeText++;
+      }
+    } else if (typeof cell === 'number') {
+      numericCells++;
+    }
+  }
+  
+  const totalCells = textCells + numericCells;
+  if (totalCells === 0) return false;
+  
+  // Strong indicator: Most cells are text and contain header keywords
+  if (headerLikeText >= totalCells * 0.5) return true;
+  
+  // Moderate indicator: All cells are text (unusual for data rows)
+  if (textCells === totalCells && totalCells >= 3) return true;
+  
+  return false;
+}
 
 /**
  * Set the date format to use for parsing
@@ -114,14 +176,22 @@ export async function getExcelWorksheets(file: File): Promise<WorksheetInfo[]> {
 
 /**
  * Parse Excel or CSV file and extract headers
+ * @param file - The file to parse
+ * @param worksheetName - Optional worksheet name for Excel files
+ * @param hasHeaders - Whether the file has a header row (default: true)
+ * @returns Object with headers and optionally firstRow for headerless files
  */
-export async function parseFileHeaders(file: File, worksheetName?: string): Promise<string[]> {
+export async function parseFileHeaders(
+  file: File,
+  worksheetName?: string,
+  hasHeaders: boolean = true
+): Promise<{ headers: string[]; firstRow?: (string | number)[] }> {
   const extension = file.name.split('.').pop()?.toLowerCase();
 
   if (extension === 'csv') {
-    return parseCSVHeaders(file);
+    return parseCSVHeaders(file, hasHeaders);
   } else if (extension === 'xlsx' || extension === 'xls') {
-    return parseExcelHeaders(file, worksheetName);
+    return parseExcelHeaders(file, worksheetName, hasHeaders);
   } else {
     throw new Error('Unsupported file format. Please upload .xlsx, .xls, or .csv files.');
   }
@@ -130,17 +200,43 @@ export async function parseFileHeaders(file: File, worksheetName?: string): Prom
 /**
  * Parse CSV file headers
  */
-async function parseCSVHeaders(file: File): Promise<string[]> {
+async function parseCSVHeaders(
+  file: File,
+  hasHeaders: boolean = true
+): Promise<{ headers: string[]; firstRow?: (string | number)[] }> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
-      preview: 1,
-      header: true,
+      preview: hasHeaders ? 1 : 2, // Get 2 rows if no headers (need first row as data)
+      header: false, // Always parse as array to handle both cases
       skipEmptyLines: true,
       complete: (results) => {
-        if (results.meta.fields) {
-          resolve(results.meta.fields);
+        const data = results.data as (string | number)[][];
+        
+        if (data.length === 0) {
+          reject(new Error('Could not parse CSV - file is empty'));
+          return;
+        }
+
+        if (hasHeaders) {
+          // First row is headers
+          const headers = data[0].map(h => String(h).trim()).filter(h => h !== '');
+          resolve({ headers });
         } else {
-          reject(new Error('Could not parse CSV headers'));
+          // Generate column labels based on number of columns in first row
+          const firstRow = data[0];
+          // Generate labels for all columns (including empty ones)
+          // Filter out any undefined/null values from the array before mapping
+          const validFirstRow = Array.isArray(firstRow) ? firstRow : [];
+          const headers = validFirstRow.map((_, index) => {
+            const label = getExcelColumnLabel(index);
+            console.log(`Generated label for index ${index}:`, label);
+            return label;
+          }).filter(h => h !== undefined && h !== null);
+          
+          console.log('CSV firstRow:', validFirstRow);
+          console.log('CSV generated headers:', headers);
+          
+          resolve({ headers, firstRow: validFirstRow });
         }
       },
       error: (error) => {
@@ -153,7 +249,11 @@ async function parseCSVHeaders(file: File): Promise<string[]> {
 /**
  * Parse Excel file headers
  */
-async function parseExcelHeaders(file: File, worksheetName?: string): Promise<string[]> {
+async function parseExcelHeaders(
+  file: File,
+  worksheetName?: string,
+  hasHeaders: boolean = true
+): Promise<{ headers: string[]; firstRow?: (string | number)[] }> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
   
@@ -173,9 +273,25 @@ async function parseExcelHeaders(file: File, worksheetName?: string): Promise<st
     throw new Error('Excel file is empty');
   }
 
-  // First row is headers
-  const headers = data[0] as string[];
-  return headers.filter(h => h && h.toString().trim() !== '');
+  if (hasHeaders) {
+    // First row is headers
+    const headers = (data[0] as (string | number)[]).map(h => String(h).trim()).filter(h => h !== '');
+    return { headers };
+  } else {
+    // Generate column labels based on number of columns in first row
+    const firstRow = data[0] as (string | number)[];
+    const validFirstRow = Array.isArray(firstRow) ? firstRow : [];
+    const headers = validFirstRow.map((_, index) => {
+      const label = getExcelColumnLabel(index);
+      console.log(`Excel: Generated label for index ${index}:`, label);
+      return label;
+    }).filter(h => h !== undefined && h !== null);
+    
+    console.log('Excel firstRow:', validFirstRow);
+    console.log('Excel generated headers:', headers);
+    
+    return { headers, firstRow: validFirstRow };
+  }
 }
 
 /**
@@ -184,14 +300,15 @@ async function parseExcelHeaders(file: File, worksheetName?: string): Promise<st
 export async function parseFileWithMappings(
   file: File,
   mappings: ColumnMapping[],
-  worksheetName?: string
+  worksheetName?: string,
+  hasHeaders: boolean = true
 ): Promise<ParsedData> {
   const extension = file.name.split('.').pop()?.toLowerCase();
 
   if (extension === 'csv') {
-    return parseCSVWithMappings(file, mappings);
+    return parseCSVWithMappings(file, mappings, hasHeaders);
   } else if (extension === 'xlsx' || extension === 'xls') {
-    return parseExcelWithMappings(file, mappings, worksheetName);
+    return parseExcelWithMappings(file, mappings, worksheetName, hasHeaders);
   } else {
     throw new Error('Unsupported file format');
   }
@@ -202,19 +319,56 @@ export async function parseFileWithMappings(
  */
 async function parseCSVWithMappings(
   file: File,
-  mappings: ColumnMapping[]
+  mappings: ColumnMapping[],
+  hasHeaders: boolean = true
 ): Promise<ParsedData> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
-      header: true,
+      header: hasHeaders, // Use header mode only if file has headers
       skipEmptyLines: true,
       complete: (results) => {
-        const rows = applyMappingsToRows(results.data as Record<string, unknown>[], mappings);
-        resolve({
-          headers: results.meta.fields || [],
-          rows,
-          totalRows: rows.length
-        });
+        try {
+          let rowObjects: Record<string, unknown>[];
+          
+          if (hasHeaders) {
+            // Standard path - Papa returns objects with header keys
+            rowObjects = results.data as Record<string, unknown>[];
+          } else {
+            // Headerless path - Papa returns arrays, convert to objects with column labels
+            const arrayRows = results.data as unknown[][];
+            console.log('CSV arrayRows (first 3):', arrayRows.slice(0, 3));
+            
+            rowObjects = arrayRows.map((row, rowIndex) => {
+              if (!Array.isArray(row)) {
+                console.warn(`Row ${rowIndex} is not an array:`, row);
+                return {};
+              }
+              
+              const obj: Record<string, unknown> = {};
+              row.forEach((cell, index) => {
+                const columnLabel = getExcelColumnLabel(index);
+                obj[columnLabel] = cell;
+              });
+              return obj;
+            });
+          }
+          
+          console.log('CSV rowObjects (first 3):', rowObjects.slice(0, 3));
+          console.log('Mappings to apply:', mappings);
+          
+          const rows = applyMappingsToRows(rowObjects, mappings);
+          
+          console.log('CSV mapped rows (first 3):', rows.slice(0, 3));
+          
+          resolve({
+            headers: hasHeaders ? (results.meta.fields || []) : mappings.map(m => m.excelColumn),
+            rows,
+            totalRows: rows.length
+          });
+        } catch (error) {
+          console.error('Error in parseCSVWithMappings:', error);
+          reject(error);
+        }
       },
       error: (error) => {
         reject(new Error(`CSV parsing error: ${error.message}`));
@@ -229,7 +383,8 @@ async function parseCSVWithMappings(
 async function parseExcelWithMappings(
   file: File,
   mappings: ColumnMapping[],
-  worksheetName?: string
+  worksheetName?: string,
+  hasHeaders: boolean = true
 ): Promise<ParsedData> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
@@ -246,13 +401,26 @@ async function parseExcelWithMappings(
   const worksheet = workbook.Sheets[sheetName];
   const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   
-  if (rawData.length < 2) {
-    throw new Error('Excel file must have headers and at least one data row');
+  if (rawData.length < 1) {
+    throw new Error('Excel file must have at least one row');
   }
 
-  // Convert to objects with headers
-  const headers = rawData[0] as string[];
-  const dataRows = rawData.slice(1);
+  let headers: string[];
+  let dataRows: unknown[][];
+  
+  if (hasHeaders) {
+    if (rawData.length < 2) {
+      throw new Error('Excel file must have headers and at least one data row');
+    }
+    // First row is headers, rest is data
+    headers = (rawData[0] as (string | number)[]).map(h => String(h));
+    dataRows = rawData.slice(1);
+  } else {
+    // All rows are data, generate column labels
+    const columnCount = Math.max(...rawData.map(row => (row as unknown[]).length));
+    headers = Array.from({ length: columnCount }, (_, i) => getExcelColumnLabel(i));
+    dataRows = rawData;
+  }
   
   // Filter out completely empty rows
   const nonEmptyRows = dataRows.filter(row => {
@@ -269,13 +437,50 @@ async function parseExcelWithMappings(
     return obj;
   });
 
+  console.log('Excel rowObjects (first 3):', rowObjects.slice(0, 3));
+  console.log('Excel mappings to apply:', mappings);
+
   const rows = applyMappingsToRows(rowObjects, mappings);
+
+  console.log('Excel mapped rows (first 3):', rows.slice(0, 3));
 
   return {
     headers,
     rows,
     totalRows: rows.length
   };
+}
+
+/**
+ * Split a full name into first and last name
+ * Handles common formats: "First Last", "Last, First", "First Middle Last"
+ */
+function splitFullName(fullName: string): { first_name: string; last_name: string } {
+  const trimmed = fullName.trim();
+  
+  // Handle "Last, First" format
+  if (trimmed.includes(',')) {
+    const parts = trimmed.split(',').map(p => p.trim());
+    return {
+      first_name: parts[1] || '',
+      last_name: parts[0] || ''
+    };
+  }
+  
+  // Handle "First Last" or "First Middle Last" format
+  const parts = trimmed.split(/\s+/);
+  
+  if (parts.length === 0) {
+    return { first_name: '', last_name: '' };
+  } else if (parts.length === 1) {
+    return { first_name: parts[0], last_name: '' };
+  } else {
+    // First word is first name, everything else is last name
+    return {
+      first_name: parts[0],
+      last_name: parts.slice(1).join(' ')
+    };
+  }
 }
 
 /**
@@ -290,7 +495,15 @@ function applyMappingsToRows(
     
     for (const mapping of mappings) {
       if (mapping.fieldKey && mapping.excelColumn in rawRow) {
-        mappedRow[mapping.fieldKey] = rawRow[mapping.excelColumn];
+        // Special handling for full_name - split into first_name and last_name
+        if (mapping.fieldKey === 'full_name') {
+          const fullName = String(rawRow[mapping.excelColumn] || '');
+          const { first_name, last_name } = splitFullName(fullName);
+          mappedRow['first_name'] = first_name;
+          mappedRow['last_name'] = last_name;
+        } else {
+          mappedRow[mapping.fieldKey] = rawRow[mapping.excelColumn];
+        }
       }
     }
     

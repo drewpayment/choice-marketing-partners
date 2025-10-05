@@ -48,6 +48,13 @@ export const SALES_FIELD_DEFINITIONS: FieldDefinition[] = [
     type: 'string'
   },
   {
+    key: 'full_name',
+    label: 'Full Name',
+    required: false,
+    aliases: ['full name', 'fullname', 'full_name', 'name', 'customer name', 'customer', 'client name'],
+    type: 'string'
+  },
+  {
     key: 'address',
     label: 'Address',
     required: false, // Can be filled in form for single invoice imports
@@ -189,17 +196,29 @@ export function findBestFieldMatch(
 
 /**
  * Generate initial column mappings from Excel headers
+ * @param excelHeaders - Column headers or generated labels (Column A, B, C...)
+ * @param fieldDefinitions - Field definitions to map to
+ * @param previousMappings - Previous mapping memory
+ * @param filePattern - File pattern for memory lookup
+ * @param isHeaderless - Whether file has no headers (skip fuzzy matching)
  */
 export function generateColumnMappings(
   excelHeaders: string[],
   fieldDefinitions: FieldDefinition[],
   previousMappings?: MappingMemory,
-  filePattern?: string
+  filePattern?: string,
+  isHeaderless: boolean = false
 ): ColumnMapping[] {
   const mappings: ColumnMapping[] = [];
   const usedFields = new Set<string>();
 
   for (const header of excelHeaders) {
+    // Skip if header is invalid
+    if (!header || header.trim() === '') {
+      console.warn('Skipping invalid header:', header);
+      continue;
+    }
+    
     // Check if we have a previous mapping for this column
     const mapping: ColumnMapping = {
       excelColumn: header,
@@ -221,15 +240,18 @@ export function generateColumnMappings(
       }
     }
 
-    // Try fuzzy matching
-    const match = findBestFieldMatch(header, fieldDefinitions);
-    
-    // Only auto-suggest if confidence is high and field not already used
-    if (match.fieldKey && match.confidence >= 0.75 && !usedFields.has(match.fieldKey)) {
-      mapping.fieldKey = match.fieldKey;
-      mapping.confidence = match.confidence;
-      mapping.suggested = true;
-      usedFields.add(match.fieldKey);
+    // Skip fuzzy matching for headerless files (Column A, B, C... have no semantic meaning)
+    if (!isHeaderless) {
+      // Try fuzzy matching
+      const match = findBestFieldMatch(header, fieldDefinitions);
+      
+      // Only auto-suggest if confidence is high and field not already used
+      if (match.fieldKey && match.confidence >= 0.75 && !usedFields.has(match.fieldKey)) {
+        mapping.fieldKey = match.fieldKey;
+        mapping.confidence = match.confidence;
+        mapping.suggested = true;
+        usedFields.add(match.fieldKey);
+      }
     }
 
     mappings.push(mapping);
@@ -308,6 +330,23 @@ export function validateMappings(
     
     // Address and City are required in batch mode, optional in single mode
     if ((field.key === 'address' || field.key === 'city') && !isBatchMode) continue;
+    
+    // Special handling for name fields: either (first_name AND last_name) OR full_name
+    if (field.key === 'first_name' || field.key === 'last_name') {
+      // Check if both first_name and last_name are mapped, OR if full_name is mapped
+      const hasFullName = mappedFields.has('full_name');
+      const hasFirstName = mappedFields.has('first_name');
+      const hasLastName = mappedFields.has('last_name');
+      
+      if (!hasFullName && (!hasFirstName || !hasLastName)) {
+        // Only add the missing field if we haven't already flagged name issues
+        if (!missingFields.includes('First Name or Full Name') && 
+            !missingFields.includes('Last Name or Full Name')) {
+          missingFields.push('First Name and Last Name (or Full Name)');
+        }
+      }
+      continue;
+    }
     
     if (field.required && !mappedFields.has(field.key)) {
       missingFields.push(field.label);
