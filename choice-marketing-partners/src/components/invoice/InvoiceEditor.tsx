@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TypeaheadSelect } from '@/components/ui/typeahead-select';
-// import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import InvoiceSalesTable from './InvoiceSalesTable';
 import InvoiceOverridesTable from './InvoiceOverridesTable';
 import InvoiceExpensesTable from './InvoiceExpensesTable';
@@ -44,7 +45,7 @@ interface InvoiceEditorProps {
 export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, initialData }: InvoiceEditorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // const { toast } = useToast();
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState<InvoiceFormData>({
     vendor: '',
@@ -62,6 +63,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const [loading, setLoading] = useState(mode === 'edit');
   const [saving, setSaving] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
+  const [customDateValue, setCustomDateValue] = useState('');
 
   useEffect(() => {
     fetchLookupData();
@@ -254,8 +257,71 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
     return dateStr;
   };
 
+  const handleIssueDateChange = (value: string) => {
+    if (value === '__CUSTOM__') {
+      // Open custom date dialog
+      setShowCustomDateDialog(true);
+      setCustomDateValue('');
+    } else {
+      // Use selected existing date
+      setFormData(prev => ({ ...prev, issueDate: value }));
+    }
+  };
+
+  const handleCustomDateConfirm = () => {
+    if (customDateValue) {
+      // Convert from yyyy-MM-dd to MM/DD/YYYY for consistency
+      const formatted = dayjs(customDateValue).format('MM/DD/YYYY');
+      setFormData(prev => ({ ...prev, issueDate: formatted }));
+      setShowCustomDateDialog(false);
+      setCustomDateValue('');
+    }
+  };
+
+  const handleCustomDateCancel = () => {
+    setShowCustomDateDialog(false);
+    setCustomDateValue('');
+  };
+
   const handleSave = async () => {
     try {
+      // Validate required fields
+      if (!formData.vendor) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select a vendor',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (!formData.agentId) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select an agent',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (!formData.issueDate) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select an issue date',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (!formData.weekending) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select a weekending date',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       setSaving(true);
       
       const response = await fetch('/api/invoices', {
@@ -271,21 +337,21 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         throw new Error(error.error || 'Failed to save invoice');
       }
       
-      // toast({
-      //   title: 'Success',
-      //   description: mode === 'create' ? 'Invoice created successfully' : 'Invoice updated successfully',
-      // });
+      toast({
+        title: 'Success',
+        description: mode === 'create' ? 'Pay statement created successfully' : 'Pay statement updated successfully',
+      });
       
       // Check for returnUrl to preserve filters
       const returnUrl = searchParams.get('returnUrl');
       router.push(returnUrl || '/invoices');
     } catch (error) {
       console.error('Failed to save invoice:', error);
-      // toast({
-      //   title: 'Error',
-      //   description: error instanceof Error ? error.message : 'Failed to save invoice',
-      //   variant: 'destructive'
-      // });
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save pay statement',
+        variant: 'destructive'
+      });
     } finally {
       setSaving(false);
     }
@@ -350,28 +416,40 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
               <Label htmlFor="issueDate">Issue Date</Label>
               <Select
                 value={formData.issueDate}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, issueDate: value }))}
+                onValueChange={handleIssueDateChange}
                 disabled={mode === 'edit'}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select issue date" />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Show custom date if it's not in the existing dates list */}
+                  {formData.issueDate && !issueDates.includes(formData.issueDate) && (
+                    <SelectItem key={formData.issueDate} value={formData.issueDate}>
+                      {formData.issueDate}
+                    </SelectItem>
+                  )}
                   {issueDates.map(date => (
                     <SelectItem key={date} value={date}>
                       {dayjs(date).format('MM/DD/YYYY')}
                     </SelectItem>
                   ))}
+                  <SelectItem value="__CUSTOM__" className="font-medium text-primary">
+                    Custom Date...
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="weekending">Weekending</Label>
+              <Label htmlFor="weekending">
+                Weekending <span className="text-red-500">*</span>
+              </Label>
               <Input
                 type="date"
                 value={formData.weekending}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, weekending: e.target.value }))}
+                required
               />
             </div>
           </div>
@@ -434,6 +512,33 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
           </div>
         </CardContent>
       </Card>
+
+      {/* Custom Date Dialog */}
+      <Dialog open={showCustomDateDialog} onOpenChange={setShowCustomDateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Custom Issue Date</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="customDate">Issue Date</Label>
+            <Input
+              id="customDate"
+              type="date"
+              value={customDateValue}
+              onChange={(e) => setCustomDateValue(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCustomDateCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleCustomDateConfirm} disabled={!customDateValue}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
