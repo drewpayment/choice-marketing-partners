@@ -1,6 +1,23 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 
+// Server-side PostHog logging utility
+function logToPostHog(eventName: string, properties: Record<string, unknown>) {
+  // Only log in production
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+    // For server-side logging, we'll use console.log with a specific format
+    // that can be captured by monitoring tools or PostHog's server SDK if needed
+    console.log('[POSTHOG_SERVER_EVENT]', JSON.stringify({
+      event: eventName,
+      properties: {
+        ...properties,
+        timestamp: new Date().toISOString(),
+        environment: 'server'
+      }
+    }))
+  }
+}
+
 export interface PayrollFilters {
   employeeId?: number
   vendorId?: number
@@ -287,27 +304,46 @@ export class PayrollRepository {
       }
     }
 
-    // We need to get the sales_id1 for each employee to match against invoices table
+    // Get employee info for debugging purposes only
     const employeeIds = [...new Set(results.map(r => r.employeeId).filter(Boolean))]
     const employees = await db
       .selectFrom('employees')
-      .select(['id', 'sales_id1'])
+      .select(['id', 'sales_id1', 'name'])
       .where('id', 'in', employeeIds)
       .execute()
 
-    const employeeMap = new Map(employees.map(e => [e.id, e.sales_id1]))
+    const employeeMap = new Map(employees.map(e => [e.id, { sales_id1: e.sales_id1, name: e.name }]))
 
-    // Update combinations to use sales_id1 instead of agent_id
+    // CRITICAL: The "agentid" column in invoices, overrides, and expenses tables is a FK to employees.id
+    // It is NOT related to sales_id1 - "agentid" is just a poorly named column that stores employee.id
+    // We use paystubs.agent_id (which is also employees.id) directly for all batch queries
     const salesCombinations = results
       .map(r => {
         // Handle case where employeeId might be null
         if (!r.employeeId || !r.agentId) return null
         
-        const salesId = employeeMap.get(r.employeeId)
-        if (!salesId) return null
+        const employeeInfo = employeeMap.get(r.employeeId)
+        
+        // Debug logging for production troubleshooting
+        if (process.env.NODE_ENV === 'production' && employeeInfo) {
+          const isProblematicAgent = employeeInfo.name?.includes('Payment Ventures') || 
+                                     employeeInfo.name?.includes('Phil Reznik')
+          
+          if (isProblematicAgent) {
+            logToPostHog('payroll_summary_mapping_debug', {
+              employeeName: employeeInfo.name,
+              employeeId: r.employeeId,
+              agentIdFromPaystub: r.agentId,
+              sales_id1_for_reference: employeeInfo.sales_id1,
+              vendorId: r.vendorId,
+              issueDate: r.issueDate.toISOString().split('T')[0],
+              note: 'agentid column stores employees.id, not sales_id1'
+            })
+          }
+        }
         
         return {
-          agentId: salesId,  // Use sales_id1 (already a string)
+          agentId: r.agentId.toString(),  // paystubs.agent_id = employees.id
           vendorId: r.vendorId,
           issueDate: r.issueDate.toISOString().split('T')[0],
           originalAgentId: r.agentId.toString()  // Keep for key mapping
@@ -557,7 +593,7 @@ export class PayrollRepository {
     if (combinations.length === 0) return totalsMap
 
     // Build OR conditions for each combination
-    const agentIds = [...new Set(combinations.map(c => parseInt(c.originalAgentId)).filter(id => !isNaN(id)))]
+    const agentIds = [...new Set(combinations.map(c => parseInt(c.agentId)).filter(id => !isNaN(id)))]
     const issueDates = [...new Set(combinations.map(c => c.issueDate))]
     
     if (agentIds.length === 0 || issueDates.length === 0) return totalsMap
@@ -574,11 +610,21 @@ export class PayrollRepository {
       .groupBy(['agentid', 'issue_date'])
       .execute()
 
+    // Debug logging for results
+    if (process.env.NODE_ENV === 'production' && results.length > 0) {
+      logToPostHog('payroll_batch_sales_totals', {
+        requestedCombinations: combinations.length,
+        requestedAgentIds: agentIds,
+        resultsFound: results.length,
+        resultsAgentIds: results.map(r => r.agentid)
+      })
+    }
+
     for (const result of results) {
       const issueDate = result.issue_date.toISOString().split('T')[0]
       // Find matching combination to get vendorId and originalAgentId
       const combination = combinations.find(c => 
-        parseInt(c.originalAgentId) === result.agentid && c.issueDate === issueDate
+        parseInt(c.agentId) === result.agentid && c.issueDate === issueDate
       )
       if (combination) {
         const key = `${combination.originalAgentId}-${combination.vendorId}-${issueDate}`
@@ -608,7 +654,7 @@ export class PayrollRepository {
     
     if (combinations.length === 0) return totalsMap
 
-    const agentIds = [...new Set(combinations.map(c => parseInt(c.originalAgentId)).filter(id => !isNaN(id)))]
+    const agentIds = [...new Set(combinations.map(c => parseInt(c.agentId)).filter(id => !isNaN(id)))]
     const vendorIds = [...new Set(combinations.map(c => c.vendorId))]
     const issueDates = [...new Set(combinations.map(c => c.issueDate))]
     
@@ -632,7 +678,7 @@ export class PayrollRepository {
       const issueDate = result.issue_date.toISOString().split('T')[0]
       // Find matching combination to get originalAgentId
       const combination = combinations.find(c => 
-        parseInt(c.originalAgentId) === result.agentid && 
+        parseInt(c.agentId) === result.agentid && 
         c.vendorId === result.vendor_id && 
         c.issueDate === issueDate
       )
@@ -664,7 +710,7 @@ export class PayrollRepository {
     
     if (combinations.length === 0) return totalsMap
 
-    const agentIds = [...new Set(combinations.map(c => parseInt(c.originalAgentId)).filter(id => !isNaN(id)))]
+    const agentIds = [...new Set(combinations.map(c => parseInt(c.agentId)).filter(id => !isNaN(id)))]
     const vendorIds = [...new Set(combinations.map(c => c.vendorId))]
     const issueDates = [...new Set(combinations.map(c => c.issueDate))]
     
@@ -688,7 +734,7 @@ export class PayrollRepository {
       const issueDate = result.issue_date.toISOString().split('T')[0]
       // Find matching combination to get originalAgentId
       const combination = combinations.find(c => 
-        parseInt(c.originalAgentId) === result.agentid && 
+        parseInt(c.agentId) === result.agentid && 
         c.vendorId === result.vendor_id && 
         c.issueDate === issueDate
       )
