@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { generatePassword } from '@/lib/utils/password'
+import { sendWelcomeEmail } from '@/lib/services/email'
 import { z } from 'zod'
 
 const employeeRepository = new EmployeeRepository()
@@ -34,7 +36,7 @@ const createEmployeeSchema = z.object({
   sales_id3: z.string().optional().default(''),
   hidden_payroll: z.boolean().optional().default(false),
   createUser: z.boolean().optional().default(false),
-  password: z.string().min(8).optional(),
+  password: z.string().optional(), // Optional - will auto-generate if not provided
   userRole: z.enum(['admin', 'author', 'subscriber']).optional().default('subscriber')
 })
 
@@ -95,6 +97,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Generate password if user creation is requested but no password provided
+    let generatedPassword: string | undefined
+    let userPassword: string | undefined
+    
+    if (data.createUser) {
+      if (data.password) {
+        // Use provided password
+        userPassword = data.password
+      } else {
+        // Auto-generate password (matches legacy str_random(10))
+        generatedPassword = generatePassword(10)
+        userPassword = generatedPassword
+      }
+    }
+
     // Create employee with optional user account
     const employee = await employeeRepository.createEmployeeWithUser(
       {
@@ -115,13 +132,31 @@ export async function POST(request: NextRequest) {
         sales_id3: data.sales_id3,
         hidden_payroll: data.hidden_payroll
       },
-      data.createUser && data.password ? {
-        password: data.password,
+      data.createUser && userPassword ? {
+        password: userPassword,
         role: data.userRole
       } : undefined
     )
 
-    return NextResponse.json({ employee }, { status: 201 })
+    // Send welcome email if user account was created
+    if (data.createUser && userPassword) {
+      try {
+        await sendWelcomeEmail({
+          to: data.email,
+          name: data.name,
+          password: userPassword
+        })
+      } catch (emailError) {
+        // Log email error but don't fail the employee creation
+        console.error('Failed to send welcome email:', emailError)
+      }
+    }
+
+    return NextResponse.json({ 
+      employee,
+      // Only return generated password to admin (not stored anywhere)
+      generatedPassword: generatedPassword
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating employee:', error)
     

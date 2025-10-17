@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { EmployeeDetail, CreateEmployeeData, CreateUserData } from '@/lib/repositories/EmployeeRepository'
+import { EmployeeDetail, CreateEmployeeData } from '@/lib/repositories/EmployeeRepository'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,7 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -74,11 +75,6 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
         hidden_payroll: formData.hidden_payroll,
       }
 
-      const userData: CreateUserData | undefined = formData.createUser ? {
-        password: formData.password!,
-        role: formData.role,
-      } : undefined
-
       const url = mode === 'edit' && employee 
         ? `/api/employees/${employee.id}`
         : '/api/employees'
@@ -92,8 +88,8 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
         : {
             ...employeeData,
             createUser: formData.createUser,
-            password: userData?.password,
-            userRole: userData?.role
+            userRole: formData.role
+            // Password is optional - backend will auto-generate if not provided
           }
 
       const response = await fetch(url, {
@@ -106,8 +102,15 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
       })
 
       if (response.ok) {
-        await response.json()
-        router.push(`/admin/employees`)
+        const result = await response.json()
+        
+        // Store generated password if provided
+        if (result.generatedPassword) {
+          setGeneratedPassword(result.generatedPassword)
+        } else {
+          // No generated password, redirect immediately
+          router.push(`/admin/employees`)
+        }
       } else {
         const errorData = await response.json()
         setError(errorData.error || `Failed to ${mode} employee`)
@@ -122,6 +125,46 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
 
   return (
     <div className="space-y-6">
+      {/* Success message with generated password */}
+      {generatedPassword && (
+        <Card className="border-green-500 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-green-700">Employee Created Successfully! 🎉</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-green-800">
+                The employee has been created with a user account. A welcome email with login credentials has been sent to <strong>{formData.email}</strong>.
+              </p>
+              <div className="rounded-md bg-white border border-green-300 p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Generated Login Password:</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-lg font-mono font-bold text-gray-900 bg-gray-100 px-3 py-2 rounded">
+                    {generatedPassword}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedPassword)
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  ⚠️ Please save this password - it will not be shown again.
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => router.push('/admin/employees')}>
+              Go to Employee List
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/admin/employees">
@@ -364,33 +407,21 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
 
               {formData.createUser && (
                 <div className="border-t pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password *</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        placeholder="Minimum 8 characters"
-                        required={formData.createUser}
-                        minLength={8}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="role">User Role</Label>
-                      <select 
-                        id="role"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        value={formData.role}
-                        onChange={(e) => handleInputChange('role', e.target.value)}
-                      >
-                        <option value="subscriber">Subscriber</option>
-                        <option value="author">Author</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    A secure password will be automatically generated and sent to the employee via email.
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">User Role</Label>
+                    <select 
+                      id="role"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={formData.role}
+                      onChange={(e) => handleInputChange('role', e.target.value)}
+                    >
+                      <option value="subscriber">Subscriber</option>
+                      <option value="author">Author</option>
+                      <option value="admin">Admin</option>
+                    </select>
                   </div>
                 </div>
               )}
