@@ -84,12 +84,12 @@ export function PasswordResetDialog({ employeeId, employeeName, isOpen, onClose,
     setIsLoading(true)
     try {
       const response = await fetch(`/api/employees/${employeeId}/password-reset`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ password: passwordToUse })
+        body: JSON.stringify({ password: passwordToUse, confirmPassword: passwordToUse })
       })
 
       if (response.ok) {

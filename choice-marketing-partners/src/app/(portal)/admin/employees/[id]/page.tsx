@@ -16,9 +16,10 @@ interface EmployeeDetailPageProps {
 }
 
 export async function generateMetadata({ params }: EmployeeDetailPageProps): Promise<Metadata> {
+  const resolvedParams = await params
   const employeeRepo = new EmployeeRepository()
-  const employee = await employeeRepo.getEmployeeById(parseInt(params.id))
-  
+  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id))
+
   return {
     title: employee ? `${employee.name} | Choice Marketing Partners` : 'Employee Not Found',
     description: employee ? `Employee details for ${employee.name}` : 'Employee not found',
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: EmployeeDetailPageProps): Pro
 }
 
 export default async function EmployeeDetailPage({ params }: EmployeeDetailPageProps) {
+  const resolvedParams = await params
   const employeeRepo = new EmployeeRepository()
-  const employee = await employeeRepo.getEmployeeById(parseInt(params.id))
+  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id))
 
   if (!employee) {
     notFound()
