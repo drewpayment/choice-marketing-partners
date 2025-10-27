@@ -99,6 +99,7 @@ export class EmployeeRepository {
     let query = db
       .selectFrom('employees')
       .leftJoin('employee_user', 'employees.id', 'employee_user.employee_id')
+      .leftJoin('users', 'employee_user.user_id', 'users.uid')
       .select([
         'employees.id',
         'employees.name',
@@ -113,7 +114,7 @@ export class EmployeeRepository {
         'employees.created_at',
         'employees.deleted_at',
         db.case()
-          .when('employee_user.user_id', 'is not', null)
+          .when('users.uid', 'is not', null)
           .then(true)
           .else(false)
           .end()
@@ -156,9 +157,9 @@ export class EmployeeRepository {
 
     if (hasUser !== undefined) {
       if (hasUser) {
-        query = query.where('employee_user.user_id', 'is not', null)
+        query = query.where('users.uid', 'is not', null)
       } else {
-        query = query.where('employee_user.user_id', 'is', null)
+        query = query.where('users.uid', 'is', null)
       }
     }
 
@@ -551,6 +552,7 @@ export class EmployeeRepository {
     const employees = await db
       .selectFrom('employees')
       .leftJoin('employee_user', 'employees.id', 'employee_user.employee_id')
+      .leftJoin('users', 'employee_user.user_id', 'users.uid')
       .select([
         'employees.id',
         'employees.name',
@@ -565,7 +567,7 @@ export class EmployeeRepository {
         'employees.created_at',
         'employees.deleted_at',
         db.case()
-          .when('employee_user.user_id', 'is not', null)
+          .when('users.uid', 'is not', null)
           .then(true)
           .else(false)
           .end()
