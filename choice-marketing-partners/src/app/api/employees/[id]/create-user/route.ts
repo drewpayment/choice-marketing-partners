@@ -102,7 +102,6 @@ export async function POST(
         .values({
           employee_id: employeeId,
           user_id: userId,
-          created_at: new Date(),
         })
         .execute()
 
