@@ -181,7 +181,7 @@ export class EmployeeRepository {
         is_active: Boolean(emp.is_active),
         is_admin: Boolean(emp.is_admin),
         is_mgr: Boolean(emp.is_mgr),
-        hasUser: Boolean(emp.hasUser)
+        hasUser: !!Number(emp.hasUser)
       })),
       total,
       page,
@@ -591,7 +591,7 @@ export class EmployeeRepository {
       is_active: Boolean(emp.is_active),
       is_admin: Boolean(emp.is_admin),
       is_mgr: Boolean(emp.is_mgr),
-      hasUser: Boolean(emp.hasUser)
+      hasUser: !!Number(emp.hasUser)
     }))
   }
 
