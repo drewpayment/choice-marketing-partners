@@ -64,12 +64,6 @@ export function CreateUserDialog({
       const data = await response.json()
       setGeneratedPassword(data.password)
       setSuccess(true)
-
-      // Refresh the page to show updated user account
-      setTimeout(() => {
-        router.refresh()
-        handleClose()
-      }, 3000)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create user account')
     } finally {
@@ -78,6 +72,11 @@ export function CreateUserDialog({
   }
 
   const handleClose = () => {
+    // Refresh the page if we're closing after success
+    if (success) {
+      router.refresh()
+    }
+
     onClose()
     // Reset state after closing
     setTimeout(() => {
@@ -137,6 +136,10 @@ export function CreateUserDialog({
                 Save this password - it won't be shown again.
               </p>
             </div>
+
+            <Button onClick={handleClose} className="w-full">
+              Done
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">
