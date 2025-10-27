@@ -26,7 +26,7 @@ const createUserSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -42,7 +42,8 @@ export async function POST(
     const body = await request.json()
     const { role } = createUserSchema.parse(body)
 
-    const employeeId = params.id
+    const resolvedParams = await params
+    const employeeId = resolvedParams.id
 
     // Check if employee exists
     const employee = await db
@@ -80,7 +81,7 @@ export async function POST(
     // Create user and link to employee in a transaction
     const result = await db.transaction().execute(async (trx) => {
       // Create user
-      const user = await trx
+      const userInsertResult = await trx
         .insertInto('users')
         .values({
           email: employee.email,
@@ -90,18 +91,26 @@ export async function POST(
           created_at: new Date(),
           updated_at: new Date(),
         })
-        .returning(['id', 'email', 'role'])
         .executeTakeFirstOrThrow()
+
+      const userId = Number(userInsertResult.insertId)
 
       // Link employee to user
       await trx
         .insertInto('employee_user')
         .values({
           employee_id: employeeId,
-          user_id: user.id,
+          user_id: userId,
           created_at: new Date(),
         })
         .execute()
+
+      // Query the created user
+      const user = await trx
+        .selectFrom('users')
+        .select(['uid as id', 'email', 'role'])
+        .where('uid', '=', userId)
+        .executeTakeFirstOrThrow()
 
       return user
     })
