@@ -84,6 +84,7 @@ export async function POST(
       const userInsertResult = await trx
         .insertInto('users')
         .values({
+          id: employeeId,
           email: employee.email,
           name: employee.name,
           password: hashedPassword,
