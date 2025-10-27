@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, User, Shield, Users, UserCheck } from 'lucide-react'
 import Link from 'next/link'
+import { UserAccountActions } from '@/components/employees/UserAccountActions'
 
 interface EmployeeDetailPageProps {
   params: {
@@ -164,6 +165,16 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
             </div>
           </CardContent>
         </Card>
+
+        {/* User Account Actions */}
+        <UserAccountActions
+          employee={{
+            id: employee.id.toString(),
+            name: employee.name,
+            email: employee.email,
+            hasUser: !!employee.user,
+          }}
+        />
 
         {/* Contact Information */}
         <Card>
