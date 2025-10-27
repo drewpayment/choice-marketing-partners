@@ -7,13 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { 
-  Edit, 
-  Key, 
-  Trash2, 
-  RotateCcw, 
-  Mail, 
-  Phone, 
+import {
+  Edit,
+  Trash2,
+  RotateCcw,
+  Mail,
+  Phone,
   User,
   Shield,
   UserCheck,
@@ -148,34 +147,6 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
     }
   }
 
-  const handlePasswordReset = async (employee: EmployeeSummary) => {
-    const newPassword = prompt(`Enter new password for ${employee.name}:`)
-    if (!newPassword) return
-
-    setIsLoading(true)
-    try {
-      const response = await fetch(`/api/employees/${employee.id}/password-reset`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ password: newPassword })
-      })
-
-      if (response.ok) {
-        alert(`Password successfully reset for ${employee.name}`)
-      } else {
-        const errorData = await response.json()
-        alert(errorData.error || 'Failed to reset password')
-      }
-    } catch (error) {
-      console.error('Error resetting password:', error)
-      alert('Failed to reset password')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const getPaginationItems = () => {
     const { page, totalPages } = initialData
@@ -287,17 +258,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                     <Edit className="h-3 w-3" />
                   </Button>
                 </Link>
-                
-                {employee.hasUser && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handlePasswordReset(employee)}
-                  >
-                    <Key className="h-3 w-3" />
-                  </Button>
-                )}
-                
+
                 {employee.deleted_at ? (
                   <Button 
                     size="sm" 
