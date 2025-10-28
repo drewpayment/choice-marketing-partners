@@ -146,12 +146,13 @@ export class PayrollRepository {
         'paystubs.vendor_id as vendorId',
         'vendors.name as vendorName',
         'paystubs.issue_date as issueDate',
+        db.fn.sum('paystubs.amount').as('netPay'),
         db.fn.max('paystubs.updated_at').as('lastUpdated')
       ])
       .groupBy([
         'employees.id',
         'employees.name',
-        'paystubs.agent_id', 
+        'paystubs.agent_id',
         'paystubs.vendor_id',
         'vendors.name',
         'paystubs.issue_date'
@@ -361,17 +362,17 @@ export class PayrollRepository {
 
     // Build summaries using the batched data
     const summaries: PayrollSummary[] = []
-    
+
     for (const result of results) {
       if (!result.employeeId || !result.agentId) continue
 
       const key = `${result.agentId}-${result.vendorId}-${result.issueDate.toISOString().split('T')[0]}`
-      
+
       const salesTotal = salesTotals.get(key) || 0
       const overridesTotal = overridesTotals.get(key) || 0
       const expensesTotal = expensesTotals.get(key) || 0
       const paystubCount = paystubCounts.get(key) || 0
-      
+
       summaries.push({
         employeeId: result.employeeId,
         employeeName: result.employeeName || 'Unknown',
@@ -382,7 +383,7 @@ export class PayrollRepository {
         totalSales: salesTotal,
         totalOverrides: overridesTotal,
         totalExpenses: expensesTotal,
-        netPay: salesTotal + overridesTotal + expensesTotal,
+        netPay: parseFloat(result.netPay?.toString() || '0'),
         paystubCount,
         lastUpdated: result.lastUpdated?.toISOString() || new Date().toISOString()
       })
@@ -446,6 +447,7 @@ export class PayrollRepository {
       .selectFrom('invoices')
       .selectAll()
       .where('agentid', '=', agentIdForQueries)
+      .where('vendor', '=', vendor.id as unknown as string)
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .execute()
 
