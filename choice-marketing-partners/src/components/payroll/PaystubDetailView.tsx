@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Download, Mail, FileText, Edit, Printer, Trash2 } from 'lucide-react'
 import { formatDate } from '@/lib/utils/date'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -84,6 +85,9 @@ interface PaystubDetailProps {
 export default function PaystubDetailView({ paystub, userContext, returnUrl }: PaystubDetailProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [isSalesExpanded, setIsSalesExpanded] = useState(true)
+  const [isOverridesExpanded, setIsOverridesExpanded] = useState(false)
+  const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
 
   const formatCurrency = (amount: number | string) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount
@@ -101,6 +105,46 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
     }
     return dateStr
   }
+
+  interface CollapsibleSectionProps {
+    title: string
+    count: number
+    isExpanded: boolean
+    onToggle: () => void
+    children: React.ReactNode
+  }
+
+  const CollapsibleSection = ({ title, count, isExpanded, onToggle, children }: CollapsibleSectionProps) => (
+    <Card>
+      <CardHeader
+        className="cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center text-base md:text-lg">
+            {title}
+            <span className="ml-2 text-sm font-normal text-gray-500">({count})</span>
+          </CardTitle>
+          <svg
+            className={cn(
+              "h-5 w-5 text-gray-400 transition-transform",
+              isExpanded ? "rotate-180" : ""
+            )}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent>
+          {children}
+        </CardContent>
+      )}
+    </Card>
+  )
 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true)
@@ -164,104 +208,148 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href={returnUrl || "/payroll"}>
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Payroll
-            </Button>
-          </Link>
+      {/* Sticky Mobile Header */}
+      <div className="md:hidden sticky top-0 z-10 bg-white border-b border-gray-200 p-4 shadow-sm mb-4">
+        <Link href={returnUrl || "/payroll"}>
+          <Button variant="ghost" size="sm" className="mb-2 -ml-2">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
+        </Link>
+        <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Paystub Details
-            </h1>
-            <p className="text-sm text-gray-500">
-              {paystub.employee.name} - {paystub.vendor.name} - {formatDate(paystub.issueDate)}
-            </p>
+            <h2 className="font-semibold text-gray-900">{paystub.vendor.name}</h2>
+            <p className="text-sm text-gray-600">{formatDate(paystub.issueDate)}</p>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
-          </Button>
-          {(userContext.isAdmin || userContext.isManager) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSendEmail}
-              disabled={isSendingEmail}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              {isSendingEmail ? 'Sending...' : 'Send Email'}
-            </Button>
-          )}
-          {userContext.isAdmin && !paystub.isPaid && (
-            <Link 
-              href={`/invoices/detail/${paystub.employee.id}/${paystub.vendor.id}/${formatDateForInvoiceRoute(paystub.issueDate)}${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Invoice
-              </Button>
-            </Link>
-          )}
-          
-          {/* Print Version button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print Version
-          </Button>
-
-          {/* Admin-only Delete Invoice button */}
-          {userContext.isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-                  // TODO: Implement delete functionality
-                  console.log('Delete invoice:', {
-                    employeeId: paystub.employee.id,
-                    vendorId: paystub.vendor.id,
-                    issueDate: paystub.issueDate
-                  })
-                }
-              }}
-              className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Invoice
-            </Button>
-          )}
+          <div className="text-right">
+            <div className={`text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(paystub.totals.netPay)}
+            </div>
+            <Badge variant={paystub.isPaid ? 'default' : 'secondary'} className="text-xs mt-1">
+              {paystub.isPaid ? 'Paid' : 'Unpaid'}
+            </Badge>
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link href={returnUrl || "/payroll"}>
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Payroll
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Paystub Details
+              </h1>
+              <p className="text-sm text-gray-500">
+                {paystub.employee.name} - {paystub.vendor.name} - {formatDate(paystub.issueDate)}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+            </Button>
+            {(userContext.isAdmin || userContext.isManager) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendEmail}
+                disabled={isSendingEmail}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                {isSendingEmail ? 'Sending...' : 'Send Email'}
+              </Button>
+            )}
+            {userContext.isAdmin && !paystub.isPaid && (
+              <Link
+                href={`/invoices/detail/${paystub.employee.id}/${paystub.vendor.id}/${formatDateForInvoiceRoute(paystub.issueDate)}${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Invoice
+                </Button>
+              </Link>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Version
+            </Button>
+
+            {userContext.isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+                    console.log('Delete invoice:', {
+                      employeeId: paystub.employee.id,
+                      vendorId: paystub.vendor.id,
+                      issueDate: paystub.issueDate
+                    })
+                  }
+                }}
+                className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Invoice
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Action Buttons */}
+      <div className="md:hidden grid grid-cols-2 gap-2 px-4 mb-4">
+        <Button
+          variant="outline"
+          onClick={handleGeneratePDF}
+          disabled={isGeneratingPDF}
+          className="w-full"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {isGeneratingPDF ? 'Loading...' : 'Download'}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => window.print()}
+          className="w-full"
+        >
+          <Printer className="h-4 w-4 mr-2" />
+          Print
+        </Button>
+      </div>
+
+      {/* Summary Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 px-4 md:px-0">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Sales</CardTitle>
+          <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Sales</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-green-600">
               {formatCurrency(paystub.totals.sales)}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -269,13 +357,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Overrides</CardTitle>
+          <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Overrides</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-blue-600">
               {formatCurrency(paystub.totals.overrides)}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -283,13 +371,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Expenses</CardTitle>
+          <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Expenses</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-red-600">
               {formatCurrency(paystub.totals.expenses)}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -297,13 +385,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Net Pay</CardTitle>
+          <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Net Pay</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+            <div className={`text-lg md:text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(paystub.totals.netPay)}
             </div>
             <div className="flex items-center mt-1">
@@ -315,8 +403,8 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
         </Card>
       </div>
 
-      {/* Employee and Vendor Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Employee and Vendor Info - Desktop Only */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -378,109 +466,115 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
       {/* Sales Transactions */}
       {paystub.sales.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection
+          title="Sales Transactions"
+          count={paystub.sales.length}
+          isExpanded={isSalesExpanded}
+          onToggle={() => setIsSalesExpanded(!isSalesExpanded)}
+        >
+          <div className="overflow-x-auto -mx-2 md:mx-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Sale Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-xs md:text-sm">Invoice</TableHead>
+                  <TableHead className="hidden md:table-cell text-xs md:text-sm">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell text-xs md:text-sm">Location</TableHead>
+                  <TableHead className="text-xs md:text-sm">Date</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paystub.sales.map((sale) => (
                   <TableRow key={sale.invoice_id}>
-                    <TableCell className="font-medium">#{sale.invoice_id}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium text-xs md:text-sm">#{sale.invoice_id}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs md:text-sm">
                       {sale.first_name} {sale.last_name}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell text-xs md:text-sm">
                       {sale.address && `${sale.address}, `}{sale.city}
                     </TableCell>
-                    <TableCell>{formatDate(sale.sale_date.toISOString().split('T')[0])}</TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="text-xs md:text-sm">{formatDate(sale.sale_date.toISOString().split('T')[0])}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm">
                       {formatCurrency(sale.amount)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Overrides */}
       {paystub.overrides.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Override Commissions</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection
+          title="Override Commissions"
+          count={paystub.overrides.length}
+          isExpanded={isOverridesExpanded}
+          onToggle={() => setIsOverridesExpanded(!isOverridesExpanded)}
+        >
+          <div className="overflow-x-auto -mx-2 md:mx-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Override ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Sales</TableHead>
-                  <TableHead className="text-right">Commission</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-xs md:text-sm">ID</TableHead>
+                  <TableHead className="text-xs md:text-sm">Name</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Sales</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell text-xs md:text-sm">Commission</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paystub.overrides.map((override) => (
                   <TableRow key={override.ovrid}>
-                    <TableCell className="font-medium">#{override.ovrid}</TableCell>
-                    <TableCell>{override.name}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(override.sales)}</TableCell>
-                    <TableCell className="text-right">{override.commission}</TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="font-medium text-xs md:text-sm">#{override.ovrid}</TableCell>
+                    <TableCell className="text-xs md:text-sm">{override.name}</TableCell>
+                    <TableCell className="text-right text-xs md:text-sm">{formatCurrency(override.sales)}</TableCell>
+                    <TableCell className="text-right hidden sm:table-cell text-xs md:text-sm">{override.commission}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm">
                       {formatCurrency(override.total)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Expenses */}
       {paystub.expenses.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection
+          title="Expenses"
+          count={paystub.expenses.length}
+          isExpanded={isExpensesExpanded}
+          onToggle={() => setIsExpensesExpanded(!isExpensesExpanded)}
+        >
+          <div className="overflow-x-auto -mx-2 md:mx-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Expense ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-xs md:text-sm">ID</TableHead>
+                  <TableHead className="text-xs md:text-sm">Type</TableHead>
+                  <TableHead className="hidden md:table-cell text-xs md:text-sm">Notes</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paystub.expenses.map((expense) => (
                   <TableRow key={expense.expid}>
-                    <TableCell className="font-medium">#{expense.expid}</TableCell>
-                    <TableCell>{expense.type}</TableCell>
-                    <TableCell>{expense.notes}</TableCell>
-                    <TableCell className="text-right font-medium text-green-600">
+                    <TableCell className="font-medium text-xs md:text-sm">#{expense.expid}</TableCell>
+                    <TableCell className="text-xs md:text-sm">{expense.type}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs md:text-sm">{expense.notes}</TableCell>
+                    <TableCell className="text-right font-medium text-green-600 text-xs md:text-sm">
                       {formatCurrency(expense.amount)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Generation Info */}
