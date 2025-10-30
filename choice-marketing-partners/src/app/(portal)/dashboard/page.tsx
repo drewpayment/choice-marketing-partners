@@ -20,10 +20,12 @@ export default async function PortalDashboard() {
                 <p className="text-sm text-gray-600">Email</p>
                 <p className="text-lg font-medium">{session.user.email}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Employee ID</p>
-                <p className="text-lg font-medium">{session.user.employeeId || 'N/A'}</p>
-              </div>
+              {(session.user.isAdmin || session.user.isManager) && (
+                <div>
+                  <p className="text-sm text-gray-600">Employee ID</p>
+                  <p className="text-lg font-medium">{session.user.employeeId || 'N/A'}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-600">Role</p>
                 <p className="text-lg font-medium">
