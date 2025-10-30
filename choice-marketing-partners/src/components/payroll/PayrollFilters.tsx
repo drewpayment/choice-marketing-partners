@@ -18,13 +18,18 @@ interface PayrollFiltersProps {
     endDate?: string
     status?: string
   }
+  userContext?: {
+    isAdmin: boolean
+    isManager: boolean
+  }
 }
 
-export default function PayrollFilters({ initialFilters }: PayrollFiltersProps) {
+export default function PayrollFilters({ initialFilters, userContext }: PayrollFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const [filters, setFilters] = useState(initialFilters)
+  const [quickFilter, setQuickFilter] = useState<string>('all')
   const [agents, setAgents] = useState<Array<{ id: number; name: string; sales_id1: string }>>([])
   const [vendors, setVendors] = useState<Array<{ id: number; name: string }>>([])
   const [issueDates, setIssueDates] = useState<string[]>([])
@@ -88,6 +93,45 @@ export default function PayrollFilters({ initialFilters }: PayrollFiltersProps) 
     router.push('/payroll')
   }
 
+  const handleQuickFilter = (preset: string) => {
+    setQuickFilter(preset)
+
+    const now = new Date()
+    let startDate = ''
+    let endDate = now.toISOString().split('T')[0]
+
+    switch(preset) {
+      case 'last30':
+        const date30 = new Date()
+        date30.setDate(date30.getDate() - 30)
+        startDate = date30.toISOString().split('T')[0]
+        break
+      case 'last90':
+        const date90 = new Date()
+        date90.setDate(date90.getDate() - 90)
+        startDate = date90.toISOString().split('T')[0]
+        break
+      case 'thisYear':
+        startDate = `${new Date().getFullYear()}-01-01`
+        break
+      case 'all':
+      default:
+        startDate = ''
+        endDate = ''
+    }
+
+    const params = new URLSearchParams(searchParams)
+    if (startDate) {
+      params.set('startDate', startDate)
+      params.set('endDate', endDate)
+    } else {
+      params.delete('startDate')
+      params.delete('endDate')
+    }
+
+    router.push(`/payroll?${params.toString()}`)
+  }
+
   if (loading) {
     return (
       <div className="bg-white shadow rounded-lg animate-pulse">
@@ -110,122 +154,166 @@ export default function PayrollFilters({ initialFilters }: PayrollFiltersProps) 
           Filter Payroll Data
         </h3>
         
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Employee Filter */}
-          <div>
-            <Label htmlFor="employee" className="text-sm font-medium text-gray-700">
-              Employee
-            </Label>
-            <TypeaheadSelect
-              options={[
-                { key: '', value: 'All Employees' },
-                ...agents.map(agent => ({
-                  key: String(agent.id),
-                  value: `${agent.name} (${agent.sales_id1})`
-                }))
-              ]}
-              value={String(filters.employeeId || '')}
-              onValueChange={(value) => handleFilterChange('employeeId', String(value || ''))}
-              placeholder="All Employees"
-              className="mt-1"
-            />
+        {/* Employee-only Quick Filters */}
+        {!userContext?.isAdmin && !userContext?.isManager ? (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Time Period
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={quickFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQuickFilter('all')}
+                >
+                  All Time
+                </Button>
+                <Button
+                  variant={quickFilter === 'last30' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQuickFilter('last30')}
+                >
+                  Last 30 Days
+                </Button>
+                <Button
+                  variant={quickFilter === 'last90' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQuickFilter('last90')}
+                >
+                  Last 90 Days
+                </Button>
+                <Button
+                  variant={quickFilter === 'thisYear' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQuickFilter('thisYear')}
+                >
+                  This Year
+                </Button>
+              </div>
+            </div>
           </div>
+        ) : (
+          /* Manager/Admin Full Filters */
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Employee Filter */}
+              <div>
+                <Label htmlFor="employee" className="text-sm font-medium text-gray-700">
+                  Employee
+                </Label>
+                <TypeaheadSelect
+                  options={[
+                    { key: '', value: 'All Employees' },
+                    ...agents.map(agent => ({
+                      key: String(agent.id),
+                      value: `${agent.name} (${agent.sales_id1})`
+                    }))
+                  ]}
+                  value={String(filters.employeeId || '')}
+                  onValueChange={(value) => handleFilterChange('employeeId', String(value || ''))}
+                  placeholder="All Employees"
+                  className="mt-1"
+                />
+              </div>
 
-          {/* Vendor Filter */}
-          <div>
-            <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
-              Vendor
-            </Label>
-            <Select
-              value={String(filters.vendorId || 'all')}
-              onValueChange={(value) => handleFilterChange('vendorId', value === 'all' ? '' : value)}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="All Vendors" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Vendors</SelectItem>
-                {vendors.map((vendor) => (
-                  <SelectItem key={vendor.id} value={String(vendor.id)}>
-                    {vendor.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Vendor Filter */}
+              <div>
+                <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                  Vendor
+                </Label>
+                <Select
+                  value={String(filters.vendorId || 'all')}
+                  onValueChange={(value) => handleFilterChange('vendorId', value === 'all' ? '' : value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="All Vendors" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Vendors</SelectItem>
+                    {vendors.map((vendor) => (
+                      <SelectItem key={vendor.id} value={String(vendor.id)}>
+                        {vendor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Issue Date Filter */}
-          <div>
-            <Label htmlFor="issueDate" className="text-sm font-medium text-gray-700">
-              Issue Date
-            </Label>
-            <Select
-              value={filters.issueDate || 'all'}
-              onValueChange={(value) => handleFilterChange('issueDate', value === 'all' ? '' : value)}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="All Dates" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Dates</SelectItem>
-                {issueDates.map((date) => (
-                  <SelectItem key={date} value={date}>
-                    {formatDate(date)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Issue Date Filter */}
+              <div>
+                <Label htmlFor="issueDate" className="text-sm font-medium text-gray-700">
+                  Issue Date
+                </Label>
+                <Select
+                  value={filters.issueDate || 'all'}
+                  onValueChange={(value) => handleFilterChange('issueDate', value === 'all' ? '' : value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="All Dates" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Dates</SelectItem>
+                    {issueDates.map((date) => (
+                      <SelectItem key={date} value={date}>
+                        {formatDate(date)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Status Filter */}
-          <div>
-            <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-              Status
-            </Label>
-            <Select
-              value={filters.status || 'all'}
-              onValueChange={(value) => handleFilterChange('status', value)}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="unpaid">Unpaid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+              {/* Status Filter */}
+              <div>
+                <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                  Status
+                </Label>
+                <Select
+                  value={filters.status || 'all'}
+                  onValueChange={(value) => handleFilterChange('status', value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        {/* Date Range Filters */}
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">
-              Start Date
-            </Label>
-            <Input
-              type="date"
-              id="startDate"
-              value={filters.startDate || ''}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">
-              End Date
-            </Label>
-            <Input
-              type="date"
-              id="endDate"
-              value={filters.endDate || ''}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
+            {/* Date Range Filters */}
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">
+                  Start Date
+                </Label>
+                <Input
+                  type="date"
+                  id="startDate"
+                  value={filters.startDate || ''}
+                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">
+                  End Date
+                </Label>
+                <Input
+                  type="date"
+                  id="endDate"
+                  value={filters.endDate || ''}
+                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Filter Actions */}
         <div className="mt-4 flex justify-between items-center">

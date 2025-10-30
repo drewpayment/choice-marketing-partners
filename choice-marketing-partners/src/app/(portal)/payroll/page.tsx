@@ -122,8 +122,9 @@ export default async function PayrollPage({ searchParams }: PageProps) {
       {/* Filters */}
       <div className="px-4 mb-6 sm:px-0">
         <Suspense fallback={<div className="animate-pulse bg-white rounded-lg h-32"></div>}>
-          <PayrollFilters 
+          <PayrollFilters
             initialFilters={filters}
+            userContext={{ isAdmin: session.user.isAdmin, isManager: session.user.isManager }}
           />
         </Suspense>
       </div>
