@@ -35,8 +35,57 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
   const [issueDates, setIssueDates] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Load filter options
+  // Sync quick filter state with URL params on page load
   useEffect(() => {
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+
+    if (!startDate || !endDate) {
+      setQuickFilter('all')
+      return
+    }
+
+    // Calculate what preset matches current URL params
+    const now = new Date()
+    const currentEndDate = now.toISOString().split('T')[0]
+
+    // Check for "This Year" preset
+    const yearStart = `${new Date().getFullYear()}-01-01`
+    if (startDate === yearStart) {
+      setQuickFilter('thisYear')
+      return
+    }
+
+    // Check for "Last 30 Days" preset
+    const date30 = new Date()
+    date30.setDate(date30.getDate() - 30)
+    const last30Start = date30.toISOString().split('T')[0]
+    if (startDate === last30Start && endDate === currentEndDate) {
+      setQuickFilter('last30')
+      return
+    }
+
+    // Check for "Last 90 Days" preset
+    const date90 = new Date()
+    date90.setDate(date90.getDate() - 90)
+    const last90Start = date90.toISOString().split('T')[0]
+    if (startDate === last90Start && endDate === currentEndDate) {
+      setQuickFilter('last90')
+      return
+    }
+
+    // If dates don't match any preset, default to 'all'
+    setQuickFilter('all')
+  }, [searchParams])
+
+  // Load filter options (skip for employees who only use quick filters)
+  useEffect(() => {
+    // Employees don't need filter options - they only use quick filter buttons
+    if (!userContext?.isAdmin && !userContext?.isManager) {
+      setLoading(false)
+      return
+    }
+
     async function loadFilterOptions() {
       try {
         const [agentsResponse, vendorsResponse, issueDatesResponse] = await Promise.all([
@@ -44,14 +93,14 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
           fetch('/api/payroll/vendors'),
           fetch('/api/payroll/issue-dates')
         ])
-        
+
         if (agentsResponse.ok && vendorsResponse.ok && issueDatesResponse.ok) {
           const [agentsData, vendorsData, issueDatesData] = await Promise.all([
             agentsResponse.json(),
             vendorsResponse.json(),
             issueDatesResponse.json()
           ])
-          
+
           setAgents(agentsData)
           setVendors(vendorsData)
           setIssueDates(issueDatesData)
@@ -66,7 +115,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
     }
 
     loadFilterOptions()
-  }, []) // Removed userContext dependency since we get it from session in API
+  }, [userContext?.isAdmin, userContext?.isManager])
 
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = {
