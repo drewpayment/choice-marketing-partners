@@ -323,17 +323,13 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
       {/* Mobile Card View (Employees Only) */}
       {!userContext.isAdmin && !userContext.isManager && (
         <div className="md:hidden space-y-3 p-4">
-          {sortedData.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No payroll data found</p>
-            </div>
-          ) : (
-            sortedData.map((item) => (
-              <Link
-                key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
-                href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-                className="block"
-              >
+          {sortedData.map((item) => (
+            <Link
+              key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
+              href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
+              className="block"
+              aria-label={`View payroll details for ${item.vendorName}, ${formatDate(item.issueDate)}, net pay ${formatCurrency(item.netPay)}`}
+            >
                 <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-gray-50">
                   {/* Vendor Name - Primary */}
                   <div className="flex justify-between items-start mb-2">
@@ -365,7 +361,7 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                 </div>
               </Link>
             ))
-          )}
+          }
         </div>
       )}
 
