@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PayrollSummary } from '@/lib/repositories/PayrollRepository'
 import { formatDate } from '@/lib/utils/date'
+import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import {
   Table,
@@ -155,8 +156,8 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
         </p>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -319,6 +320,88 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
         </Table>
       </div>
 
+      {/* Mobile Card View (Employees Only) */}
+      {!userContext.isAdmin && !userContext.isManager && (
+        <div className="md:hidden space-y-3 p-4">
+          {sortedData.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No payroll data found</p>
+            </div>
+          ) : (
+            sortedData.map((item) => (
+              <Link
+                key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
+                href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
+                className="block"
+              >
+                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-gray-50">
+                  {/* Vendor Name - Primary */}
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {item.vendorName}
+                    </h3>
+                    <svg
+                      className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+
+                  {/* Issue Date */}
+                  <div className="text-sm text-gray-600 mb-3">
+                    {formatDate(item.issueDate)}
+                  </div>
+
+                  {/* Net Pay - Highlighted */}
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                    <span className="text-sm font-medium text-gray-700">Net Pay</span>
+                    <span className={`text-xl font-bold ${item.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(item.netPay)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Mobile Table Fallback (Managers/Admins on Mobile) */}
+      {(userContext.isAdmin || userContext.isManager) && (
+        <div className="md:hidden overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-sm">Employee</TableHead>
+                <TableHead className="text-sm">Vendor</TableHead>
+                <TableHead className="text-right text-sm">Net Pay</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.map((item) => (
+                <TableRow key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}>
+                  <TableCell className="font-medium text-sm">
+                    {item.employeeName}
+                  </TableCell>
+                  <TableCell className="text-sm">{item.vendorName}</TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
+                      className="text-sm font-medium text-blue-600"
+                    >
+                      {formatCurrency(item.netPay)}
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
       {/* Pagination */}
       {(pagination.totalPages > 1 || pagination.total > pagination.limit) && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
@@ -378,20 +461,34 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
         </div>
       )}
 
-      {/* Summary */}
+      {/* Summary - Responsive */}
       <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-        <div className="flex justify-between items-center text-sm text-gray-600">
+        {/* Mobile Summary (Employees) */}
+        {!userContext.isAdmin && !userContext.isManager && (
+          <div className="md:hidden flex justify-between items-center text-sm text-gray-600">
+            <span>Total Entries: {data.length}</span>
+            <span className="font-medium">
+              Page Net Pay: {formatCurrency(data.reduce((sum, item) => sum + item.netPay, 0))}
+            </span>
+          </div>
+        )}
+
+        {/* Desktop Summary (All) & Mobile Summary (Managers/Admins) */}
+        <div className={cn(
+          "justify-between items-center text-sm text-gray-600",
+          !userContext.isAdmin && !userContext.isManager ? "hidden md:flex" : "flex"
+        )}>
           <span>
             Page Entries: {data.length}
           </span>
-          <div className="flex space-x-6">
-            <span>
+          <div className="flex flex-wrap gap-4">
+            <span className="hidden lg:inline">
               Page Sales: {formatCurrency(data.reduce((sum, item) => sum + item.totalSales, 0))}
             </span>
-            <span>
+            <span className="hidden lg:inline">
               Page Overrides: {formatCurrency(data.reduce((sum, item) => sum + item.totalOverrides, 0))}
             </span>
-            <span>
+            <span className="hidden lg:inline">
               Page Expenses: {formatCurrency(data.reduce((sum, item) => sum + item.totalExpenses, 0))}
             </span>
             <span className="font-medium">
