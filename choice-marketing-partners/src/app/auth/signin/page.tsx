@@ -1,17 +1,36 @@
 'use client'
 
 import { signIn, getSession } from 'next-auth/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIsClient } from '@/hooks/useIsClient'
+import posthog from 'posthog-js'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [forgotPasswordLink, setForgotPasswordLink] = useState(<></>)
   const router = useRouter()
   const isClient = useIsClient()
+  
+  useEffect(() => {
+    posthog.onFeatureFlags(() => {
+      if (posthog.isFeatureEnabled('show-forgot-password')) {
+        setForgotPasswordLink(<div className="text-sm">
+            <a
+              href="/auth/forgot-password"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Forgot your password?
+            </a>
+          </div>)
+      } else {
+        setForgotPasswordLink(<></>)
+      }
+    })
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,16 +134,7 @@ export default function SignIn() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
-            <div className="text-sm">
-              <a
-                href="/auth/forgot-password"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Forgot your password?
-              </a>
-            </div>
-          </div>
+          {forgotPasswordLink}
 
           {error && (
             <div className="text-red-600 text-sm text-center">{error}</div>
