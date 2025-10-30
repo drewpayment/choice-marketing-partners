@@ -14,22 +14,29 @@ export default function SignIn() {
   const [forgotPasswordLink, setForgotPasswordLink] = useState(<></>)
   const router = useRouter()
   const isClient = useIsClient()
-  
+
   useEffect(() => {
-    posthog.onFeatureFlags(() => {
-      if (posthog.isFeatureEnabled('show-forgot-password')) {
+    const unsubscribe = posthog.onFeatureFlags((flags, flagVariants, errors) => {
+      
+      if (posthog.isFeatureEnabled('show-forgot-password') ||
+        (errors?.errorsLoading && process.env.NEXT_PUBLIC_ENV === 'development')) {
         setForgotPasswordLink(<div className="text-sm">
-            <a
-              href="/auth/forgot-password"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Forgot your password?
-            </a>
-          </div>)
+          <a
+            href="/auth/forgot-password"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Forgot your password?
+          </a>
+        </div>)
       } else {
         setForgotPasswordLink(<></>)
       }
+      
     })
+
+    return () => {
+      unsubscribe()
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
