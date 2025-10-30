@@ -114,37 +114,51 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
     children: React.ReactNode
   }
 
-  const CollapsibleSection = ({ title, count, isExpanded, onToggle, children }: CollapsibleSectionProps) => (
-    <Card>
-      <CardHeader
-        className="cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={onToggle}
-      >
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center text-base md:text-lg">
-            {title}
-            <span className="ml-2 text-sm font-normal text-gray-500">({count})</span>
-          </CardTitle>
-          <svg
-            className={cn(
-              "h-5 w-5 text-gray-400 transition-transform",
-              isExpanded ? "rotate-180" : ""
-            )}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </CardHeader>
-      {isExpanded && (
-        <CardContent>
-          {children}
-        </CardContent>
-      )}
-    </Card>
-  )
+  const CollapsibleSection = ({ title, count, isExpanded, onToggle, children }: CollapsibleSectionProps) => {
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        onToggle()
+      }
+    }
+
+    return (
+      <Card>
+        <CardHeader
+          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={onToggle}
+          onKeyDown={handleKeyDown}
+          role="button"
+          aria-expanded={isExpanded}
+          tabIndex={0}
+        >
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center text-base md:text-lg">
+              {title}
+              <span className="ml-2 text-sm font-normal text-gray-500">({count})</span>
+            </CardTitle>
+            <svg
+              className={cn(
+                "h-5 w-5 text-gray-400 transition-transform",
+                isExpanded ? "rotate-180" : ""
+              )}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </CardHeader>
+        {isExpanded && (
+          <CardContent>
+            {children}
+          </CardContent>
+        )}
+      </Card>
+    )
+  }
 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true)
@@ -327,15 +341,15 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           variant="outline"
           onClick={handleGeneratePDF}
           disabled={isGeneratingPDF}
-          className="w-full"
+          className="w-full min-h-[44px]"
         >
           <Download className="h-4 w-4 mr-2" />
-          {isGeneratingPDF ? 'Loading...' : 'Download'}
+          {isGeneratingPDF ? 'Generating...' : 'Download'}
         </Button>
         <Button
           variant="outline"
           onClick={() => window.print()}
-          className="w-full"
+          className="w-full min-h-[44px]"
         >
           <Printer className="h-4 w-4 mr-2" />
           Print
