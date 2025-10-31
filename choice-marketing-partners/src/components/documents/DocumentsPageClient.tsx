@@ -5,14 +5,16 @@ import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export function DocumentsPageClient() {
   const [activeView, setActiveView] = useState<'list' | 'upload'>('list');
+  const { data: session } = useSession();
 
   const handleUploadComplete = (documentId: number) => {
     console.log('Document uploaded successfully:', documentId);
     // Optionally switch back to list view after upload
-    // setActiveView('list');
+    setActiveView('list');
   };
 
   const handleUploadError = (error: string) => {
@@ -38,11 +40,15 @@ export function DocumentsPageClient() {
             </p>
           </div>
 
-          <DocumentUpload
-            onUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            maxFiles={10}
-          />
+          {
+            session?.user?.isAdmin
+              ? <DocumentUpload
+                onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
+                maxFiles={10}
+              />
+              : <></>
+          }
         </div>
       </div>
     );
@@ -52,7 +58,7 @@ export function DocumentsPageClient() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
         <DocumentList
-          onUploadClick={() => setActiveView('upload')}
+          onUploadClick={session?.user?.isAdmin ? () => setActiveView('upload') : undefined}
         />
       </div>
     </div>

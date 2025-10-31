@@ -3,6 +3,7 @@
 import { InvoiceOverrideFormData } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface InvoiceOverridesTableProps {
@@ -84,23 +85,16 @@ export default function InvoiceOverridesTable({ overrides, onOverridesChange }: 
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  type="text"
-                  value={override.commission}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
-                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
-                      updateOverride(index, 'commission', value === '' || value === '-' ? 0 : parseFloat(value));
-                    }
-                  }}
-                  placeholder="0.00"
+                <CurrencyInput
+                  value={override.commission || 0}
+                  onChange={(value) => updateOverride(index, 'commission', value)}
+                  placeholder="$0.00"
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  type="text"
-                  value={override.total}
+                <CurrencyInput
+                  value={override.total || 0}
+                  onChange={() => {}} // Read-only, but needs onChange for component
                   readOnly
                   className="bg-gray-50"
                 />

@@ -3,6 +3,7 @@
 import { InvoiceExpenseFormData } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface InvoiceExpensesTableProps {
@@ -60,17 +61,10 @@ export default function InvoiceExpensesTable({ expenses, onExpensesChange }: Inv
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  type="text"
-                  value={expense.amount}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
-                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
-                      updateExpense(index, 'amount', value === '' || value === '-' ? 0 : parseFloat(value));
-                    }
-                  }}
-                  placeholder="0.00"
+                <CurrencyInput
+                  value={expense.amount || 0}
+                  onChange={(value) => updateExpense(index, 'amount', value)}
+                  placeholder="$0.00"
                 />
               </TableCell>
               <TableCell>

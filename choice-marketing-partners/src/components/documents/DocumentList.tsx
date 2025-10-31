@@ -201,10 +201,12 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
             {total} document{total !== 1 ? 's' : ''} total
           </p>
         </div>
-        <Button onClick={onUploadClick} className="flex items-center space-x-2">
-          <Upload className="h-4 w-4" />
-          <span>Upload Documents</span>
-        </Button>
+        {onUploadClick && (
+          <Button onClick={onUploadClick} className="flex items-center space-x-2">
+            <Upload className="h-4 w-4" />
+            <span>Upload Documents</span>
+          </Button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -268,7 +270,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
                 : 'Get started by uploading your first document.'
               }
             </p>
-            {!searchTerm && !filters.mimeType && !filters.uploadedBy && (
+            {!searchTerm && !filters.mimeType && !filters.uploadedBy && onUploadClick && (
               <Button onClick={onUploadClick}>
                 Upload Documents
               </Button>

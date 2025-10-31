@@ -154,7 +154,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
       console.warn('Failed to fetch invoice data via SSR.');
       
       const data: InvoiceDetailResponse = await response.json();
-      
+
       // Convert data to form format
       setFormData({
         vendor: vendorId.toString(),

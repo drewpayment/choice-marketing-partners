@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { InvoiceSaleFormData, AgentWithSalesIds } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Upload } from 'lucide-react';
 import ExcelImportDialog from '@/components/excel-import/ExcelImportDialog';
@@ -128,17 +129,10 @@ export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent 
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  type="text"
-                  value={sale.amount}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow empty, minus sign, and valid decimal numbers (including negatives)
-                    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
-                      updateSale(index, 'amount', value === '' || value === '-' ? 0 : parseFloat(value));
-                    }
-                  }}
-                  placeholder="0.00"
+                <CurrencyInput
+                  value={sale.amount || 0}
+                  onChange={(value) => updateSale(index, 'amount', value)}
+                  placeholder="$0.00"
                 />
               </TableCell>
               <TableCell>

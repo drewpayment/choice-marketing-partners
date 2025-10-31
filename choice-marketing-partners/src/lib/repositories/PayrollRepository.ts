@@ -581,6 +581,7 @@ export class PayrollRepository {
       .selectFrom('invoices')
       .select(db.fn.sum('amount').as('total'))
       .where('agentid', '=', parseInt(agentId))
+      .where('vendor', '=', vendorId.toString())
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .executeTakeFirst()
 
@@ -591,25 +592,28 @@ export class PayrollRepository {
     combinations: Array<{ agentId: string; vendorId: number; issueDate: string; originalAgentId: string }>
   ): Promise<Map<string, number>> {
     const totalsMap = new Map<string, number>()
-    
+
     if (combinations.length === 0) return totalsMap
 
     // Build OR conditions for each combination
     const agentIds = [...new Set(combinations.map(c => parseInt(c.agentId)).filter(id => !isNaN(id)))]
+    const vendorIds = [...new Set(combinations.map(c => c.vendorId))]
     const issueDates = [...new Set(combinations.map(c => c.issueDate))]
-    
-    if (agentIds.length === 0 || issueDates.length === 0) return totalsMap
+
+    if (agentIds.length === 0 || vendorIds.length === 0 || issueDates.length === 0) return totalsMap
 
     const results = await db
       .selectFrom('invoices')
       .select([
         'agentid',
+        'vendor',
         'issue_date',
         db.fn.sum('amount').as('total')
       ])
       .where('agentid', 'in', agentIds)
+      .where('vendor', 'in', vendorIds.map(v => v.toString()))
       .where(db.fn('DATE', ['issue_date']), 'in', issueDates)
-      .groupBy(['agentid', 'issue_date'])
+      .groupBy(['agentid', 'vendor', 'issue_date'])
       .execute()
 
     // Debug logging for results
@@ -624,12 +628,15 @@ export class PayrollRepository {
 
     for (const result of results) {
       const issueDate = result.issue_date.toISOString().split('T')[0]
-      // Find matching combination to get vendorId and originalAgentId
-      const combination = combinations.find(c => 
-        parseInt(c.agentId) === result.agentid && c.issueDate === issueDate
+      const vendorId = parseInt(result.vendor)
+      // Find matching combination to get originalAgentId
+      const combination = combinations.find(c =>
+        parseInt(c.agentId) === result.agentid &&
+        c.vendorId === vendorId &&
+        c.issueDate === issueDate
       )
       if (combination) {
-        const key = `${combination.originalAgentId}-${combination.vendorId}-${issueDate}`
+        const key = `${combination.originalAgentId}-${vendorId}-${issueDate}`
         totalsMap.set(key, parseFloat(result.total?.toString() || '0'))
       }
     }
