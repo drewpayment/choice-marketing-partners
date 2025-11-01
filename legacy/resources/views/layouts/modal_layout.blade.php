@@ -1,1 +1,0 @@
-<div class="modal fade" tabindex="-1" role="dialog" id="modal_layout"></div><!-- /.modal -->
