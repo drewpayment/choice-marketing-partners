@@ -9,14 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Upload } from 'lucide-react';
 import ExcelImportDialog from '@/components/excel-import/ExcelImportDialog';
 import { ParseError } from '@/lib/excel-import/parser';
+import { logger } from '@/lib/utils/logger'
 
 interface InvoiceSalesTableProps {
   sales: InvoiceSaleFormData[];
   onSalesChange: (sales: InvoiceSaleFormData[]) => void;
+  onSaleRemove: (index: number) => void;
   selectedAgent?: AgentWithSalesIds;
 }
 
-export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent }: InvoiceSalesTableProps) {
+export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, selectedAgent }: InvoiceSalesTableProps) {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const addSale = () => {
@@ -33,10 +35,6 @@ export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent 
     onSalesChange([...sales, newSale]);
   };
 
-  const removeSale = (index: number) => {
-    onSalesChange(sales.filter((_, i) => i !== index));
-  };
-
   const updateSale = (index: number, field: keyof InvoiceSaleFormData, value: string | number) => {
     const updatedSales = sales.map((sale, i) => 
       i === index ? { ...sale, [field]: value } : sale
@@ -50,7 +48,7 @@ export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent 
 
     // If there were validation errors in single mode, show a toast or notification
     if (errors && errors.length > 0) {
-      console.warn('Import completed with validation warnings:', errors);
+      logger.warn('Import completed with validation warnings:', errors);
       // You could show a toast notification here
     }
   };
@@ -136,10 +134,10 @@ export default function InvoiceSalesTable({ sales, onSalesChange, selectedAgent 
                 />
               </TableCell>
               <TableCell>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => removeSale(index)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSaleRemove(index)}
                   disabled={sales.length <= 1}
                 >
                   Remove

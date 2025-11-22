@@ -11,11 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Users, 
-  UserPlus, 
-  UserMinus, 
-  Save, 
+import { logger } from '@/lib/utils/logger'
+import {
+  Users,
+  UserPlus,
+  UserMinus,
+  Save,
   RotateCcw,
   Mail
 } from 'lucide-react'
@@ -127,7 +128,7 @@ export function ManagerAssignmentInterface({
         setError(errorData.error || 'Failed to save assignments')
       }
     } catch (error) {
-      console.error('Error saving assignments:', error)
+      logger.error('Error saving assignments:', error)
       setError('Failed to save assignments')
     } finally {
       setIsLoading(false)

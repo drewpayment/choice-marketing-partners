@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Manager-Employee relationship interfaces
@@ -223,7 +224,7 @@ export class ManagerEmployeeRepository {
 
       return true
     } catch (error) {
-      console.error('Error assigning employee to manager:', error)
+      logger.error('Error assigning employee to manager:', error)
       return false
     }
   }
@@ -241,7 +242,7 @@ export class ManagerEmployeeRepository {
 
       return result.length > 0
     } catch (error) {
-      console.error('Error removing employee from manager:', error)
+      logger.error('Error removing employee from manager:', error)
       return false
     }
   }
@@ -258,7 +259,7 @@ export class ManagerEmployeeRepository {
 
       return true
     } catch (error) {
-      console.error('Error unassigning employee:', error)
+      logger.error('Error unassigning employee:', error)
       return false
     }
   }
@@ -293,7 +294,7 @@ export class ManagerEmployeeRepository {
         return true
       })
     } catch (error) {
-      console.error('Error bulk updating assignments:', error)
+      logger.error('Error bulk updating assignments:', error)
       return false
     }
   }
@@ -330,7 +331,7 @@ export class ManagerEmployeeRepository {
         return true
       })
     } catch (error) {
-      console.error('Error updating assignments:', error)
+      logger.error('Error updating assignments:', error)
       return false
     }
   }

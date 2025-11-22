@@ -5,6 +5,7 @@ import { render } from '@react-email/render'
 import { Resend } from 'resend'
 import PasswordResetEmail from '@/components/emails/PasswordResetEmail'
 import React from 'react'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       message: 'If an account exists with that email, you will receive a password reset link.',
     })
   } catch (error) {
-    console.error('Password reset request error:', error)
+    logger.error('Password reset request error:', error)
     return NextResponse.json(
       { error: 'An error occurred processing your request' },
       { status: 500 }

@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/database/client'
+import { logger } from '@/lib/utils/logger'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -68,7 +69,7 @@ export const authOptions: NextAuthOptions = {
             ].filter(Boolean) as string[]
           }
         } catch (error) {
-          console.error('Authentication error:', error)
+          logger.error('Authentication error:', error)
           return null
         }
       }

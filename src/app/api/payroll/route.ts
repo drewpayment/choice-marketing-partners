@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
 
   } catch (error) {
-    console.error('Payroll API error:', error)
+    logger.error('Payroll API error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch payroll data' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceAuditRepository, InvoiceAuditSearchFilters } from '@/lib/repositories/InvoiceAuditRepository'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * POST /api/invoices/search - Search invoices with audit history
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error searching invoice audit records:', error)
+    logger.error('Error searching invoice audit records:', error)
     return NextResponse.json(
       { error: 'Failed to search invoice records' },
       { status: 500 }
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting search page resources:', error)
+    logger.error('Error getting search page resources:', error)
     return NextResponse.json(
       { error: 'Failed to load search resources' },
       { status: 500 }

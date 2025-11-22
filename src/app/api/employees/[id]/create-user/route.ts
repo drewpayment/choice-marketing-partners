@@ -5,6 +5,7 @@ import { db } from '@/lib/database/client'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/services/email'
+import { logger } from '@/lib/utils/logger'
 
 // Generate secure random password
 function generatePassword(length: number = 10): string {
@@ -123,7 +124,7 @@ export async function POST(
         password: password,
       })
     } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError)
+      logger.error('Failed to send welcome email:', emailError)
       // Don't fail the request if email fails
     }
 
@@ -138,7 +139,7 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error creating user:', error)
+    logger.error('Error creating user:', error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

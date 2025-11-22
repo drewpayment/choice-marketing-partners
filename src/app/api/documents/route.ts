@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger'
 
 const documentRepository = new DocumentRepository();
 
@@ -50,12 +51,12 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const queryParams = Object.fromEntries(url.searchParams.entries());
     
-    console.log('API received query params:', queryParams);
-    console.log('Full URL:', url.toString());
+    logger.log('API received query params:', queryParams);
+    logger.log('Full URL:', url.toString());
     
     const searchParams = searchSchema.parse(queryParams);
     
-    console.log('Parsed search params:', searchParams);
+    logger.log('Parsed search params:', searchParams);
 
     // Get documents with filters
     const result = await documentRepository.getDocuments(
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
       searchParams.pageSize
     );
 
-    console.log('API returning result:', { 
+    logger.log('API returning result:', { 
       totalDocuments: result.total, 
       currentPage: result.page, 
       documentsOnPage: result.documents.length 
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Documents GET error:', error);
+    logger.error('Documents GET error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
-    console.error('Documents POST error:', error);
+    logger.error('Documents POST error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -164,7 +165,7 @@ export async function DELETE(request: NextRequest) {
       message: `${deletedCount} document(s) deleted successfully`,
     });
   } catch (error) {
-    console.error('Documents DELETE error:', error);
+    logger.error('Documents DELETE error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

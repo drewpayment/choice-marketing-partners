@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -37,7 +38,7 @@ export async function GET() {
 
     return NextResponse.json(userInfo)
   } catch (error) {
-    console.error('Error in user info API:', error)
+    logger.error('Error in user info API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

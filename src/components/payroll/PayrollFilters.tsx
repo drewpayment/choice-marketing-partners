@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/utils/logger'
 
 interface PayrollFiltersProps {
   initialFilters: {
@@ -105,10 +106,10 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
           setVendors(vendorsData)
           setIssueDates(issueDatesData)
         } else {
-          console.error('Failed to load filter options')
+          logger.error('Failed to load filter options')
         }
       } catch (error) {
-        console.error('Error loading filter options:', error)
+        logger.error('Error loading filter options:', error)
       } finally {
         setLoading(false)
       }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { VendorRepository } from '@/lib/repositories/VendorRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const vendorRepository = new VendorRepository()
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ vendors })
   } catch (error) {
-    console.error('Error fetching vendors:', error)
+    logger.error('Error fetching vendors:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ vendor }, { status: 201 })
   } catch (error) {
-    console.error('Error creating vendor:', error)
+    logger.error('Error creating vendor:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

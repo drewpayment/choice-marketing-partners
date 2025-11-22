@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -40,7 +41,7 @@ export async function PUT(
       employee: restoredEmployee
     })
   } catch (error) {
-    console.error('Error restoring employee:', error)
+    logger.error('Error restoring employee:', error)
     return NextResponse.json(
       { error: 'Failed to restore employee' },
       { status: 500 }

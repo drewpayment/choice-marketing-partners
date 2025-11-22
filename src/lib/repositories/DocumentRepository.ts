@@ -1,5 +1,6 @@
 // Document Repository for database operations with Vercel Blob storage
 import { db } from '@/lib/database/client';
+import { logger } from '@/lib/utils/logger'
 
 export interface DocumentSummary {
   id: number;
@@ -46,7 +47,7 @@ export class DocumentRepository {
     page: number = 1,
     pageSize: number = 20
   ): Promise<PaginatedDocuments> {
-    console.log('DocumentRepository.getDocuments called with filters:', filters);
+    logger.log('DocumentRepository.getDocuments called with filters:', filters);
 
     // Build base query for documents
     let query = db
@@ -77,7 +78,7 @@ export class DocumentRepository {
       .offset(offset)
       .execute();
 
-    console.log('Found documents:', documents.length, 'of', total, 'total');
+    logger.log('Found documents:', documents.length, 'of', total, 'total');
 
     // Transform to DocumentSummary format
     const documentSummaries: DocumentSummary[] = await Promise.all(

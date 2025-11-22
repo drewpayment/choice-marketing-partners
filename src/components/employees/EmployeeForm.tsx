@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ArrowLeft, Save, UserPlus } from 'lucide-react'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 interface EmployeeFormProps {
   employee?: EmployeeDetail
@@ -116,7 +117,7 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
         setError(errorData.error || `Failed to ${mode} employee`)
       }
     } catch (error) {
-      console.error(`Error ${mode === 'edit' ? 'updating' : 'creating'} employee:`, error)
+      logger.error(`Error ${mode === 'edit' ? 'updating' : 'creating'} employee:`, error)
       setError(`Failed to ${mode} employee`)
     } finally {
       setIsLoading(false)

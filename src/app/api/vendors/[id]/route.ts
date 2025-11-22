@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { VendorRepository } from '@/lib/repositories/VendorRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const vendorRepository = new VendorRepository()
 
@@ -38,7 +39,7 @@ export async function GET(
 
     return NextResponse.json({ vendor })
   } catch (error) {
-    console.error('Error fetching vendor:', error)
+    logger.error('Error fetching vendor:', error)
     return NextResponse.json(
       { error: 'Failed to fetch vendor' },
       { status: 500 }
@@ -83,7 +84,7 @@ export async function PATCH(
 
     return NextResponse.json({ vendor })
   } catch (error) {
-    console.error('Error updating vendor:', error)
+    logger.error('Error updating vendor:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -126,7 +127,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting vendor:', error)
+    logger.error('Error deleting vendor:', error)
     return NextResponse.json(
       { error: 'Failed to delete vendor' },
       { status: 500 }

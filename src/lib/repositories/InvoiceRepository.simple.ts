@@ -1,6 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { invoiceAuditRepository } from './InvoiceAuditRepository'
+import { logger } from '@/lib/utils/logger'
 
 // Simple types for our gradual implementation
 interface SimpleSale {
@@ -70,8 +71,8 @@ export class InvoiceRepository {
    * Simple save operation - now with transaction support
    */
   async saveInvoiceData(request: SimpleRequest): Promise<SimpleSaveResult> {
-    console.log('🚀 Starting SIMPLE saveInvoiceData with transaction')
-    console.log('📝 Request data:', {
+    logger.log('🚀 Starting SIMPLE saveInvoiceData with transaction')
+    logger.log('📝 Request data:', {
       agentId: request.agentId,
       vendor: request.vendor,
       salesCount: request.sales.length
@@ -88,7 +89,7 @@ export class InvoiceRepository {
 
         // Handle deletes first (avoid the race condition we had before)
         if (request.pendingDeletes) {
-          console.log('🗑️ Processing pending deletes:', request.pendingDeletes)
+          logger.log('🗑️ Processing pending deletes:', request.pendingDeletes)
           
           if (request.pendingDeletes.sales?.length) {
             // Get the records before deleting them for audit trail
@@ -105,7 +106,7 @@ export class InvoiceRepository {
             
             // Store deleted records for audit trail
             deletedSales = salesToDelete
-            console.log('✅ Deleted', request.pendingDeletes.sales.length, 'invoices')
+            logger.log('✅ Deleted', request.pendingDeletes.sales.length, 'invoices')
           }
           
           if (request.pendingDeletes.overrides?.length) {
@@ -113,7 +114,7 @@ export class InvoiceRepository {
               .deleteFrom('overrides')
               .where('ovrid', 'in', request.pendingDeletes.overrides)
               .execute()
-            console.log('✅ Deleted', request.pendingDeletes.overrides.length, 'overrides')
+            logger.log('✅ Deleted', request.pendingDeletes.overrides.length, 'overrides')
           }
           
           if (request.pendingDeletes.expenses?.length) {
@@ -121,13 +122,13 @@ export class InvoiceRepository {
               .deleteFrom('expenses')
               .where('expid', 'in', request.pendingDeletes.expenses)
               .execute()
-            console.log('✅ Deleted', request.pendingDeletes.expenses.length, 'expenses')
+            logger.log('✅ Deleted', request.pendingDeletes.expenses.length, 'expenses')
           }
         }
         
         // Process sales
         for (const sale of request.sales || []) {
-          console.log('💾 Processing sale:', sale)
+          logger.log('💾 Processing sale:', sale)
           
           const saleData = {
             vendor: request.vendor,
@@ -180,7 +181,7 @@ export class InvoiceRepository {
 
         // Process overrides
         for (const override of request.overrides || []) {
-          console.log('💾 Processing override:', override)
+          logger.log('💾 Processing override:', override)
           
           const overrideData = {
             vendor_id: parseInt(request.vendor),
@@ -213,7 +214,7 @@ export class InvoiceRepository {
 
         // Process expenses
         for (const expense of request.expenses || []) {
-          console.log('💾 Processing expense:', expense)
+          logger.log('💾 Processing expense:', expense)
           
           const expenseData = {
             vendor_id: parseInt(request.vendor),
@@ -246,7 +247,7 @@ export class InvoiceRepository {
         return { salesResults, overrideResults, expenseResults, deletedSales }
       })
 
-      console.log('✅ Transaction completed successfully')
+      logger.log('✅ Transaction completed successfully')
       
       // Calculate payroll after transaction completes
       await this.updatePayrollRecords(request, result.salesResults, result.overrideResults, result.expenseResults)
@@ -264,7 +265,7 @@ export class InvoiceRepository {
         message: `Processed ${result.salesResults.length} sales, ${result.overrideResults.length} overrides, ${result.expenseResults.length} expenses`
       }
     } catch (error) {
-      console.error('❌ Transaction failed:', error)
+      logger.error('❌ Transaction failed:', error)
       throw error
     }
   }
@@ -273,7 +274,7 @@ export class InvoiceRepository {
    * Update payroll and paystubs records
    */
   private async updatePayrollRecords(request: SimpleRequest, sales: any[], overrides: any[], expenses: any[]) {
-    console.log('💰 Updating payroll records')
+    logger.log('💰 Updating payroll records')
     
     try {
       // Calculate totals
@@ -282,7 +283,7 @@ export class InvoiceRepository {
       const expensesTotal = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0)
       const totalAmount = salesTotal + overridesTotal + expensesTotal
 
-      console.log('📊 Totals:', { salesTotal, overridesTotal, expensesTotal, totalAmount })
+      logger.log('📊 Totals:', { salesTotal, overridesTotal, expensesTotal, totalAmount })
 
       // Get employee and vendor names
       const [employee, vendor] = await Promise.all([
@@ -318,13 +319,13 @@ export class InvoiceRepository {
           .set(payrollData)
           .where('id', '=', existingPayroll.id)
           .execute()
-        console.log('✅ Updated payroll record:', existingPayroll.id)
+        logger.log('✅ Updated payroll record:', existingPayroll.id)
       } else {
         await db
           .insertInto('payroll')
           .values({ ...payrollData, created_at: new Date() })
           .execute()
-        console.log('✅ Created payroll record')
+        logger.log('✅ Created payroll record')
       }
 
       // Update or create paystubs record
@@ -353,17 +354,17 @@ export class InvoiceRepository {
           .set(paystubData)
           .where('id', '=', existingPaystub.id)
           .execute()
-        console.log('✅ Updated paystub record:', existingPaystub.id)
+        logger.log('✅ Updated paystub record:', existingPaystub.id)
       } else {
         await db
           .insertInto('paystubs')
           .values({ ...paystubData, created_at: new Date(), modified_by: 1 })
           .execute()
-        console.log('✅ Created paystub record')
+        logger.log('✅ Created paystub record')
       }
 
     } catch (error) {
-      console.error('❌ Error updating payroll records:', error)
+      logger.error('❌ Error updating payroll records:', error)
       // Don't throw - payroll calculation errors shouldn't fail the main operation
     }
   }
@@ -373,8 +374,8 @@ export class InvoiceRepository {
    */
   private async createAuditTrail(request: SimpleRequest, sales: any[], _overrides: any[], _expenses: any[], deletedSales: any[] = []) {
     if (!request.auditMetadata) return
-    
-    console.log('📝 Creating audit trail')
+
+    logger.log('📝 Creating audit trail')
     
     try {
       // Create audit records for updated/created sales
@@ -405,7 +406,7 @@ export class InvoiceRepository {
             request.auditMetadata.ipAddress
           )
           
-          console.log(`✅ Audit record created for invoice ${sale.invoice_id} (${sale._previousData ? 'UPDATE' : 'CREATE'})`)
+          logger.log(`✅ Audit record created for invoice ${sale.invoice_id} (${sale._previousData ? 'UPDATE' : 'CREATE'})`)
         }
       }
       
@@ -433,12 +434,12 @@ export class InvoiceRepository {
           request.auditMetadata.ipAddress
         )
         
-        console.log(`✅ Audit record created for deleted invoice ${deletedSale.invoice_id}`)
+        logger.log(`✅ Audit record created for deleted invoice ${deletedSale.invoice_id}`)
       }
       
-      console.log('✅ Audit trail created for', sales.length, 'invoice changes and', deletedSales.length, 'deletions')
+      logger.log('✅ Audit trail created for', sales.length, 'invoice changes and', deletedSales.length, 'deletions')
     } catch (error) {
-      console.error('❌ Error creating audit trail:', error)
+      logger.error('❌ Error creating audit trail:', error)
       // Don't throw - audit errors shouldn't fail the main operation
     }
   }
@@ -474,7 +475,7 @@ export class InvoiceRepository {
    * Get invoice page resources (agents, vendors, issue dates)
    */
   async getInvoicePageResources() {
-    console.log('📊 Getting invoice page resources')
+    logger.log('📊 Getting invoice page resources')
     
     try {
       // Get active agents with all sales IDs for filtering
@@ -508,7 +509,7 @@ export class InvoiceRepository {
         .map(row => dayjs(row.issue_date).format('MM-DD-YYYY'))
         .filter(date => date !== 'Invalid date')
 
-      console.log('✅ Found resources:', {
+      logger.log('✅ Found resources:', {
         agentsCount: agents.length,
         vendorsCount: vendors.length,
         issueDatesCount: issueDates.length
@@ -520,7 +521,7 @@ export class InvoiceRepository {
         issueDates
       }
     } catch (error) {
-      console.error('❌ Error getting invoice page resources:', error)
+      logger.error('❌ Error getting invoice page resources:', error)
       throw error
     }
   }
@@ -529,7 +530,7 @@ export class InvoiceRepository {
    * Get invoice details for a specific agent/vendor/issue date
    */
   async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string) {
-    console.log('📋 Getting invoice detail:', { agentId, vendorId, issueDate })
+    logger.log('📋 Getting invoice detail:', { agentId, vendorId, issueDate })
     
     try {
       const formattedDate = dayjs(issueDate, 'MM-DD-YYYY').toDate()
@@ -575,7 +576,7 @@ export class InvoiceRepository {
         .where('id', '=', vendorId)
         .executeTakeFirst()
 
-      console.log('✅ Found detail:', {
+      logger.log('✅ Found detail:', {
         invoicesCount: invoices.length,
         overridesCount: overrides.length,
         expensesCount: expenses.length,
@@ -608,7 +609,7 @@ export class InvoiceRepository {
         vendor: vendor || { id: vendorId, name: 'Unknown' }
       }
     } catch (error) {
-      console.error('❌ Error getting invoice detail:', error)
+      logger.error('❌ Error getting invoice detail:', error)
       throw error
     }
   }

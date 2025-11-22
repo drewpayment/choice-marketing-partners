@@ -1,11 +1,12 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
-import type { 
-  Sale as Invoice, 
-  Override, 
-  Expense, 
-  InvoiceSaveRequest, 
-  PayStatementDetailResponse as InvoiceSaveResult 
+import { logger } from '@/lib/utils/logger'
+import type {
+  Sale as Invoice,
+  Override,
+  Expense,
+  InvoiceSaveRequest,
+  PayStatementDetailResponse as InvoiceSaveResult
 } from '@/types/database'
 
 /**
@@ -208,7 +209,7 @@ export class InvoiceRepository {
    * Get invoice detail for editing
    */
   async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string): Promise<InvoiceDetail | null> {
-    console.log('🔍 Repository - getInvoiceDetail called with:', { agentId, vendorId, issueDate })
+    logger.log('🔍 Repository - getInvoiceDetail called with:', { agentId, vendorId, issueDate })
     
     agentId = Number(agentId);
     issueDate = dayjs(issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
@@ -222,7 +223,7 @@ export class InvoiceRepository {
       .where(({ eb }) => eb.fn('DATE', ['issue_date']), '=', issueDate)
       .execute()
 
-    console.log('💾 Repository - Found invoices:', invoices.length)
+    logger.log('💾 Repository - Found invoices:', invoices.length)
 
     if (invoices.length === 0) {
       invoices = [{
@@ -353,8 +354,8 @@ export class InvoiceRepository {
    * Save invoice data (simplified version for testing)
    */
   async saveInvoiceData(request: InvoiceSaveRequest): Promise<InvoiceSaveResult> {
-    console.log('🚀 Starting simplified saveInvoiceData')
-    console.log('📝 Request data:', {
+    logger.log('🚀 Starting simplified saveInvoiceData')
+    logger.log('📝 Request data:', {
       agentId: request.agentId,
       vendorId: request.vendorId,
       salesCount: request.sales.length,
@@ -371,7 +372,7 @@ export class InvoiceRepository {
       const savedSales: Invoice[] = []
       
       for (const sale of request.sales) {
-        console.log('� Processing sale:', {
+        logger.log('� Processing sale:', {
           invoiceId: sale.invoiceId,
           firstName: sale.firstName,
           lastName: sale.lastName,
@@ -394,7 +395,7 @@ export class InvoiceRepository {
         }
 
         if (sale.invoiceId && sale.invoiceId > 0) {
-          console.log('🔄 Updating existing invoice:', sale.invoiceId)
+          logger.log('🔄 Updating existing invoice:', sale.invoiceId)
           
           // Simple update without transaction
           await db
@@ -403,7 +404,7 @@ export class InvoiceRepository {
             .where('invoice_id', '=', sale.invoiceId)
             .execute()
             
-          console.log('✅ Updated invoice:', sale.invoiceId)
+          logger.log('✅ Updated invoice:', sale.invoiceId)
           
           savedSales.push({
             invoice_id: sale.invoiceId,
@@ -420,7 +421,7 @@ export class InvoiceRepository {
             wkending: dayjs(saleData.wkending).format('YYYY-MM-DD')
           })
         } else {
-          console.log('➕ Creating new invoice')
+          logger.log('➕ Creating new invoice')
           
           // Simple insert without transaction
           const result = await db
@@ -432,7 +433,7 @@ export class InvoiceRepository {
             .executeTakeFirst()
 
           const newInvoiceId = Number(result.insertId)
-          console.log('✅ Created new invoice:', newInvoiceId)
+          logger.log('✅ Created new invoice:', newInvoiceId)
 
           savedSales.push({
             invoice_id: newInvoiceId,
@@ -451,7 +452,7 @@ export class InvoiceRepository {
         }
       }
 
-      console.log('✅ All sales processed successfully')
+      logger.log('✅ All sales processed successfully')
 
       // Return simplified result
       return {
@@ -469,7 +470,7 @@ export class InvoiceRepository {
         }
       }
     } catch (error) {
-      console.error('❌ Error in simplified saveInvoiceData:', error)
+      logger.error('❌ Error in simplified saveInvoiceData:', error)
       throw error
     }
   }
@@ -520,7 +521,7 @@ export class InvoiceRepository {
             ipAddress
           )
         } catch (auditError) {
-          console.error('Failed to create audit record for invoice deletion:', auditError)
+          logger.error('Failed to create audit record for invoice deletion:', auditError)
           // Continue with the transaction - don't fail the delete due to audit issues
         }
       }
@@ -587,7 +588,7 @@ export class InvoiceRepository {
                 ipAddress
               )
             } catch (auditError) {
-              console.error('Failed to create audit record for invoice deletion:', auditError)
+              logger.error('Failed to create audit record for invoice deletion:', auditError)
               // Continue with the transaction - don't fail the delete due to audit issues
             }
           }
@@ -641,7 +642,7 @@ export class InvoiceRepository {
 
         return true
       } catch (error) {
-        console.error('Error deleting paystub:', error)
+        logger.error('Error deleting paystub:', error)
         return false
       }
     })

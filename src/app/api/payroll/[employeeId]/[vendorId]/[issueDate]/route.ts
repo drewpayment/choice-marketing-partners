@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +52,7 @@ export async function GET(
     return NextResponse.json(paystubDetail)
 
   } catch (error) {
-    console.error('Payroll detail API error:', error)
+    logger.error('Payroll detail API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

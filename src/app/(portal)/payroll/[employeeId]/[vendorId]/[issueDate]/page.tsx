@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/server-auth'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import PaystubDetailView from '@/components/payroll/PaystubDetailView'
+import { logger } from '@/lib/utils/logger'
 
 interface PayrollDetailPageProps {
   params: Promise<{
@@ -86,7 +87,7 @@ export default async function PayrollDetailPage({ params, searchParams }: Payrol
       </div>
     )
   } catch (error) {
-    console.error('Error loading payroll detail:', error)
+    logger.error('Error loading payroll detail:', error)
     notFound()
   }
 }

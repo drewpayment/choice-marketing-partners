@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Copy, RefreshCw, Check, Eye, EyeOff, Key } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface PasswordResetDialogProps {
   employeeId: string
@@ -102,7 +103,7 @@ export function PasswordResetDialog({ employeeId, employeeName, isOpen, onClose,
         setError(errorData.error || 'Failed to reset password')
       }
     } catch (error) {
-      console.error('Error resetting password:', error)
+      logger.error('Error resetting password:', error)
       setError('Failed to reset password')
     } finally {
       setIsLoading(false)

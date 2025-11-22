@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -31,7 +32,7 @@ export async function GET() {
       actualData: result.data.slice(0, 3) // Just first 3 for debugging
     })
   } catch (error) {
-    console.error('Debug count error:', error)
+    logger.error('Debug count error:', error)
     return NextResponse.json({ error: 'Internal server error', details: error }, { status: 500 })
   }
 }

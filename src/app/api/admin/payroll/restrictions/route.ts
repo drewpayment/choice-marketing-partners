@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/database/client';
 import { PayrollRestrictionResponse, PayrollRestrictionUpdateRequest } from '@/lib/types/admin';
+import { logger } from '@/lib/utils/logger'
 
 // Verify admin access
 async function verifyAdminAccess() {
@@ -46,7 +47,7 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching payroll restriction:', error);
+    logger.error('Error fetching payroll restriction:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -100,7 +101,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating payroll restriction:', error);
+    logger.error('Error updating payroll restriction:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

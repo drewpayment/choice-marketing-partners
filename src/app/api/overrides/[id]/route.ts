@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
+import { logger } from '@/lib/utils/logger'
 
 const managerEmployeeRepository = new ManagerEmployeeRepository()
 
@@ -39,7 +40,7 @@ export async function GET(
       unassignedEmployees
     })
   } catch (error) {
-    console.error('Error fetching manager details:', error)
+    logger.error('Error fetching manager details:', error)
     return NextResponse.json(
       { error: 'Failed to fetch manager details' },
       { status: 500 }

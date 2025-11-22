@@ -31,10 +31,11 @@ import {
   Trash2,
   Calendar
 } from 'lucide-react';
-import { 
-  CompanyOptionsResponse, 
-  PayrollRestrictionResponse, 
-  PayrollDatesResponse 
+import { logger } from '@/lib/utils/logger';
+import {
+  CompanyOptionsResponse,
+  PayrollRestrictionResponse,
+  PayrollDatesResponse
 } from '@/lib/types/admin';
 
 // Form schemas
@@ -138,7 +139,7 @@ export default function AdminSettingsPage() {
         });
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      logger.error('Error loading settings:', error);
       toast({
         title: 'Error',
         description: 'Failed to load settings data.',
@@ -179,7 +180,7 @@ export default function AdminSettingsPage() {
         description: 'Email notification settings have been updated.',
       });
     } catch (error) {
-      console.error('Error saving email settings:', error);
+      logger.error('Error saving email settings:', error);
       toast({
         title: 'Error',
         description: 'Failed to save email settings.',
@@ -215,7 +216,7 @@ export default function AdminSettingsPage() {
         description: 'Payroll restriction settings have been updated.',
       });
     } catch (error) {
-      console.error('Error saving restriction settings:', error);
+      logger.error('Error saving restriction settings:', error);
       toast({
         title: 'Error',
         description: 'Failed to save restriction settings.',
@@ -255,7 +256,7 @@ export default function AdminSettingsPage() {
       setShowAddDateForm(false);
       
     } catch (error) {
-      console.error('Error adding payroll date:', error);
+      logger.error('Error adding payroll date:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to add payroll date.',
@@ -294,7 +295,7 @@ export default function AdminSettingsPage() {
       await loadSettingsData();
       
     } catch (error) {
-      console.error('Error deleting payroll date:', error);
+      logger.error('Error deleting payroll date:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete payroll date.',

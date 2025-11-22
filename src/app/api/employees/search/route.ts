@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ employees })
   } catch (error) {
-    console.error('Error searching employees:', error)
+    logger.error('Error searching employees:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

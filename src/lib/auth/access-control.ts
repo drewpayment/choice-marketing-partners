@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Route access levels and their requirements
@@ -132,7 +133,7 @@ export async function validateRouteAccess(request: NextRequest) {
     return NextResponse.next()
     
   } catch (error) {
-    console.error('Access validation error:', error)
+    logger.error('Access validation error:', error)
     // On error, redirect to login for safety
     return NextResponse.redirect(
       new URL(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`, request.url)

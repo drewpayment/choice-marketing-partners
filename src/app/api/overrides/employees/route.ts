@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const managerEmployeeRepository = new ManagerEmployeeRepository()
 
@@ -34,7 +35,7 @@ export async function GET() {
       unassignedEmployees
     })
   } catch (error) {
-    console.error('Error fetching employees for assignment:', error)
+    logger.error('Error fetching employees for assignment:', error)
     return NextResponse.json(
       { error: 'Failed to fetch employees' },
       { status: 500 }
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
       assignmentsUpdated: data.assignments.length
     })
   } catch (error) {
-    console.error('Error updating assignments:', error)
+    logger.error('Error updating assignments:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

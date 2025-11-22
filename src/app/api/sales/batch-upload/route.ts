@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Batch upload endpoint for importing multiple sales records
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error('Batch upload error:', error);
+    logger.error('Batch upload error:', error);
     return NextResponse.json(
       { error: 'Internal server error during batch upload' },
       { status: 500 }

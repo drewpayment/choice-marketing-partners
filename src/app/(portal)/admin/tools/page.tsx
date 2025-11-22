@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import { logger } from '@/lib/utils/logger';
+import {
   Wrench,
   RefreshCw,
   Calendar,
@@ -87,7 +88,7 @@ export default function AdminToolsPage() {
       pollJobStatus(newJob.id);
       
     } catch (error) {
-      console.error('Error starting reprocess job:', error);
+      logger.error('Error starting reprocess job:', error);
       toast({
         title: 'Error',
         description: 'Failed to start payroll reprocessing.',
@@ -139,7 +140,7 @@ export default function AdminToolsPage() {
           }
         }
       } catch (error) {
-        console.error('Error polling job status:', error);
+        logger.error('Error polling job status:', error);
         clearInterval(pollInterval);
       }
     }, 2000); // Poll every 2 seconds
@@ -166,7 +167,7 @@ export default function AdminToolsPage() {
         description: 'Reprocessing job has been cancelled.',
       });
     } catch (error) {
-      console.error('Error cancelling job:', error);
+      logger.error('Error cancelling job:', error);
       toast({
         title: 'Error',
         description: 'Failed to cancel reprocessing job.',

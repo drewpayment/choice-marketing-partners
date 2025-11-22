@@ -5,6 +5,7 @@ import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { generatePassword } from '@/lib/utils/password'
 import { sendWelcomeEmail } from '@/lib/services/email'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching employees:', error)
+    logger.error('Error fetching employees:', error)
     return NextResponse.json(
       { error: 'Failed to fetch employees' },
       { status: 500 }
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
         })
       } catch (emailError) {
         // Log email error but don't fail the employee creation
-        console.error('Failed to send welcome email:', emailError)
+        logger.error('Failed to send welcome email:', emailError)
       }
     }
 
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
       generatedPassword: generatedPassword
     }, { status: 201 })
   } catch (error) {
-    console.error('Error creating employee:', error)
+    logger.error('Error creating employee:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

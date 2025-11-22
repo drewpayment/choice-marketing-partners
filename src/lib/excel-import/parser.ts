@@ -5,6 +5,7 @@
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { ColumnMapping } from './field-mapper';
+import { logger } from '@/lib/utils/logger'
 
 export interface ParsedData {
   headers: string[];
@@ -229,12 +230,12 @@ async function parseCSVHeaders(
           const validFirstRow = Array.isArray(firstRow) ? firstRow : [];
           const headers = validFirstRow.map((_, index) => {
             const label = getExcelColumnLabel(index);
-            console.log(`Generated label for index ${index}:`, label);
+            logger.log(`Generated label for index ${index}:`, label);
             return label;
           }).filter(h => h !== undefined && h !== null);
           
-          console.log('CSV firstRow:', validFirstRow);
-          console.log('CSV generated headers:', headers);
+          logger.log('CSV firstRow:', validFirstRow);
+          logger.log('CSV generated headers:', headers);
           
           resolve({ headers, firstRow: validFirstRow });
         }
@@ -283,12 +284,12 @@ async function parseExcelHeaders(
     const validFirstRow = Array.isArray(firstRow) ? firstRow : [];
     const headers = validFirstRow.map((_, index) => {
       const label = getExcelColumnLabel(index);
-      console.log(`Excel: Generated label for index ${index}:`, label);
+      logger.log(`Excel: Generated label for index ${index}:`, label);
       return label;
     }).filter(h => h !== undefined && h !== null);
     
-    console.log('Excel firstRow:', validFirstRow);
-    console.log('Excel generated headers:', headers);
+    logger.log('Excel firstRow:', validFirstRow);
+    logger.log('Excel generated headers:', headers);
     
     return { headers, firstRow: validFirstRow };
   }
@@ -336,11 +337,11 @@ async function parseCSVWithMappings(
           } else {
             // Headerless path - Papa returns arrays, convert to objects with column labels
             const arrayRows = results.data as unknown[][];
-            console.log('CSV arrayRows (first 3):', arrayRows.slice(0, 3));
+            logger.log('CSV arrayRows (first 3):', arrayRows.slice(0, 3));
             
             rowObjects = arrayRows.map((row, rowIndex) => {
               if (!Array.isArray(row)) {
-                console.warn(`Row ${rowIndex} is not an array:`, row);
+                logger.warn(`Row ${rowIndex} is not an array:`, row);
                 return {};
               }
               
@@ -353,12 +354,12 @@ async function parseCSVWithMappings(
             });
           }
           
-          console.log('CSV rowObjects (first 3):', rowObjects.slice(0, 3));
-          console.log('Mappings to apply:', mappings);
+          logger.log('CSV rowObjects (first 3):', rowObjects.slice(0, 3));
+          logger.log('Mappings to apply:', mappings);
           
           const rows = applyMappingsToRows(rowObjects, mappings);
           
-          console.log('CSV mapped rows (first 3):', rows.slice(0, 3));
+          logger.log('CSV mapped rows (first 3):', rows.slice(0, 3));
           
           resolve({
             headers: hasHeaders ? (results.meta.fields || []) : mappings.map(m => m.excelColumn),
@@ -366,7 +367,7 @@ async function parseCSVWithMappings(
             totalRows: rows.length
           });
         } catch (error) {
-          console.error('Error in parseCSVWithMappings:', error);
+          logger.error('Error in parseCSVWithMappings:', error);
           reject(error);
         }
       },
@@ -437,12 +438,12 @@ async function parseExcelWithMappings(
     return obj;
   });
 
-  console.log('Excel rowObjects (first 3):', rowObjects.slice(0, 3));
-  console.log('Excel mappings to apply:', mappings);
+  logger.log('Excel rowObjects (first 3):', rowObjects.slice(0, 3));
+  logger.log('Excel mappings to apply:', mappings);
 
   const rows = applyMappingsToRows(rowObjects, mappings);
 
-  console.log('Excel mapped rows (first 3):', rows.slice(0, 3));
+  logger.log('Excel mapped rows (first 3):', rows.slice(0, 3));
 
   return {
     headers,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 interface Agent {
   name: string
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ agents, title })
   } catch (error) {
-    console.error('Error in comma club API:', error)
+    logger.error('Error in comma club API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

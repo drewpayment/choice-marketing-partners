@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 interface InvoiceExpensesTableProps {
   expenses: InvoiceExpenseFormData[];
   onExpensesChange: (expenses: InvoiceExpenseFormData[]) => void;
+  onExpenseRemove: (index: number) => void;
 }
 
-export default function InvoiceExpensesTable({ expenses, onExpensesChange }: InvoiceExpensesTableProps) {
+export default function InvoiceExpensesTable({ expenses, onExpensesChange, onExpenseRemove }: InvoiceExpensesTableProps) {
   const addExpense = () => {
     const newExpense: InvoiceExpenseFormData = {
       type: '',
@@ -19,10 +20,6 @@ export default function InvoiceExpensesTable({ expenses, onExpensesChange }: Inv
       notes: ''
     };
     onExpensesChange([...expenses, newExpense]);
-  };
-
-  const removeExpense = (index: number) => {
-    onExpensesChange(expenses.filter((_, i) => i !== index));
   };
 
   const updateExpense = (index: number, field: keyof InvoiceExpenseFormData, value: string | number) => {
@@ -75,10 +72,10 @@ export default function InvoiceExpensesTable({ expenses, onExpensesChange }: Inv
                 />
               </TableCell>
               <TableCell>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => removeExpense(index)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onExpenseRemove(index)}
                 >
                   Remove
                 </Button>

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ available })
   } catch (error) {
-    console.error('Error checking email availability:', error)
+    logger.error('Error checking email availability:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TypeaheadSelect } from '@/components/ui/typeahead-select';
 import { Edit, Plus, Calendar, DollarSign, User, Building2, Search } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger'
 
 interface PayrollSummary {
   employeeId: number;
@@ -124,7 +125,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
         setFilterOptions(options);
       }
     } catch (err) {
-      console.error('Failed to fetch filter options:', err);
+      logger.error('Failed to fetch filter options:', err);
     }
   };
 

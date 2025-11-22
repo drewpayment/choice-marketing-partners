@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { logger } from '@/lib/utils/logger'
 
 interface Toast {
   id: string;
@@ -25,7 +26,7 @@ export function useToast() {
     }, 5000);
     
     // For now, just log to console as a simple implementation
-    console.log(`Toast (${variant}): ${title}${description ? ` - ${description}` : ''}`);
+    logger.log(`Toast (${variant}): ${title}${description ? ` - ${description}` : ''}`);
   }, []);
 
   return { toast, toasts };

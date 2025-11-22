@@ -2,6 +2,7 @@ import { requireManagerAccess } from '@/lib/auth/server-auth';
 import InvoiceEditor from '@/components/invoice/InvoiceEditor';
 import { notFound } from 'next/navigation';
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository';
+import { logger } from '@/lib/utils/logger';
 
 interface EditInvoicePageProps {
   params: Promise<{
@@ -11,39 +12,39 @@ interface EditInvoicePageProps {
 
 export default async function EditInvoicePage({ params: paramsPromise }: EditInvoicePageProps) {
   const params = await paramsPromise;
-  console.log('🚀 EditInvoicePage reached with params:', params);
+  logger.log('🚀 EditInvoicePage reached with params:', params);
 
   await requireManagerAccess();
   
   // Extract parameters from the catch-all route
   const vals = params;
-  console.log(vals);
-  
+  logger.log(vals);
+
   const routeParams = vals.params;
-  console.log(routeParams)
+  logger.log(routeParams)
   
   // Expect exactly 3 parameters: employeeId, vendorId, issueDate
   if (!routeParams || routeParams.length !== 3) {
-    console.error('❌ Invalid route parameters. Expected 3 params, got:', routeParams?.length);
-    notFound();
-  }
-  
-  const [employeeId, vendorId, issueDate] = routeParams;
-  
-  // Validate that employeeId and vendorId are numbers
-  if (isNaN(Number(employeeId)) || isNaN(Number(vendorId))) {
-    console.error('❌ Invalid parameters. employeeId and vendorId must be numbers:', { employeeId, vendorId });
-    notFound();
-  }
-  
-  // Validate date format (MM-DD-YYYY)
-  const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
-  if (!dateRegex.test(issueDate)) {
-    console.error('❌ Invalid date format. Expected MM-DD-YYYY, got:', issueDate);
+    logger.error('❌ Invalid route parameters. Expected 3 params, got:', routeParams?.length);
     notFound();
   }
 
-  console.log('✅ EditInvoicePage resolved params:', { employeeId, vendorId, issueDate });
+  const [employeeId, vendorId, issueDate] = routeParams;
+
+  // Validate that employeeId and vendorId are numbers
+  if (isNaN(Number(employeeId)) || isNaN(Number(vendorId))) {
+    logger.error('❌ Invalid parameters. employeeId and vendorId must be numbers:', { employeeId, vendorId });
+    notFound();
+  }
+
+  // Validate date format (MM-DD-YYYY)
+  const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+  if (!dateRegex.test(issueDate)) {
+    logger.error('❌ Invalid date format. Expected MM-DD-YYYY, got:', issueDate);
+    notFound();
+  }
+
+  logger.log('✅ EditInvoicePage resolved params:', { employeeId, vendorId, issueDate });
 
   // Fetch invoice details using SSR
   const agentId = parseInt(employeeId);
@@ -51,15 +52,15 @@ export default async function EditInvoicePage({ params: paramsPromise }: EditInv
   
   try {
     const invoiceDetails = await invoiceRepository.getInvoiceDetail(agentId, vendorIdNum, issueDate);
-    
+
     if (!invoiceDetails) {
-      console.error('❌ Invoice not found for:', { agentId, vendorIdNum, issueDate });
+      logger.error('❌ Invoice not found for:', { agentId, vendorIdNum, issueDate });
       notFound();
     }
 
-    console.log('✅ SSR - Invoice details loaded:', { 
-      invoicesCount: invoiceDetails.invoices.length, 
-      overridesCount: invoiceDetails.overrides.length, 
+    logger.log('✅ SSR - Invoice details loaded:', {
+      invoicesCount: invoiceDetails.invoices.length,
+      overridesCount: invoiceDetails.overrides.length,
       expensesCount: invoiceDetails.expenses.length,
     });
 
@@ -82,7 +83,7 @@ export default async function EditInvoicePage({ params: paramsPromise }: EditInv
       </div>
     );
   } catch (error) {
-    console.error('❌ Error loading invoice details:', error);
+    logger.error('❌ Error loading invoice details:', error);
     throw error; // This will trigger Next.js error boundary
   }
 }

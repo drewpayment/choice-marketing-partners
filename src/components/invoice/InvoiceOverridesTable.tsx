@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 interface InvoiceOverridesTableProps {
   overrides: InvoiceOverrideFormData[];
   onOverridesChange: (overrides: InvoiceOverrideFormData[]) => void;
+  onOverrideRemove: (index: number) => void;
 }
 
-export default function InvoiceOverridesTable({ overrides, onOverridesChange }: InvoiceOverridesTableProps) {
+export default function InvoiceOverridesTable({ overrides, onOverridesChange, onOverrideRemove }: InvoiceOverridesTableProps) {
   const addOverride = () => {
     const newOverride: InvoiceOverrideFormData = {
       name: '',
@@ -20,10 +21,6 @@ export default function InvoiceOverridesTable({ overrides, onOverridesChange }: 
       total: 0
     };
     onOverridesChange([...overrides, newOverride]);
-  };
-
-  const removeOverride = (index: number) => {
-    onOverridesChange(overrides.filter((_, i) => i !== index));
   };
 
   const updateOverride = (index: number, field: keyof InvoiceOverrideFormData, value: string | number) => {
@@ -100,10 +97,10 @@ export default function InvoiceOverridesTable({ overrides, onOverridesChange }: 
                 />
               </TableCell>
               <TableCell>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => removeOverride(index)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onOverrideRemove(index)}
                 >
                   Remove
                 </Button>

@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  FileText, 
-  Download, 
-  Search, 
+import { logger } from '@/lib/utils/logger';
+import {
+  FileText,
+  Download,
+  Search,
   MoreVertical,
   Calendar,
   User,
@@ -68,7 +69,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
       if (filters.mimeType) params.append('mimeType', filters.mimeType);
       if (filters.uploadedBy) params.append('uploadedBy', filters.uploadedBy);
 
-      console.log('Fetching documents with params:', params.toString());
+      logger.log('Fetching documents with params:', params.toString());
 
       const response = await fetch(`/api/documents?${params}`, {
         credentials: 'include',
@@ -82,12 +83,12 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
       }
 
       const data: DocumentsResponse = await response.json();
-      console.log('Documents received:', data);
+      logger.log('Documents received:', data);
       setDocuments(data.documents);
       setTotalPages(data.totalPages);
       setTotal(data.total);
     } catch (err) {
-      console.error('Fetch documents error:', err);
+      logger.error('Fetch documents error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load documents');
     } finally {
       setLoading(false);
@@ -119,7 +120,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
         window.open(data.downloadUrl, '_blank');
       }
     } catch (err) {
-      console.error('Download error:', err);
+      logger.error('Download error:', err);
       alert('Failed to download document');
     }
   };

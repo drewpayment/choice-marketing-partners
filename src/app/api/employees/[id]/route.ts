@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -52,7 +53,7 @@ export async function GET(
 
     return NextResponse.json({ employee })
   } catch (error) {
-    console.error('Error fetching employee:', error)
+    logger.error('Error fetching employee:', error)
     return NextResponse.json(
       { error: 'Failed to fetch employee' },
       { status: 500 }
@@ -103,7 +104,7 @@ export async function PUT(
 
     return NextResponse.json({ employee: updatedEmployee })
   } catch (error) {
-    console.error('Error updating employee:', error)
+    logger.error('Error updating employee:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -155,7 +156,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Employee deleted successfully' })
   } catch (error) {
-    console.error('Error deleting employee:', error)
+    logger.error('Error deleting employee:', error)
     return NextResponse.json(
       { error: 'Failed to delete employee' },
       { status: 500 }

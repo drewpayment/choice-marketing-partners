@@ -29,6 +29,7 @@ import ImportPreview from './ImportPreview';
 import WorksheetSelector from './WorksheetSelector';
 import DateFormatSelector from './DateFormatSelector';
 import { InvoiceSaleFormData, AgentWithSalesIds } from '@/types/database';
+import { logger } from '@/lib/utils/logger'
 
 type ImportStep = 'upload' | 'worksheet' | 'dateformat' | 'mapping' | 'preview' | 'complete';
 
@@ -151,7 +152,7 @@ export default function ExcelImportDialog({
       const result = await parseFileHeaders(selectedFile, worksheetName || undefined, true);
       fileHeaders = result.headers;
       
-      console.log('Headers with hasHeaders=true:', fileHeaders);
+      logger.log('Headers with hasHeaders=true:', fileHeaders);
       
       if (fileHeaders.length === 0) {
         throw new Error('No headers found in file');
@@ -162,8 +163,8 @@ export default function ExcelImportDialog({
       firstRow = result.firstRow || [];
       fileHeaders = result.headers;
       
-      console.log('Headers with hasHeaders=false:', fileHeaders);
-      console.log('First row data:', firstRow);
+      logger.log('Headers with hasHeaders=false:', fileHeaders);
+      logger.log('First row data:', firstRow);
       
       if (fileHeaders.length === 0) {
         throw new Error('No columns found in file');
@@ -187,7 +188,7 @@ export default function ExcelImportDialog({
       !hasHeaders
     );
 
-    console.log('Generated mappings:', initialMappings);
+    logger.log('Generated mappings:', initialMappings);
 
     setMappings(initialMappings);
     setStep('mapping');

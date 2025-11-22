@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger'
 
 const documentRepository = new DocumentRepository();
 
@@ -61,7 +62,7 @@ export async function GET(
 
     return NextResponse.json(document);
   } catch (error) {
-    console.error('Document GET error:', error);
+    logger.error('Document GET error:', error);
     
     return NextResponse.json(
       { error: 'Failed to fetch document' },
@@ -121,7 +122,7 @@ export async function PATCH(
     const updatedDocument = await documentRepository.getDocumentById(documentId);
     return NextResponse.json(updatedDocument);
   } catch (error) {
-    console.error('Document PATCH error:', error);
+    logger.error('Document PATCH error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -187,7 +188,7 @@ export async function DELETE(
       message: 'Document deleted successfully',
     });
   } catch (error) {
-    console.error('Document DELETE error:', error);
+    logger.error('Document DELETE error:', error);
     
     return NextResponse.json(
       { error: 'Failed to delete document' },

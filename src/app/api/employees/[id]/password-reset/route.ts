@@ -5,6 +5,7 @@ import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/database/client'
+import { logger } from '@/lib/utils/logger'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -67,14 +68,14 @@ export async function POST(
 
     // Log the password reset activity
     // Note: In a production system, you might want to create an audit log table
-    console.log(`Password reset for user ${employee.user.uid} by admin ${session.user.id} at ${new Date().toISOString()}`)
+    logger.log(`Password reset for user ${employee.user.uid} by admin ${session.user.id} at ${new Date().toISOString()}`)
 
     return NextResponse.json({
       message: 'Password reset successfully',
       forceChange: data.forceChange
     })
   } catch (error) {
-    console.error('Error resetting password:', error)
+    logger.error('Error resetting password:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

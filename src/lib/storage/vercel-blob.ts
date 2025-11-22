@@ -1,5 +1,6 @@
 // Vercel Blob Storage Configuration and Client
 import { put, del, head } from '@vercel/blob';
+import { logger } from '@/lib/utils/logger'
 
 // Environment configuration for Vercel Blob
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
@@ -65,7 +66,7 @@ export async function uploadToBlob(
       downloadUrl: blob.downloadUrl,
     };
   } catch (error) {
-    console.error('Error uploading to Vercel Blob:', error);
+    logger.error('Error uploading to Vercel Blob:', error);
     throw new Error('Failed to upload file to Vercel Blob storage');
   }
 }
@@ -76,7 +77,7 @@ export async function deleteFromBlob(url: string): Promise<boolean> {
     await del(url, { token: BLOB_READ_WRITE_TOKEN });
     return true;
   } catch (error) {
-    console.error('Error deleting from Vercel Blob:', error);
+    logger.error('Error deleting from Vercel Blob:', error);
     return false;
   }
 }
@@ -95,7 +96,7 @@ export async function getBlobMetadata(url: string): Promise<{
       uploadedAt: metadata.uploadedAt,
     };
   } catch (error) {
-    console.error('Error getting blob metadata:', error);
+    logger.error('Error getting blob metadata:', error);
     return null;
   }
 }

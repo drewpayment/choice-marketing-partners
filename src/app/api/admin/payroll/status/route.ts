@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/database/client';
+import { logger } from '@/lib/utils/logger'
 
 // Verify admin access
 async function verifyAdminAccess() {
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error fetching payroll status:', error);
+    logger.error('Error fetching payroll status:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -148,7 +149,7 @@ export async function PUT(request: NextRequest) {
       message: `Successfully ${isPaid ? 'marked as paid' : 'marked as unpaid'} ${result.length} record(s)`
     });
   } catch (error) {
-    console.error('Error updating payroll status:', error);
+    logger.error('Error updating payroll status:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

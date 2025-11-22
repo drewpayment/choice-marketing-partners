@@ -18,6 +18,7 @@ import {
 import { InvoiceSearchForm, InvoiceSearchFilters } from '@/components/invoice-audit/InvoiceSearchForm'
 import { InvoiceAuditHistory, InvoiceAuditRecord } from '@/components/invoice-audit/InvoiceAuditHistory'
 import { useSession } from 'next-auth/react'
+import { logger } from '@/lib/utils/logger'
 
 // Types for API responses
 interface SearchResult {
@@ -86,7 +87,7 @@ export default function InvoiceSearchPage() {
         })))
       }
     } catch (error) {
-      console.error('Error loading agents and vendors:', error)
+      logger.error('Error loading agents and vendors:', error)
       // Don't show error toast for this as it's not critical for the main functionality
     }
   }
@@ -111,7 +112,7 @@ export default function InvoiceSearchPage() {
       const result = await response.json()
       setDashboardData(result.data)
     } catch (err) {
-      console.error('Error loading dashboard data:', err)
+      logger.error('Error loading dashboard data:', err)
       setError(err instanceof Error ? err.message : 'Failed to load dashboard data')
     } finally {
       setIsLoadingDashboard(false)
@@ -140,7 +141,7 @@ export default function InvoiceSearchPage() {
       setSearchResults(result.data)
       setActiveTab('results')
     } catch (err) {
-      console.error('Error searching invoices:', err)
+      logger.error('Error searching invoices:', err)
       setError(err instanceof Error ? err.message : 'Search failed')
     } finally {
       setIsSearching(false)

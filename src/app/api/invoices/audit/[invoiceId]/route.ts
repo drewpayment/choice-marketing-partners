@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceAuditRepository } from '@/lib/repositories/InvoiceAuditRepository'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/invoices/audit/[invoiceId] - Get audit history for specific invoice
@@ -81,7 +82,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error getting invoice audit history:', error)
+    logger.error('Error getting invoice audit history:', error)
     return NextResponse.json(
       { error: 'Failed to load audit history' },
       { status: 500 }

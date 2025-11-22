@@ -31,7 +31,8 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import { logger } from '@/lib/utils/logger';
+import {
   Search,
   RefreshCw,
   Filter,
@@ -125,7 +126,7 @@ export default function PayrollMonitoringPage() {
       const payrollData: PayrollStatusResponse = await response.json();
       setData(payrollData);
     } catch (error) {
-      console.error('Error loading payroll data:', error);
+      logger.error('Error loading payroll data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load payroll data.',
@@ -144,7 +145,7 @@ export default function PayrollMonitoringPage() {
       const vendorData = await response.json();
       setVendors(vendorData);
     } catch (error) {
-      console.error('Error loading vendor options:', error);
+      logger.error('Error loading vendor options:', error);
       // Don't show error toast for this as it's not critical
     }
   }, []);
@@ -177,7 +178,7 @@ export default function PayrollMonitoringPage() {
         description: 'Payroll data exported successfully.',
       });
     } catch (error) {
-      console.error('Error exporting payroll data:', error);
+      logger.error('Error exporting payroll data:', error);
       toast({
         title: 'Export Error',
         description: 'Failed to export payroll data.',
@@ -303,7 +304,7 @@ export default function PayrollMonitoringPage() {
       await loadPayrollData();
       setSelectedRecords(new Set());
     } catch (error) {
-      console.error('Error updating payroll status:', error);
+      logger.error('Error updating payroll status:', error);
       toast({
         title: 'Error',
         description: 'Failed to update payroll status.',

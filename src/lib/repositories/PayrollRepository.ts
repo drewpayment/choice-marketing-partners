@@ -1,13 +1,14 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import { logger } from '@/lib/utils/logger'
 
 // Server-side PostHog logging utility
 function logToPostHog(eventName: string, properties: Record<string, unknown>) {
   // Only log in production
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-    // For server-side logging, we'll use console.log with a specific format
+    // For server-side logging, we'll use logger.log with a specific format
     // that can be captured by monitoring tools or PostHog's server SDK if needed
-    console.log('[POSTHOG_SERVER_EVENT]', JSON.stringify({
+    logger.log('[POSTHOG_SERVER_EVENT]', JSON.stringify({
       event: eventName,
       properties: {
         ...properties,

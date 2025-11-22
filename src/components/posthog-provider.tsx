@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import posthog from 'posthog-js'
+import { logger } from '@/lib/utils/logger'
 
 function PostHogPageTracker() {
   const pathname = usePathname()
@@ -54,7 +55,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         // Capture the initial pageview
         posthog.capture('$pageview')
       } else {
-        console.warn('PostHog API key not found. Please set NEXT_PUBLIC_POSTHOG_KEY environment variable.')
+        logger.warn('PostHog API key not found. Please set NEXT_PUBLIC_POSTHOG_KEY environment variable.')
       }
     }
   }, [])

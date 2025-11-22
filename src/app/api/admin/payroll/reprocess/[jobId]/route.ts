@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { logger } from '@/lib/utils/logger'
 
 interface ReprocessJob {
   id: string;
@@ -61,7 +62,7 @@ export async function GET(
     return NextResponse.json(job);
 
   } catch (error) {
-    console.error('Error fetching job status:', error);
+    logger.error('Error fetching job status:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -115,7 +116,7 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error cancelling job:', error);
+    logger.error('Error cancelling job:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

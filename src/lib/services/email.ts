@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Email notification service
@@ -62,20 +63,20 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<
     })
 
     if (error) {
-      console.error('❌ Resend error:', error)
+      logger.error('❌ Resend error:', error)
       return {
         success: false,
         error: error.message || 'Failed to send email'
       }
     }
 
-    console.log('✅ Welcome email sent successfully:', { id: data?.id, to })
+    logger.log('✅ Welcome email sent successfully:', { id: data?.id, to })
     return { 
       success: true,
       messageId: data?.id 
     }
   } catch (error) {
-    console.error('❌ Failed to send welcome email:', error)
+    logger.error('❌ Failed to send welcome email:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -126,20 +127,20 @@ export async function sendPasswordResetEmail(
     })
 
     if (error) {
-      console.error('❌ Resend error:', error)
+      logger.error('❌ Resend error:', error)
       return {
         success: false,
         error: error.message || 'Failed to send email'
       }
     }
 
-    console.log('✅ Password reset email sent successfully:', { id: data?.id, to })
+    logger.log('✅ Password reset email sent successfully:', { id: data?.id, to })
     return { 
       success: true,
       messageId: data?.id
     }
   } catch (error) {
-    console.error('❌ Failed to send password reset email:', error)
+    logger.error('❌ Failed to send password reset email:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

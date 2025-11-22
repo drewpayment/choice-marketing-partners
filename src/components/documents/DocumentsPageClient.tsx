@@ -6,19 +6,20 @@ import { DocumentList } from '@/components/documents/DocumentList';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { logger } from '@/lib/utils/logger'
 
 export function DocumentsPageClient() {
   const [activeView, setActiveView] = useState<'list' | 'upload'>('list');
   const { data: session } = useSession();
 
   const handleUploadComplete = (documentId: number) => {
-    console.log('Document uploaded successfully:', documentId);
+    logger.log('Document uploaded successfully:', documentId);
     // Optionally switch back to list view after upload
     setActiveView('list');
   };
 
   const handleUploadError = (error: string) => {
-    console.error('Upload error:', error);
+    logger.error('Upload error:', error);
   };
 
   if (activeView === 'upload') {

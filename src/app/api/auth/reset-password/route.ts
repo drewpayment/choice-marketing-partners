@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/database/client'
 import { validatePasswordResetToken } from '@/lib/auth/password-reset'
 import bcrypt from 'bcryptjs'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
       message: 'Password reset successful. You can now sign in with your new password.',
     })
   } catch (error) {
-    console.error('Password reset error:', error)
+    logger.error('Password reset error:', error)
     return NextResponse.json(
       { error: 'An error occurred processing your request' },
       { status: 500 }

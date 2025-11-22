@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/database/client';
+import { logger } from '@/lib/utils/logger'
 
 interface ReprocessJob {
   id: string;
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error starting payroll reprocessing:', error);
+    logger.error('Error starting payroll reprocessing:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -133,7 +134,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(job);
 
   } catch (error) {
-    console.error('Error getting job status:', error);
+    logger.error('Error getting job status:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -221,7 +222,7 @@ async function simulateReprocessing(jobId: string, totalRecords: number) {
           }
 
         } catch (recordError) {
-          console.error(`Error processing payroll record ${record.id}:`, recordError);
+          logger.error(`Error processing payroll record ${record.id}:`, recordError);
           // Continue processing other records even if one fails
         }
       }
@@ -240,7 +241,7 @@ async function simulateReprocessing(jobId: string, totalRecords: number) {
     jobs.set(jobId, completedJob);
 
   } catch (error) {
-    console.error('Error during payroll reprocessing:', error);
+    logger.error('Error during payroll reprocessing:', error);
     
     // Mark job as failed
     const failedJob: ReprocessJob = {

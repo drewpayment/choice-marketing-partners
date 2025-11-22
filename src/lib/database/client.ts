@@ -1,6 +1,7 @@
 import { Kysely, MysqlDialect } from 'kysely'
 import { createPool } from 'mysql2'
 import type { DB } from './types'
+import { logger } from '@/lib/utils/logger'
 
 // Parse database URL or use individual environment variables
 function getDatabaseConfig() {
@@ -66,8 +67,8 @@ export const db = new Kysely<DB>({
   ...(process.env.NODE_ENV === 'development' && {
     log: (event) => {
       if (event.level === 'query') {
-        console.log('🔍 Query:', event.query.sql)
-        console.log('📊 Parameters:', event.query.parameters)
+        logger.log('🔍 Query:', event.query.sql)
+        logger.log('📊 Parameters:', event.query.parameters)
       }
     }
   })
@@ -77,10 +78,10 @@ export const db = new Kysely<DB>({
 export async function testConnection(): Promise<boolean> {
   try {
     await db.selectFrom('users').select('id').limit(1).execute()
-    console.log('✅ Database connection successful')
+    logger.log('✅ Database connection successful')
     return true
   } catch (error) {
-    console.error('❌ Database connection failed:', error)
+    logger.error('❌ Database connection failed:', error)
     return false
   }
 }
@@ -89,9 +90,9 @@ export async function testConnection(): Promise<boolean> {
 export async function closeDatabase(): Promise<void> {
   try {
     await db.destroy()
-    console.log('🔌 Database connection closed')
+    logger.log('🔌 Database connection closed')
   } catch (error) {
-    console.error('❌ Error closing database:', error)
+    logger.error('❌ Error closing database:', error)
   }
 }
 

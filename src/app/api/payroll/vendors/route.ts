@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { getAccessibleVendors } from '@/lib/auth/payroll-access'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -23,7 +24,7 @@ export async function GET() {
     
     return NextResponse.json(vendors)
   } catch (error) {
-    console.error('Error fetching accessible vendors:', error)
+    logger.error('Error fetching accessible vendors:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useEffect, useRef } from 'react'
 import { identifyUser, resetUser } from '@/components/posthog-provider'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Hook to automatically identify users to PostHog based on their NextAuth session
@@ -44,7 +45,7 @@ export function usePostHogIdentify() {
         hasIdentified.current = true
         lastUserId.current = currentUserId
         
-        console.log('PostHog: User identified', { userId: currentUserId, email: session.user.email })
+        logger.log('PostHog: User identified', { userId: currentUserId, email: session.user.email })
       }
     } 
     // User is not authenticated
@@ -54,7 +55,7 @@ export function usePostHogIdentify() {
         resetUser()
         hasIdentified.current = false
         lastUserId.current = null
-        console.log('PostHog: User reset after logout')
+        logger.log('PostHog: User reset after logout')
       }
     }
   }, [session, status])

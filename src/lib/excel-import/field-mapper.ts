@@ -215,7 +215,7 @@ export function generateColumnMappings(
   for (const header of excelHeaders) {
     // Skip if header is invalid
     if (!header || header.trim() === '') {
-      console.warn('Skipping invalid header:', header);
+      logger.warn('Skipping invalid header:', header);
       continue;
     }
     
@@ -280,7 +280,7 @@ export function saveMappingMemory(
 
     localStorage.setItem('excel-import-mappings', JSON.stringify(memory));
   } catch (error) {
-    console.warn('Failed to save mapping memory:', error);
+    logger.warn('Failed to save mapping memory:', error);
   }
 }
 
@@ -292,7 +292,7 @@ export function loadMappingMemory(): MappingMemory | undefined {
     const stored = localStorage.getItem('excel-import-mappings');
     return stored ? JSON.parse(stored) : undefined;
   } catch (error) {
-    console.warn('Failed to load mapping memory:', error);
+    logger.warn('Failed to load mapping memory:', error);
     return undefined;
   }
 }

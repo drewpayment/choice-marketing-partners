@@ -28,6 +28,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 interface EmployeeListProps {
   initialData: EmployeePage
@@ -114,7 +115,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
         alert('Failed to delete employee')
       }
     } catch (error) {
-      console.error('Error deleting employee:', error)
+      logger.error('Error deleting employee:', error)
       alert('Failed to delete employee')
     } finally {
       setIsLoading(false)
@@ -140,7 +141,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
         alert('Failed to restore employee')
       }
     } catch (error) {
-      console.error('Error restoring employee:', error)
+      logger.error('Error restoring employee:', error)
       alert('Failed to restore employee')
     } finally {
       setIsLoading(false)

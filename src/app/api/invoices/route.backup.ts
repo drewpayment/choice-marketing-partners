@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/invoices - Get invoice page resources (agents, vendors, issue dates)
@@ -34,7 +35,7 @@ export async function GET() {
       data: resources
     })
   } catch (error) {
-    console.error('Error fetching invoice resources:', error)
+    logger.error('Error fetching invoice resources:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -47,9 +48,9 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Invoice API - POST request received')
+    logger.log('🚀 Invoice API - POST request received')
     const session = await getServerSession(authOptions)
-    console.log('👤 Invoice API - Session details:', { 
+    logger.log('👤 Invoice API - Session details:', { 
       hasSession: !!session,
       hasUser: !!session?.user,
       employeeId: session?.user?.employeeId, 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     })
     
     if (!session?.user?.employeeId) {
-      console.error('❌ Invoice API - Unauthorized: No employeeId in session')
+      logger.error('❌ Invoice API - Unauthorized: No employeeId in session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save invoice data
-    console.log('💾 Invoice API - About to save with request:', {
+    logger.log('💾 Invoice API - About to save with request:', {
       agentId: saveRequest.agentId,
       vendorId: saveRequest.vendorId,
       changedBy: saveRequest.changedBy,
@@ -161,19 +162,19 @@ export async function POST(request: NextRequest) {
     })
     
     const result = await invoiceRepository.saveInvoiceData(saveRequest)
-    console.log('✅ Invoice API - Save successful')
+    logger.log('✅ Invoice API - Save successful')
 
     return NextResponse.json({
       success: true,
       data: result
     })
   } catch (error) {
-    console.error('❌ Invoice API - Error saving invoice data:', error)
+    logger.error('❌ Invoice API - Error saving invoice data:', error)
     // Log the full error details
     if (error instanceof Error) {
-      console.error('Error name:', error.name)
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
+      logger.error('Error name:', error.name)
+      logger.error('Error message:', error.message)
+      logger.error('Error stack:', error.stack)
     }
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -254,7 +255,7 @@ export async function DELETE(request: NextRequest) {
       data: result
     })
   } catch (error) {
-    console.error('Error deleting invoices:', error)
+    logger.error('Error deleting invoices:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * DELETE /api/invoices/[id] - Delete single invoice
@@ -62,7 +63,7 @@ export async function DELETE(
       message: 'Invoice deleted successfully'
     })
   } catch (error) {
-    console.error('Error deleting invoice:', error)
+    logger.error('Error deleting invoice:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

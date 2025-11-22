@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/utils/logger'
 
 interface PaystubDetailProps {
   paystub: {
@@ -184,7 +185,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
         throw new Error('Failed to generate PDF')
       }
     } catch (error) {
-      console.error('PDF generation error:', error)
+      logger.error('PDF generation error:', error)
       alert('Failed to generate PDF. Please try again.')
     } finally {
       setIsGeneratingPDF(false)
@@ -213,7 +214,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
         throw new Error('Failed to send email')
       }
     } catch (error) {
-      console.error('Email sending error:', error)
+      logger.error('Email sending error:', error)
       alert('Failed to send email. Please try again.')
     } finally {
       setIsSendingEmail(false)
@@ -318,7 +319,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                 size="sm"
                 onClick={() => {
                   if (confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-                    console.log('Delete invoice:', {
+                    logger.log('Delete invoice:', {
                       employeeId: paystub.employee.id,
                       vendorId: paystub.vendor.id,
                       issueDate: paystub.issueDate

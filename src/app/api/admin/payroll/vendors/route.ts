@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/database/client';
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -25,7 +26,7 @@ export async function GET() {
     
     return NextResponse.json(vendors);
   } catch (error) {
-    console.error('Error fetching vendors for admin:', error);
+    logger.error('Error fetching vendors for admin:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

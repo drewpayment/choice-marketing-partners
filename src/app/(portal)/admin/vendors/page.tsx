@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { logger } from '@/lib/utils/logger'
 
 interface Vendor {
   id: number
@@ -66,7 +67,7 @@ export default function VendorsPage() {
       const data = await response.json()
       setVendors(data.vendors)
     } catch (error) {
-      console.error('Error fetching vendors:', error)
+      logger.error('Error fetching vendors:', error)
       toast({
         title: 'Error',
         description: 'Failed to load vendors',
@@ -114,7 +115,7 @@ export default function VendorsPage() {
 
       fetchVendors()
     } catch (error) {
-      console.error('Error updating vendor:', error)
+      logger.error('Error updating vendor:', error)
       toast({
         title: 'Error',
         description: 'Failed to update vendor status',
@@ -167,7 +168,7 @@ export default function VendorsPage() {
       setIsAddDialogOpen(false)
       fetchVendors()
     } catch (error) {
-      console.error('Error adding vendor:', error)
+      logger.error('Error adding vendor:', error)
       toast({
         title: 'Error',
         description: 'Failed to add vendor',

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/invoices - Get invoice page resources or invoice details
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // If specific parameters are provided, get invoice details
     if (agentId && vendorId && issueDate) {
-      console.log('📋 Getting invoice details for:', { agentId, vendorId, issueDate })
+      logger.log('📋 Getting invoice details for:', { agentId, vendorId, issueDate })
       const details = await invoiceRepository.getInvoiceDetail(
         parseInt(agentId),
         parseInt(vendorId),
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Otherwise, get page resources
-    console.log('📊 Getting invoice page resources')
+    logger.log('📊 Getting invoice page resources')
     const resources = await invoiceRepository.getInvoicePageResources()
 
     return NextResponse.json({
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       data: resources
     })
   } catch (error) {
-    console.error('❌ GET /api/invoices error:', error)
+    logger.error('❌ GET /api/invoices error:', error)
     return NextResponse.json(
       { 
         success: false,
@@ -71,23 +72,23 @@ export async function GET(request: NextRequest) {
  * POST /api/invoices - Save invoice data with audit trail
  */
 export async function POST(request: NextRequest) {
-  console.log('🚀 API POST /api/invoices - With audit trail')
+  logger.log('🚀 API POST /api/invoices - With audit trail')
   
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.employeeId) {
-      console.log('❌ No session or employee ID')
+      logger.log('❌ No session or employee ID')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('👤 User session:', {
+    logger.log('👤 User session:', {
       employeeId: session.user.employeeId,
       isAdmin: session.user.isAdmin,
       isManager: session.user.isManager
     })
 
     const body = await request.json()
-    console.log('📝 Request body received')
+    logger.log('📝 Request body received')
 
     // Add audit metadata
     const requestWithAudit = {
@@ -104,8 +105,8 @@ export async function POST(request: NextRequest) {
 
     // Save invoice data using simplified repository
     const result = await invoiceRepository.saveInvoiceData(requestWithAudit)
-    
-    console.log('✅ Save result:', result)
+
+    logger.log('✅ Save result:', result)
     
     return NextResponse.json({
       success: true,
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ POST /api/invoices error:', error)
+    logger.error('❌ POST /api/invoices error:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to save invoice data',

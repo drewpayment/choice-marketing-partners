@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { getAccessibleAgents } from '@/lib/auth/payroll-access'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -23,7 +24,7 @@ export async function GET() {
     
     return NextResponse.json(agents)
   } catch (error) {
-    console.error('Error fetching accessible agents:', error)
+    logger.error('Error fetching accessible agents:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

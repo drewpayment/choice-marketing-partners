@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
+import { logger } from '@/lib/utils/logger'
 
 interface ColumnMapperProps {
   mappings: ColumnMapping[];
@@ -58,14 +59,14 @@ export default function ColumnMapper({
       return m;
     });
 
-    console.log('Updated mappings after change:', updated);
+    logger.log('Updated mappings after change:', updated);
     setLocalMappings(updated);
   };
 
   const handleConfirm = () => {
-    console.log('Confirming mappings:', localMappings);
-    console.log('Mapped fields:', mappedFieldKeys);
-    console.log('Missing fields:', missingFields);
+    logger.log('Confirming mappings:', localMappings);
+    logger.log('Mapped fields:', mappedFieldKeys);
+    logger.log('Missing fields:', missingFields);
     onMappingsChange(localMappings);
     onConfirm(localMappings);
   };
@@ -210,7 +211,7 @@ export default function ColumnMapper({
               
               // Safety check - skip invalid mappings
               if (!mapping || !mapping.excelColumn) {
-                console.warn('Invalid mapping detected:', mapping);
+                logger.warn('Invalid mapping detected:', mapping);
                 return null;
               }
 

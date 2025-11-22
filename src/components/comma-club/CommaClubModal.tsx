@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 interface CommaClubModalProps {
   amount: number
@@ -36,7 +37,7 @@ export default function CommaClubModal({ amount, className }: CommaClubModalProp
       setAgents(data.agents)
       setTitle(data.title)
     } catch (error) {
-      console.error('Error fetching comma club data:', error)
+      logger.error('Error fetching comma club data:', error)
     } finally {
       setLoading(false)
     }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { getAccessibleAgents, getAccessibleVendors, getEmployeeContext } from '@/lib/auth/payroll-access'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
@@ -39,7 +40,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Filter options API error:', error)
+    logger.error('Filter options API error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch filter options' },
       { status: 500 }

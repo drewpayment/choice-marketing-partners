@@ -17,6 +17,7 @@ import InvoiceSalesTable from './InvoiceSalesTable';
 import InvoiceOverridesTable from './InvoiceOverridesTable';
 import InvoiceExpensesTable from './InvoiceExpensesTable';
 import { formatCurrency } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger'
 
 interface InvoiceEditorProps {
   mode: 'create' | 'edit';
@@ -52,6 +53,17 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
     agentId: agentId || 0,
     issueDate: issueDate || '',
     weekending: initialData?.weekending ? dayjs(initialData.weekending, 'MM-DD-YYYY').format('yyyy-MM-dd') : '',
+    sales: [],
+    overrides: [],
+    expenses: []
+  });
+
+  // Track records pending deletion (only deleted when Save is clicked)
+  const [pendingDeletes, setPendingDeletes] = useState<{
+    sales: number[];
+    overrides: number[];
+    expenses: number[];
+  }>({
     sales: [],
     overrides: [],
     expenses: []
@@ -119,7 +131,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         ]);
       }
     } catch (error) {
-      console.error('Failed to fetch lookup data:', error);
+      logger.error('Failed to fetch lookup data:', error);
       // Fallback to placeholder data
       setAgents([
         { id: 1, name: 'Agent 1' },
@@ -151,7 +163,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         throw new Error('Failed to fetch invoice data');
       }
       
-      console.warn('Failed to fetch invoice data via SSR.');
+      logger.warn('Failed to fetch invoice data via SSR.');
       
       const data: InvoiceDetailResponse = await response.json();
 
@@ -184,7 +196,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         })),
       });
     } catch (error) {
-      console.error('Failed to fetch invoice data:', error);
+      logger.error('Failed to fetch invoice data:', error);
       // toast({
       //   title: 'Error',
       //   description: 'Failed to load invoice data',
@@ -242,7 +254,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         }))
       });
     } catch (error) {
-      console.error('Failed to load initial data:', error);
+      logger.error('Failed to load initial data:', error);
     } finally {
       setLoading(false);
     }
@@ -281,6 +293,66 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const handleCustomDateCancel = () => {
     setShowCustomDateDialog(false);
     setCustomDateValue('');
+  };
+
+  const handleSalesChange = (sales: InvoiceSaleFormData[]) => {
+    setFormData(prev => ({ ...prev, sales }));
+  };
+
+  const handleSaleRemove = (index: number) => {
+    const sale = formData.sales[index];
+
+    // If this is an existing sale with an invoiceId, track it for deletion
+    if (sale.invoiceId) {
+      setPendingDeletes(prev => ({
+        ...prev,
+        sales: [...prev.sales, sale.invoiceId!]
+      }));
+    }
+
+    // Remove from local state
+    const updatedSales = formData.sales.filter((_, i) => i !== index);
+    setFormData(prev => ({ ...prev, sales: updatedSales }));
+  };
+
+  const handleOverridesChange = (overrides: InvoiceOverrideFormData[]) => {
+    setFormData(prev => ({ ...prev, overrides }));
+  };
+
+  const handleOverrideRemove = (index: number) => {
+    const override = formData.overrides[index];
+
+    // If this is an existing override with an overrideId, track it for deletion
+    if (override.overrideId) {
+      setPendingDeletes(prev => ({
+        ...prev,
+        overrides: [...prev.overrides, override.overrideId!]
+      }));
+    }
+
+    // Remove from local state
+    const updatedOverrides = formData.overrides.filter((_, i) => i !== index);
+    setFormData(prev => ({ ...prev, overrides: updatedOverrides }));
+  };
+
+  const handleExpensesChange = (expenses: InvoiceExpenseFormData[]) => {
+    setFormData(prev => ({ ...prev, expenses }));
+  };
+
+  const handleExpenseRemove = (index: number) => {
+    const expense = formData.expenses[index];
+
+    // If this is an existing expense with an expenseId, track it for deletion
+    if (expense.expenseId) {
+      setPendingDeletes(prev => ({
+        ...prev,
+        expenses: [...prev.expenses, expense.expenseId!]
+      }));
+    }
+
+    // Remove from local state
+    const updatedExpenses = formData.expenses.filter((_, i) => i !== index);
+    setFormData(prev => ({ ...prev, expenses: updatedExpenses }));
   };
 
   const handleSave = async () => {
@@ -323,13 +395,16 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
       }
 
       setSaving(true);
-      
+
       const response = await fetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          pendingDeletes
+        }),
       });
       
       if (!response.ok) {
@@ -346,7 +421,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
       const returnUrl = searchParams.get('returnUrl');
       router.push(returnUrl || '/invoices');
     } catch (error) {
-      console.error('Failed to save invoice:', error);
+      logger.error('Failed to save invoice:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save pay statement',
@@ -464,7 +539,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         <CardContent>
           <InvoiceSalesTable
             sales={formData.sales}
-            onSalesChange={(sales: InvoiceSaleFormData[]) => setFormData(prev => ({ ...prev, sales }))}
+            onSalesChange={handleSalesChange}
+            onSaleRemove={handleSaleRemove}
             selectedAgent={agents.find(a => a.id === formData.agentId)}
           />
         </CardContent>
@@ -478,7 +554,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         <CardContent>
           <InvoiceOverridesTable
             overrides={formData.overrides}
-            onOverridesChange={(overrides: InvoiceOverrideFormData[]) => setFormData(prev => ({ ...prev, overrides }))}
+            onOverridesChange={handleOverridesChange}
+            onOverrideRemove={handleOverrideRemove}
           />
         </CardContent>
       </Card>
@@ -491,7 +568,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         <CardContent>
           <InvoiceExpensesTable
             expenses={formData.expenses}
-            onExpensesChange={(expenses: InvoiceExpenseFormData[]) => setFormData(prev => ({ ...prev, expenses }))}
+            onExpensesChange={handleExpensesChange}
+            onExpenseRemove={handleExpenseRemove}
           />
         </CardContent>
       </Card>

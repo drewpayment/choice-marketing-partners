@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { uploadToBlob, validateFile } from '@/lib/storage/vercel-blob';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    logger.error('Upload error:', error);
 
     return NextResponse.json(
       { error: 'Failed to upload file' },
