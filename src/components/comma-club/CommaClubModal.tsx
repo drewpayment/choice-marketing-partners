@@ -51,14 +51,14 @@ export default function CommaClubModal({ amount, className }: CommaClubModalProp
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-8 max-w-4xl max-h-[80vh] overflow-y-auto mx-4">
+          <div className="bg-card rounded-lg p-8 max-w-4xl max-h-[80vh] overflow-y-auto mx-4">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 Weekly Comma Club - {title}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-muted-foreground hover:text-foreground text-2xl"
               >
                 ×
               </button>
@@ -66,8 +66,8 @@ export default function CommaClubModal({ amount, className }: CommaClubModalProp
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading...</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -81,14 +81,14 @@ export default function CommaClubModal({ amount, className }: CommaClubModalProp
                         style={agent.rotation ? { transform: `rotate(${agent.rotation}deg)` } : {}}
                       />
                     </div>
-                    <p className="font-semibold text-gray-900">{agent.name}</p>
+                    <p className="font-semibold text-foreground">{agent.name}</p>
                   </div>
                 ))}
               </div>
             )}
 
             {!loading && agents.length === 0 && (
-              <p className="text-center text-gray-600">No agents found for this tier.</p>
+              <p className="text-center text-muted-foreground">No agents found for this tier.</p>
             )}
           </div>
         </div>

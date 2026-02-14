@@ -12,10 +12,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const { posts, totalPages, currentPage } = await blogRepo.getLatestPosts(page, 10)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+        <div className="bg-card rounded-lg shadow-lg p-8">
+          <h1 className="text-4xl font-bold text-foreground mb-8 text-center">
             Choice Marketing Partners Blog
           </h1>
           
@@ -29,20 +29,20 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               {page > 1 && (
                 <a
                   href={`/blog?page=${page - 1}`}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
                 >
                   Previous
                 </a>
               )}
-              
-              <span className="px-4 py-2 bg-gray-200 text-gray-700 rounded">
+
+              <span className="px-4 py-2 bg-muted text-foreground rounded">
                 Page {currentPage} of {totalPages}
               </span>
-              
+
               {page < totalPages && (
                 <a
                   href={`/blog?page=${page + 1}`}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
                 >
                   Next
                 </a>

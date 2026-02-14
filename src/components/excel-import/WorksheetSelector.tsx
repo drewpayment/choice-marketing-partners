@@ -55,25 +55,25 @@ export default function WorksheetSelector({
               return (
                 <TableRow
                   key={worksheet.name}
-                  className={`cursor-pointer hover:bg-gray-50 ${
-                    isSelected ? 'bg-blue-50' : ''
+                  className={`cursor-pointer hover:bg-muted ${
+                    isSelected ? 'bg-primary/10' : ''
                   }`}
                   onClick={() => setSelectedSheet(worksheet.name)}
                 >
                   <TableCell>
                     <div className="flex items-center justify-center">
                       {isSelected ? (
-                        <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                        <CheckCircle2 className="w-5 h-5 text-primary" />
                       ) : (
-                        <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
+                        <div className="w-5 h-5 border-2 border-border rounded-full" />
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="w-4 h-4 text-gray-500" />
+                      <FileSpreadsheet className="w-4 h-4 text-muted-foreground" />
                       <span className={`font-medium ${
-                        isSelected ? 'text-blue-900' : ''
+                        isSelected ? 'text-primary' : ''
                       }`}>
                         {worksheet.name}
                       </span>
@@ -92,8 +92,8 @@ export default function WorksheetSelector({
       </div>
 
       {worksheets.length > 1 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+          <p className="text-sm text-primary">
             <strong>Tip:</strong> Select the worksheet that contains your sales data. 
             The row count shows the number of data rows (excluding the header).
           </p>

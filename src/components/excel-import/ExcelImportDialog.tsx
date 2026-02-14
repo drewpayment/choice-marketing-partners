@@ -313,12 +313,12 @@ export default function ExcelImportDialog({
         <div className="mt-6">
           {/* Error Message */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-medium text-red-900">Error</h4>
-                  <p className="text-sm text-red-800 mt-1">{error}</p>
+                  <h4 className="font-medium text-destructive">Error</h4>
+                  <p className="text-sm text-destructive mt-1">{error}</p>
                 </div>
               </div>
             </div>
@@ -329,17 +329,17 @@ export default function ExcelImportDialog({
             <div className="space-y-6">
               {/* Warning when no agent is selected */}
               {!hasAgentSelected && !isBatchMode && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-yellow-900">No Agent Selected</h4>
-                      <p className="text-sm text-yellow-800 mt-1">
+                      <h4 className="font-medium text-secondary">No Agent Selected</h4>
+                      <p className="text-sm text-secondary mt-1">
                         You have not selected an agent for this pay statement. The import will include 
                         <strong> all records</strong> from the file, which may contain sales for multiple agents.
                       </p>
-                      <p className="text-sm text-yellow-800 mt-2">
-                        <strong>Recommendation:</strong> Select an agent first, then map the REP ID field during import 
+                      <p className="text-sm text-secondary mt-2">
+                        <strong>Recommendation:</strong> Select an agent first, then map the REP ID field during import
                         to automatically filter sales to only that agent.
                       </p>
                     </div>
@@ -349,20 +349,20 @@ export default function ExcelImportDialog({
 
               {/* Agent filter info when agent is selected */}
               {hasAgentSelected && !isBatchMode && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-blue-900">Agent Selected: {selectedAgent?.name}</h4>
-                      <p className="text-sm text-blue-800 mt-1">
+                      <h4 className="font-medium text-primary">Agent Selected: {selectedAgent?.name}</h4>
+                      <p className="text-sm text-primary mt-1">
                         Agent Sales IDs: <strong>{[
                           selectedAgent?.sales_id1,
                           selectedAgent?.sales_id2,
                           selectedAgent?.sales_id3
                         ].filter(Boolean).join(', ') || 'None configured'}</strong>
                       </p>
-                      <p className="text-sm text-blue-800 mt-2">
-                        During column mapping, <strong>map the REP ID field</strong> to automatically filter 
+                      <p className="text-sm text-primary mt-2">
+                        During column mapping, <strong>map the REP ID field</strong> to automatically filter
                         records to only this agent&apos;s sales. If REP ID is not mapped, all records will be imported.
                       </p>
                     </div>
@@ -408,7 +408,7 @@ export default function ExcelImportDialog({
                     id="no-headers"
                     checked={!hasHeaders}
                     onChange={(e) => setHasHeaders(!e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                   />
                   <label htmlFor="no-headers" className="text-sm font-medium cursor-pointer">
                     My file doesn&apos;t have headers
@@ -421,9 +421,9 @@ export default function ExcelImportDialog({
                 )}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Requirements:</h4>
-                <ul className="text-sm text-blue-800 space-y-1 ml-4">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="font-medium text-primary mb-2">Requirements:</h4>
+                <ul className="text-sm text-primary space-y-1 ml-4">
                   <li>• {hasHeaders ? 'File must have a header row with column names' : 'First row will be treated as data (no headers expected)'}</li>
                   {isBatchMode ? (
                     <>
