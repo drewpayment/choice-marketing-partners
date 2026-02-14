@@ -188,22 +188,22 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
   if (loading && paystubs.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <div className="bg-destructive/10 border border-destructive rounded-md p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error loading pay statements</h3>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <h3 className="text-sm font-medium text-destructive">Error loading pay statements</h3>
+            <p className="mt-2 text-sm text-destructive">{error}</p>
             <div className="mt-4">
               <Button 
                 onClick={fetchPaystubs}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-destructive hover:bg-destructive/90 text-white"
                 size="sm"
               >
                 Try Again
@@ -221,7 +221,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div className="flex space-x-2">
           {isAdmin && (
-            <Button onClick={handleCreatePaystub} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleCreatePaystub} className="bg-primary hover:bg-primary/90 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Create New Pay Statement
             </Button>
@@ -229,12 +229,12 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
           <Button 
             onClick={fetchPaystubs} 
             variant="outline"
-            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="border-border text-foreground hover:bg-muted"
           >
             Refresh
           </Button>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           {filteredPaystubs.length} pay statement{filteredPaystubs.length !== 1 ? 's' : ''} found
         </div>
       </div>
@@ -245,7 +245,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Search employees, vendors..."
                   value={filters.search}
@@ -319,15 +319,15 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
       {/* Paystub Grid */}
       {filteredPaystubs.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No pay statements found</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-2">No pay statements found</h3>
+          <p className="text-muted-foreground mb-4">
             {filters.search || (filters.employeeId !== 'all') || (filters.vendorId !== 'all') || (filters.issueDate !== 'all') || (filters.status !== 'all')
               ? 'Try adjusting your filters or search terms.'
               : 'Get started by creating your first pay statement.'
             }
           </p>
           {isAdmin && (
-            <Button onClick={handleCreatePaystub} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleCreatePaystub} className="bg-primary hover:bg-primary/90 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Create Pay Statement
             </Button>
@@ -342,7 +342,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
                   <div className="flex items-center space-x-4">
                     {/* Employee Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
                         <User className="w-6 h-6 text-white" />
                       </div>
                     </div>
@@ -350,7 +350,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
                     {/* Employee & Vendor Info */}
                     <div className="min-w-0">
                       <div className="flex items-center space-x-2">
-                        <p className="text-lg font-medium text-gray-900 truncate">
+                        <p className="text-lg font-medium text-foreground truncate">
                           {paystub.employeeName}
                         </p>
                         <Badge variant="secondary" className="flex items-center">
@@ -363,7 +363,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>Issue Date: {formatDate(paystub.issueDate)}</span>
                         <span className="mx-2">•</span>
@@ -375,16 +375,16 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
                   {/* Financial Summary */}
                   <div className="flex items-center space-x-6">
                     <div className="text-right">
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                      <div className="flex items-center text-sm text-muted-foreground mb-1">
                         <DollarSign className="w-4 h-4 mr-1" />
                         <span>Net Pay</span>
                       </div>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-lg font-semibold text-foreground">
                         {formatCurrency(paystub.netPay)}
                       </p>
                     </div>
 
-                    <div className="text-right text-sm text-gray-500">
+                    <div className="text-right text-sm text-muted-foreground">
                       <div>Sales: {formatCurrency(paystub.totalSales)}</div>
                       <div>Overrides: {formatCurrency(paystub.totalOverrides)}</div>
                       <div>Expenses: {formatCurrency(paystub.totalExpenses)}</div>
@@ -396,7 +396,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
                         onClick={() => handleEditPaystub(paystub.employeeId, paystub.vendorId, paystub.issueDate)}
                         variant="outline"
                         size="sm"
-                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                        className="border-primary text-primary hover:bg-primary/10"
                       >
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
@@ -420,7 +420,7 @@ export default function PaystubManagementList({ isAdmin }: PaystubManagementList
           >
             Previous
           </Button>
-          <span className="flex items-center px-4 text-sm text-gray-600">
+          <span className="flex items-center px-4 text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </span>
           <Button

@@ -171,8 +171,8 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading documents...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading documents...</p>
         </div>
       </div>
     );
@@ -182,8 +182,8 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error}</p>
+          <div className="text-destructive mb-4">⚠️</div>
+          <p className="text-destructive mb-4">{error}</p>
           <Button onClick={fetchDocuments} variant="outline">
             Try Again
           </Button>
@@ -198,7 +198,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Documents</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {total} document{total !== 1 ? 's' : ''} total
           </p>
         </div>
@@ -216,7 +216,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search documents..."
                   value={searchTerm}
@@ -230,7 +230,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
               <select
                 value={filters.mimeType}
                 onChange={(e) => setFilters({ ...filters, mimeType: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                className="px-3 py-2 border border-border rounded-md text-sm bg-card"
               >
                 <option value="">All Types</option>
                 <option value="application/pdf">PDF</option>
@@ -263,9 +263,9 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
       {documents.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-            <p className="text-gray-500 mb-4">
+            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No documents found</h3>
+            <p className="text-muted-foreground mb-4">
               {searchTerm || filters.mimeType || filters.uploadedBy
                 ? 'Try adjusting your search filters.'
                 : 'Get started by uploading your first document.'
@@ -307,12 +307,12 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
               
               <CardContent className="pt-0">
                 {document.description && (
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                     {document.description}
                   </p>
                 )}
                 
-                <div className="space-y-2 text-xs text-gray-500">
+                <div className="space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-3 w-3" />
                     <span>{formatDate(document.createdAt)}</span>
@@ -356,7 +356,7 @@ export function DocumentList({ onUploadClick }: DocumentListProps) {
           >
             Previous
           </Button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </span>
           <Button

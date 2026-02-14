@@ -128,19 +128,19 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
     <div className="space-y-6">
       {/* Success message with generated password */}
       {generatedPassword && (
-        <Card className="border-green-500 bg-green-50">
+        <Card className="border-primary bg-primary/10">
           <CardHeader>
-            <CardTitle className="text-green-700">Employee Created Successfully! 🎉</CardTitle>
+            <CardTitle className="text-primary">Employee Created Successfully! 🎉</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm text-green-800">
+              <p className="text-sm text-primary">
                 The employee has been created with a user account. A welcome email with login credentials has been sent to <strong>{formData.email}</strong>.
               </p>
-              <div className="rounded-md bg-white border border-green-300 p-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Generated Login Password:</p>
+              <div className="rounded-md bg-card border border-primary p-4">
+                <p className="text-sm font-medium text-foreground mb-2">Generated Login Password:</p>
                 <div className="flex items-center gap-2">
-                  <code className="text-lg font-mono font-bold text-gray-900 bg-gray-100 px-3 py-2 rounded">
+                  <code className="text-lg font-mono font-bold text-foreground bg-muted px-3 py-2 rounded">
                     {generatedPassword}
                   </code>
                   <Button
@@ -154,7 +154,7 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
                     Copy
                   </Button>
                 </div>
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   ⚠️ Please save this password - it will not be shown again.
                 </p>
               </div>

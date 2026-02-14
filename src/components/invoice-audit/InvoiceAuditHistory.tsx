@@ -113,8 +113,8 @@ const FieldChange: React.FC<{
 
   const getAmountChangeIcon = (from: number | null, to: number | null) => {
     if (from === null || to === null) return null
-    if (to > from) return <TrendingUpIcon className="h-3 w-3 text-green-600" />
-    if (to < from) return <TrendingDownIcon className="h-3 w-3 text-red-600" />
+    if (to > from) return <TrendingUpIcon className="h-3 w-3 text-primary" />
+    if (to < from) return <TrendingDownIcon className="h-3 w-3 text-destructive" />
     return null
   }
 
@@ -287,16 +287,16 @@ const AuditRecordCard: React.FC<{
           </div>
 
           {record.change_reason && (
-            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
-              <span className="font-medium text-blue-900">Reason: </span>
-              <span className="text-blue-800">{record.change_reason}</span>
+            <div className="mt-3 p-2 bg-primary/10 border border-primary rounded text-sm">
+              <span className="font-medium text-primary">Reason: </span>
+              <span className="text-primary">{record.change_reason}</span>
             </div>
           )}
 
           {record.days_since_sale !== undefined && record.days_since_sale > 30 && (
-            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm">
-              <span className="font-medium text-amber-900">⚠️ Investigation Note: </span>
-              <span className="text-amber-800">
+            <div className="mt-2 p-2 bg-secondary/10 border border-secondary/30 rounded text-sm">
+              <span className="font-medium text-secondary">⚠️ Investigation Note: </span>
+              <span className="text-secondary">
                 This change occurred {record.days_since_sale} days after the original sale date
               </span>
             </div>
@@ -320,7 +320,7 @@ export const InvoiceAuditHistory: React.FC<InvoiceAuditHistoryProps> = ({
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-foreground"></div>
             <span className="ml-2">Loading audit history...</span>
           </div>
         </CardContent>
@@ -415,25 +415,25 @@ export const InvoiceAuditHistory: React.FC<InvoiceAuditHistoryProps> = ({
         <div className="mt-4 pt-4 border-t">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 {auditRecords.length}
               </div>
               <div className="text-xs text-muted-foreground">Total Changes</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-primary">
                 {auditRecords.filter(r => r.action_type === 'UPDATE').length}
               </div>
               <div className="text-xs text-muted-foreground">Updates</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-destructive">
                 {auditRecords.filter(r => r.action_type === 'DELETE').length}
               </div>
               <div className="text-xs text-muted-foreground">Deletions</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-secondary">
                 {new Set(auditRecords.map(r => r.changed_by)).size}
               </div>
               <div className="text-xs text-muted-foreground">Different Users</div>

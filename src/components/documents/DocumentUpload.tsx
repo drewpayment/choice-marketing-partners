@@ -158,15 +158,15 @@ export function DocumentUpload({
   return (
     <div className="space-y-6">
       {/* Cloud Storage Notice */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-primary bg-primary/10">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
               ☁️
             </div>
             <div>
-              <h3 className="font-medium text-blue-900">Secure Cloud Storage</h3>
-              <p className="text-sm text-blue-700">
+              <h3 className="font-medium text-primary">Secure Cloud Storage</h3>
+              <p className="text-sm text-primary">
                 All new document uploads are securely stored in the cloud with automatic backups and global accessibility.
               </p>
             </div>
@@ -183,14 +183,14 @@ export function DocumentUpload({
             onDrop={handleDrop}
             className={`
               border-2 border-dashed rounded-lg p-8 text-center transition-colors
-              ${isDragging 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
+              ${isDragging
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:border-border'
               }
               ${uploadFiles.length >= maxFiles ? 'opacity-50 pointer-events-none' : ''}
             `}
           >
-            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <div className="space-y-2">
               <p className="text-lg font-medium">
                 {uploadFiles.length >= maxFiles 
@@ -198,10 +198,10 @@ export function DocumentUpload({
                   : 'Drop files here or click to browse'
                 }
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Support for PDFs, Word docs, Excel sheets, images, and more
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Maximum file size: 50MB per file
               </p>
             </div>
@@ -246,12 +246,12 @@ export function DocumentUpload({
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3 flex-1">
-                    <FileText className="h-6 w-6 text-gray-400" />
+                    <FileText className="h-6 w-6 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {uploadFile.file.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {(uploadFile.file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -260,10 +260,10 @@ export function DocumentUpload({
                   {/* Status Icon */}
                   <div className="flex items-center space-x-2">
                     {uploadFile.status === 'completed' && (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
                     )}
                     {uploadFile.status === 'error' && (
-                      <AlertCircle className="h-5 w-5 text-red-500" />
+                      <AlertCircle className="h-5 w-5 text-destructive" />
                     )}
                     {uploadFile.status === 'pending' && (
                       <Button
@@ -310,13 +310,13 @@ export function DocumentUpload({
                 {/* Progress Bar */}
                 {uploadFile.status === 'uploading' && (
                   <div className="space-y-1">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-2">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                        className="bg-primary h-2 rounded-full transition-all duration-300" 
                         style={{ width: `${uploadFile.uploadProgress}%` }}
                       ></div>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Uploading... {uploadFile.uploadProgress}%
                     </p>
                   </div>
@@ -324,9 +324,9 @@ export function DocumentUpload({
 
                 {/* Error Message */}
                 {uploadFile.status === 'error' && uploadFile.error && (
-                  <div className="border border-red-200 bg-red-50 rounded-lg p-3 flex items-start space-x-2">
-                    <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
-                    <div className="text-sm text-red-700">
+                  <div className="border border-destructive bg-destructive/10 rounded-lg p-3 flex items-start space-x-2">
+                    <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+                    <div className="text-sm text-destructive">
                       {uploadFile.error}
                     </div>
                   </div>
@@ -334,9 +334,9 @@ export function DocumentUpload({
 
                 {/* Success Message */}
                 {uploadFile.status === 'completed' && (
-                  <div className="border border-green-200 bg-green-50 rounded-lg p-3 flex items-start space-x-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    <div className="text-sm text-green-700">
+                  <div className="border border-primary bg-primary/10 rounded-lg p-3 flex items-start space-x-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+                    <div className="text-sm text-primary">
                       Upload completed successfully!
                     </div>
                   </div>

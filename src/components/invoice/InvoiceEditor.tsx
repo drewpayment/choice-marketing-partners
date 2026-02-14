@@ -441,7 +441,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -518,7 +518,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
 
             <div>
               <Label htmlFor="weekending">
-                Weekending <span className="text-red-500">*</span>
+                Weekending <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="date"

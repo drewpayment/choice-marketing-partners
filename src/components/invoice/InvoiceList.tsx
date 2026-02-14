@@ -83,22 +83,22 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <div className="bg-destructive/10 border border-destructive rounded-md p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error loading pay statements</h3>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <h3 className="text-sm font-medium text-destructive">Error loading pay statements</h3>
+            <p className="mt-2 text-sm text-destructive">{error}</p>
             <div className="mt-4">
               <Button 
                 onClick={fetchInvoices}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-destructive hover:bg-destructive/90 text-white"
                 size="sm"
               >
                 Try Again
@@ -115,18 +115,18 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
       {/* Header Actions */}
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={handleCreateInvoice} className="bg-primary hover:bg-primary/90 text-white">
             Create New Pay Statement
           </Button>
           <Button 
             onClick={fetchInvoices} 
             variant="outline"
-            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="border-border text-foreground hover:bg-muted"
           >
             Refresh
           </Button>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           {invoices.length} pay statement{invoices.length !== 1 ? 's' : ''} found
         </div>
       </div>
@@ -134,21 +134,21 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
       {/* Invoice Grid */}
       {invoices.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No pay statements found</h3>
-          <p className="text-gray-600 mb-4">Get started by creating your first pay statement.</p>
-          <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <h3 className="text-lg font-medium text-foreground mb-2">No pay statements found</h3>
+          <p className="text-muted-foreground mb-4">Get started by creating your first pay statement.</p>
+          <Button onClick={handleCreateInvoice} className="bg-primary hover:bg-primary/90 text-white">
             Create Pay Statement
           </Button>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
+        <div className="bg-card shadow overflow-hidden sm:rounded-md">
+          <ul className="divide-y divide-border">
             {invoices.map((invoice) => (
               <li key={`${invoice.employeeId}-${invoice.vendorId}-${invoice.issueDate}`}>
                 <div className="px-4 py-4 flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
                         <span className="text-sm font-medium text-white">
                           {invoice.employeeName ? invoice.employeeName.charAt(0).toUpperCase() : 'E'}
                         </span>
@@ -156,14 +156,14 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {invoice.employeeName || `Employee ${invoice.employeeId}`}
                         </p>
                         <Badge variant="secondary" className="ml-2">
                           {invoice.vendorName || `Vendor ${invoice.vendorId}`}
                         </Badge>
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <span>Issue Date: {dayjs(invoice.issueDate).format('MM/DD/YYYY')}</span>
                         {invoice.weekending && (
                           <>
@@ -176,10 +176,10 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
                   </div>
                   <div className="flex items-center">
                     <div className="text-right mr-4">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         {formatCurrency(invoice.netPay || 0)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {invoice.paystubCount || 0} paystub{(invoice.paystubCount || 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
@@ -187,7 +187,7 @@ export default function InvoiceList({ initialFilters }: InvoiceListProps) {
                       onClick={() => handleEditInvoice(invoice.employeeId, invoice.vendorId, invoice.issueDate)}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      className="border-border text-foreground hover:bg-muted"
                     >
                       Edit
                     </Button>

@@ -130,13 +130,13 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
 
   if (data.length === 0) {
     return (
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-card shadow rounded-lg">
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+          <svg className="mx-auto h-12 w-12 text-muted-foreground" stroke="currentColor" fill="none" viewBox="0 0 48 48">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No payroll data</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="mt-2 text-sm font-medium text-foreground">No payroll data</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             No payroll data found for the selected criteria.
           </p>
         </div>
@@ -145,13 +145,13 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div className="bg-card shadow overflow-hidden sm:rounded-lg">
       {/* Header */}
       <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <h3 className="text-lg leading-6 font-medium text-foreground">
           Payroll Data
         </h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Showing {data.length} of {pagination.total} payroll entries
         </p>
       </div>
@@ -162,104 +162,104 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
           <TableHeader>
             <TableRow>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('employeeName')}
               >
                 <div className="flex items-center space-x-1">
                   <span>Employee</span>
                   {sortField === 'employeeName' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('vendorName')}
               >
                 <div className="flex items-center space-x-1">
                   <span>Vendor</span>
                   {sortField === 'vendorName' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('issueDate')}
               >
                 <div className="flex items-center space-x-1">
                   <span>Issue Date</span>
                   {sortField === 'issueDate' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="text-right cursor-pointer hover:bg-gray-100"
+                className="text-right cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('totalSales')}
               >
                 <div className="flex items-center justify-end space-x-1">
                   <span>Sales</span>
                   {sortField === 'totalSales' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="text-right cursor-pointer hover:bg-gray-100"
+                className="text-right cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('totalOverrides')}
               >
                 <div className="flex items-center justify-end space-x-1">
                   <span>Overrides</span>
                   {sortField === 'totalOverrides' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="text-right cursor-pointer hover:bg-gray-100"
+                className="text-right cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('totalExpenses')}
               >
                 <div className="flex items-center justify-end space-x-1">
                   <span>Expenses</span>
                   {sortField === 'totalExpenses' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="text-right cursor-pointer hover:bg-gray-100"
+                className="text-right cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('netPay')}
               >
                 <div className="flex items-center justify-end space-x-1">
                   <span>Net Pay</span>
                   {sortField === 'netPay' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
+                className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('lastUpdated')}
               >
                 <div className="flex items-center space-x-1">
                   <span>Last Updated</span>
                   {sortField === 'lastUpdated' && (
-                    <span className={sortDirection === 'asc' ? 'text-gray-900' : 'text-gray-900 rotate-180'}>
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
                       ↑
                     </span>
                   )}
@@ -273,7 +273,7 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
               <TableRow key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}>
                 <TableCell className="font-medium">
                   {item.employeeName}
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     Agent: {item.agentId}
                   </div>
                 </TableCell>
@@ -283,28 +283,28 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                 <TableCell className="text-right">{formatCurrency(item.totalOverrides)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(item.totalExpenses)}</TableCell>
                 <TableCell className="text-right">
-                  <span className={`font-medium ${item.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-medium ${item.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
                     {formatCurrency(item.netPay)}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="text-xs text-gray-900">
+                  <div className="text-xs text-foreground">
                     {new Date(item.lastUpdated).toLocaleDateString()}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     {new Date(item.lastUpdated).toLocaleTimeString()}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <Link
                     href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    className="text-primary hover:text-primary mr-4"
                   >
                     View Details
                   </Link>
                   {(userContext.isAdmin || userContext.isManager) && (
                     <button
-                      className="text-green-600 hover:text-green-900"
+                      className="text-primary hover:text-primary"
                       onClick={() => {
                         // TODO: Implement email functionality
                         alert('Email functionality will be implemented in TASK-306')
@@ -330,14 +330,14 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
               className="block"
               aria-label={`View payroll details for ${item.vendorName}, ${formatDate(item.issueDate)}, net pay ${formatCurrency(item.netPay)}`}
             >
-                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-gray-50">
+                <div className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-muted">
                   {/* Vendor Name - Primary */}
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {item.vendorName}
                     </h3>
                     <svg
-                      className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2"
+                      className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -347,14 +347,14 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   </div>
 
                   {/* Issue Date */}
-                  <div className="text-sm text-gray-600 mb-3">
+                  <div className="text-sm text-muted-foreground mb-3">
                     {formatDate(item.issueDate)}
                   </div>
 
                   {/* Net Pay - Highlighted */}
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                    <span className="text-sm font-medium text-gray-700">Net Pay</span>
-                    <span className={`text-xl font-bold ${item.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className="flex justify-between items-center pt-3 border-t border-border">
+                    <span className="text-sm font-medium text-foreground">Net Pay</span>
+                    <span className={`text-xl font-bold ${item.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
                       {formatCurrency(item.netPay)}
                     </span>
                   </div>
@@ -386,7 +386,7 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   <TableCell className="text-right">
                     <Link
                       href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-                      className="text-sm font-medium text-blue-600"
+                      className="text-sm font-medium text-primary"
                     >
                       {formatCurrency(item.netPay)}
                     </Link>
@@ -400,8 +400,8 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
 
       {/* Pagination */}
       {(pagination.totalPages > 1 || pagination.total > pagination.limit) && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
-          <div className="flex items-center text-sm text-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border sm:px-6">
+          <div className="flex items-center text-sm text-foreground">
             <span>
               Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
             </span>
@@ -458,10 +458,10 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
       )}
 
       {/* Summary - Responsive */}
-      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
+      <div className="bg-muted px-4 py-3 border-t border-border sm:px-6">
         {/* Mobile Summary (Employees) */}
         {!userContext.isAdmin && !userContext.isManager && (
-          <div className="md:hidden flex justify-between items-center text-sm text-gray-600">
+          <div className="md:hidden flex justify-between items-center text-sm text-muted-foreground">
             <span>Total Entries: {data.length}</span>
             <span className="font-medium">
               Page Net Pay: {formatCurrency(data.reduce((sum, item) => sum + item.netPay, 0))}
@@ -471,7 +471,7 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
 
         {/* Desktop Summary (All) & Mobile Summary (Managers/Admins) */}
         <div className={cn(
-          "justify-between items-center text-sm text-gray-600",
+          "justify-between items-center text-sm text-muted-foreground",
           !userContext.isAdmin && !userContext.isManager ? "hidden md:flex" : "flex"
         )}>
           <span>

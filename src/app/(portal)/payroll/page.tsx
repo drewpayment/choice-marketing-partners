@@ -51,11 +51,11 @@ export default async function PayrollPage({ searchParams }: PageProps) {
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="px-4 py-6 sm:px-0">
-        <div className="border-b border-gray-200 pb-5">
-          <h1 className="text-3xl font-bold leading-6 text-gray-900">
+        <div className="border-b border-border pb-5">
+          <h1 className="text-3xl font-bold leading-6 text-foreground">
             Payroll
           </h1>
-          <p className="mt-2 max-w-4xl text-sm text-gray-500">
+          <p className="mt-2 max-w-4xl text-sm text-muted-foreground">
             View and manage payroll information for agents and vendors.
             {!session.user.isAdmin && (
               <span className="block mt-1">
@@ -68,11 +68,11 @@ export default async function PayrollPage({ searchParams }: PageProps) {
 
       {/* Access Summary */}
       <div className="px-4 mb-6 sm:px-0">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-card overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
@@ -81,34 +81,34 @@ export default async function PayrollPage({ searchParams }: PageProps) {
               <div className="ml-5 w-0 flex-1">
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
                       Accessible Agents
                     </dt>
-                    <dd className="text-sm text-gray-900">
+                    <dd className="text-sm text-foreground">
                       {accessSummary.accessibleAgents}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
                       Accessible Vendors
                     </dt>
-                    <dd className="text-sm text-gray-900">
+                    <dd className="text-sm text-foreground">
                       {accessSummary.accessibleVendors}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
                       Issue Dates
                     </dt>
-                    <dd className="text-sm text-gray-900">
+                    <dd className="text-sm text-foreground">
                       {accessSummary.accessibleIssueDates}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
                       Total Paystubs
                     </dt>
-                    <dd className="text-sm text-gray-900">
+                    <dd className="text-sm text-foreground">
                       {accessSummary.totalPaystubs}
                     </dd>
                   </div>
@@ -121,7 +121,7 @@ export default async function PayrollPage({ searchParams }: PageProps) {
 
       {/* Filters */}
       <div className="px-4 mb-6 sm:px-0">
-        <Suspense fallback={<div className="animate-pulse bg-white rounded-lg h-32"></div>}>
+        <Suspense fallback={<div className="animate-pulse bg-card rounded-lg h-32"></div>}>
           <PayrollFilters
             initialFilters={filters}
             userContext={{ isAdmin: session.user.isAdmin, isManager: session.user.isManager }}
@@ -131,7 +131,7 @@ export default async function PayrollPage({ searchParams }: PageProps) {
 
       {/* Payroll List */}
       <div className="px-4 sm:px-0">
-        <Suspense fallback={<div className="animate-pulse bg-white rounded-lg h-96"></div>}>
+        <Suspense fallback={<div className="animate-pulse bg-card rounded-lg h-96"></div>}>
           <PayrollList 
             data={payrollResponse.data}
             pagination={payrollResponse.pagination}

@@ -184,12 +184,12 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
 
   if (loading) {
     return (
-      <div className="bg-white shadow rounded-lg animate-pulse">
+      <div className="bg-card shadow rounded-lg animate-pulse">
         <div className="p-6 space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-4 bg-muted rounded w-1/4"></div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-200 rounded"></div>
+              <div key={i} className="h-10 bg-muted rounded"></div>
             ))}
           </div>
         </div>
@@ -198,9 +198,9 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
   }
 
   return (
-    <div className="bg-white shadow rounded-lg">
+    <div className="bg-card shadow rounded-lg">
       <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+        <h3 className="text-lg leading-6 font-medium text-foreground mb-4">
           Filter Payroll Data
         </h3>
         
@@ -208,7 +208,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
         {!userContext?.isAdmin && !userContext?.isManager ? (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              <Label className="text-sm font-medium text-foreground mb-2 block">
                 Time Period
               </Label>
               <div className="flex flex-wrap gap-2">
@@ -249,7 +249,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Employee Filter */}
               <div>
-                <Label htmlFor="employee" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="employee" className="text-sm font-medium text-foreground">
                   Employee
                 </Label>
                 <TypeaheadSelect
@@ -269,7 +269,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
 
               {/* Vendor Filter */}
               <div>
-                <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="vendor" className="text-sm font-medium text-foreground">
                   Vendor
                 </Label>
                 <Select
@@ -292,7 +292,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
 
               {/* Issue Date Filter */}
               <div>
-                <Label htmlFor="issueDate" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="issueDate" className="text-sm font-medium text-foreground">
                   Issue Date
                 </Label>
                 <Select
@@ -315,7 +315,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
 
               {/* Status Filter */}
               <div>
-                <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="status" className="text-sm font-medium text-foreground">
                   Status
                 </Label>
                 <Select
@@ -337,7 +337,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
             {/* Date Range Filters */}
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="startDate" className="text-sm font-medium text-foreground">
                   Start Date
                 </Label>
                 <Input
@@ -350,7 +350,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
               </div>
 
               <div>
-                <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="endDate" className="text-sm font-medium text-foreground">
                   End Date
                 </Label>
                 <Input
@@ -375,7 +375,7 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
             Clear Filters
           </Button>
           
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             {Object.values(filters).filter(Boolean).length > 0 && (
               <span>
                 {Object.values(filters).filter(Boolean).length} filter(s) applied
