@@ -41,6 +41,29 @@ Tracking document for plans, epics, and features across the Choice Marketing Par
   - Mobile card layout for payroll list (employees)
   - Collapsible sections and sticky header on paystub detail view
 
+### Landing Page Redesign
+- **Plan:** [2026-02-14-landing-page-redesign](plans/2026-02-14-landing-page-redesign.md)
+- **Status:** Done
+- **Summary:** Redesigned the root landing page with a new Blue-Teal & Amber deuteranopia-safe color system, modern layout with shadcn/ui components, and updated CSS custom properties.
+- **Key deliverables:**
+  - CSS custom properties updated to Blue-Teal & Amber oklch tokens
+  - Landing page rewritten with sticky nav, gradient hero, features grid, CTA sections
+  - TestimonialSection restyled with design tokens
+  - Geist font family with warm stone neutrals
+
+### Portal & Admin Section Redesign
+- **Plan:** [2026-02-14-portal-admin-redesign](plans/2026-02-14-portal-admin-redesign.md)
+- **Status:** Done
+- **Summary:** Replaced all hardcoded Tailwind color classes with design system tokens across 50+ files. Upgraded employee dashboard with shadcn Card components and Lucide icons. Established consistent Blue-Teal & Amber color system across the entire portal and admin section.
+- **Key deliverables:**
+  - Design token replacement across 52 files (580+ class instances)
+  - Employee dashboard upgraded with shadcn Cards and Lucide icons
+  - ClientNavigation restyled with design tokens
+  - AdminSidebar restyled with design tokens
+  - All admin sub-pages using consistent design tokens
+  - Auth, blog, and static pages updated
+  - Deuteranopia-safe status indicators (color + icon pairs)
+
 ---
 
 ## In Progress
