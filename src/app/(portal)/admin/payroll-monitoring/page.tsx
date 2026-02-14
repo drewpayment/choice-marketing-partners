@@ -414,10 +414,10 @@ export default function PayrollMonitoringPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Paid</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{data.summary.paid.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-primary">{data.summary.paid.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
                 {data.summary.total > 0 ? Math.round((data.summary.paid / data.summary.total) * 100) : 0}% complete
               </p>
@@ -427,10 +427,10 @@ export default function PayrollMonitoringPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Unpaid</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+              <Clock className="h-4 w-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{data.summary.unpaid.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-secondary">{data.summary.unpaid.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Awaiting payment</p>
             </CardContent>
           </Card>
@@ -534,8 +534,8 @@ export default function PayrollMonitoringPage() {
 
           {/* Bulk Actions */}
           {hasSelections && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border">
-              <span className="text-sm text-blue-700">
+            <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border">
+              <span className="text-sm text-primary">
                 {selectedRecords.size} record(s) selected
               </span>
               <div className="ml-auto flex gap-2">
@@ -543,7 +543,7 @@ export default function PayrollMonitoringPage() {
                   size="sm"
                   onClick={() => handleBulkStatusUpdate(true)}
                   disabled={updating}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark Paid'}
                 </Button>

@@ -179,15 +179,15 @@ export default function AdminToolsPage() {
   const getStatusIcon = (status: ReprocessJob['status']) => {
     switch (status) {
       case 'idle':
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
       case 'running':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+        return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-primary" />;
       case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-destructive" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -267,11 +267,11 @@ export default function AdminToolsPage() {
           </div>
 
           {/* Warning */}
-          <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 bg-secondary/10 border border-secondary/30 rounded-lg mb-6">
+            <AlertTriangle className="h-5 w-5 text-secondary mt-0.5" />
             <div>
-              <h4 className="font-medium text-yellow-800">Important Notice</h4>
-              <p className="text-sm text-yellow-700 mt-1">
+              <h4 className="font-medium text-secondary">Important Notice</h4>
+              <p className="text-sm text-secondary mt-1">
                 Reprocessing will recalculate all payroll data for the selected date. This action may take 
                 several minutes to complete and cannot be undone. Ensure all invoice data is correct before proceeding.
               </p>
@@ -322,7 +322,7 @@ export default function AdminToolsPage() {
                           </span>
                         )}
                         {job.status === 'error' && (
-                          <span className="text-red-600">
+                          <span className="text-destructive">
                             {job.errorMessage || 'An error occurred during processing'}
                           </span>
                         )}
@@ -333,9 +333,9 @@ export default function AdminToolsPage() {
                       
                       {/* Progress Bar */}
                       {job.status === 'running' && job.totalRecords && job.totalRecords > 0 && (
-                        <div className="w-64 bg-gray-200 rounded-full h-2 mt-2">
+                        <div className="w-64 bg-muted rounded-full h-2 mt-2">
                           <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
                             style={{ width: `${getProgressPercentage(job)}%` }}
                           />
                         </div>
@@ -421,7 +421,7 @@ export default function AdminToolsPage() {
             </div>
           </div>
           
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground">
               <strong>Note:</strong> Additional system tools are in development. 
               Currently, only payroll reprocessing is available.
