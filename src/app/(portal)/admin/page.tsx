@@ -31,12 +31,12 @@ function StatsCardSkeleton() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+        <div className="h-4 w-4 bg-muted rounded animate-pulse" />
       </CardHeader>
       <CardContent>
-        <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mb-1" />
-        <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+        <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1" />
+        <div className="h-3 w-24 bg-muted rounded animate-pulse" />
       </CardContent>
     </Card>
   );
@@ -155,7 +155,7 @@ export default function AdminOverviewPage() {
             <Card key={action.href} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <action.icon className="h-8 w-8 text-blue-600" />
+                  <action.icon className="h-8 w-8 text-primary" />
                   {action.badge && (
                     <Badge variant="secondary">{action.badge}</Badge>
                   )}
@@ -200,9 +200,9 @@ export default function AdminOverviewPage() {
               ].map((activity, index) => (
                 <div key={index} className="flex items-center gap-3">
                   {activity.status === 'success' ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <CheckCircle className="h-4 w-4 text-primary" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                   <div className="flex-1">
                     <p className="text-sm font-medium">{activity.action}</p>
