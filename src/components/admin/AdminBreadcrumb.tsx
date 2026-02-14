@@ -42,17 +42,17 @@ export default function AdminBreadcrumb() {
         {breadcrumbItems.map((item, index) => (
           <li key={index} className="flex items-center">
             {index > 0 && (
-              <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground mx-2" />
             )}
             {item.href ? (
               <Link
                 href={item.href}
-                className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-medium text-foreground">
                 {item.label}
               </span>
             )}

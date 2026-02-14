@@ -21,7 +21,7 @@ export default async function AdminLayout({
 
   return (
     <AdminLayoutProvider>
-      <div className="bg-gray-50">
+      <div className="bg-background">
         <AdminSidebar />
         <AdminMainContent>
           {children}
