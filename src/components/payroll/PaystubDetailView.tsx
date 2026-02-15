@@ -126,7 +126,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
     return (
       <Card>
         <CardHeader
-          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          className="cursor-pointer hover:bg-muted transition-colors"
           onClick={onToggle}
           onKeyDown={handleKeyDown}
           role="button"
@@ -136,11 +136,11 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center text-base md:text-lg">
               {title}
-              <span className="ml-2 text-sm font-normal text-gray-500">({count})</span>
+              <span className="ml-2 text-sm font-normal text-muted-foreground">({count})</span>
             </CardTitle>
             <svg
               className={cn(
-                "h-5 w-5 text-gray-400 transition-transform",
+                "h-5 w-5 text-muted-foreground transition-transform",
                 isExpanded ? "rotate-180" : ""
               )}
               fill="none"
@@ -224,7 +224,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
   return (
     <div className="space-y-6">
       {/* Sticky Mobile Header */}
-      <div className="md:hidden sticky top-0 z-10 bg-white border-b border-gray-200 p-4 shadow-sm mb-4">
+      <div className="md:hidden sticky top-0 z-10 bg-card border-b border-border p-4 shadow-sm mb-4">
         <Link href={returnUrl || "/payroll"}>
           <Button variant="ghost" size="sm" className="mb-2 -ml-2">
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -233,11 +233,11 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
         </Link>
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="font-semibold text-gray-900">{paystub.vendor.name}</h2>
-            <p className="text-sm text-gray-600">{formatDate(paystub.issueDate)}</p>
+            <h2 className="font-semibold text-foreground">{paystub.vendor.name}</h2>
+            <p className="text-sm text-muted-foreground">{formatDate(paystub.issueDate)}</p>
           </div>
           <div className="text-right">
-            <div className={`text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(paystub.totals.netPay)}
             </div>
             <Badge variant={paystub.isPaid ? 'default' : 'secondary'} className="text-xs mt-1">
@@ -258,10 +258,10 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-foreground">
                 Paystub Details
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {paystub.employee.name} - {paystub.vendor.name} - {formatDate(paystub.issueDate)}
               </p>
             </div>
@@ -295,7 +295,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                  className="bg-primary/10 hover:bg-primary/10 border-primary text-primary"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Invoice
@@ -307,7 +307,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
               variant="outline"
               size="sm"
               onClick={() => window.print()}
-              className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+              className="bg-muted hover:bg-muted border-border text-foreground"
             >
               <Printer className="h-4 w-4 mr-2" />
               Print Version
@@ -326,7 +326,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                     })
                   }
                 }}
-                className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                className="bg-destructive/10 hover:bg-destructive/10 border-destructive text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Invoice
@@ -361,13 +361,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 px-4 md:px-0">
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Sales</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-green-600">
+            <div className="text-lg md:text-2xl font-bold text-primary">
               {formatCurrency(paystub.totals.sales)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {paystub.sales.length} transaction(s)
             </p>
           </CardContent>
@@ -375,13 +375,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Overrides</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Overrides</CardTitle>
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-blue-600">
+            <div className="text-lg md:text-2xl font-bold text-primary">
               {formatCurrency(paystub.totals.overrides)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {paystub.overrides.length} override(s)
             </p>
           </CardContent>
@@ -389,13 +389,13 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Total Expenses</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-red-600">
+            <div className="text-lg md:text-2xl font-bold text-destructive">
               {formatCurrency(paystub.totals.expenses)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {paystub.expenses.length} expense(s)
             </p>
           </CardContent>
@@ -403,10 +403,10 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">Net Pay</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Net Pay</CardTitle>
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className={`text-lg md:text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-lg md:text-2xl font-bold ${paystub.totals.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(paystub.totals.netPay)}
             </div>
             <div className="flex items-center mt-1">
@@ -429,19 +429,19 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Name:</span>
+              <span className="text-sm font-medium text-muted-foreground">Name:</span>
               <span className="text-sm">{paystub.employee.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Email:</span>
+              <span className="text-sm font-medium text-muted-foreground">Email:</span>
               <span className="text-sm">{paystub.employee.email}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Agent ID:</span>
+              <span className="text-sm font-medium text-muted-foreground">Agent ID:</span>
               <span className="text-sm">{paystub.employee.sales_id1}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Status:</span>
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
               <Badge variant={paystub.employee.is_active ? 'default' : 'secondary'}>
                 {paystub.employee.is_active ? 'Active' : 'Inactive'}
               </Badge>
@@ -458,19 +458,19 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Name:</span>
+              <span className="text-sm font-medium text-muted-foreground">Name:</span>
               <span className="text-sm">{paystub.vendor.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Vendor ID:</span>
+              <span className="text-sm font-medium text-muted-foreground">Vendor ID:</span>
               <span className="text-sm">{paystub.vendor.id}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Issue Date:</span>
+              <span className="text-sm font-medium text-muted-foreground">Issue Date:</span>
               <span className="text-sm">{formatDate(paystub.issueDate)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-600">Status:</span>
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
               <Badge variant={paystub.vendor.is_active ? 'default' : 'secondary'}>
                 {paystub.vendor.is_active ? 'Active' : 'Inactive'}
               </Badge>
@@ -581,7 +581,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                     <TableCell className="font-medium text-xs md:text-sm">#{expense.expid}</TableCell>
                     <TableCell className="text-xs md:text-sm">{expense.type}</TableCell>
                     <TableCell className="hidden md:table-cell text-xs md:text-sm">{expense.notes}</TableCell>
-                    <TableCell className="text-right font-medium text-green-600 text-xs md:text-sm">
+                    <TableCell className="text-right font-medium text-primary text-xs md:text-sm">
                       {formatCurrency(expense.amount)}
                     </TableCell>
                   </TableRow>
@@ -596,7 +596,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       {paystub.generatedAt && (
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-muted-foreground">
               Paystub generated on {formatDate(paystub.generatedAt.split('T')[0])} at{' '}
               {new Date(paystub.generatedAt).toLocaleTimeString()}
             </div>

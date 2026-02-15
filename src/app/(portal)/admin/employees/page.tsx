@@ -74,13 +74,13 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
           <p className="text-sm text-muted-foreground">Total Employees</p>
         </div>
         <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold text-green-600">
+          <div className="text-2xl font-bold text-primary">
             {employeePage.employees.filter(emp => emp.is_active && !emp.deleted_at).length}
           </div>
           <p className="text-sm text-muted-foreground">Active</p>
         </div>
         <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold text-blue-600">
+          <div className="text-2xl font-bold text-primary">
             {employeePage.employees.filter(emp => emp.hasUser).length}
           </div>
           <p className="text-sm text-muted-foreground">With User Accounts</p>

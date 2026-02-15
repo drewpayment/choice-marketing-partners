@@ -9,7 +9,7 @@ export default async function ProtectedLayout({ children }: ProtectedLayoutProps
   const session = await requireAuth()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <ClientNavigation user={session.user} />
       <main>{children}</main>
     </div>

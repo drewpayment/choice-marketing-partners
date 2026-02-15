@@ -159,19 +159,19 @@ export function ManagerAssignmentInterface({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{getTotalAssigned()}</div>
+            <div className="text-2xl font-bold text-primary">{getTotalAssigned()}</div>
             <p className="text-sm text-muted-foreground">Assigned Employees</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{unassignedEmployees.length}</div>
+            <div className="text-2xl font-bold text-secondary">{unassignedEmployees.length}</div>
             <p className="text-sm text-muted-foreground">Unassigned Employees</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{pendingAssignments.length}</div>
+            <div className="text-2xl font-bold text-primary">{pendingAssignments.length}</div>
             <p className="text-sm text-muted-foreground">Pending Changes</p>
           </CardContent>
         </Card>
@@ -224,11 +224,11 @@ export function ManagerAssignmentInterface({
           
           <div className="space-y-4 max-h-[600px] overflow-y-auto">
             {managers.map((manager) => (
-              <Card key={manager.id} className="border-blue-200">
+              <Card key={manager.id} className="border-primary">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
                         {getEmployeeInitials(manager.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -287,9 +287,9 @@ export function ManagerAssignmentInterface({
             Unassigned Employees ({unassignedEmployees.length})
           </h2>
 
-          <Card className="border-orange-200">
+          <Card className="border-secondary/30">
             <CardHeader>
-              <CardTitle className="text-base text-orange-700">
+              <CardTitle className="text-base text-secondary">
                 Available for Assignment
               </CardTitle>
             </CardHeader>
@@ -342,7 +342,7 @@ export function ManagerAssignmentInterface({
       </div>
 
       {/* Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-primary/10 border-primary">
         <CardContent className="p-4">
           <h3 className="font-medium mb-2">How to use this interface:</h3>
           <ul className="text-sm space-y-1 text-muted-foreground">

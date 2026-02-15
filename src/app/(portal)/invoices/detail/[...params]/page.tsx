@@ -67,8 +67,8 @@ export default async function EditInvoicePage({ params: paramsPromise }: EditInv
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Pay Statement</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">Edit Pay Statement</h1>
+          <p className="text-muted-foreground mt-2">
             Employee {employeeId} • Vendor {vendorId} • Issue Date: {issueDate} • Weekending: {invoiceDetails?.weekending || ''}
           </p>
         </div>

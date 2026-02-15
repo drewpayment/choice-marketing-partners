@@ -15,7 +15,7 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">No blog posts available.</p>
+        <p className="text-muted-foreground">No blog posts available.</p>
       </div>
     )
   }
@@ -23,22 +23,22 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
   return (
     <div className="space-y-6">
       {posts.map((post) => (
-        <article key={post.id} className="border-b border-gray-200 last:border-b-0 pb-6 last:pb-0">
+        <article key={post.id} className="border-b border-border last:border-b-0 pb-6 last:pb-0">
           <div className="mb-3">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              <Link 
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              <Link
                 href={`/blog/${post.slug}`}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 {post.title}
               </Link>
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {formatDate(post.created_at)} By{' '}
               {post.author ? (
-                <Link 
+                <Link
                   href={`/blog/user/${post.author.id}`}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-primary hover:text-primary/80"
                 >
                   {post.author.name}
                 </Link>
@@ -48,11 +48,11 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
             </p>
           </div>
           
-          <div className="text-gray-700">
-            <div 
-              dangerouslySetInnerHTML={{ 
-                __html: truncateText(post.body, 500) + (post.body.length > 500 ? `... <a href="/blog/${post.slug}" class="text-blue-600 hover:text-blue-800">[Read More]</a>` : '')
-              }} 
+          <div className="text-foreground">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: truncateText(post.body, 500) + (post.body.length > 500 ? `... <a href="/blog/${post.slug}" class="text-primary hover:text-primary/80">[Read More]</a>` : '')
+              }}
             />
           </div>
         </article>

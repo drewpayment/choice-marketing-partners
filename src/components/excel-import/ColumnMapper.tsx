@@ -99,15 +99,15 @@ export default function ColumnMapper({
   // Get confidence icon
   const getConfidenceIcon = (confidence: number, suggested: boolean) => {
     if (!suggested || confidence === 0) {
-      return <HelpCircle className="w-4 h-4 text-gray-400" />;
+      return <HelpCircle className="w-4 h-4 text-muted-foreground" />;
     }
     if (confidence >= 0.9) {
-      return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+      return <CheckCircle2 className="w-4 h-4 text-primary" />;
     }
     if (confidence >= 0.75) {
-      return <AlertCircle className="w-4 h-4 text-yellow-600" />;
+      return <AlertCircle className="w-4 h-4 text-secondary" />;
     }
-    return <HelpCircle className="w-4 h-4 text-gray-400" />;
+    return <HelpCircle className="w-4 h-4 text-muted-foreground" />;
   };
 
   // Get available fields for dropdown (excluding already mapped ones)
@@ -130,12 +130,12 @@ export default function ColumnMapper({
       </div>
 
       {!hasHeaders && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <HelpCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-blue-900">File Without Headers</h4>
-              <p className="text-sm text-blue-800 mt-1">
+              <h4 className="font-medium text-primary">File Without Headers</h4>
+              <p className="text-sm text-primary mt-1">
                 Your file doesn&apos;t have headers. Use the sample data from the first row to identify which column contains which data.
                 Columns are labeled as Column A, Column B, etc.
               </p>
@@ -145,12 +145,12 @@ export default function ColumnMapper({
       )}
 
       {showHeaderWarning && !hasHeaders && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-yellow-900">First Row Looks Like Headers</h4>
-              <p className="text-sm text-yellow-800 mt-1">
+              <h4 className="font-medium text-secondary">First Row Looks Like Headers</h4>
+              <p className="text-sm text-secondary mt-1">
                 The first row appears to contain header-like text (e.g., &quot;Name&quot;, &quot;Date&quot;, &quot;Amount&quot;). 
                 If your file actually has headers, please go back and uncheck &quot;My file doesn&apos;t have headers&quot; 
                 to ensure proper data parsing.
@@ -161,12 +161,12 @@ export default function ColumnMapper({
       )}
 
       {hasFullName && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-green-900">Full Name Will Be Auto-Split</h4>
-              <p className="text-sm text-green-800 mt-1">
+              <h4 className="font-medium text-primary">Full Name Will Be Auto-Split</h4>
+              <p className="text-sm text-primary mt-1">
                 The Full Name field will be automatically split into First Name and Last Name. 
                 Supported formats: &quot;First Last&quot;, &quot;Last, First&quot;, or &quot;First Middle Last&quot;.
                 {(hasFirstName || hasLastName) && (
@@ -181,12 +181,12 @@ export default function ColumnMapper({
       )}
 
       {missingFields.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-secondary mt-0.5" />
             <div>
-              <h4 className="font-medium text-yellow-900">Missing Required Fields</h4>
-              <p className="text-sm text-yellow-800 mt-1">
+              <h4 className="font-medium text-secondary">Missing Required Fields</h4>
+              <p className="text-sm text-secondary mt-1">
                 Please map the following required fields: {missingFields.map(f => f.label).join(', ')}
               </p>
             </div>
@@ -227,7 +227,7 @@ export default function ColumnMapper({
                     <TableCell className="text-muted-foreground">
                       {(() => {
                         // Extract column index from "Column A" format
-                        if (!mapping.excelColumn) return <span className="text-gray-400">-</span>;
+                        if (!mapping.excelColumn) return <span className="text-muted-foreground">-</span>;
                         
                         const match = mapping.excelColumn.match(/Column ([A-Z]+)/);
                         if (match) {
@@ -242,7 +242,7 @@ export default function ColumnMapper({
                             return <span className="font-mono text-sm">&quot;{String(sample)}&quot;</span>;
                           }
                         }
-                        return <span className="text-gray-400">-</span>;
+                        return <span className="text-muted-foreground">-</span>;
                       })()}
                     </TableCell>
                   )}
@@ -278,12 +278,12 @@ export default function ColumnMapper({
                   <TableCell>
                     {mapping.confidence > 0 && mapping.suggested && (
                       <div className="flex items-center gap-2">
-                        <div className="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
+                        <div className="h-2 flex-1 bg-muted rounded-full overflow-hidden">
+                          <div
                             className={`h-full ${
-                              mapping.confidence >= 0.9 ? 'bg-green-600' :
-                              mapping.confidence >= 0.75 ? 'bg-yellow-600' :
-                              'bg-gray-400'
+                              mapping.confidence >= 0.9 ? 'bg-primary' :
+                              mapping.confidence >= 0.75 ? 'bg-secondary' :
+                              'bg-muted-foreground'
                             }`}
                             style={{ width: `${mapping.confidence * 100}%` }}
                           />

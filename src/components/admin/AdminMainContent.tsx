@@ -18,7 +18,7 @@ export default function AdminMainContent({ children }: AdminMainContentProps) {
       'lg:ml-72', // Default expanded width (18rem = 288px)
       isCollapsed && 'lg:ml-16' // Collapsed width (4rem = 64px)
     )}>
-      <div className="border-b bg-white px-6 py-4">
+      <div className="border-b border-border bg-card px-6 py-4">
         <AdminBreadcrumb />
       </div>
       <div className="p-6">

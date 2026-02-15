@@ -59,12 +59,12 @@ export default function ImportPreview({
 
       {/* Agent Filter Summary */}
       {filteredCount !== undefined && totalParsedCount !== undefined && filteredCount < totalParsedCount && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-blue-900">Agent Filter Applied</h4>
-              <p className="text-sm text-blue-800 mt-1">
+              <h4 className="font-medium text-primary">Agent Filter Applied</h4>
+              <p className="text-sm text-primary mt-1">
                 Filtered to <strong>{filteredCount}</strong> of <strong>{totalParsedCount}</strong> total rows 
                 {selectedAgentName && <> matching agent <strong>{selectedAgentName}</strong></>}.
                 {totalParsedCount - filteredCount > 0 && (
@@ -78,17 +78,17 @@ export default function ImportPreview({
 
       {/* Warning if agent selected but no REP ID mapping */}
       {showRepIdWarning && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-yellow-900">REP ID Not Mapped</h4>
-              <p className="text-sm text-yellow-800 mt-1">
+              <h4 className="font-medium text-secondary">REP ID Not Mapped</h4>
+              <p className="text-sm text-secondary mt-1">
                 You have selected an agent (<strong>{selectedAgentName}</strong>) but did not map the REP ID field.
                 <strong> All {data.length} records</strong> from the file will be imported to this pay statement,
                 which may include sales for other agents.
               </p>
-              <p className="text-sm text-yellow-800 mt-2">
+              <p className="text-sm text-secondary mt-2">
                 To filter by agent, go back to column mapping and map the REP ID field to enable automatic filtering.
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function ImportPreview({
       <div className="grid grid-cols-3 gap-4">
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <CheckCircle2 className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium text-muted-foreground">Valid Rows</span>
           </div>
           <div className="text-2xl font-bold">{validRows}</div>
@@ -108,7 +108,7 @@ export default function ImportPreview({
 
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <XCircle className="w-5 h-5 text-red-600" />
+            <XCircle className="w-5 h-5 text-destructive" />
             <span className="text-sm font-medium text-muted-foreground">Invalid Rows</span>
           </div>
           <div className="text-2xl font-bold">{new Set(errors.map(e => e.row)).size}</div>
@@ -116,7 +116,7 @@ export default function ImportPreview({
 
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="w-5 h-5 text-yellow-600" />
+            <AlertCircle className="w-5 h-5 text-secondary" />
             <span className="text-sm font-medium text-muted-foreground">Total Errors</span>
           </div>
           <div className="text-2xl font-bold">{errors.length}</div>
@@ -125,14 +125,14 @@ export default function ImportPreview({
 
       {/* Errors List (if any) */}
       {hasErrors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
           <div className="flex items-start gap-2 mb-3">
-            <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <XCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <h4 className="font-medium text-red-900">
+              <h4 className="font-medium text-destructive">
                 {isBatchMode ? 'Import Blocked - Fix These Errors' : 'Validation Warnings'}
               </h4>
-              <p className="text-sm text-red-800 mt-1">
+              <p className="text-sm text-destructive mt-1">
                 {isBatchMode 
                   ? 'Please fix these errors in your spreadsheet and try again.'
                   : 'These rows will be imported with missing or invalid data. You can fix them in the form.'
@@ -141,16 +141,16 @@ export default function ImportPreview({
             </div>
           </div>
 
-          <div className="h-48 w-full rounded border bg-white overflow-auto">
+          <div className="h-48 w-full rounded border bg-card overflow-auto">
             <div className="p-3 space-y-2">
               {Object.entries(errorsByRow).map(([rowNum, rowErrors]) => (
                 <div key={rowNum} className="text-sm">
-                  <div className="font-medium text-red-900">
+                  <div className="font-medium text-destructive">
                     Row {rowNum}:
                   </div>
                   <ul className="ml-4 mt-1 space-y-1">
                     {rowErrors.map((error, idx) => (
-                      <li key={idx} className="text-red-700">
+                      <li key={idx} className="text-destructive">
                         • <span className="font-medium">{error.field}</span>: {error.message}
                       </li>
                     ))}
@@ -191,10 +191,10 @@ export default function ImportPreview({
                   return (
                     <TableRow 
                       key={index}
-                      className={hasError ? 'bg-red-50' : ''}
+                      className={hasError ? 'bg-destructive/10' : ''}
                     >
                       <TableCell className="font-medium">
-                        {hasError && <XCircle className="w-4 h-4 text-red-600 inline mr-1" />}
+                        {hasError && <XCircle className="w-4 h-4 text-destructive inline mr-1" />}
                         {rowNumber}
                       </TableCell>
                       <TableCell>{row.sale_date || '-'}</TableCell>

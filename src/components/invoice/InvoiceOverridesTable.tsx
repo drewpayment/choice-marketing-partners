@@ -93,7 +93,7 @@ export default function InvoiceOverridesTable({ overrides, onOverridesChange, on
                   value={override.total || 0}
                   onChange={() => {}} // Read-only, but needs onChange for component
                   readOnly
-                  className="bg-gray-50"
+                  className="bg-muted"
                 />
               </TableCell>
               <TableCell>

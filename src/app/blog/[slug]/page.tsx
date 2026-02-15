@@ -16,25 +16,25 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-card rounded-lg shadow-lg p-8">
           {/* Back to blog link */}
           <div className="mb-8">
             <Link 
               href="/blog"
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               ← Back to Blog
             </Link>
           </div>
 
           {/* Post header */}
-          <header className="mb-8 pb-8 border-b border-gray-200">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <header className="mb-8 pb-8 border-b border-border">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
               {post.title}
             </h1>
-            <div className="flex items-center text-gray-600">
+            <div className="flex items-center text-muted-foreground">
               <time dateTime={post.created_at?.toISOString()}>
                 {formatDate(post.created_at)}
               </time>
@@ -44,7 +44,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   <span>By </span>
                   <Link 
                     href={`/blog/user/${post.author.id}`}
-                    className="text-blue-600 hover:text-blue-800 ml-1"
+                    className="text-primary hover:text-primary/80 ml-1"
                   >
                     {post.author.name}
                   </Link>
@@ -54,16 +54,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </header>
 
           {/* Post content */}
-          <article className="prose prose-lg max-w-none text-gray-700">
+          <article className="prose prose-lg max-w-none text-foreground">
             <div dangerouslySetInnerHTML={{ __html: post.body }} />
           </article>
 
           {/* Post footer */}
-          <footer className="mt-12 pt-8 border-t border-gray-200">
+          <footer className="mt-12 pt-8 border-t border-border">
             <div className="flex justify-between items-center">
               <Link 
                 href="/blog"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-primary hover:text-primary/80 font-medium"
               >
                 ← Back to Blog
               </Link>
@@ -71,7 +71,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {post.author && (
                 <Link 
                   href={`/blog/user/${post.author.id}`}
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-primary hover:text-primary/80 font-medium"
                 >
                   More posts by {post.author.name} →
                 </Link>

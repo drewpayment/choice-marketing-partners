@@ -295,8 +295,8 @@ export default function VendorsPage() {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         vendor.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-muted text-foreground'
                       }`}
                     >
                       {vendor.is_active ? 'Active' : 'Inactive'}

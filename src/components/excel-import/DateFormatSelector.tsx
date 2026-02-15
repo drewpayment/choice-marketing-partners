@@ -70,12 +70,12 @@ export default function DateFormatSelector({
         </p>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <AlertCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="font-medium text-yellow-900">Important</h4>
-            <p className="text-sm text-yellow-800 mt-1">
+            <h4 className="font-medium text-secondary">Important</h4>
+            <p className="text-sm text-secondary mt-1">
               Incorrect date format selection may cause dates to be misinterpreted. 
               For example, 03/04/2025 could mean March 4th or April 3rd depending on the format.
             </p>
@@ -92,7 +92,7 @@ export default function DateFormatSelector({
               id="has-headers-toggle"
               checked={!hasHeaders}
               onChange={(e) => onHasHeadersChange(!e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
             />
             <label htmlFor="has-headers-toggle" className="text-sm font-medium cursor-pointer">
               My file doesn&apos;t have headers
@@ -110,16 +110,16 @@ export default function DateFormatSelector({
             key={option.value}
             className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${
               selectedFormat === option.value
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:bg-gray-50'
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:bg-muted'
             }`}
             onClick={() => setSelectedFormat(option.value)}
           >
             <div className="mt-1">
               {selectedFormat === option.value ? (
-                <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                <CheckCircle2 className="w-5 h-5 text-primary" />
               ) : (
-                <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
+                <div className="w-5 h-5 border-2 border-border rounded-full" />
               )}
             </div>
             <div className="flex-1">
@@ -130,7 +130,7 @@ export default function DateFormatSelector({
               <p className="text-sm text-muted-foreground mt-1">
                 {option.description}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 font-mono bg-white px-2 py-1 rounded border inline-block">
+              <p className="text-xs text-muted-foreground mt-1 font-mono bg-card px-2 py-1 rounded border inline-block">
                 {option.example}
               </p>
             </div>

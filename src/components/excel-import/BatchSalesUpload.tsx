@@ -82,25 +82,25 @@ export default function BatchSalesUpload() {
           {uploadStatus && (
             <div 
               className={`border rounded-lg p-4 ${
-                uploadStatus.success 
-                  ? 'bg-green-50 border-green-200' 
-                  : 'bg-red-50 border-red-200'
+                uploadStatus.success
+                  ? 'bg-primary/10 border-primary/20'
+                  : 'bg-destructive/10 border-destructive/20'
               }`}
             >
               <div className="flex items-start gap-2">
                 {uploadStatus.success ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
                 )}
                 <div>
                   <h4 className={`font-medium ${
-                    uploadStatus.success ? 'text-green-900' : 'text-red-900'
+                    uploadStatus.success ? 'text-primary' : 'text-destructive'
                   }`}>
                     {uploadStatus.success ? 'Upload Successful' : 'Upload Failed'}
                   </h4>
                   <p className={`text-sm mt-1 ${
-                    uploadStatus.success ? 'text-green-800' : 'text-red-800'
+                    uploadStatus.success ? 'text-primary' : 'text-destructive'
                   }`}>
                     {uploadStatus.message}
                   </p>

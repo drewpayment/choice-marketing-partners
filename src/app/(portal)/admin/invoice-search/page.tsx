@@ -162,8 +162,8 @@ export default function InvoiceSearchPage() {
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-8 bg-muted rounded"></div>
                 </div>
               </CardContent>
             </Card>
@@ -181,7 +181,7 @@ export default function InvoiceSearchPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <ActivityIcon className="h-8 w-8 text-blue-500" />
+              <ActivityIcon className="h-8 w-8 text-primary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Changes</p>
                 <p className="text-2xl font-bold">{summary.totalChanges.toLocaleString()}</p>
@@ -193,7 +193,7 @@ export default function InvoiceSearchPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <AlertTriangleIcon className="h-8 w-8 text-orange-500" />
+              <AlertTriangleIcon className="h-8 w-8 text-secondary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Status Changes</p>
                 <p className="text-2xl font-bold">{summary.statusChanges.toLocaleString()}</p>
@@ -205,7 +205,7 @@ export default function InvoiceSearchPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <TrendingUpIcon className="h-8 w-8 text-green-500" />
+              <TrendingUpIcon className="h-8 w-8 text-primary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Amount Changes</p>
                 <p className="text-2xl font-bold">{summary.amountChanges.toLocaleString()}</p>

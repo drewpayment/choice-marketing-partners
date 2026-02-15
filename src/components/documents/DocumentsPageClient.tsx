@@ -36,7 +36,7 @@ export function DocumentsPageClient() {
               Back to Documents
             </Button>
             <h1 className="text-2xl font-bold">Upload Documents</h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Upload new documents to the cloud storage system
             </p>
           </div>

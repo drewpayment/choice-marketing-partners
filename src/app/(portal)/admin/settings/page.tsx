@@ -503,7 +503,7 @@ export default function AdminSettingsPage() {
               <CardContent>
                 {/* Add New Date Form */}
                 {showAddDateForm && (
-                  <div className="mb-4 p-4 border rounded-lg bg-blue-50">
+                  <div className="mb-4 p-4 border rounded-lg bg-primary/10">
                     <Form {...dateForm}>
                       <form onSubmit={dateForm.handleSubmit(addPayrollDate)} className="space-y-4">
                         <FormField
@@ -555,9 +555,9 @@ export default function AdminSettingsPage() {
                 {/* Existing Dates List */}
                 <div className="space-y-2">
                   {state.payrollDates?.dates.map((date, index) => (
-                    <div key={date.issueDate} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div key={date.issueDate} className="flex items-center justify-between p-2 rounded-lg bg-muted hover:bg-muted transition-colors">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">{date.displayDate}</span>
                         {index === 0 && <Badge variant="secondary">Latest</Badge>}
                       </div>
@@ -566,14 +566,14 @@ export default function AdminSettingsPage() {
                         variant="ghost"
                         onClick={() => deletePayrollDate(date.issueDate)}
                         disabled={state.saving}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
                   {(!state.payrollDates?.dates || state.payrollDates.dates.length === 0) && (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className="text-center py-4 text-muted-foreground">
                       No payroll dates found. Add one to get started.
                     </div>
                   )}
@@ -597,10 +597,10 @@ export default function AdminSettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                <div className="rounded-lg border border-secondary/30 bg-secondary/10 p-4">
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <p className="text-sm text-orange-800">
+                    <AlertCircle className="h-4 w-4 text-secondary" />
+                    <p className="text-sm text-secondary">
                       Additional system configuration options will be available in future updates.
                     </p>
                   </div>

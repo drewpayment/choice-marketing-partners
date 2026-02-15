@@ -9,17 +9,21 @@ interface TestimonialSectionProps {
 export default function TestimonialSection({ title, testimonials, id }: TestimonialSectionProps) {
   return (
     <section id={id}>
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-blue-600 text-white p-4">
-          <h2 className="text-2xl font-bold text-center">{title}</h2>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="bg-primary px-6 py-4">
+          <h2 className="text-center text-xl font-bold text-primary-foreground">{title}</h2>
         </div>
         <div className="p-6">
-          <div className="space-y-6">
+          <div className="space-y-4">
             {testimonials.map((testimonial, index) => (
-              <div key={testimonial.id} className="bg-gray-50 rounded-lg p-4">
-                <blockquote className={index % 2 === 0 ? "text-left" : "text-right"}>
-                  <p className="text-gray-700 italic mb-2">&ldquo;{testimonial.content}&rdquo;</p>
-                  <footer className="text-sm text-gray-500">— {testimonial.location}</footer>
+              <div key={testimonial.id} className="rounded-lg bg-muted p-4">
+                <blockquote className={index % 2 === 0 ? 'text-left' : 'text-right'}>
+                  <p className="mb-2 text-sm italic text-muted-foreground">
+                    &ldquo;{testimonial.content}&rdquo;
+                  </p>
+                  <footer className="text-xs text-muted-foreground/70">
+                    &mdash; {testimonial.location}
+                  </footer>
                 </blockquote>
               </div>
             ))}

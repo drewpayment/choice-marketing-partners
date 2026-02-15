@@ -1,3 +1,203 @@
+# Landing Page Redesign Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Redesign the root landing page (`/`) with the new Blue-Teal & Amber color system, modern layout, and deuteranopia-safe semantic colors while preserving all existing functionality (testimonials, blog feed, comma club, partnerships).
+
+**Architecture:** Update CSS custom properties in `globals.css` to the new color tokens, then rewrite `src/app/page.tsx` with a modern component structure using existing shadcn/ui `Button` and `Card` components. Extract reusable landing page sections into separate components. Update `TestimonialSection` styling to match the new system.
+
+**Tech Stack:** Next.js 15 App Router, Tailwind CSS v4, shadcn/ui, Lucide React icons, Geist font family
+
+---
+
+## Design System Reference
+
+### Color Tokens (Blue-Teal & Amber, Deuteranopia-Safe)
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Primary | `#0E7490` (cyan-700) | Main brand, links, active states |
+| Primary Hover | `#0C6380` | Button/link hover states |
+| Primary Foreground | `#FFFFFF` | Text on primary backgrounds |
+| Secondary (Amber) | `#D97706` (amber-600) | CTA buttons, accent highlights |
+| Secondary Hover | `#B45309` | Amber hover states |
+| Destructive | `#DC2626` | Error states |
+| Background | `#FAFAFA` (stone-50) | Page background |
+| Surface | `#FFFFFF` | Cards, elevated surfaces |
+| Muted | `#F5F5F4` (stone-100) | Section backgrounds |
+| Border | `#E7E5E4` (stone-300) | Borders, dividers |
+| Text Primary | `#1C1917` (stone-900) | Headings, body text |
+| Text Secondary | `#78716C` (stone-500) | Supporting text |
+| Text Muted | `#A8A29E` (stone-400) | Placeholders, captions |
+
+### Accessibility Rules (Deuteranopia)
+- Never use color alone as an indicator — always pair with icons or labels
+- Primary blue-teal reads as clear blue to deuteranopes
+- Secondary amber reads as yellow to deuteranopes
+- Blue vs yellow is the safest high-contrast pair for red-green color blindness
+
+### Typography
+- Font: Geist (already configured)
+- Hero headline: 56px/800 weight
+- Section titles: 36px/700 weight
+- Body: 16px/400 weight
+- Labels/Tags: 12px/600 weight, uppercase, letter-spacing 2px
+
+### Spacing & Radius
+- Section padding: `py-20 px-4 sm:px-6 lg:px-8`
+- Card radius: `rounded-xl` (12px)
+- Button radius: `rounded-lg` (8px)
+- Container max-width: `max-w-7xl`
+
+---
+
+## Pre-Implementation Notes
+
+### Files That Will Be Modified
+- `src/app/globals.css` — Update CSS custom properties to new color tokens
+- `src/app/page.tsx` — Complete rewrite of landing page structure
+- `src/components/testimonials/TestimonialSection.tsx` — Restyle to match new system
+
+### Files That Will NOT Be Modified
+- `src/app/layout.tsx` — No changes needed (Geist font already configured)
+- `src/components/comma-club/CommaClubModal.tsx` — Internal modal, leave as-is for now
+- `src/components/blog/BlogFeed.tsx` — Internal component, leave as-is for now
+- `src/components/ui/button.tsx` — Works via CSS variables, will auto-update
+
+### Key Behavior to Preserve
+- Server-side data fetching for testimonials and blog posts
+- Conditional rendering (authenticated vs unauthenticated hero)
+- Comma Club modal integration (all 5 tiers)
+- Partnership logos grid with external links
+- Agent/Customer testimonials display
+- Anchor link navigation (#incentives, #clients, etc.)
+
+---
+
+### Task 1: Update CSS Custom Properties
+
+**Files:**
+- Modify: `src/app/globals.css`
+
+**Step 1: Update the `:root` CSS variables to the new color system**
+
+Replace the `:root` block with new color tokens using oklch values that correspond to our hex palette. The key changes:
+- Primary: dark slate-blue → cyan-700 (`#0E7490`)
+- Secondary: light gray → amber-600 (`#D97706`)
+- Background/surface: warm stone tones
+- Border/muted: warm gray (stone) instead of cool slate
+
+```css
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.985 0.002 75);
+  --foreground: oklch(0.147 0.004 49.25);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  --primary: oklch(0.520 0.105 207);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.583 0.158 62);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.970 0.001 75);
+  --muted-foreground: oklch(0.553 0.013 58);
+  --accent: oklch(0.970 0.001 75);
+  --accent-foreground: oklch(0.147 0.004 49.25);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.923 0.003 75);
+  --input: oklch(0.923 0.003 75);
+  --ring: oklch(0.520 0.105 207);
+  --chart-1: oklch(0.520 0.105 207);
+  --chart-2: oklch(0.583 0.158 62);
+  --chart-3: oklch(0.577 0.245 27.325);
+  --chart-4: oklch(0.696 0.17 162.48);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.147 0.004 49.25);
+  --sidebar-foreground: oklch(0.985 0.002 75);
+  --sidebar-primary: oklch(0.520 0.105 207);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.216 0.006 56.04);
+  --sidebar-accent-foreground: oklch(0.985 0.002 75);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.520 0.105 207);
+}
+```
+
+**Step 2: Update the `.dark` block similarly**
+
+Update the dark mode variables to complement the new palette (dark backgrounds with teal/amber accents).
+
+```css
+.dark {
+  --background: oklch(0.147 0.004 49.25);
+  --foreground: oklch(0.985 0.002 75);
+  --card: oklch(0.216 0.006 56.04);
+  --card-foreground: oklch(0.985 0.002 75);
+  --popover: oklch(0.216 0.006 56.04);
+  --popover-foreground: oklch(0.985 0.002 75);
+  --primary: oklch(0.520 0.105 207);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.583 0.158 62);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.216 0.006 56.04);
+  --muted-foreground: oklch(0.553 0.013 58);
+  --accent: oklch(0.216 0.006 56.04);
+  --accent-foreground: oklch(0.985 0.002 75);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.520 0.105 207);
+  --chart-1: oklch(0.520 0.105 207);
+  --chart-2: oklch(0.583 0.158 62);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.147 0.004 49.25);
+  --sidebar-foreground: oklch(0.985 0.002 75);
+  --sidebar-primary: oklch(0.520 0.105 207);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.279 0.006 56.04);
+  --sidebar-accent-foreground: oklch(0.985 0.002 75);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.520 0.105 207);
+}
+```
+
+**Step 3: Verify the dev server runs without errors**
+
+Run: `bun dev` and load `http://localhost:3000`
+Expected: Page loads with updated colors throughout (all shadcn/ui components should automatically pick up the new primary/secondary)
+
+**Step 4: Commit**
+
+```bash
+git add src/app/globals.css
+git commit -m "feat: update CSS custom properties to blue-teal & amber color system"
+```
+
+---
+
+### Task 2: Rewrite the Landing Page
+
+**Files:**
+- Modify: `src/app/page.tsx`
+
+This is the main task. We rewrite the landing page with the new design while preserving all existing functionality. The page keeps its server component nature and all data fetching.
+
+**Step 1: Rewrite `src/app/page.tsx`**
+
+The new structure:
+1. **Sticky Navigation** — Logo left, anchor links center, Sign In button right
+2. **Hero Section** — Teal gradient background, centered headline + subtitle, dual CTA buttons. Authenticated users see Comma Club + Blog Feed below in a card.
+3. **Features Section** — "FEATURES" tag, section title, 4 feature cards in a grid (Payroll, Invoices, Documents, Team Management) with Lucide icons
+4. **Agent Incentives Section** — Preserved from current page, restyled
+5. **Testimonials Section** — Two-column layout, restyled cards
+6. **Partnerships Section** — Logo grid, restyled
+7. **CTA Section** — Dark teal gradient, centered headline + amber CTA button
+8. **Footer** — Dark background, logo + links + copyright
+
+```tsx
 import { TestimonialRepository } from '@/lib/repositories/testimonials'
 import { BlogRepository } from '@/lib/repositories/blog'
 import { getServerSession } from 'next-auth'
@@ -17,6 +217,7 @@ import {
   Sparkles,
   Trophy,
   Gift,
+  Building2,
 } from 'lucide-react'
 
 export default async function HomePage() {
@@ -336,3 +537,136 @@ export default async function HomePage() {
     </div>
   )
 }
+```
+
+**Step 2: Verify the page loads correctly**
+
+Run: `bun dev` and load `http://localhost:3000`
+Expected: Fully redesigned landing page with teal gradient hero, amber CTAs, feature cards, and all existing content preserved.
+
+**Step 3: Commit**
+
+```bash
+git add src/app/page.tsx
+git commit -m "feat: redesign landing page with blue-teal & amber color system"
+```
+
+---
+
+### Task 3: Restyle TestimonialSection Component
+
+**Files:**
+- Modify: `src/components/testimonials/TestimonialSection.tsx`
+
+**Step 1: Update the TestimonialSection component styling**
+
+Replace the blue-600 header bar with the new primary color and update card styling to use design tokens.
+
+```tsx
+import { TestimonialData } from '@/lib/repositories/testimonials'
+
+interface TestimonialSectionProps {
+  title: string
+  testimonials: TestimonialData[]
+  id: string
+}
+
+export default function TestimonialSection({ title, testimonials, id }: TestimonialSectionProps) {
+  return (
+    <section id={id}>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="bg-primary px-6 py-4">
+          <h2 className="text-center text-xl font-bold text-primary-foreground">{title}</h2>
+        </div>
+        <div className="p-6">
+          <div className="space-y-4">
+            {testimonials.map((testimonial, index) => (
+              <div key={testimonial.id} className="rounded-lg bg-muted p-4">
+                <blockquote className={index % 2 === 0 ? 'text-left' : 'text-right'}>
+                  <p className="mb-2 text-sm italic text-muted-foreground">
+                    &ldquo;{testimonial.content}&rdquo;
+                  </p>
+                  <footer className="text-xs text-muted-foreground/70">
+                    &mdash; {testimonial.location}
+                  </footer>
+                </blockquote>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+**Step 2: Verify testimonials render correctly**
+
+Load `http://localhost:3000` and scroll to the testimonials section.
+Expected: Testimonials show with teal header bar, warm gray cards, proper spacing.
+
+**Step 3: Commit**
+
+```bash
+git add src/components/testimonials/TestimonialSection.tsx
+git commit -m "feat: restyle TestimonialSection with new design system tokens"
+```
+
+---
+
+### Task 4: Visual Review and Polish
+
+**Files:**
+- Possibly modify: `src/app/page.tsx` (minor tweaks only)
+
+**Step 1: Test responsive breakpoints**
+
+Load the page at various viewport widths:
+- Mobile (375px): Hero should stack, navigation should hide links, feature cards should be single column
+- Tablet (768px): Feature cards 2-column, partnerships 3-column
+- Desktop (1440px): Full layout with all columns
+
+**Step 2: Test authenticated vs unauthenticated views**
+
+- Sign out → verify hero shows "Join Our Success Story" equivalent (now "Payroll Management, Simplified.") with Comma Club card below
+- Sign in → verify Comma Club + Blog Feed appear in 2-column layout below hero
+
+**Step 3: Test all interactive elements**
+
+- Click Comma Club amounts → modal should open (modal keeps existing styling)
+- Click partner logos → should open in new tab
+- Click Sign In button → should navigate to /auth/signin
+- Click anchor links (Features, Incentives, Testimonials, Partners) → smooth scroll to sections
+
+**Step 4: Commit final state**
+
+```bash
+git add -A
+git commit -m "feat: complete landing page redesign with visual polish"
+```
+
+---
+
+## Summary of Changes
+
+| File | Change Type | Description |
+|------|------------|-------------|
+| `src/app/globals.css` | Modified | Updated CSS custom properties from slate-blue to blue-teal & amber |
+| `src/app/page.tsx` | Rewritten | Modern landing page with sticky nav, teal gradient hero, feature cards, CTA, footer |
+| `src/components/testimonials/TestimonialSection.tsx` | Restyled | Updated from hardcoded blue-600 to design system tokens |
+
+**What's preserved:**
+- All server-side data fetching (testimonials, blog posts)
+- Conditional auth rendering (Comma Club + Blog Feed)
+- Partnership logos with external links
+- All existing routes and anchor links
+- CommaClubModal integration (5 tiers)
+
+**What's new:**
+- Sticky navigation with backdrop blur
+- Teal gradient hero with sparkle badge
+- Amber "Get Started" CTA buttons (deuteranopia-safe contrast)
+- Feature cards with Lucide icons
+- CTA section with dark teal gradient
+- Proper footer with About Us / Blog links
+- Consistent use of CSS custom properties (auto-updates all shadcn/ui components)

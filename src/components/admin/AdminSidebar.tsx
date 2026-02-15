@@ -78,22 +78,22 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile menu button */}
-      <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+      <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-card px-4 py-4 shadow-sm sm:px-6 lg:hidden">
         <button 
           type="button" 
-          className="-m-2.5 p-2.5 text-gray-700"
+          className="-m-2.5 p-2.5 text-foreground"
           onClick={() => setIsMobileOpen(true)}
         >
           <span className="sr-only">Open sidebar</span>
           <Menu className="h-6 w-6" aria-hidden="true" />
         </button>
-        <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">Admin Panel</div>
+        <div className="flex-1 text-sm font-semibold leading-6 text-foreground">Admin Panel</div>
       </div>
 
       {/* Mobile sidebar overlay */}
       {isMobileOpen && (
         <div className="relative z-50 lg:hidden" role="dialog" aria-modal="true">
-          <div className="fixed inset-0 bg-gray-900/80" onClick={() => setIsMobileOpen(false)} />
+          <div className="fixed inset-0 bg-black/60" onClick={() => setIsMobileOpen(false)} />
           <div className="fixed inset-0 flex">
             <div className="relative mr-16 flex w-full max-w-xs flex-1">
               <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
@@ -106,9 +106,9 @@ export default function AdminSidebar() {
                   <ChevronLeft className="h-6 w-6 text-white" aria-hidden="true" />
                 </button>
               </div>
-              <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
+              <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card px-6 pb-2">
                 <div className="flex h-16 shrink-0 items-center">
-                  <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Admin Panel</h2>
                 </div>
                 <nav className="flex flex-1 flex-col">
                   <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -123,8 +123,8 @@ export default function AdminSidebar() {
                                 className={cn(
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
                                   isActive
-                                    ? 'bg-gray-50 text-blue-600'
-                                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-muted-foreground hover:text-primary hover:bg-muted'
                                 )}
                                 onClick={() => setIsMobileOpen(false)}
                               >
@@ -146,13 +146,13 @@ export default function AdminSidebar() {
 
       {/* Desktop sidebar */}
       <div className={cn(
-        'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r border-gray-200 bg-white transition-all duration-300',
+        'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r border-border bg-card transition-all duration-300',
         isCollapsed ? 'lg:w-16' : 'lg:w-72'
       )}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6">
           <div className="flex h-16 shrink-0 items-center justify-between">
             {!isCollapsed && (
-              <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
+              <h2 className="text-lg font-semibold text-foreground">Admin Panel</h2>
             )}
             <Button
               variant="ghost"
@@ -180,8 +180,8 @@ export default function AdminSidebar() {
                           className={cn(
                             'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors',
                             isActive
-                              ? 'bg-gray-50 text-blue-600'
-                              : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:text-primary hover:bg-muted'
                           )}
                           title={isCollapsed ? item.label : undefined}
                         >
@@ -189,7 +189,7 @@ export default function AdminSidebar() {
                           {!isCollapsed && (
                             <div className="flex flex-col min-w-0">
                               <span className="truncate">{item.label}</span>
-                              <span className="text-xs text-gray-500 font-normal truncate">
+                              <span className="text-xs text-muted-foreground font-normal truncate">
                                 {item.description}
                               </span>
                             </div>
