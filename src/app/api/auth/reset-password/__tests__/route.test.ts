@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 // Mock dependencies FIRST before any imports
 jest.mock('@/lib/database/client', () => ({
   db: {

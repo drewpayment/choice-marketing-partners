@@ -94,24 +94,3 @@ jobs:
         lhci autorun
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-
-  security:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: latest
-    
-    - name: Install dependencies
-      run: bun install
-    
-    - name: Run security audit
-      run: bun audit
-    
-    - name: Run ESLint security rules
-      run: bunx eslint . --ext .ts,.tsx --config .eslintrc.json

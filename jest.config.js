@@ -18,6 +18,7 @@ const customJestConfig = {
     '<rootDir>/node_modules/',
     '<rootDir>/tests/',  // Ignore ALL E2E tests - they use Playwright
     '<rootDir>/legacy/',
+    '\\.integration\\.test\\.',  // Integration tests require a running database
   ],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',

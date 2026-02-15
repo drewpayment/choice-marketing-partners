@@ -24,15 +24,18 @@ class MockPayrollRepository extends PayrollRepository {
     const offset = (page - 1) * limit
 
     // Mock data based on filters
-    const mockData: Array<{
-      agent_name: string
-      vendor_name: string
-      issue_date: string
-      sales_total: number
-      overrides_total: number
-      expenses_total: number
-      paystub_total: number
-      is_paid: boolean
+    let mockData: Array<{
+      employeeId: number
+      employeeName: string
+      agentId: string
+      vendorId: number
+      vendorName: string
+      issueDate: string
+      totalSales: number
+      totalOverrides: number
+      totalExpenses: number
+      netPay: number
+      paystubCount: number
     }> = []
     let totalCount = 0
 
