@@ -13,6 +13,7 @@ interface ClientNavigationProps {
     isAdmin: boolean
     isManager: boolean
     isActive: boolean
+    isSubscriber: boolean
   }
 }
 
@@ -24,17 +25,32 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
     {
       href: '/dashboard',
       label: 'Dashboard',
-      show: true
+      show: !user.isSubscriber
+    },
+    {
+      href: '/subscriber',
+      label: 'Billing Dashboard',
+      show: user.isSubscriber
+    },
+    {
+      href: '/subscriber/payments',
+      label: 'Payment History',
+      show: user.isSubscriber
+    },
+    {
+      href: '/subscriber/profile',
+      label: 'Account Profile',
+      show: user.isSubscriber
     },
     {
       href: '/payroll',
       label: 'Payroll',
-      show: true
+      show: !user.isSubscriber
     },
     {
       href: '/documents',
       label: 'Documents',
-      show: true
+      show: !user.isSubscriber
     },
     {
       href: '/invoices',
@@ -49,6 +65,11 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
     {
       href: '/admin',
       label: 'Admin Portal',
+      show: user.isAdmin
+    },
+    {
+      href: '/admin/billing',
+      label: 'Billing Management',
       show: user.isAdmin
     }
   ].filter(item => item.show)
@@ -99,7 +120,7 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
             <div className="ml-3 relative">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-700">
-                  {user.name} ({user.isAdmin ? 'Admin' : user.isManager ? 'Manager' : 'Employee'})
+                  {user.name} ({user.isAdmin ? 'Admin' : user.isManager ? 'Manager' : user.isSubscriber ? 'Subscriber' : 'Employee'})
                 </span>
                 <SignOutButton className='border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left' />
               </div>
