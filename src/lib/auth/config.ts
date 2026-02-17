@@ -53,6 +53,15 @@ export const authOptions: NextAuthOptions = {
             .where('employees.id', '=', user.id)
             .executeTakeFirst()
 
+          // Check if user is a subscriber
+          const subscriberLink = await db
+            .selectFrom('subscriber_user')
+            .innerJoin('subscribers', 'subscriber_user.subscriber_id', 'subscribers.id')
+            .select(['subscribers.id as subscriber_id'])
+            .where('subscriber_user.user_id', '=', user.id)
+            .where('subscribers.deleted_at', 'is', null)
+            .executeTakeFirst()
+
           return {
             id: user.id.toString(),
             email: user.email,
@@ -60,11 +69,13 @@ export const authOptions: NextAuthOptions = {
             // Add role information
             isAdmin: employee?.is_admin === 1,
             isManager: employee?.is_mgr === 1,
-            isActive: employee?.is_active === 1,
+            isActive: employee?.is_active === 1 || !!subscriberLink,
+            isSubscriber: !!subscriberLink,
             employeeId: employee?.employee_id,
+            subscriberId: subscriberLink?.subscriber_id ?? null,
             salesIds: [
               employee?.sales_id1,
-              employee?.sales_id2, 
+              employee?.sales_id2,
               employee?.sales_id3
             ].filter(Boolean) as string[]
           }
@@ -89,7 +100,9 @@ export const authOptions: NextAuthOptions = {
         token.isAdmin = user.isAdmin
         token.isManager = user.isManager
         token.isActive = user.isActive
+        token.isSubscriber = user.isSubscriber
         token.employeeId = user.employeeId
+        token.subscriberId = user.subscriberId
         token.salesIds = user.salesIds
       }
       return token
@@ -101,9 +114,11 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: token.sub!,
           isAdmin: token.isAdmin as boolean,
-          isManager: token.isManager as boolean, 
+          isManager: token.isManager as boolean,
           isActive: token.isActive as boolean,
+          isSubscriber: token.isSubscriber as boolean,
           employeeId: token.employeeId as number,
+          subscriberId: token.subscriberId as number | null,
           salesIds: token.salesIds as string[]
         }
       }

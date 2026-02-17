@@ -388,6 +388,79 @@ export interface Users {
   updated_at: Date | null;
 }
 
+export interface PaymentHistory {
+  id: Generated<number>;
+  subscriber_id: number;
+  stripe_invoice_id: string;
+  stripe_payment_intent_id: string | null;
+  amount_cents: number;
+  currency: Generated<string>;
+  status: string;
+  description: string | null;
+  invoice_pdf_url: string | null;
+  paid_at: Date | null;
+  created_at: Generated<Date | null>;
+}
+
+export interface Prices {
+  id: Generated<number>;
+  product_id: number;
+  stripe_price_id: string;
+  amount_cents: number;
+  currency: Generated<string>;
+  interval: Generated<"month" | "quarter" | "year" | "one_time">;
+  interval_count: Generated<number>;
+  is_active: Generated<number>;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
+export interface Products {
+  id: Generated<number>;
+  stripe_product_id: string;
+  name: string;
+  description: string | null;
+  type: Generated<"recurring" | "one_time" | "custom">;
+  is_active: Generated<number>;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
+export interface Subscribers {
+  id: Generated<number>;
+  stripe_customer_id: string;
+  business_name: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  status: Generated<"active" | "past_due" | "canceled" | "paused">;
+  notes: string | null;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+  deleted_at: Date | null;
+}
+
+export interface SubscriberSubscriptions {
+  id: Generated<number>;
+  subscriber_id: number;
+  stripe_subscription_id: string;
+  product_id: number;
+  price_id: number;
+  status: Generated<string>;
+  current_period_start: Date | null;
+  current_period_end: Date | null;
+  cancel_at_period_end: Generated<number>;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
+export interface SubscriberUser {
+  subscriber_id: number;
+  user_id: number;
+}
+
 export interface Vendors {
   created_at: Date | null;
   id: Generated<number>;
@@ -430,6 +503,12 @@ export interface DB {
   tagging_tags: TaggingTags;
   testimonial_types: TestimonialTypes;
   testimonials: Testimonials;
+  payment_history: PaymentHistory;
+  prices: Prices;
+  products: Products;
+  subscribers: Subscribers;
+  subscriber_subscriptions: SubscriberSubscriptions;
+  subscriber_user: SubscriberUser;
   user_notifications: UserNotifications;
   users: Users;
   vendors: Vendors;

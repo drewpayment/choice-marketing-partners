@@ -7,7 +7,9 @@ declare module 'next-auth' {
       isAdmin: boolean
       isManager: boolean
       isActive: boolean
+      isSubscriber: boolean
       employeeId?: number
+      subscriberId?: number | null
       salesIds: string[]
     } & DefaultSession['user']
   }
@@ -16,7 +18,9 @@ declare module 'next-auth' {
     isAdmin: boolean
     isManager: boolean
     isActive: boolean
+    isSubscriber: boolean
     employeeId?: number
+    subscriberId?: number | null
     salesIds: string[]
   }
 }
@@ -26,7 +30,9 @@ declare module 'next-auth/jwt' {
     isAdmin: boolean
     isManager: boolean
     isActive: boolean
+    isSubscriber: boolean
     employeeId?: number
+    subscriberId?: number | null
     salesIds: string[]
   }
 }

@@ -13,6 +13,7 @@ interface ClientNavigationProps {
     isAdmin: boolean
     isManager: boolean
     isActive: boolean
+    isSubscriber: boolean
   }
 }
 
@@ -24,17 +25,32 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
     {
       href: '/dashboard',
       label: 'Dashboard',
-      show: true
+      show: !user.isSubscriber
+    },
+    {
+      href: '/subscriber',
+      label: 'Billing Dashboard',
+      show: user.isSubscriber
+    },
+    {
+      href: '/subscriber/payments',
+      label: 'Payment History',
+      show: user.isSubscriber
+    },
+    {
+      href: '/subscriber/profile',
+      label: 'Account Profile',
+      show: user.isSubscriber
     },
     {
       href: '/payroll',
       label: 'Payroll',
-      show: true
+      show: !user.isSubscriber
     },
     {
       href: '/documents',
       label: 'Documents',
-      show: true
+      show: !user.isSubscriber
     },
     {
       href: '/invoices',
@@ -50,6 +66,11 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
       href: '/admin',
       label: 'Admin Portal',
       show: user.isAdmin
+    },
+    {
+      href: '/admin/billing',
+      label: 'Billing Management',
+      show: user.isAdmin
     }
   ].filter(item => item.show)
 
@@ -61,13 +82,13 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
   }
 
   return (
-    <nav className="bg-card border-b border-border">
+    <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-foreground">
+              <Link href="/dashboard" className="text-xl font-bold text-gray-900">
                 Choice Marketing Partners
               </Link>
             </div>
@@ -83,8 +104,8 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
                     className={cn(
                       "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
                       isActive
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                     )}
                   >
                     {item.label}
@@ -98,10 +119,10 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="ml-3 relative">
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground">
-                  {user.name} ({user.isAdmin ? 'Admin' : user.isManager ? 'Manager' : 'Employee'})
+                <span className="text-sm text-gray-700">
+                  {user.name} ({user.isAdmin ? 'Admin' : user.isManager ? 'Manager' : user.isSubscriber ? 'Subscriber' : 'Employee'})
                 </span>
-                <SignOutButton className='border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left' />
+                <SignOutButton className='border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left' />
               </div>
             </div>
           </div>
@@ -110,7 +131,7 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
           <div className="sm:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
               aria-expanded={isMobileMenuOpen}
             >
               <span className="sr-only">{isMobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
@@ -142,15 +163,15 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
                   className={cn(
                     "block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors",
                     isActive
-                      ? "bg-primary/10 border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground"
+                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
                   )}
                 >
                   {item.label}
                 </Link>
               )
             })}
-            <SignOutButton className="border-transparent text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left">
+            <SignOutButton className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium w-full text-left">
               Sign Out
             </SignOutButton>
           </div>
