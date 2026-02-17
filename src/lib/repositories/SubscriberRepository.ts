@@ -1,5 +1,4 @@
 import { db } from '@/lib/database/client'
-import type { Subscribers } from '@/lib/database/types'
 
 export interface SubscriberSummary {
   id: number
@@ -158,12 +157,20 @@ export class SubscriberRepository {
 
   async getSubscriberByStripeCustomerId(
     stripeCustomerId: string
-  ): Promise<Pick<Subscribers, keyof Subscribers> | null> {
+  ): Promise<SubscriberSummary | null> {
     const result = await db
       .selectFrom('subscribers')
       .where('stripe_customer_id', '=', stripeCustomerId)
       .where('deleted_at', 'is', null)
-      .selectAll()
+      .select([
+        'id',
+        'stripe_customer_id',
+        'business_name',
+        'phone',
+        'status',
+        'created_at',
+        'updated_at',
+      ])
       .executeTakeFirst()
 
     return result ?? null
