@@ -35,6 +35,19 @@ export async function requireManagerOrAdmin() {
   return session
 }
 
+// Require subscriber role
+export async function requireSubscriber() {
+  const session = await requireAuth()
+  if (!session.user.isSubscriber) {
+    redirect('/unauthorized')
+  }
+  return session
+}
+
+export function isSubscriber(session: Session | null): boolean {
+  return session?.user?.isSubscriber === true
+}
+
 // Check if user has access to employee data
 export function hasAccessToEmployee(session: Session | null, employeeId: number): boolean {
   if (!session) return false

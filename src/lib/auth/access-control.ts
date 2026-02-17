@@ -24,7 +24,7 @@ export const ROUTE_ACCESS = {
     '/api/documents'
   ],
   
-  // Manager level or higher  
+  // Manager level or higher
   MANAGER: [
     '/manager',
     '/overrides',
@@ -32,7 +32,7 @@ export const ROUTE_ACCESS = {
     '/api/invoices',
     '/api/overrides'
   ],
-  
+
   // Admin only
   ADMIN: [
     '/admin',
@@ -41,6 +41,12 @@ export const ROUTE_ACCESS = {
     '/api/admin',
     '/api/agents',
     '/api/settings'
+  ],
+
+  // Subscriber only
+  SUBSCRIBER: [
+    '/subscriber',
+    '/api/subscriber'
   ]
 } as const
 
@@ -48,31 +54,37 @@ export const ROUTE_ACCESS = {
  * Check if user has access to a specific route
  */
 export function hasRouteAccess(
-  pathname: string, 
-  isAdmin: boolean = false, 
+  pathname: string,
+  isAdmin: boolean = false,
   isManager: boolean = false,
-  isAuthenticated: boolean = false
+  isAuthenticated: boolean = false,
+  isSubscriber: boolean = false
 ): boolean {
   // Check admin routes
   if (ROUTE_ACCESS.ADMIN.some(route => pathname.startsWith(route))) {
     return isAdmin
   }
-  
+
   // Check manager routes
   if (ROUTE_ACCESS.MANAGER.some(route => pathname.startsWith(route))) {
     return isAdmin || isManager
   }
-  
+
+  // Check subscriber routes
+  if (ROUTE_ACCESS.SUBSCRIBER.some(route => pathname.startsWith(route))) {
+    return isSubscriber
+  }
+
   // Check employee routes
   if (ROUTE_ACCESS.EMPLOYEE.some(route => pathname.startsWith(route))) {
     return isAuthenticated
   }
-  
+
   // Check authenticated routes
   if (ROUTE_ACCESS.AUTHENTICATED.some(route => pathname.startsWith(route))) {
     return isAuthenticated
   }
-  
+
   // Public routes - always allowed
   return true
 }
@@ -121,9 +133,10 @@ export async function validateRouteAccess(request: NextRequest) {
     const isAuthenticated = !!token
     const isAdmin = token?.isAdmin === true
     const isManager = token?.isManager === true
-    
+    const isSubscriber = token?.isSubscriber === true
+
     // Check if user has access to this route
-    const hasAccess = hasRouteAccess(pathname, isAdmin, isManager, isAuthenticated)
+    const hasAccess = hasRouteAccess(pathname, isAdmin, isManager, isAuthenticated, isSubscriber)
     
     if (!hasAccess) {
       const redirectUrl = getAccessDeniedRedirect(pathname, isAdmin, isManager, isAuthenticated)
