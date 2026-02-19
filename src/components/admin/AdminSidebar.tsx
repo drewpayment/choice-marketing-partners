@@ -4,20 +4,25 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { 
-  Settings, 
-  BarChart3, 
-  Wrench, 
+import {
+  Settings,
+  BarChart3,
+  Wrench,
   Home,
   ChevronLeft,
   Menu,
   Users,
   UserCheck,
   SearchIcon,
-  Building2
+  Building2,
+  CreditCard,
+  Package,
+  Flag
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
+import { useFeatureFlag } from '@/hooks/useFeatureFlag';
+import { useSession } from 'next-auth/react';
 
 const adminNavItems = [
   {
@@ -68,12 +73,44 @@ const adminNavItems = [
     label: 'Admin Tools',
     description: 'Reprocess payroll, system tools'
   },
+  {
+    href: '/admin/billing/subscribers',
+    icon: CreditCard,
+    label: 'Subscribers',
+    description: 'Manage subscriber billing',
+    featureFlag: 'enable-subscriptions',
+  },
+  {
+    href: '/admin/billing/products',
+    icon: Package,
+    label: 'Products & Pricing',
+    description: 'Manage billing products',
+    featureFlag: 'enable-subscriptions',
+  },
+  {
+    href: '/admin/feature-flags',
+    icon: Flag,
+    label: 'Feature Flags',
+    description: 'Manage feature rollouts',
+    superAdminOnly: true,
+  },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { isCollapsed, setIsCollapsed } = useAdminLayout();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const subscriptionsEnabled = useFeatureFlag('enable-subscriptions');
+  const { data: session } = useSession();
+
+  const visibleNavItems = useMemo(
+    () => adminNavItems.filter((item) => {
+      if (item.featureFlag && subscriptionsEnabled !== true) return false
+      if (item.superAdminOnly && !session?.user?.isSuperAdmin) return false
+      return true
+    }),
+    [subscriptionsEnabled, session]
+  );
 
   return (
     <>
@@ -114,7 +151,7 @@ export default function AdminSidebar() {
                   <ul role="list" className="flex flex-1 flex-col gap-y-7">
                     <li>
                       <ul role="list" className="-mx-2 space-y-1">
-                        {adminNavItems.map((item) => {
+                        {visibleNavItems.map((item) => {
                           const isActive = pathname === item.href;
                           return (
                             <li key={item.href}>
@@ -171,7 +208,7 @@ export default function AdminSidebar() {
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
-                  {adminNavItems.map((item) => {
+                  {visibleNavItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
                       <li key={item.href}>
