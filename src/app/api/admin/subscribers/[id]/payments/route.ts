@@ -4,10 +4,13 @@ import { authOptions } from '@/lib/auth/config'
 import { BillingRepository } from '@/lib/repositories/BillingRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions)
 
-  if (!session?.user?.isSubscriber || !session.user.subscriberId) {
+  if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -21,17 +24,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
   }
 
+  const { id } = await params
+  const subscriberId = parseInt(id)
+
+  if (isNaN(subscriberId)) {
+    return NextResponse.json({ error: 'Invalid subscriber ID' }, { status: 400 })
+  }
+
   const repo = new BillingRepository()
 
   try {
-    const payments = await repo.getPaymentHistory(
-      session.user.subscriberId,
-      {
-        isAdmin: session.user.isAdmin,
-        subscriberId: session.user.subscriberId,
-      }
-    )
-
+    const payments = await repo.getPaymentHistory(subscriberId, {
+      isAdmin: true,
+      subscriberId: null,
+    })
     return NextResponse.json(payments)
   } catch (error) {
     console.error('Error fetching payment history:', error)

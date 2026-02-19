@@ -4,12 +4,64 @@ import { authOptions } from '@/lib/auth/config'
 import { BillingRepository } from '@/lib/repositories/BillingRepository'
 import { SubscriberRepository } from '@/lib/repositories/SubscriberRepository'
 import { StripeService } from '@/lib/services/StripeService'
+import { isFeatureEnabled } from '@/lib/feature-flags'
+
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!await isFeatureEnabled('enable-subscriptions', {
+    userId: session.user.id,
+    isAdmin: session.user.isAdmin,
+    isManager: session.user.isManager ?? false,
+    isSubscriber: !!(session.user.subscriberId),
+    subscriberId: session.user.subscriberId ?? null,
+  })) {
+    return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const subscriberId = searchParams.get('subscriber_id')
+
+  if (!subscriberId) {
+    return NextResponse.json({ error: 'subscriber_id is required' }, { status: 400 })
+  }
+
+  const billingRepo = new BillingRepository()
+
+  try {
+    const subscriptions = await billingRepo.getSubscriptionsBySubscriber(
+      parseInt(subscriberId),
+      { isAdmin: true, subscriberId: null }
+    )
+    return NextResponse.json(subscriptions)
+  } catch (error) {
+    console.error('Error fetching subscriptions:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch subscriptions' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!await isFeatureEnabled('enable-subscriptions', {
+    userId: session.user.id,
+    isAdmin: session.user.isAdmin,
+    isManager: session.user.isManager ?? false,
+    isSubscriber: !!(session.user.subscriberId),
+    subscriberId: session.user.subscriberId ?? null,
+  })) {
+    return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
   }
 
   try {

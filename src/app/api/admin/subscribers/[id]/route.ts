@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { SubscriberRepository } from '@/lib/repositories/SubscriberRepository'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 
 export async function GET(
   request: NextRequest,
@@ -11,6 +12,16 @@ export async function GET(
 
   if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!await isFeatureEnabled('enable-subscriptions', {
+    userId: session.user.id,
+    isAdmin: session.user.isAdmin,
+    isManager: session.user.isManager ?? false,
+    isSubscriber: !!(session.user.subscriberId),
+    subscriberId: session.user.subscriberId ?? null,
+  })) {
+    return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
   }
 
   const { id } = await params
@@ -52,6 +63,16 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (!await isFeatureEnabled('enable-subscriptions', {
+    userId: session.user.id,
+    isAdmin: session.user.isAdmin,
+    isManager: session.user.isManager ?? false,
+    isSubscriber: !!(session.user.subscriberId),
+    subscriberId: session.user.subscriberId ?? null,
+  })) {
+    return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
+  }
+
   const { id } = await params
   const subscriberId = parseInt(id)
 
@@ -61,13 +82,13 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { business_name, phone, address, city, state, postal_code, status, notes } = body
+    const { email, contact_name, business_name, phone, address, city, state, postal_code, status, notes } = body
 
     const repo = new SubscriberRepository()
 
     await repo.updateSubscriber(
       subscriberId,
-      { business_name, phone, address, city, state, postal_code, status, notes },
+      { email, contact_name, business_name, phone, address, city, state, postal_code, status, notes },
       { isAdmin: true }
     )
 
@@ -94,6 +115,16 @@ export async function DELETE(
 
   if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!await isFeatureEnabled('enable-subscriptions', {
+    userId: session.user.id,
+    isAdmin: session.user.isAdmin,
+    isManager: session.user.isManager ?? false,
+    isSubscriber: !!(session.user.subscriberId),
+    subscriberId: session.user.subscriberId ?? null,
+  })) {
+    return NextResponse.json({ error: 'Feature not available' }, { status: 403 })
   }
 
   const { id } = await params
