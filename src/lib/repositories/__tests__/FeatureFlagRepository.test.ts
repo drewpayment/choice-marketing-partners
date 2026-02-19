@@ -99,12 +99,15 @@ describe('FeatureFlagRepository', () => {
 
   describe('listFlags', () => {
     it('returns all flags with their overrides', async () => {
-      ;(db.selectFrom as jest.Mock).mockReturnValue(
-        mockSelect([{ id: 1, name: 'enable-subscriptions', is_enabled: 1, rollout_percentage: 100, environment: 'production', description: null }])
-      )
+      ;(db.selectFrom as jest.Mock)
+        .mockReturnValueOnce(
+          mockSelect([{ id: 1, name: 'enable-subscriptions', is_enabled: 1, rollout_percentage: 100, environment: 'production', description: null }])
+        )
+        .mockReturnValueOnce(mockSelect([]))
       const result = await repo.listFlags()
       expect(result).toHaveLength(1)
       expect(result[0].name).toBe('enable-subscriptions')
+      expect(result[0].overrides).toEqual([])
     })
   })
 })

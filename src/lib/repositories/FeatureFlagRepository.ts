@@ -68,7 +68,15 @@ export class FeatureFlagRepository {
     )
     if (userOverride !== undefined) return !!userOverride.is_enabled
 
-    // 5. Role override (admin > manager > subscriber)
+    // 5. Subscriber-ID override (more specific than role)
+    if (context.subscriberId) {
+      const subOverride = overrides.find(
+        (o) => o.context_type === 'subscriber' && o.context_value === String(context.subscriberId)
+      )
+      if (subOverride !== undefined) return !!subOverride.is_enabled
+    }
+
+    // 6. Role override (admin > manager > subscriber)
     const rolesToCheck: Array<[boolean, string]> = [
       [context.isAdmin, 'admin'],
       [context.isManager, 'manager'],
@@ -80,14 +88,6 @@ export class FeatureFlagRepository {
         (o) => o.context_type === 'role' && o.context_value === roleName
       )
       if (roleOverride !== undefined) return !!roleOverride.is_enabled
-    }
-
-    // 6. Subscriber override
-    if (context.subscriberId) {
-      const subOverride = overrides.find(
-        (o) => o.context_type === 'subscriber' && o.context_value === String(context.subscriberId)
-      )
-      if (subOverride !== undefined) return !!subOverride.is_enabled
     }
 
     // 7. Percentage rollout
@@ -155,7 +155,13 @@ export class FeatureFlagRepository {
     environment?: string
     description?: string
   }): Promise<void> {
-    const updates: Record<string, unknown> = {}
+    type UpdateData = {
+      is_enabled?: 0 | 1
+      rollout_percentage?: number
+      environment?: string
+      description?: string
+    }
+    const updates: UpdateData = {}
     if (data.is_enabled !== undefined) updates.is_enabled = data.is_enabled ? 1 : 0
     if (data.rollout_percentage !== undefined) updates.rollout_percentage = data.rollout_percentage
     if (data.environment !== undefined) updates.environment = data.environment
