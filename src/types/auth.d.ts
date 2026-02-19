@@ -6,6 +6,7 @@ declare module 'next-auth' {
       id: string
       isAdmin: boolean
       isManager: boolean
+      isSuperAdmin: boolean
       isActive: boolean
       isSubscriber: boolean
       employeeId?: number
@@ -17,6 +18,7 @@ declare module 'next-auth' {
   interface User extends DefaultUser {
     isAdmin: boolean
     isManager: boolean
+    isSuperAdmin: boolean
     isActive: boolean
     isSubscriber: boolean
     employeeId?: number
@@ -29,6 +31,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     isAdmin: boolean
     isManager: boolean
+    isSuperAdmin: boolean
     isActive: boolean
     isSubscriber: boolean
     employeeId?: number

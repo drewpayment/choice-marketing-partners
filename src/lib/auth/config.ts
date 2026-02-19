@@ -41,10 +41,11 @@ export const authOptions: NextAuthOptions = {
             .selectFrom('employees')
             .select([
               'employees.id as employee_id',
-              'employees.name as employee_name', 
+              'employees.name as employee_name',
               'employees.email as employee_email',
               'employees.is_admin',
               'employees.is_mgr',
+              'employees.is_super_admin',
               'employees.is_active',
               'employees.sales_id1',
               'employees.sales_id2',
@@ -53,14 +54,19 @@ export const authOptions: NextAuthOptions = {
             .where('employees.id', '=', user.id)
             .executeTakeFirst()
 
-          // Check if user is a subscriber
-          const subscriberLink = await db
-            .selectFrom('subscriber_user')
-            .innerJoin('subscribers', 'subscriber_user.subscriber_id', 'subscribers.id')
-            .select(['subscribers.id as subscriber_id'])
-            .where('subscriber_user.user_id', '=', user.id)
-            .where('subscribers.deleted_at', 'is', null)
-            .executeTakeFirst()
+          // Check if user is a subscriber (gracefully handles missing tables)
+          let subscriberLink: { subscriber_id: number } | undefined
+          try {
+            subscriberLink = await db
+              .selectFrom('subscriber_user')
+              .innerJoin('subscribers', 'subscriber_user.subscriber_id', 'subscribers.id')
+              .select(['subscribers.id as subscriber_id'])
+              .where('subscriber_user.user_id', '=', user.id)
+              .where('subscribers.deleted_at', 'is', null)
+              .executeTakeFirst()
+          } catch {
+            // Billing tables may not exist yet — treat as non-subscriber
+          }
 
           return {
             id: user.id.toString(),
@@ -69,6 +75,7 @@ export const authOptions: NextAuthOptions = {
             // Add role information
             isAdmin: employee?.is_admin === 1,
             isManager: employee?.is_mgr === 1,
+            isSuperAdmin: employee?.is_super_admin === 1,
             isActive: employee?.is_active === 1 || !!subscriberLink,
             isSubscriber: !!subscriberLink,
             employeeId: employee?.employee_id,
@@ -99,6 +106,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.isAdmin = user.isAdmin
         token.isManager = user.isManager
+        token.isSuperAdmin = user.isSuperAdmin
         token.isActive = user.isActive
         token.isSubscriber = user.isSubscriber
         token.employeeId = user.employeeId
@@ -115,6 +123,7 @@ export const authOptions: NextAuthOptions = {
           id: token.sub!,
           isAdmin: token.isAdmin as boolean,
           isManager: token.isManager as boolean,
+          isSuperAdmin: token.isSuperAdmin as boolean,
           isActive: token.isActive as boolean,
           isSubscriber: token.isSubscriber as boolean,
           employeeId: token.employeeId as number,
