@@ -1,7 +1,23 @@
 -- Feature flags migration (idempotent)
 
-ALTER TABLE employees
-  ADD COLUMN IF NOT EXISTS is_super_admin TINYINT(1) NOT NULL DEFAULT 0;
+-- Add is_super_admin column if it doesn't already exist
+DROP PROCEDURE IF EXISTS _add_super_admin_col;
+DELIMITER $$
+CREATE PROCEDURE _add_super_admin_col()
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = 'employees'
+      AND COLUMN_NAME  = 'is_super_admin'
+  ) THEN
+    ALTER TABLE employees
+      ADD COLUMN is_super_admin TINYINT(1) NOT NULL DEFAULT 0;
+  END IF;
+END$$
+DELIMITER ;
+CALL _add_super_admin_col();
+DROP PROCEDURE IF EXISTS _add_super_admin_col;
 
 CREATE TABLE IF NOT EXISTS feature_flags (
   id                 INT AUTO_INCREMENT PRIMARY KEY,
