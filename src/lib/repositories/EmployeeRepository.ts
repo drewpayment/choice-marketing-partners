@@ -18,6 +18,7 @@ export interface EmployeeSummary {
   created_at: Date | null
   deleted_at: Date | null
   hasUser: boolean
+  user_uid: string | null
 }
 
 export interface EmployeeDetail extends EmployeeSummary {
@@ -571,7 +572,8 @@ export class EmployeeRepository {
           .then(true)
           .else(false)
           .end()
-          .as('hasUser')
+          .as('hasUser'),
+        'users.uid as user_uid',
       ])
       .where((eb) =>
         eb.or([
@@ -591,8 +593,30 @@ export class EmployeeRepository {
       is_active: Boolean(emp.is_active),
       is_admin: Boolean(emp.is_admin),
       is_mgr: Boolean(emp.is_mgr),
-      hasUser: !!Number(emp.hasUser)
+      hasUser: !!Number(emp.hasUser),
+      user_uid: emp.user_uid ?? null,
     }))
+  }
+
+  /**
+   * Look up employee names by user UIDs (for display purposes)
+   */
+  /**
+   * Look up employee names by users.id values (session.user.id is users.id, not users.uid)
+   */
+  async getNamesByUserIds(ids: number[]): Promise<Record<number, string>> {
+    if (ids.length === 0) return {}
+    const rows = await db
+      .selectFrom('employees')
+      .innerJoin('users', 'employees.id', 'users.id')
+      .select(['users.id', 'employees.name'])
+      .where('users.id', 'in', ids)
+      .execute()
+    const map: Record<number, string> = {}
+    for (const row of rows) {
+      map[row.id] = row.name
+    }
+    return map
   }
 
   /**

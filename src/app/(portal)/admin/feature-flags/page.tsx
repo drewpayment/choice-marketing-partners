@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -58,6 +58,7 @@ export default function FeatureFlagsPage() {
   const { toast } = useToast()
   const [flags, setFlags] = useState<FeatureFlag[]>([])
   const [loading, setLoading] = useState(true)
+  const [userNames, setUserNames] = useState<Record<string, string>>({})
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [showNewDialog, setShowNewDialog] = useState(false)
   const [showOverrideDialog, setShowOverrideDialog] = useState<number | null>(null)
@@ -71,6 +72,10 @@ export default function FeatureFlagsPage() {
   const [ovType, setOvType] = useState<'user' | 'role' | 'subscriber'>('role')
   const [ovValue, setOvValue] = useState('')
   const [ovEnabled, setOvEnabled] = useState(true)
+  const [userSearch, setUserSearch] = useState('')
+  const [userResults, setUserResults] = useState<{ id: number; name: string; email: string; user_uid: string | null }[]>([])
+  const [userSearchOpen, setUserSearchOpen] = useState(false)
+  const [selectedUserLabel, setSelectedUserLabel] = useState('')
 
   useEffect(() => {
     if (status === 'loading') return
@@ -82,11 +87,67 @@ export default function FeatureFlagsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status])
 
+  useEffect(() => {
+    if (ovType !== 'user' || userSearch.length < 2) {
+      setUserResults([])
+      return
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/employees/search?q=${encodeURIComponent(userSearch)}&limit=10`)
+        if (res.ok) {
+          const data = await res.json()
+          setUserResults(data.employees ?? [])
+          setUserSearchOpen(true)
+        }
+      } catch {
+        // ignore search errors
+      }
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [userSearch, ovType])
+
+  function resetOverrideForm() {
+    setOvType('role')
+    setOvValue('')
+    setOvEnabled(true)
+    setUserSearch('')
+    setUserResults([])
+    setUserSearchOpen(false)
+    setSelectedUserLabel('')
+  }
+
+  async function resolveUserNames(loadedFlags: FeatureFlag[]) {
+    const ids = loadedFlags
+      .flatMap((f) => f.overrides)
+      .filter((o) => o.context_type === 'user')
+      .map((o) => o.context_value)
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .map((v) => parseInt(v, 10))
+      .filter((n) => !isNaN(n))
+    if (ids.length === 0) return
+    try {
+      const res = await fetch(`/api/employees/resolve-uids?uids=${ids.join(',')}`)
+      if (!res.ok) return
+      const map: Record<string, string> = await res.json()
+      // keys come back as numbers from JSON; convert to strings to match context_value
+      const stringMap: Record<string, string> = {}
+      for (const [k, v] of Object.entries(map)) stringMap[k] = v
+      if (Object.keys(stringMap).length > 0) {
+        setUserNames((prev) => ({ ...prev, ...stringMap }))
+      }
+    } catch {
+      // non-critical — falls back to displaying the raw id
+    }
+  }
+
   async function fetchFlags() {
     try {
       const res = await fetch('/api/admin/feature-flags')
       if (!res.ok) throw new Error('Failed to load flags')
-      setFlags(await res.json())
+      const loaded: FeatureFlag[] = await res.json()
+      setFlags(loaded)
+      resolveUserNames(loaded)
     } catch (error) {
       logger.error('Error fetching flags:', error)
       toast({ title: 'Error', description: 'Failed to load feature flags', variant: 'destructive' })
@@ -155,8 +216,12 @@ export default function FeatureFlagsPage() {
       })
       const updated = await res.json()
       setFlags((prev) => prev.map((f) => f.id === flagId ? updated : f))
+      if (ovType === 'user' && selectedUserLabel && ovValue) {
+        const name = selectedUserLabel.split(' (')[0]
+        setUserNames((prev) => ({ ...prev, [ovValue]: name }))
+      }
       setShowOverrideDialog(null)
-      setOvValue('')
+      resetOverrideForm()
       toast({ title: 'Override added' })
     } catch (error) {
       logger.error('Error adding override:', error)
@@ -213,7 +278,7 @@ export default function FeatureFlagsPage() {
           </TableHeader>
           <TableBody>
             {flags.map((flag) => (
-              <>
+              <React.Fragment key={flag.id}>
                 <TableRow key={flag.id}>
                   <TableCell>
                     <p className="font-mono text-sm font-medium">{flag.name}</p>
@@ -318,7 +383,11 @@ export default function FeatureFlagsPage() {
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${OVERRIDE_COLORS[o.context_type]}`}>
                                   {o.context_type}
                                 </span>
-                                <span className="font-mono text-xs flex-1 truncate">{o.context_value}</span>
+                                <span className="text-xs flex-1 truncate">
+                                  {o.context_type === 'user'
+                                    ? (userNames[o.context_value] ?? o.context_value)
+                                    : o.context_value}
+                                </span>
                                 <Switch checked={!!o.is_enabled} onCheckedChange={async (v) => {
                                   await fetch(`/api/admin/feature-flags/${flag.id}/overrides`, {
                                     method: 'POST',
@@ -345,7 +414,7 @@ export default function FeatureFlagsPage() {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </React.Fragment>
             ))}
             {flags.length === 0 && (
               <TableRow>
@@ -400,24 +469,76 @@ export default function FeatureFlagsPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showOverrideDialog !== null} onOpenChange={(o) => !o && setShowOverrideDialog(null)}>
+      <Dialog open={showOverrideDialog !== null} onOpenChange={(o) => { if (!o) { setShowOverrideDialog(null); resetOverrideForm() } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Add Override</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div>
               <Label>Type</Label>
-              <Select value={ovType} onValueChange={(v) => setOvType(v as 'user' | 'role' | 'subscriber')}>
+              <Select value={ovType} onValueChange={(v) => { setOvType(v as 'user' | 'role' | 'subscriber'); setOvValue(''); setUserSearch(''); setUserResults([]); setSelectedUserLabel('') }}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="role">Role (admin / manager / subscriber)</SelectItem>
-                  <SelectItem value="user">User ID</SelectItem>
+                  <SelectItem value="role">Role</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
                   <SelectItem value="subscriber">Subscriber ID</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Value</Label>
-              <Input value={ovValue} onChange={(e) => setOvValue(e.target.value)} placeholder={ovType === 'role' ? 'admin' : ovType === 'user' ? 'user ID' : 'subscriber ID'} className="mt-1" />
+              {ovType === 'role' && (
+                <Select value={ovValue} onValueChange={setOvValue}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select a role…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="manager">manager</SelectItem>
+                    <SelectItem value="subscriber">subscriber</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {ovType === 'user' && (
+                <div className="relative mt-1">
+                  <Input
+                    value={selectedUserLabel || userSearch}
+                    onChange={(e) => {
+                      setUserSearch(e.target.value)
+                      setSelectedUserLabel('')
+                      setOvValue('')
+                      setUserSearchOpen(true)
+                    }}
+                    placeholder="Search by name or email…"
+                  />
+                  {userSearchOpen && userResults.length > 0 && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                      {userResults.map((emp) => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
+                          onClick={() => {
+                            const uid = emp.user_uid ?? String(emp.id)
+                            setOvValue(uid)
+                            setSelectedUserLabel(`${emp.name} (${emp.email})`)
+                            setUserSearch('')
+                            setUserResults([])
+                            setUserSearchOpen(false)
+                          }}
+                        >
+                          <span className="font-medium">{emp.name}</span>
+                          <span className="text-xs text-muted-foreground">{emp.email}</span>
+                          {emp.user_uid && <span className="font-mono text-xs text-muted-foreground">uid: {emp.user_uid}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {ovValue && (
+                    <p className="mt-1 text-xs text-muted-foreground font-mono">uid: {ovValue}</p>
+                  )}
+                </div>
+              )}
+              {ovType === 'subscriber' && (
+                <Input value={ovValue} onChange={(e) => setOvValue(e.target.value)} placeholder="subscriber ID" className="mt-1" />
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={ovEnabled} onCheckedChange={setOvEnabled} />
@@ -425,7 +546,7 @@ export default function FeatureFlagsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowOverrideDialog(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowOverrideDialog(null); resetOverrideForm() }}>Cancel</Button>
             <Button onClick={() => addOverride(showOverrideDialog!)} disabled={!ovValue}>Add Override</Button>
           </DialogFooter>
         </DialogContent>
