@@ -1,7 +1,11 @@
+-- Billing tables migration (idempotent — safe to run multiple times)
+
 -- Subscribers table
-CREATE TABLE subscribers (
+CREATE TABLE IF NOT EXISTS subscribers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   stripe_customer_id VARCHAR(255) UNIQUE,
+  email VARCHAR(255) NOT NULL,
+  contact_name VARCHAR(255) NULL,
   business_name VARCHAR(255) NULL,
   phone VARCHAR(50) NULL,
   address VARCHAR(255) NULL,
@@ -16,16 +20,16 @@ CREATE TABLE subscribers (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Subscriber-User junction
-CREATE TABLE subscriber_user (
+CREATE TABLE IF NOT EXISTS subscriber_user (
   subscriber_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
   PRIMARY KEY (subscriber_id, user_id),
   FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(uid) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Products catalog
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   stripe_product_id VARCHAR(255) UNIQUE,
   name VARCHAR(255) NOT NULL,
@@ -37,7 +41,7 @@ CREATE TABLE products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Prices linked to products
-CREATE TABLE prices (
+CREATE TABLE IF NOT EXISTS prices (
   id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT NOT NULL,
   stripe_price_id VARCHAR(255) UNIQUE,
@@ -52,7 +56,7 @@ CREATE TABLE prices (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Subscriber subscriptions (cache of Stripe)
-CREATE TABLE subscriber_subscriptions (
+CREATE TABLE IF NOT EXISTS subscriber_subscriptions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscriber_id INT NOT NULL,
   stripe_subscription_id VARCHAR(255) UNIQUE,
@@ -70,7 +74,7 @@ CREATE TABLE subscriber_subscriptions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Payment history (append-only, webhook-populated)
-CREATE TABLE payment_history (
+CREATE TABLE IF NOT EXISTS payment_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscriber_id INT NOT NULL,
   stripe_invoice_id VARCHAR(255) UNIQUE,

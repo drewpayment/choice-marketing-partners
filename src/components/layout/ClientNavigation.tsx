@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import SignOutButton from './SignOutButton'
 import { cn } from '@/lib/utils'
+import { useFeatureFlag } from '@/hooks/useFeatureFlag'
 
 interface ClientNavigationProps {
   user: {
@@ -20,6 +21,7 @@ interface ClientNavigationProps {
 export function ClientNavigation({ user }: ClientNavigationProps) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const subscriptionsEnabled = useFeatureFlag('enable-subscriptions')
 
   const menuItems = [
     {
@@ -70,7 +72,7 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
     {
       href: '/admin/billing',
       label: 'Billing Management',
-      show: user.isAdmin
+      show: user.isAdmin && subscriptionsEnabled === true
     }
   ].filter(item => item.show)
 

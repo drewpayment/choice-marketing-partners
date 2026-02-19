@@ -109,6 +109,17 @@ export class StripeService {
     return setupIntent.client_secret!
   }
 
+  async createBillingPortalSession(
+    stripeCustomerId: string,
+    returnUrl: string
+  ): Promise<string> {
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: returnUrl,
+    })
+    return session.url
+  }
+
   verifyWebhookSignature(payload: string | Buffer, signature: string): Stripe.Event {
     const secret = process.env.STRIPE_WEBHOOK_SECRET
     if (!secret) {

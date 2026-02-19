@@ -3,6 +3,8 @@ import { db } from '@/lib/database/client'
 export interface SubscriberSummary {
   id: number
   stripe_customer_id: string
+  email: string
+  contact_name: string | null
   business_name: string | null
   phone: string | null
   status: 'active' | 'past_due' | 'canceled' | 'paused'
@@ -25,6 +27,8 @@ export interface SubscriberDetail extends SubscriberSummary {
 
 export interface CreateSubscriberData {
   stripe_customer_id: string
+  email: string
+  contact_name?: string
   business_name?: string
   phone?: string
   address?: string
@@ -36,6 +40,8 @@ export interface CreateSubscriberData {
 }
 
 export interface UpdateSubscriberData {
+  email?: string
+  contact_name?: string
   business_name?: string
   phone?: string
   address?: string
@@ -81,8 +87,9 @@ export class SubscriberRepository {
       query = query.where((eb) =>
         eb.or([
           eb('subscribers.business_name', 'like', `%${search}%`),
+          eb('subscribers.email', 'like', `%${search}%`),
+          eb('subscribers.contact_name', 'like', `%${search}%`),
           eb('subscribers.phone', 'like', `%${search}%`),
-          eb('subscribers.stripe_customer_id', 'like', `%${search}%`),
         ])
       )
     }
@@ -96,6 +103,8 @@ export class SubscriberRepository {
         .select([
           'id',
           'stripe_customer_id',
+          'email',
+          'contact_name',
           'business_name',
           'phone',
           'status',
@@ -165,6 +174,8 @@ export class SubscriberRepository {
       .select([
         'id',
         'stripe_customer_id',
+        'email',
+        'contact_name',
         'business_name',
         'phone',
         'status',
@@ -181,6 +192,8 @@ export class SubscriberRepository {
       .insertInto('subscribers')
       .values({
         stripe_customer_id: data.stripe_customer_id,
+        email: data.email,
+        contact_name: data.contact_name ?? null,
         business_name: data.business_name ?? null,
         phone: data.phone ?? null,
         address: data.address ?? null,
