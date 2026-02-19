@@ -1,43 +1,19 @@
 'use client'
 
 import { signIn, getSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIsClient } from '@/hooks/useIsClient'
-import posthog from 'posthog-js'
+import { useFeatureFlag } from '@/hooks/useFeatureFlag'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [forgotPasswordLink, setForgotPasswordLink] = useState(<></>)
   const router = useRouter()
   const isClient = useIsClient()
-
-  useEffect(() => {
-    const unsubscribe = posthog.onFeatureFlags((flags, flagVariants, errors) => {
-      
-      if (posthog.isFeatureEnabled('show-forgot-password') ||
-        (errors?.errorsLoading && process.env.NEXT_PUBLIC_ENV === 'development')) {
-        setForgotPasswordLink(<div className="text-sm">
-          <a
-            href="/auth/forgot-password"
-            className="font-medium text-primary hover:text-primary/80"
-          >
-            Forgot your password?
-          </a>
-        </div>)
-      } else {
-        setForgotPasswordLink(<></>)
-      }
-      
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, []);
+  const showForgotPassword = useFeatureFlag('show-forgot-password')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -141,7 +117,16 @@ export default function SignIn() {
             </div>
           </div>
 
-          {forgotPasswordLink}
+          {showForgotPassword && (
+            <div className="text-sm">
+              <a
+                href="/auth/forgot-password"
+                className="font-medium text-primary hover:text-primary/80"
+              >
+                Forgot your password?
+              </a>
+            </div>
+          )}
 
           {error && (
             <div className="text-destructive text-sm text-center">{error}</div>

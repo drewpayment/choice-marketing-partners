@@ -1,23 +1,6 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
-import { logger } from '@/lib/utils/logger'
 
-// Server-side PostHog logging utility
-function logToPostHog(eventName: string, properties: Record<string, unknown>) {
-  // Only log in production
-  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-    // For server-side logging, we'll use logger.log with a specific format
-    // that can be captured by monitoring tools or PostHog's server SDK if needed
-    logger.log('[POSTHOG_SERVER_EVENT]', JSON.stringify({
-      event: eventName,
-      properties: {
-        ...properties,
-        timestamp: new Date().toISOString(),
-        environment: 'server'
-      }
-    }))
-  }
-}
 
 export interface PayrollFilters {
   employeeId?: number
@@ -326,24 +309,6 @@ export class PayrollRepository {
         
         const employeeInfo = employeeMap.get(r.employeeId)
         
-        // Debug logging for production troubleshooting
-        if (process.env.NODE_ENV === 'production' && employeeInfo) {
-          const isProblematicAgent = employeeInfo.name?.includes('Payment Ventures') || 
-                                     employeeInfo.name?.includes('Phil Reznik')
-          
-          if (isProblematicAgent) {
-            logToPostHog('payroll_summary_mapping_debug', {
-              employeeName: employeeInfo.name,
-              employeeId: r.employeeId,
-              agentIdFromPaystub: r.agentId,
-              sales_id1_for_reference: employeeInfo.sales_id1,
-              vendorId: r.vendorId,
-              issueDate: r.issueDate.toISOString().split('T')[0],
-              note: 'agentid column stores employees.id, not sales_id1'
-            })
-          }
-        }
-        
         return {
           agentId: r.agentId.toString(),  // paystubs.agent_id = employees.id
           vendorId: r.vendorId,
@@ -616,16 +581,6 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['issue_date']), 'in', issueDates)
       .groupBy(['agentid', 'vendor', 'issue_date'])
       .execute()
-
-    // Debug logging for results
-    if (process.env.NODE_ENV === 'production' && results.length > 0) {
-      logToPostHog('payroll_batch_sales_totals', {
-        requestedCombinations: combinations.length,
-        requestedAgentIds: agentIds,
-        resultsFound: results.length,
-        resultsAgentIds: results.map(r => r.agentid)
-      })
-    }
 
     for (const result of results) {
       const issueDate = result.issue_date.toISOString().split('T')[0]
