@@ -73,7 +73,7 @@ export default function FeatureFlagsPage() {
   const [ovValue, setOvValue] = useState('')
   const [ovEnabled, setOvEnabled] = useState(true)
   const [userSearch, setUserSearch] = useState('')
-  const [userResults, setUserResults] = useState<{ id: number; name: string; email: string; user_uid: string | null }[]>([])
+  const [userResults, setUserResults] = useState<{ id: number; name: string; email: string; user_id: number | null }[]>([])
   const [userSearchOpen, setUserSearchOpen] = useState(false)
   const [selectedUserLabel, setSelectedUserLabel] = useState('')
 
@@ -516,8 +516,8 @@ export default function FeatureFlagsPage() {
                           type="button"
                           className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
                           onClick={() => {
-                            const uid = emp.user_uid ?? String(emp.id)
-                            setOvValue(uid)
+                            const id = String(emp.user_id ?? emp.id)
+                            setOvValue(id)
                             setSelectedUserLabel(`${emp.name} (${emp.email})`)
                             setUserSearch('')
                             setUserResults([])
@@ -526,7 +526,7 @@ export default function FeatureFlagsPage() {
                         >
                           <span className="font-medium">{emp.name}</span>
                           <span className="text-xs text-muted-foreground">{emp.email}</span>
-                          {emp.user_uid && <span className="font-mono text-xs text-muted-foreground">uid: {emp.user_uid}</span>}
+                          {emp.user_id && <span className="font-mono text-xs text-muted-foreground">id: {emp.user_id}</span>}
                         </button>
                       ))}
                     </div>

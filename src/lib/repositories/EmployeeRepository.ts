@@ -18,7 +18,8 @@ export interface EmployeeSummary {
   created_at: Date | null
   deleted_at: Date | null
   hasUser: boolean
-  user_uid: string | null
+  user_uid?: number | null  // users.uid (auto-increment PK)
+  user_id?: number | null   // users.id — matches session.user.id used in flag evaluation
 }
 
 export interface EmployeeDetail extends EmployeeSummary {
@@ -574,6 +575,7 @@ export class EmployeeRepository {
           .end()
           .as('hasUser'),
         'users.uid as user_uid',
+        'users.id as user_id',
       ])
       .where((eb) =>
         eb.or([
@@ -595,6 +597,7 @@ export class EmployeeRepository {
       is_mgr: Boolean(emp.is_mgr),
       hasUser: !!Number(emp.hasUser),
       user_uid: emp.user_uid ?? null,
+      user_id: emp.user_id ?? null,
     }))
   }
 
