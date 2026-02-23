@@ -469,6 +469,20 @@ export interface Vendors {
   updated_at: Date | null;
 }
 
+export interface ProductMarketing {
+  id: Generated<number>;
+  product_id: number;
+  category: "tier" | "addon";
+  tagline: string | null;
+  feature_list: string | null; // stored as JSON string in MySQL
+  display_order: Generated<number>;
+  is_featured: Generated<number>; // TINYINT 0 or 1
+  icon_name: string | null;
+  badge_text: string | null;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
 export interface DB {
   comments: Comments;
   company_options: CompanyOptions;
@@ -505,6 +519,7 @@ export interface DB {
   testimonials: Testimonials;
   payment_history: PaymentHistory;
   prices: Prices;
+  product_marketing: ProductMarketing;
   products: Products;
   subscribers: Subscribers;
   subscriber_subscriptions: SubscriberSubscriptions;
