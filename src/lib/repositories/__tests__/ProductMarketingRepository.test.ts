@@ -8,5 +8,6 @@ describe('ProductMarketingRepository', () => {
     expect(typeof repo.getMarketingProducts).toBe('function')
     expect(typeof repo.getMarketingProductsByCategory).toBe('function')
     expect(typeof repo.upsertMarketingData).toBe('function')
+    expect(typeof repo.deleteMarketingData).toBe('function')
   })
 })

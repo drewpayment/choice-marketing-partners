@@ -44,6 +44,8 @@ export class ProductMarketingRepository {
     const rows = await db
       .selectFrom('product_marketing as pm')
       .innerJoin('products as p', 'p.id', 'pm.product_id')
+      // NOTE: Assumes each product has at most one active price. If multiple active
+      // prices exist, the first one (by price.id ordering) is used.
       .innerJoin('prices as pr', (join) =>
         join
           .onRef('pr.product_id', '=', 'p.id')
@@ -72,13 +74,29 @@ export class ProductMarketingRepository {
       .orderBy('pm.display_order', 'asc')
       .execute()
 
-    return rows.map((row) => ({
+    const mapped = rows.map((row) => ({
       ...row,
-      feature_list: typeof row.feature_list === 'string'
-        ? JSON.parse(row.feature_list)
-        : ((row.feature_list as unknown) as string[]) ?? [],
+      feature_list: (() => {
+        if (typeof row.feature_list !== 'string') return []
+        try {
+          const parsed = JSON.parse(row.feature_list)
+          return Array.isArray(parsed) ? parsed : []
+        } catch {
+          return []
+        }
+      })(),
       is_featured: !!row.is_featured,
     }))
+
+    // Deduplicate: if a product has multiple active prices, use the first one
+    // (ordered by display_order which comes from the outer ORDER BY)
+    const seen = new Map<number, typeof mapped[0]>()
+    for (const item of mapped) {
+      if (!seen.has(item.product_id)) {
+        seen.set(item.product_id, item)
+      }
+    }
+    return Array.from(seen.values())
   }
 
   /**
