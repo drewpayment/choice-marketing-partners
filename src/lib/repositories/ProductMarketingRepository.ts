@@ -76,7 +76,7 @@ export class ProductMarketingRepository {
       ...row,
       feature_list: typeof row.feature_list === 'string'
         ? JSON.parse(row.feature_list)
-        : (row.feature_list as string[]) ?? [],
+        : ((row.feature_list as unknown) as string[]) ?? [],
       is_featured: !!row.is_featured,
     }))
   }
