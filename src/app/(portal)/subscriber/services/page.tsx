@@ -13,6 +13,7 @@ import {
   PanelTop,
 } from 'lucide-react'
 import { useFeatureFlag } from '@/hooks/useFeatureFlag'
+import { logger } from '@/lib/utils/logger'
 import { Button } from '@/components/ui/button'
 import { PricingCalculator } from '@/components/marketing/PricingCalculator'
 import type { MarketingProduct } from '@/lib/repositories/ProductMarketingRepository'
@@ -83,14 +84,18 @@ export default function WebsiteServicesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (subscriptionsEnabled !== true) return
+    if (subscriptionsEnabled === null) return
+    if (subscriptionsEnabled !== true) {
+      setLoading(false)
+      return
+    }
 
     fetch('/api/marketing/products')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setProducts(data)
       })
-      .catch((err) => console.error('Failed to load marketing products:', err))
+      .catch((err) => logger.error('Failed to load marketing products:', err))
       .finally(() => setLoading(false))
   }, [subscriptionsEnabled])
 
@@ -127,7 +132,7 @@ export default function WebsiteServicesPage() {
             Built for Outside Sales Professionals
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
-            Your Brand. Your Website.{'\n'}Built for You.
+            Your Brand. Your Website.<br />Built for You.
           </h1>
           <p className="text-lg text-white/85 max-w-2xl mx-auto leading-relaxed">
             Custom websites, apps, and digital tools designed to help you market your brand, capture leads, and manage your business online.
@@ -258,7 +263,7 @@ export default function WebsiteServicesPage() {
             <PricingCalculator
               tiers={tiers}
               addons={addons}
-              onGetStarted={() => handleGetStarted()}
+              onGetStarted={handleGetStarted}
             />
           ) : (
             <div className="text-center py-12 border rounded-xl">

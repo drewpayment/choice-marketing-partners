@@ -27,6 +27,9 @@ ON DUPLICATE KEY UPDATE
   badge_text = VALUES(badge_text);
 
 -- Add-ons (adjust product_ids to match your actual addon products)
+-- NOTE: tagline and feature_list are intentionally empty placeholders here;
+-- update them with meaningful descriptions once real products are configured.
+-- To find your product IDs: SELECT id, name FROM products WHERE type = 'recurring';
 INSERT INTO product_marketing (product_id, category, tagline, feature_list, display_order, is_featured, icon_name)
 VALUES
   (5, 'addon', NULL, '[]', 10, 0, 'shopping-cart'),
@@ -37,5 +40,8 @@ VALUES
   (10, 'addon', NULL, '[]', 15, 0, 'share-2')
 ON DUPLICATE KEY UPDATE
   category = VALUES(category),
-  icon_name = VALUES(icon_name),
-  display_order = VALUES(display_order);
+  tagline = VALUES(tagline),
+  feature_list = VALUES(feature_list),
+  display_order = VALUES(display_order),
+  is_featured = VALUES(is_featured),
+  icon_name = VALUES(icon_name);
