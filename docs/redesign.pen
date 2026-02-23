@@ -12048,6 +12048,3215 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "c19nC",
+      "x": 15360,
+      "y": 0,
+      "name": "Website Services",
+      "width": 1440,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "T5cd0",
+          "name": "Navigation",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "$surface",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "$border"
+          },
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "EejKh",
+              "name": "logo",
+              "fill": "$primary",
+              "content": "Choice Marketing Partners",
+              "fontFamily": "Geist",
+              "fontSize": 20,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "kZlR8",
+              "name": "navRight",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sNIdo",
+                  "name": "navLink1",
+                  "fill": "$text-primary",
+                  "content": "Services",
+                  "fontFamily": "Geist",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "iNlwp",
+                  "name": "navLink2",
+                  "fill": "$text-primary",
+                  "content": "Pricing",
+                  "fontFamily": "Geist",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "LxDq4",
+                  "name": "navLink3",
+                  "fill": "$text-primary",
+                  "content": "How It Works",
+                  "fontFamily": "Geist",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "p1upw",
+                  "name": "navBtn",
+                  "fill": "$primary",
+                  "cornerRadius": "$radius-md",
+                  "padding": [
+                    10,
+                    24
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "eeJp7",
+                      "name": "navBtnTxt",
+                      "fill": "$primary-foreground",
+                      "content": "Get Started",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ERrq7",
+          "name": "Hero Section",
+          "width": "fill_container",
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 135,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#0E7490",
+                "position": 0
+              },
+              {
+                "color": "#065666",
+                "position": 0.6
+              },
+              {
+                "color": "#1C1917",
+                "position": 1
+              }
+            ]
+          },
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            100,
+            48
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "eqAkd",
+              "name": "heroTag",
+              "fill": "rgba(255,255,255,0.12)",
+              "cornerRadius": "$radius-pill",
+              "gap": 8,
+              "padding": [
+                8,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "UkueD",
+                  "name": "heroTagIcon",
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "rocket",
+                  "iconFontFamily": "lucide",
+                  "fill": "$secondary"
+                },
+                {
+                  "type": "text",
+                  "id": "spKG0",
+                  "name": "heroTagTxt",
+                  "fill": "rgba(255,255,255,0.8)",
+                  "content": "Built for Outside Sales Professionals",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "hTyZc",
+              "name": "heroTitle",
+              "fill": "#FFFFFF",
+              "content": "Your Brand. Your Website.\nBuilt for You.",
+              "lineHeight": 1.1,
+              "textAlign": "center",
+              "fontFamily": "Geist",
+              "fontSize": 56,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "0OAuh",
+              "name": "heroSub",
+              "fill": "rgba(255,255,255,0.85)",
+              "content": "Custom websites, apps, and digital tools designed to help you\nmarket your brand, capture leads, and manage your business online.",
+              "lineHeight": 1.6,
+              "textAlign": "center",
+              "fontFamily": "Geist",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "aXmih",
+              "name": "heroBtns",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "5CLxw",
+                  "name": "heroBtn1",
+                  "fill": "$secondary",
+                  "cornerRadius": "$radius-md",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    36
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "s3qAu",
+                      "name": "heroBtn1Txt",
+                      "fill": "#FFFFFF",
+                      "content": "See Pricing",
+                      "fontFamily": "Geist",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mAh6j",
+                  "name": "heroBtn2",
+                  "fill": "rgba(255,255,255,0.1)",
+                  "cornerRadius": "$radius-md",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "rgba(255,255,255,0.3)"
+                  },
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    36
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "87ZUH",
+                      "name": "heroBtn2Txt",
+                      "fill": "#FFFFFF",
+                      "content": "Learn More",
+                      "fontFamily": "Geist",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qI5pH",
+          "name": "Pain Points",
+          "width": "fill_container",
+          "fill": "$surface",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            80,
+            48
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "yreWO",
+              "name": "painHeader",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pAocu",
+                  "name": "painLabel",
+                  "fill": "$secondary",
+                  "content": "THE PROBLEM",
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "3sQQB",
+                  "name": "painTitle",
+                  "fill": "$text-primary",
+                  "content": "You're Losing Business Without a Digital Presence",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 36,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "aWhD1",
+                  "name": "painSub",
+                  "fill": "$text-secondary",
+                  "content": "In today's market, your prospects research you online before they ever pick up the phone.",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JZCYq",
+              "name": "painGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "AKcwa",
+                  "name": "card1",
+                  "width": "fill_container",
+                  "fill": "$background",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "XULfw",
+                      "name": "card1Icon",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "#FEF2F2",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "JIsfS",
+                          "name": "card1IconI",
+                          "width": 24,
+                          "height": 24,
+                          "iconFontName": "globe",
+                          "iconFontFamily": "lucide",
+                          "fill": "$destructive"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "dGPDQ",
+                      "name": "card1Title",
+                      "fill": "$text-primary",
+                      "content": "No Online Credibility",
+                      "fontFamily": "Geist",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "esHLw",
+                      "name": "card1Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Prospects can't find you online, so they go with someone they can. A professional website builds trust before the first meeting.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CZeNT",
+                  "name": "card2",
+                  "width": "fill_container",
+                  "fill": "$background",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "DkM9I",
+                      "name": "card2Icon",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "#FFFBEB",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "D2DTM",
+                          "name": "card2IconI",
+                          "width": 24,
+                          "height": 24,
+                          "iconFontName": "file-text",
+                          "iconFontFamily": "lucide",
+                          "fill": "$secondary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "O3foB",
+                      "name": "card2Title",
+                      "fill": "$text-primary",
+                      "content": "Manual Document Sharing",
+                      "fontFamily": "Geist",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "noZ91",
+                      "name": "card2Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Emailing paystubs and contracts one by one is slow and error-prone. A digital portal lets your team access everything instantly.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YcVI3",
+                  "name": "card3",
+                  "width": "fill_container",
+                  "fill": "$background",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "HZJ9O",
+                      "name": "card3Icon",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "#F0F9FF",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "CzAtn",
+                          "name": "card3IconI",
+                          "width": 24,
+                          "height": 24,
+                          "iconFontName": "target",
+                          "iconFontFamily": "lucide",
+                          "fill": "$primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "9GdM6",
+                      "name": "card3Title",
+                      "fill": "$text-primary",
+                      "content": "No Lead Capture",
+                      "fontFamily": "Geist",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BspSJ",
+                      "name": "card3Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Without a website, every prospect you meet at a networking event or cold call has no way to learn more. You're leaving money on the table.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ApOU4",
+          "name": "What We Build",
+          "width": "fill_container",
+          "fill": "$background",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            80,
+            48
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "5osqC",
+              "name": "wwbHeader",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "iU8gp",
+                  "name": "wwbLabel",
+                  "fill": "$primary",
+                  "content": "OUR SERVICES",
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "9j5zD",
+                  "name": "wwbTitle",
+                  "fill": "$text-primary",
+                  "content": "Everything You Need to Go Digital",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 36,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "ZLD1D",
+                  "name": "wwbSub",
+                  "fill": "$text-secondary",
+                  "content": "From simple landing pages to full-featured web applications, we build it all.",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Kngqv",
+              "name": "serviceGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TBPlU",
+                  "name": "svc1",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MlXzb",
+                      "name": "svc1Icon",
+                      "width": 56,
+                      "height": 56,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#0E7490",
+                            "position": 0
+                          },
+                          {
+                            "color": "#0C6380",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "SZ43i",
+                          "name": "svc1IconI",
+                          "width": 28,
+                          "height": 28,
+                          "iconFontName": "panel-top",
+                          "iconFontFamily": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "U6CcR",
+                      "name": "svc1Title",
+                      "fill": "$text-primary",
+                      "content": "Landing Pages",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "m8bxK",
+                      "name": "svc1Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "A single high-impact page to capture leads and showcase your services.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "9Hy1c",
+                  "name": "svc2",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "d4qNf",
+                      "name": "svc2Icon",
+                      "width": 56,
+                      "height": 56,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#D97706",
+                            "position": 0
+                          },
+                          {
+                            "color": "#B45309",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "k7FSZ",
+                          "name": "svc2IconI",
+                          "width": 28,
+                          "height": 28,
+                          "iconFontName": "briefcase",
+                          "iconFontFamily": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "89hZC",
+                      "name": "svc2Title",
+                      "fill": "$text-primary",
+                      "content": "Business Websites",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "c1jSu",
+                      "name": "svc2Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Multi-page sites with CMS, lead capture forms, and CRM integration.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uijxr",
+                  "name": "svc3",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "eEqTp",
+                      "name": "svc3Icon",
+                      "width": 56,
+                      "height": 56,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#0E7490",
+                            "position": 0
+                          },
+                          {
+                            "color": "#065666",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "ffaxf",
+                          "name": "svc3IconI",
+                          "width": 28,
+                          "height": 28,
+                          "iconFontName": "monitor-smartphone",
+                          "iconFontFamily": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "lMUon",
+                      "name": "svc3Title",
+                      "fill": "$text-primary",
+                      "content": "Web Applications",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YDIvY",
+                      "name": "svc3Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Full-featured apps with dashboards, analytics, and payroll integration.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "MuFqm",
+                  "name": "svc4",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "6WSdJ",
+                      "name": "svc4Icon",
+                      "width": 56,
+                      "height": 56,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#1C1917",
+                            "position": 0
+                          },
+                          {
+                            "color": "#44403C",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "4Vaja",
+                          "name": "svc4IconI",
+                          "width": 28,
+                          "height": 28,
+                          "iconFontName": "building-2",
+                          "iconFontFamily": "lucide",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "8fUAK",
+                      "name": "svc4Title",
+                      "fill": "$text-primary",
+                      "content": "Enterprise Solutions",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "54sFT",
+                      "name": "svc4Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Fully custom builds with dedicated support, unlimited features, and white-glove service.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "e3wsn",
+          "name": "How It Works",
+          "width": "fill_container",
+          "fill": "$surface",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            80,
+            48
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ZOB06",
+              "name": "howHeader",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LdVTk",
+                  "name": "howLabel",
+                  "fill": "$primary",
+                  "content": "HOW IT WORKS",
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "xklp1",
+                  "name": "howTitle",
+                  "fill": "$text-primary",
+                  "content": "From Idea to Launch in 3 Simple Steps",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 36,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "51Grl",
+              "name": "howGrid",
+              "width": "fill_container",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hfdfu",
+                  "name": "step1",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GRbjL",
+                      "name": "step1Num",
+                      "width": 64,
+                      "height": 64,
+                      "fill": "$primary",
+                      "cornerRadius": 32,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hzqa2",
+                          "name": "step1NumTxt",
+                          "fill": "#FFFFFF",
+                          "content": "1",
+                          "fontFamily": "Geist",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "oJq8L",
+                      "name": "step1Title",
+                      "fill": "$text-primary",
+                      "content": "Choose Your Package",
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yqyti",
+                      "name": "step1Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pick from four tiers and customize with add-ons to match your needs and budget.",
+                      "lineHeight": 1.6,
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TDZZX",
+                  "name": "step2",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "63Iag",
+                      "name": "step2Num",
+                      "width": 64,
+                      "height": 64,
+                      "fill": "$secondary",
+                      "cornerRadius": 32,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dtHBD",
+                          "name": "step2NumTxt",
+                          "fill": "#FFFFFF",
+                          "content": "2",
+                          "fontFamily": "Geist",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ihXoY",
+                      "name": "step2Title",
+                      "fill": "$text-primary",
+                      "content": "We Build It",
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gciPJ",
+                      "name": "step2Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Our team designs and develops your site with regular check-ins so it's exactly what you want.",
+                      "lineHeight": 1.6,
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Ahu1Q",
+                  "name": "step3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "6qqKd",
+                      "name": "step3Num",
+                      "width": 64,
+                      "height": 64,
+                      "fill": "#1C1917",
+                      "cornerRadius": 32,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DVoEE",
+                          "name": "step3NumTxt",
+                          "fill": "#FFFFFF",
+                          "content": "3",
+                          "fontFamily": "Geist",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "KXsuQ",
+                      "name": "step3Title",
+                      "fill": "$text-primary",
+                      "content": "Launch & Grow",
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SENhL",
+                      "name": "step3Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Go live with ongoing support, analytics, and tools to help you scale your business.",
+                      "lineHeight": 1.6,
+                      "textAlign": "center",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aYGyA",
+          "name": "Pricing Calculator",
+          "width": "fill_container",
+          "fill": "$background",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            80,
+            48
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "rQThb",
+              "name": "pricingHeader",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RIb2q",
+                  "name": "pricingLabel",
+                  "fill": "$secondary",
+                  "content": "PRICING",
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "Cgzw2",
+                  "name": "pricingTitle",
+                  "fill": "$text-primary",
+                  "content": "Choose the Right Plan for Your Business",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 36,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "GND3t",
+                  "name": "pricingSub",
+                  "fill": "$text-secondary",
+                  "content": "Select a tier, add features you need, and see your monthly total instantly.",
+                  "textAlign": "center",
+                  "fontFamily": "Geist",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vh5zZ",
+              "name": "tierGrid",
+              "width": "fill_container",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YQlOk",
+                  "name": "Tier Landing Page",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "8lT7j",
+                      "name": "t1Header",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "tNxeK",
+                          "name": "t1Name",
+                          "fill": "$text-primary",
+                          "content": "Landing Page",
+                          "fontFamily": "Geist",
+                          "fontSize": 18,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s3K3y",
+                          "name": "t1Price",
+                          "gap": 4,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "z3EGf",
+                              "name": "t1PriceAmt",
+                              "fill": "$text-primary",
+                              "content": "$799",
+                              "fontFamily": "Geist",
+                              "fontSize": 36,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Iei9a",
+                              "name": "t1PricePer",
+                              "fill": "$text-secondary",
+                              "content": "/mo",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "90qOu",
+                          "name": "t1Desc",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Perfect for getting started with a professional online presence.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "i39Wj",
+                      "name": "t1Divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$border"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dt8LC",
+                      "name": "t1Features",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "32ifA",
+                          "name": "t1f1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "Hpv4r",
+                              "name": "t1f1i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DuNBN",
+                              "name": "t1f1t",
+                              "fill": "$text-primary",
+                              "content": "1 page",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "r6cAn",
+                          "name": "t1f2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "MILdv",
+                              "name": "t1f2i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "pvICR",
+                              "name": "t1f2t",
+                              "fill": "$text-primary",
+                              "content": "Lead capture form",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Bw4Ov",
+                          "name": "t1f3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "AbYd9",
+                              "name": "t1f3i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "m8lyZ",
+                              "name": "t1f3t",
+                              "fill": "$text-primary",
+                              "content": "Mobile responsive",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "7NuRy",
+                          "name": "t1f4",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "Fdnsx",
+                              "name": "t1f4i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "3p04q",
+                              "name": "t1f4t",
+                              "fill": "$text-primary",
+                              "content": "Email support",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "c5cN5",
+                          "name": "t1f5",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "bj4ab",
+                              "name": "t1f5i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "x",
+                              "iconFontFamily": "lucide",
+                              "fill": "$text-muted"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ghCDc",
+                              "name": "t1f5t",
+                              "fill": "$text-muted",
+                              "content": "CMS",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "9iFOA",
+                      "name": "t1Btn",
+                      "width": "fill_container",
+                      "fill": "$background",
+                      "cornerRadius": "$radius-md",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "padding": [
+                        14,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "bqA3D",
+                          "name": "t1BtnTxt",
+                          "fill": "$text-primary",
+                          "content": "Select Plan",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "RW9Ye",
+                  "name": "Tier Business Site",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 2,
+                    "fill": "$primary"
+                  },
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "mL1nB",
+                      "name": "t2Badge",
+                      "fill": "$primary",
+                      "cornerRadius": "$radius-pill",
+                      "padding": [
+                        4,
+                        12
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "QKA4Y",
+                          "name": "t2BadgeTxt",
+                          "fill": "#FFFFFF",
+                          "content": "MOST POPULAR",
+                          "fontFamily": "Geist Mono",
+                          "fontSize": 10,
+                          "fontWeight": "700",
+                          "letterSpacing": 1
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WgYsx",
+                      "name": "t2Header",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JqvwP",
+                          "name": "t2Name",
+                          "fill": "$text-primary",
+                          "content": "Business Site",
+                          "fontFamily": "Geist",
+                          "fontSize": 18,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Y8Gw0",
+                          "name": "t2Price",
+                          "gap": 4,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "yoMA6",
+                              "name": "t2PriceAmt",
+                              "fill": "$text-primary",
+                              "content": "$1,499",
+                              "fontFamily": "Geist",
+                              "fontSize": 36,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "4ucXd",
+                              "name": "t2PricePer",
+                              "fill": "$text-secondary",
+                              "content": "/mo",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "C3xMq",
+                          "name": "t2Desc",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "The complete package for growing your brand and capturing leads.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KIV4B",
+                      "name": "t2Divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$border"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "3hqvH",
+                      "name": "t2Features",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "2ExkF",
+                          "name": "t2f1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "olaWZ",
+                              "name": "t2f1i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fRDum",
+                              "name": "t2f1t",
+                              "fill": "$text-primary",
+                              "content": "Up to 5 pages",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "KMciu",
+                          "name": "t2f2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "rcQRg",
+                              "name": "t2f2i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "3kMvF",
+                              "name": "t2f2t",
+                              "fill": "$text-primary",
+                              "content": "3 custom features",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "sQoLG",
+                          "name": "t2f3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "b6x1j",
+                              "name": "t2f3i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dPf59",
+                              "name": "t2f3t",
+                              "fill": "$text-primary",
+                              "content": "Basic CMS",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "l8LGn",
+                          "name": "t2f4",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "tqUNZ",
+                              "name": "t2f4i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "crRNv",
+                              "name": "t2f4t",
+                              "fill": "$text-primary",
+                              "content": "CRM integration",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vzvhd",
+                          "name": "t2f5",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "AMcxJ",
+                              "name": "t2f5i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EQ7VD",
+                              "name": "t2f5t",
+                              "fill": "$text-primary",
+                              "content": "Priority support",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "E0sMO",
+                      "name": "t2Btn",
+                      "width": "fill_container",
+                      "fill": "$primary",
+                      "cornerRadius": "$radius-md",
+                      "padding": [
+                        14,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gVPD9",
+                          "name": "t2BtnTxt",
+                          "fill": "#FFFFFF",
+                          "content": "Select Plan",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "06RaG",
+                  "name": "Tier Web App",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "QtTGg",
+                      "name": "t3Header",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "wKxvi",
+                          "name": "t3Name",
+                          "fill": "$text-primary",
+                          "content": "Web App",
+                          "fontFamily": "Geist",
+                          "fontSize": 18,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oYlzL",
+                          "name": "t3Price",
+                          "gap": 4,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "eY55J",
+                              "name": "t3PriceAmt",
+                              "fill": "$text-primary",
+                              "content": "$2,999",
+                              "fontFamily": "Geist",
+                              "fontSize": 36,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "nyEBn",
+                              "name": "t3PricePer",
+                              "fill": "$text-secondary",
+                              "content": "/mo",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "j5rf4",
+                          "name": "t3Desc",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Full-featured applications with dashboards, analytics, and integrations.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "0C097",
+                      "name": "t3Divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$border"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JjsE3",
+                      "name": "t3Features",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "L98KT",
+                          "name": "t3f1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "uBqmc",
+                              "name": "t3f1i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ssPp9",
+                              "name": "t3f1t",
+                              "fill": "$text-primary",
+                              "content": "Up to 15 pages",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "8cYaw",
+                          "name": "t3f2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "pC11Q",
+                              "name": "t3f2i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "JsDZ9",
+                              "name": "t3f2t",
+                              "fill": "$text-primary",
+                              "content": "8 custom features",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fUnp2",
+                          "name": "t3f3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "wHq70",
+                              "name": "t3f3i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Sn0Jl",
+                              "name": "t3f3t",
+                              "fill": "$text-primary",
+                              "content": "Advanced CMS",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wZRGY",
+                          "name": "t3f4",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "ys22Y",
+                              "name": "t3f4i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "pE2It",
+                              "name": "t3f4t",
+                              "fill": "$text-primary",
+                              "content": "Analytics dashboard",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HPfoX",
+                          "name": "t3f5",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "cZcjX",
+                              "name": "t3f5i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DOSKM",
+                              "name": "t3f5t",
+                              "fill": "$text-primary",
+                              "content": "Dedicated support",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FnoYv",
+                      "name": "t3Btn",
+                      "width": "fill_container",
+                      "fill": "$background",
+                      "cornerRadius": "$radius-md",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "padding": [
+                        14,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ifli5",
+                          "name": "t3BtnTxt",
+                          "fill": "$text-primary",
+                          "content": "Select Plan",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mmBsg",
+                  "name": "Tier Enterprise",
+                  "width": "fill_container",
+                  "fill": "#1C1917",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Mookb",
+                      "name": "t4Header",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OqMeh",
+                          "name": "t4Name",
+                          "fill": "#FFFFFF",
+                          "content": "Enterprise",
+                          "fontFamily": "Geist",
+                          "fontSize": 18,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "oc2lx",
+                          "name": "t4Price",
+                          "fill": "#FFFFFF",
+                          "content": "Custom",
+                          "fontFamily": "Geist",
+                          "fontSize": 36,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XQ6Zp",
+                          "name": "t4Desc",
+                          "fill": "rgba(255,255,255,0.7)",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "White-glove service with unlimited features and a dedicated account manager.",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PipY9",
+                      "name": "t4Divider",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "rgba(255,255,255,0.15)"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bnxzm",
+                      "name": "t4Features",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wjqVO",
+                          "name": "t4f1",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "XTSOW",
+                              "name": "t4f1i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$secondary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VHN3E",
+                              "name": "t4f1t",
+                              "fill": "#FFFFFF",
+                              "content": "Unlimited pages",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zeTV6",
+                          "name": "t4f2",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "N7ALW",
+                              "name": "t4f2i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$secondary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "B2dtJ",
+                              "name": "t4f2t",
+                              "fill": "#FFFFFF",
+                              "content": "Unlimited features",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fZo1H",
+                          "name": "t4f3",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "SbmWa",
+                              "name": "t4f3i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$secondary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "zTHfu",
+                              "name": "t4f3t",
+                              "fill": "#FFFFFF",
+                              "content": "Custom CMS + integrations",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YOWe9",
+                          "name": "t4f4",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "1FLZS",
+                              "name": "t4f4i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$secondary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "1YOWf",
+                              "name": "t4f4t",
+                              "fill": "#FFFFFF",
+                              "content": "Full analytics suite",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "R0FL1",
+                          "name": "t4f5",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "1CJUr",
+                              "name": "t4f5i",
+                              "width": 16,
+                              "height": 16,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "$secondary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "wFCtI",
+                              "name": "t4f5t",
+                              "fill": "#FFFFFF",
+                              "content": "Dedicated account manager",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zERKt",
+                      "name": "t4Btn",
+                      "width": "fill_container",
+                      "fill": "$secondary",
+                      "cornerRadius": "$radius-md",
+                      "padding": [
+                        14,
+                        0
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LJPIA",
+                          "name": "t4BtnTxt",
+                          "fill": "#FFFFFF",
+                          "content": "Contact Us",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "6uNj9",
+              "name": "Add-ons Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WCwFE",
+                  "name": "addonsHeader",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dhcZF",
+                      "name": "addonsTitle",
+                      "fill": "$text-primary",
+                      "content": "Customize with Add-ons",
+                      "fontFamily": "Geist",
+                      "fontSize": 24,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yQELx",
+                      "name": "addonsHint",
+                      "fill": "$text-secondary",
+                      "content": "Toggle features to update your total",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Mf1iM",
+                  "name": "addonsGrid",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YMviQ",
+                      "name": "addonCol1",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "u7N6n",
+                          "name": "ao1",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "UiwMo",
+                              "name": "ao1Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "GO9E5",
+                                  "name": "ao1Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "shopping-cart",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "c41sT",
+                                  "name": "ao1Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "i7EQc",
+                                      "name": "ao1Name",
+                                      "fill": "$text-primary",
+                                      "content": "E-commerce Store",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "JNqA0",
+                                      "name": "ao1Price",
+                                      "fill": "$secondary",
+                                      "content": "+$299/mo",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "1vxoj",
+                              "name": "ao1Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$border",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "9jJFc",
+                                  "x": 0,
+                                  "y": 0,
+                                  "name": "ao1Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "asioB",
+                          "name": "ao2",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "lrAs2",
+                              "name": "ao2Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "XaxJz",
+                                  "name": "ao2Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "search",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Hyrvo",
+                                  "name": "ao2Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "MQXQ7",
+                                      "name": "ao2Name",
+                                      "fill": "$text-primary",
+                                      "content": "SEO Optimization",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Ildxo",
+                                      "name": "ao2Price",
+                                      "fill": "$secondary",
+                                      "content": "+$199/mo",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "LXDG8",
+                              "name": "ao2Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$primary",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "K54tm",
+                                  "x": 0,
+                                  "y": 0,
+                                  "name": "ao2Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hNlQJ",
+                      "name": "addonCol2",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "CEMrh",
+                          "name": "ao3",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "4hWWo",
+                              "name": "ao3Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "GI2Go",
+                                  "name": "ao3Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "palette",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "PPnji",
+                                  "name": "ao3Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "CDIoW",
+                                      "name": "ao3Name",
+                                      "fill": "$text-primary",
+                                      "content": "Custom Branding",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "3ibRW",
+                                      "name": "ao3Price",
+                                      "fill": "$secondary",
+                                      "content": "+$499 one-time",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "bOltc",
+                              "name": "ao3Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$border",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "k91y2",
+                                  "x": 2,
+                                  "y": 2,
+                                  "name": "ao3Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CjV4v",
+                          "name": "ao4",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "0x51m",
+                              "name": "ao4Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "Ltx6k",
+                                  "name": "ao4Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "wallet",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Y18RI",
+                                  "name": "ao4Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "jVZxY",
+                                      "name": "ao4Name",
+                                      "fill": "$text-primary",
+                                      "content": "Payroll Integration",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "O60D3",
+                                      "name": "ao4Price",
+                                      "fill": "$secondary",
+                                      "content": "+$149/mo",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "j6pw4",
+                              "name": "ao4Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$border",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "zr5Oq",
+                                  "x": 2,
+                                  "y": 2,
+                                  "name": "ao4Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "LpcqO",
+                      "name": "addonCol3",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JOWq5",
+                          "name": "ao5",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "eqKcT",
+                              "name": "ao5Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "fV35E",
+                                  "name": "ao5Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "trending-up",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "TNGhf",
+                                  "name": "ao5Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "fnjXC",
+                                      "name": "ao5Name",
+                                      "fill": "$text-primary",
+                                      "content": "Analytics Dashboard",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "R49FW",
+                                      "name": "ao5Price",
+                                      "fill": "$secondary",
+                                      "content": "+$99/mo",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "D2KRQ",
+                              "name": "ao5Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$border",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "M4sZf",
+                                  "x": 2,
+                                  "y": 2,
+                                  "name": "ao5Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "36py1",
+                          "name": "ao6",
+                          "width": "fill_container",
+                          "fill": "$surface",
+                          "cornerRadius": "$radius-md",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 20,
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "22zIQ",
+                              "name": "ao6Left",
+                              "gap": 12,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "GmWHK",
+                                  "name": "ao6Icon",
+                                  "width": 20,
+                                  "height": 20,
+                                  "iconFontName": "share-2",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "XHpZY",
+                                  "name": "ao6Info",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "9xw1P",
+                                      "name": "ao6Name",
+                                      "fill": "$text-primary",
+                                      "content": "Social Media Integration",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "hO8Ob",
+                                      "name": "ao6Price",
+                                      "fill": "$secondary",
+                                      "content": "+$79/mo",
+                                      "fontFamily": "Geist Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ty8Bh",
+                              "name": "ao6Toggle",
+                              "width": 44,
+                              "height": 24,
+                              "fill": "$border",
+                              "cornerRadius": 12,
+                              "layout": "none",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "O5eHs",
+                                  "x": 2,
+                                  "y": 2,
+                                  "name": "ao6Knob",
+                                  "fill": "#FFFFFF",
+                                  "width": 20,
+                                  "height": 20
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xGWjs",
+              "name": "Total Bar",
+              "width": "fill_container",
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 90,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "#0E7490",
+                    "position": 0
+                  },
+                  {
+                    "color": "#065666",
+                    "position": 1
+                  }
+                ]
+              },
+              "cornerRadius": "$radius-lg",
+              "padding": [
+                24,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hkb2X",
+                  "name": "totalLeft",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hu7H3",
+                      "name": "totalLabel",
+                      "fill": "rgba(255,255,255,0.7)",
+                      "content": "Your Estimated Monthly Total",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "UwaCy",
+                      "name": "totalAmount",
+                      "fill": "#FFFFFF",
+                      "content": "$1,698/mo",
+                      "fontFamily": "Geist",
+                      "fontSize": 32,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TdGcG",
+                  "name": "totalBtn",
+                  "fill": "$secondary",
+                  "cornerRadius": "$radius-md",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    36
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "6v6TB",
+                      "name": "totalBtnTxt",
+                      "fill": "#FFFFFF",
+                      "content": "Get Started",
+                      "fontFamily": "Geist",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "w31fE",
+          "name": "Final CTA",
+          "width": "fill_container",
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 135,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#0E7490",
+                "position": 0
+              },
+              {
+                "color": "#065666",
+                "position": 0.6
+              },
+              {
+                "color": "#1C1917",
+                "position": 1
+              }
+            ]
+          },
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            80,
+            48
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "U4W6A",
+              "name": "ctaTitle",
+              "fill": "#FFFFFF",
+              "content": "Ready to Build Your Digital Presence?",
+              "textAlign": "center",
+              "fontFamily": "Geist",
+              "fontSize": 36,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "cejaz",
+              "name": "ctaSub",
+              "fill": "rgba(255,255,255,0.85)",
+              "content": "Join other CMP contractors who are growing their business with a professional website.\nSign up through your existing account — no extra setup required.",
+              "lineHeight": 1.6,
+              "textAlign": "center",
+              "fontFamily": "Geist",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "BbGWZ",
+              "name": "ctaBtns",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ULJTx",
+                  "name": "ctaBtn1",
+                  "fill": "$secondary",
+                  "cornerRadius": "$radius-md",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    40
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vAJXd",
+                      "name": "ctaBtn1Txt",
+                      "fill": "#FFFFFF",
+                      "content": "Get Started Today",
+                      "fontFamily": "Geist",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "B0fGn",
+                      "name": "ctaBtn1Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "iconFontName": "arrow-right",
+                      "iconFontFamily": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "VJDMJ",
+              "name": "ctaTrust",
+              "fill": "rgba(255,255,255,0.6)",
+              "content": "No long-term contracts. Cancel anytime.",
+              "fontFamily": "Geist",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K1jYV",
+          "name": "Footer",
+          "width": "fill_container",
+          "height": 80,
+          "fill": "#1C1917",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "L7NvY",
+              "name": "footerLogo",
+              "fill": "rgba(255,255,255,0.6)",
+              "content": "Choice Marketing Partners",
+              "fontFamily": "Geist",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "weFsW",
+              "name": "footerRight",
+              "gap": 24,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dGaXr",
+                  "name": "footerLink1",
+                  "fill": "rgba(255,255,255,0.4)",
+                  "content": "Privacy",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "D9zBv",
+                  "name": "footerLink2",
+                  "fill": "rgba(255,255,255,0.4)",
+                  "content": "Terms",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "VeEln",
+                  "name": "footerLink3",
+                  "fill": "rgba(255,255,255,0.4)",
+                  "content": "Contact",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vkQU0",
+                  "name": "footerCopy",
+                  "fill": "rgba(255,255,255,0.3)",
+                  "content": "© 2026 Choice Marketing Partners",
+                  "fontFamily": "Geist",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {
