@@ -8,26 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-
-interface MarketingProduct {
-  product_id: number
-  product_name: string
-  product_description: string | null
-  product_type: 'recurring' | 'one_time' | 'custom'
-  price_id: number
-  stripe_price_id: string
-  amount_cents: number
-  currency: string
-  interval: 'month' | 'quarter' | 'year' | 'one_time'
-  interval_count: number
-  category: 'tier' | 'addon'
-  tagline: string | null
-  feature_list: string[]
-  display_order: number
-  is_featured: boolean
-  icon_name: string | null
-  badge_text: string | null
-}
+import type { MarketingProduct } from '@/lib/repositories/ProductMarketingRepository'
 
 interface PricingCalculatorProps {
   tiers: MarketingProduct[]
@@ -61,7 +42,7 @@ function DynamicIcon({ name, className }: { name: string; className?: string }) 
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('')
   const Icon = iconMap[pascalName]
-  if (!Icon) return null
+  if (!Icon || typeof Icon !== 'function') return null
   return <Icon className={className} />
 }
 
