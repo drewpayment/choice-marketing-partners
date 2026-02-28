@@ -18,6 +18,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { logger } from '@/lib/utils/logger'
 
+interface FieldConfig {
+  field_key: string
+  field_label: string
+  source: 'builtin' | 'custom'
+  display_order: number
+}
+
+const DEFAULT_FIELD_CONFIG: FieldConfig[] = [
+  { field_key: 'invoice_id', field_label: 'Invoice', source: 'builtin', display_order: 0 },
+  { field_key: 'full_name', field_label: 'Customer', source: 'builtin', display_order: 1 },
+  { field_key: 'city', field_label: 'Location', source: 'builtin', display_order: 2 },
+  { field_key: 'sale_date', field_label: 'Date', source: 'builtin', display_order: 3 },
+  { field_key: 'amount', field_label: 'Amount', source: 'builtin', display_order: 4 },
+]
+
 interface PaystubDetailProps {
   paystub: {
     employee: {
@@ -46,6 +61,7 @@ interface PaystubDetailProps {
       vendor: string
       sale_date: Date
       issue_date: Date
+      custom_fields?: Record<string, string>
     }>
     overrides: Array<{
       ovrid: number
@@ -73,6 +89,7 @@ interface PaystubDetailProps {
     isPaid?: boolean
     generatedAt?: string
     weekending?: string
+    fieldConfig?: FieldConfig[]
   }
   userContext: {
     employeeId?: number
@@ -90,6 +107,9 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
   const [isOverridesExpanded, setIsOverridesExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
 
+  // Use vendor field config if available, otherwise fall back to hardcoded defaults
+  const activeFieldConfig = paystub.fieldConfig?.length ? paystub.fieldConfig : DEFAULT_FIELD_CONFIG
+
   const formatCurrency = (amount: number | string) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('en-US', {
@@ -105,6 +125,23 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       return `${parts[1]}-${parts[2]}-${parts[0]}`
     }
     return dateStr
+  }
+
+  // Extract a value from a sale row for a built-in field key
+  const getBuiltinValue = (sale: Record<string, unknown>, key: string): string => {
+    switch (key) {
+      case 'sale_date': return formatDate(String(sale.sale_date ?? ''))
+      case 'full_name': return `${sale.first_name ?? ''} ${sale.last_name ?? ''}`.trim()
+      case 'first_name': return String(sale.first_name ?? '')
+      case 'last_name': return String(sale.last_name ?? '')
+      case 'address': return String(sale.address ?? '')
+      case 'city': return String(sale.city ?? '')
+      case 'status': return String(sale.status ?? '')
+      case 'amount': return formatCurrency(sale.amount as string | number)
+      case 'invoice_id': return `#${sale.invoice_id}`
+      case 'vendor': return String(sale.vendor ?? '')
+      default: return ''
+    }
   }
 
   interface CollapsibleSectionProps {
@@ -479,7 +516,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
         </Card>
       </div>
 
-      {/* Sales Transactions */}
+      {/* Sales Transactions — Dynamic Columns */}
       {paystub.sales.length > 0 && (
         <CollapsibleSection
           title="Sales Transactions"
@@ -491,27 +528,40 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs md:text-sm">Invoice</TableHead>
-                  <TableHead className="hidden md:table-cell text-xs md:text-sm">Customer</TableHead>
-                  <TableHead className="hidden sm:table-cell text-xs md:text-sm">Location</TableHead>
-                  <TableHead className="text-xs md:text-sm">Date</TableHead>
-                  <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
+                  {activeFieldConfig.map((field) => (
+                    <TableHead
+                      key={field.field_key}
+                      className={cn(
+                        "text-xs md:text-sm",
+                        field.field_key === 'amount' && "text-right"
+                      )}
+                    >
+                      {field.field_label}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paystub.sales.map((sale) => (
                   <TableRow key={sale.invoice_id}>
-                    <TableCell className="font-medium text-xs md:text-sm">#{sale.invoice_id}</TableCell>
-                    <TableCell className="hidden md:table-cell text-xs md:text-sm">
-                      {sale.first_name} {sale.last_name}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-xs md:text-sm">
-                      {sale.address && `${sale.address}, `}{sale.city}
-                    </TableCell>
-                    <TableCell className="text-xs md:text-sm">{formatDate(sale.sale_date.toISOString().split('T')[0])}</TableCell>
-                    <TableCell className="text-right font-medium text-xs md:text-sm">
-                      {formatCurrency(sale.amount)}
-                    </TableCell>
+                    {activeFieldConfig.map((field) => {
+                      const value = field.source === 'builtin'
+                        ? getBuiltinValue(sale as unknown as Record<string, unknown>, field.field_key)
+                        : (sale.custom_fields?.[field.field_key] ?? '')
+
+                      return (
+                        <TableCell
+                          key={field.field_key}
+                          className={cn(
+                            "text-xs md:text-sm",
+                            field.field_key === 'amount' && "text-right font-medium",
+                            field.field_key === 'invoice_id' && "font-medium"
+                          )}
+                        >
+                          {value}
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
                 ))}
               </TableBody>

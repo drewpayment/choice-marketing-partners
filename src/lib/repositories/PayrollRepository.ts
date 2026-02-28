@@ -1,5 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
+import { logger } from '@/lib/utils/logger'
 
 
 export interface PayrollFilters {
@@ -68,6 +70,7 @@ export interface PaystubDetail {
     vendor: string
     sale_date: Date
     issue_date: Date
+    custom_fields?: Record<string, string>
   }>
   overrides: Array<{
     ovrid: number
@@ -95,6 +98,12 @@ export interface PaystubDetail {
   isPaid: boolean
   generatedAt?: string
   weekending?: string
+  fieldConfig?: Array<{
+    field_key: string
+    field_label: string
+    source: 'builtin' | 'custom'
+    display_order: number
+  }>
 }
 
 /**
@@ -449,6 +458,25 @@ export class PayrollRepository {
     const overridesTotal = overrides.reduce((sum, override) => sum + parseFloat(override.total || '0'), 0)
     const expensesTotal = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0)
 
+    // Parse custom_fields JSON for each sale
+    const salesWithCustomFields = sales.map(sale => {
+      let customFields: Record<string, string> | undefined
+      try {
+        if (sale.custom_fields) {
+          customFields = typeof sale.custom_fields === 'string'
+            ? JSON.parse(sale.custom_fields)
+            : sale.custom_fields as unknown as Record<string, string>
+        }
+      } catch (e) {
+        logger.warn('Failed to parse custom_fields for invoice', sale.invoice_id, e)
+      }
+      return { ...sale, custom_fields: customFields }
+    })
+
+    // Fetch vendor field configuration
+    const vendorFieldRepo = new VendorFieldRepository()
+    const fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId)
+
     return {
       employee: {
         id: employee.id,
@@ -465,7 +493,7 @@ export class PayrollRepository {
         is_active: vendor.is_active
       },
       issueDate,
-      sales,
+      sales: salesWithCustomFields,
       overrides,
       expenses,
       totals: {
@@ -476,7 +504,13 @@ export class PayrollRepository {
       },
       isPaid: false, // Will be determined by payroll table later
       generatedAt: paystub?.created_at?.toISOString(),
-      weekending: paystub?.weekend_date ? dayjs(paystub.weekend_date).format('MM-DD-YYYY') : undefined
+      weekending: paystub?.weekend_date ? dayjs(paystub.weekend_date).format('MM-DD-YYYY') : undefined,
+      fieldConfig: fieldConfig.length > 0 ? fieldConfig.map(f => ({
+        field_key: f.field_key,
+        field_label: f.field_label,
+        source: f.source,
+        display_order: f.display_order,
+      })) : undefined,
     }
   }
 
