@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Search, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -285,6 +286,7 @@ export default function VendorsPage() {
                 <TableHead className="w-[120px]">Status</TableHead>
                 <TableHead className="w-[100px] text-center">Active</TableHead>
                 <TableHead className="w-[180px]">Last Updated</TableHead>
+                <TableHead className="w-[140px]">Fields</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -318,6 +320,14 @@ export default function VendorsPage() {
                           minute: '2-digit'
                         })
                       : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/admin/vendors/${vendor.id}/fields`}>
+                      <Button variant="outline" size="sm">
+                        <Settings2 className="h-3 w-3 mr-1" />
+                        Configure
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}
