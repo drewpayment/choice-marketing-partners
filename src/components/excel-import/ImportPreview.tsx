@@ -16,6 +16,7 @@ interface ImportPreviewProps {
   totalParsedCount?: number;
   selectedAgentName?: string;
   showRepIdWarning?: boolean;
+  vendorCustomFields?: Array<{ field_key: string; field_label: string }>;
 }
 
 export default function ImportPreview({
@@ -28,7 +29,8 @@ export default function ImportPreview({
   filteredCount,
   totalParsedCount,
   selectedAgentName,
-  showRepIdWarning
+  showRepIdWarning,
+  vendorCustomFields,
 }: ImportPreviewProps) {
   const hasErrors = errors.length > 0;
   const validRows = data.length - new Set(errors.map(e => e.row)).size;
@@ -179,6 +181,9 @@ export default function ImportPreview({
                   <TableHead>City</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Amount</TableHead>
+                  {vendorCustomFields?.map(cf => (
+                    <TableHead key={cf.field_key}>{cf.field_label}</TableHead>
+                  ))}
                   {data.some(d => d.vendor) && <TableHead>Vendor</TableHead>}
                   {data.some(d => d.employee_name) && <TableHead>Employee</TableHead>}
                 </TableRow>
@@ -189,7 +194,7 @@ export default function ImportPreview({
                   const hasError = !!errorsByRow[rowNumber];
 
                   return (
-                    <TableRow 
+                    <TableRow
                       key={index}
                       className={hasError ? 'bg-destructive/10' : ''}
                     >
@@ -204,6 +209,9 @@ export default function ImportPreview({
                       <TableCell>{row.city || '-'}</TableCell>
                       <TableCell>{row.status || '-'}</TableCell>
                       <TableCell>{row.amount !== undefined ? row.amount : '-'}</TableCell>
+                      {vendorCustomFields?.map(cf => (
+                        <TableCell key={cf.field_key}>{row[cf.field_key] ?? '-'}</TableCell>
+                      ))}
                       {data.some(d => d.vendor) && <TableCell>{row.vendor || '-'}</TableCell>}
                       {data.some(d => d.employee_name) && <TableCell>{row.employee_name || '-'}</TableCell>}
                     </TableRow>

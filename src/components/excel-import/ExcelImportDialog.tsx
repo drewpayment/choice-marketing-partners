@@ -22,7 +22,9 @@ import {
   getFilePattern,
   validateMappings,
   ColumnMapping,
-  SALES_FIELD_DEFINITIONS
+  SALES_FIELD_DEFINITIONS,
+  buildExtendedFieldDefinitions,
+  splitInvoiceData,
 } from '@/lib/excel-import/field-mapper';
 import ColumnMapper from './ColumnMapper';
 import ImportPreview from './ImportPreview';
@@ -40,6 +42,7 @@ interface ExcelImportDialogProps {
   onImportComplete: (sales: InvoiceSaleFormData[], errors?: ParseError[]) => void;
   maxRows?: number;
   selectedAgent?: AgentWithSalesIds;
+  vendorCustomFields?: Array<{ field_key: string; field_label: string }>;
 }
 
 export default function ExcelImportDialog({
@@ -48,7 +51,8 @@ export default function ExcelImportDialog({
   mode,
   onImportComplete,
   maxRows = mode === 'batch' ? 3000 : 500,
-  selectedAgent
+  selectedAgent,
+  vendorCustomFields,
 }: ExcelImportDialogProps) {
   const [step, setStep] = useState<ImportStep>('upload');
   const [file, setFile] = useState<File | null>(null);
@@ -177,12 +181,15 @@ export default function ExcelImportDialog({
       setFirstRowData(firstRow);
     }
 
-    // Generate initial mappings
+    // Generate initial mappings (extend with vendor custom fields if available)
+    const fieldDefs = vendorCustomFields && vendorCustomFields.length > 0
+      ? buildExtendedFieldDefinitions(vendorCustomFields)
+      : SALES_FIELD_DEFINITIONS;
     const previousMappings = loadMappingMemory();
     const filePattern = getFilePattern(selectedFile.name);
     const initialMappings = generateColumnMappings(
       fileHeaders,
-      SALES_FIELD_DEFINITIONS,
+      fieldDefs,
       previousMappings,
       filePattern,
       !hasHeaders
@@ -204,8 +211,11 @@ export default function ExcelImportDialog({
       // Update state with confirmed mappings
       setMappings(confirmedMappings);
       
-      // Validate mappings
-      const validation = validateMappings(confirmedMappings, SALES_FIELD_DEFINITIONS, isBatchMode);
+      // Validate mappings (use extended defs if vendor custom fields present)
+      const fieldDefs = vendorCustomFields && vendorCustomFields.length > 0
+        ? buildExtendedFieldDefinitions(vendorCustomFields)
+        : SALES_FIELD_DEFINITIONS;
+      const validation = validateMappings(confirmedMappings, fieldDefs, isBatchMode);
       if (!validation.valid) {
         throw new Error(`Missing required fields: ${validation.missingFields.join(', ')}`);
       }
@@ -276,17 +286,31 @@ export default function ExcelImportDialog({
   };
 
   const handleImportConfirm = () => {
+    const hasCustomFields = vendorCustomFields && vendorCustomFields.length > 0;
+
     // Convert parsed data to InvoiceSaleFormData format
-    const salesData: InvoiceSaleFormData[] = parsedData.map(row => ({
-      sale_date: String(row.sale_date || ''),
-      first_name: String(row.first_name || ''),
-      last_name: String(row.last_name || ''),
-      address: String(row.address || ''),
-      city: String(row.city || ''),
-      status: String(row.status || ''),
-      amount: typeof row.amount === 'number' ? row.amount : 0,
-      is_active: 1
-    }));
+    const salesData: InvoiceSaleFormData[] = parsedData.map(row => {
+      const base: InvoiceSaleFormData = {
+        sale_date: String(row.sale_date || ''),
+        first_name: String(row.first_name || ''),
+        last_name: String(row.last_name || ''),
+        address: String(row.address || ''),
+        city: String(row.city || ''),
+        status: String(row.status || ''),
+        amount: typeof row.amount === 'number' ? row.amount : 0,
+        is_active: 1,
+      };
+
+      // If vendor has custom fields, separate them from built-in data
+      if (hasCustomFields) {
+        const split = splitInvoiceData(row as Record<string, unknown>);
+        if (split.custom_fields) {
+          base.custom_fields = JSON.parse(split.custom_fields);
+        }
+      }
+
+      return base;
+    });
 
     onImportComplete(salesData, errors);
     handleReset();
@@ -476,6 +500,11 @@ export default function ExcelImportDialog({
               hasHeaders={hasHeaders}
               firstRowData={firstRowData}
               showHeaderWarning={showHeaderWarning}
+              fieldDefinitions={
+                vendorCustomFields && vendorCustomFields.length > 0
+                  ? buildExtendedFieldDefinitions(vendorCustomFields)
+                  : undefined
+              }
             />
           )}
 
@@ -491,9 +520,10 @@ export default function ExcelImportDialog({
               filteredCount={filteredCount}
               totalParsedCount={totalParsedCount}
               selectedAgentName={selectedAgent?.name}
+              vendorCustomFields={vendorCustomFields}
               showRepIdWarning={
-                !!selectedAgent && 
-                !isBatchMode && 
+                !!selectedAgent &&
+                !isBatchMode &&
                 !mappings.find(m => m.fieldKey === 'employee_id' && m.excelColumn)
               }
             />

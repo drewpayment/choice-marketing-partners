@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, Mail, FileText, Edit, Printer, Trash2 } from 'lucide-react'
 import { formatDate } from '@/lib/utils/date'
@@ -101,8 +102,10 @@ interface PaystubDetailProps {
 }
 
 export default function PaystubDetailView({ paystub, userContext, returnUrl }: PaystubDetailProps) {
+  const router = useRouter()
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isSalesExpanded, setIsSalesExpanded] = useState(true)
   const [isOverridesExpanded, setIsOverridesExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
@@ -354,19 +357,37 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-                    logger.log('Delete invoice:', {
-                      employeeId: paystub.employee.id,
-                      vendorId: paystub.vendor.id,
-                      issueDate: paystub.issueDate
+                disabled={isDeleting}
+                onClick={async () => {
+                  if (!confirm('Are you sure you want to delete this pay statement? This will remove all sales, overrides, and expenses. This action cannot be undone.')) {
+                    return
+                  }
+                  setIsDeleting(true)
+                  try {
+                    const res = await fetch('/api/invoices', {
+                      method: 'DELETE',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        agentId: paystub.employee.id,
+                        vendorId: paystub.vendor.id,
+                        issueDate: paystub.issueDate,
+                      }),
                     })
+                    if (!res.ok) {
+                      const data = await res.json()
+                      throw new Error(data.error || 'Failed to delete')
+                    }
+                    router.push(returnUrl || '/payroll')
+                  } catch (error) {
+                    logger.error('Delete paystub error:', error)
+                    alert(error instanceof Error ? error.message : 'Failed to delete pay statement')
+                    setIsDeleting(false)
                   }
                 }}
                 className="bg-destructive/10 hover:bg-destructive/10 border-destructive text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Invoice
+                {isDeleting ? 'Deleting...' : 'Delete Invoice'}
               </Button>
             )}
           </div>

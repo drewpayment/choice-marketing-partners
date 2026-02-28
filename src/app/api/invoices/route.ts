@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
+import { invoiceRepository as mainInvoiceRepository } from '@/lib/repositories/InvoiceRepository'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { logger } from '@/lib/utils/logger'
 
@@ -121,5 +122,46 @@ export async function POST(request: NextRequest) {
       error: 'Failed to save invoice data',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
+  }
+}
+
+/**
+ * DELETE /api/invoices - Delete entire paystub (all invoices, overrides, expenses, payroll record)
+ * Body: { agentId, vendorId, issueDate }
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.employeeId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!session.user.isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { agentId, vendorId, issueDate } = body
+
+    if (!agentId || !vendorId || !issueDate) {
+      return NextResponse.json(
+        { error: 'agentId, vendorId, and issueDate are required' },
+        { status: 400 }
+      )
+    }
+
+    const success = await mainInvoiceRepository.deletePaystub(agentId, vendorId, issueDate)
+
+    if (!success) {
+      return NextResponse.json({ error: 'Failed to delete paystub' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, message: 'Paystub deleted successfully' })
+  } catch (error) {
+    logger.error('DELETE /api/invoices error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { InvoiceSaleFormData, AgentWithSalesIds } from '@/types/database';
+import { VendorFieldDefinition } from '@/lib/repositories/VendorFieldRepository';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -11,15 +12,79 @@ import ExcelImportDialog from '@/components/excel-import/ExcelImportDialog';
 import { ParseError } from '@/lib/excel-import/parser';
 import { logger } from '@/lib/utils/logger'
 
+/**
+ * Editable column definition used internally by the sales table.
+ * Built from vendor field config or hardcoded defaults.
+ */
+interface EditableColumn {
+  key: string
+  label: string
+  source: 'builtin' | 'custom'
+  type: 'date' | 'text' | 'currency'
+}
+
+/** Default columns matching the current hardcoded table when no vendor config exists */
+const DEFAULT_EDIT_COLUMNS: EditableColumn[] = [
+  { key: 'sale_date', label: 'Sale Date', source: 'builtin', type: 'date' },
+  { key: 'first_name', label: 'First Name', source: 'builtin', type: 'text' },
+  { key: 'last_name', label: 'Last Name', source: 'builtin', type: 'text' },
+  { key: 'address', label: 'Address', source: 'builtin', type: 'text' },
+  { key: 'city', label: 'City', source: 'builtin', type: 'text' },
+  { key: 'status', label: 'Status', source: 'builtin', type: 'text' },
+  { key: 'amount', label: 'Amount', source: 'builtin', type: 'currency' },
+];
+
+/**
+ * Convert vendor field definitions into editable columns.
+ * Expands `full_name` into separate first_name + last_name inputs
+ * since the form needs both values for the database.
+ */
+function resolveEditableColumns(vendorFields: VendorFieldDefinition[]): EditableColumn[] {
+  const columns: EditableColumn[] = [];
+
+  for (const field of vendorFields) {
+    if (field.field_key === 'full_name') {
+      // Expand into two inputs for the form
+      columns.push({ key: 'first_name', label: 'First Name', source: 'builtin', type: 'text' });
+      columns.push({ key: 'last_name', label: 'Last Name', source: 'builtin', type: 'text' });
+    } else if (field.field_key === 'amount') {
+      columns.push({ key: 'amount', label: field.field_label, source: 'builtin', type: 'currency' });
+    } else if (field.field_key === 'sale_date') {
+      columns.push({ key: 'sale_date', label: field.field_label, source: 'builtin', type: 'date' });
+    } else if (field.source === 'builtin') {
+      columns.push({ key: field.field_key, label: field.field_label, source: 'builtin', type: 'text' });
+    } else {
+      // Custom field
+      columns.push({ key: field.field_key, label: field.field_label, source: 'custom', type: 'text' });
+    }
+  }
+
+  return columns;
+}
+
 interface InvoiceSalesTableProps {
   sales: InvoiceSaleFormData[];
   onSalesChange: (sales: InvoiceSaleFormData[]) => void;
   onSaleRemove: (index: number) => void;
   selectedAgent?: AgentWithSalesIds;
+  vendorFields?: VendorFieldDefinition[];
+  isVendorConfigured?: boolean;
 }
 
-export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, selectedAgent }: InvoiceSalesTableProps) {
+export default function InvoiceSalesTable({
+  sales,
+  onSalesChange,
+  onSaleRemove,
+  selectedAgent,
+  vendorFields,
+  isVendorConfigured,
+}: InvoiceSalesTableProps) {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  // Resolve which columns to show
+  const activeColumns = (isVendorConfigured && vendorFields && vendorFields.length > 0)
+    ? resolveEditableColumns(vendorFields)
+    : DEFAULT_EDIT_COLUMNS;
 
   const addSale = () => {
     const newSale: InvoiceSaleFormData = {
@@ -32,24 +97,92 @@ export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, 
       amount: 0,
       is_active: 1
     };
+
+    // Initialize custom_fields for any custom columns
+    const customColumns = activeColumns.filter(c => c.source === 'custom');
+    if (customColumns.length > 0) {
+      newSale.custom_fields = {};
+      for (const col of customColumns) {
+        newSale.custom_fields[col.key] = '';
+      }
+    }
+
     onSalesChange([...sales, newSale]);
   };
 
   const updateSale = (index: number, field: keyof InvoiceSaleFormData, value: string | number) => {
-    const updatedSales = sales.map((sale, i) => 
+    const updatedSales = sales.map((sale, i) =>
       i === index ? { ...sale, [field]: value } : sale
     );
     onSalesChange(updatedSales);
   };
 
+  const updateCustomField = (index: number, fieldKey: string, value: string) => {
+    const updatedSales = sales.map((sale, i) => {
+      if (i !== index) return sale;
+      return {
+        ...sale,
+        custom_fields: {
+          ...(sale.custom_fields || {}),
+          [fieldKey]: value,
+        },
+      };
+    });
+    onSalesChange(updatedSales);
+  };
+
   const handleImportComplete = (importedSales: InvoiceSaleFormData[], errors?: ParseError[]) => {
-    // Merge imported sales with existing sales
     onSalesChange([...sales, ...importedSales]);
 
-    // If there were validation errors in single mode, show a toast or notification
     if (errors && errors.length > 0) {
       logger.warn('Import completed with validation warnings:', errors);
-      // You could show a toast notification here
+    }
+  };
+
+  // Prepare custom field info for ExcelImportDialog
+  const vendorCustomFields = vendorFields
+    ?.filter(f => f.source === 'custom')
+    .map(f => ({ field_key: f.field_key, field_label: f.field_label }));
+
+  const renderCell = (sale: InvoiceSaleFormData, index: number, column: EditableColumn) => {
+    if (column.source === 'custom') {
+      // Custom field - read/write from sale.custom_fields
+      const value = String(sale.custom_fields?.[column.key] ?? '');
+      return (
+        <Input
+          value={value}
+          onChange={(e) => updateCustomField(index, column.key, e.target.value)}
+          placeholder={column.label}
+        />
+      );
+    }
+
+    // Built-in field
+    switch (column.type) {
+      case 'date':
+        return (
+          <Input
+            type="date"
+            value={sale[column.key as keyof InvoiceSaleFormData] as string}
+            onChange={(e) => updateSale(index, column.key as keyof InvoiceSaleFormData, e.target.value)}
+          />
+        );
+      case 'currency':
+        return (
+          <CurrencyInput
+            value={(sale[column.key as keyof InvoiceSaleFormData] as number) || 0}
+            onChange={(value) => updateSale(index, column.key as keyof InvoiceSaleFormData, value)}
+            placeholder="$0.00"
+          />
+        );
+      default:
+        return (
+          <Input
+            value={(sale[column.key as keyof InvoiceSaleFormData] as string) ?? ''}
+            onChange={(e) => updateSale(index, column.key as keyof InvoiceSaleFormData, e.target.value)}
+            placeholder={column.label}
+          />
+        );
     }
   };
 
@@ -67,72 +200,24 @@ export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, 
           </Button>
         </div>
       </div>
-      
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sale Date</TableHead>
-            <TableHead>First Name</TableHead>
-            <TableHead>Last Name</TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead>City</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Amount</TableHead>
+            {activeColumns.map((col) => (
+              <TableHead key={col.key}>{col.label}</TableHead>
+            ))}
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sales.map((sale, index) => (
             <TableRow key={index}>
-              <TableCell>
-                <Input
-                  type="date"
-                  value={sale.sale_date}
-                  onChange={(e) => updateSale(index, 'sale_date', e.target.value)}
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={sale.first_name}
-                  onChange={(e) => updateSale(index, 'first_name', e.target.value)}
-                  placeholder="First name"
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={sale.last_name}
-                  onChange={(e) => updateSale(index, 'last_name', e.target.value)}
-                  placeholder="Last name"
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={sale.address}
-                  onChange={(e) => updateSale(index, 'address', e.target.value)}
-                  placeholder="Address"
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={sale.city}
-                  onChange={(e) => updateSale(index, 'city', e.target.value)}
-                  placeholder="City"
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={sale.status}
-                  onChange={(e) => updateSale(index, 'status', e.target.value)}
-                  placeholder="Status"
-                />
-              </TableCell>
-              <TableCell>
-                <CurrencyInput
-                  value={sale.amount || 0}
-                  onChange={(value) => updateSale(index, 'amount', value)}
-                  placeholder="$0.00"
-                />
-              </TableCell>
+              {activeColumns.map((col) => (
+                <TableCell key={col.key}>
+                  {renderCell(sale, index, col)}
+                </TableCell>
+              ))}
               <TableCell>
                 <Button
                   variant="outline"
@@ -147,7 +232,7 @@ export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, 
           ))}
           {sales.length === 0 && (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-4">
+              <TableCell colSpan={activeColumns.length + 1} className="text-center py-4">
                 No sales added yet.
               </TableCell>
             </TableRow>
@@ -161,6 +246,7 @@ export default function InvoiceSalesTable({ sales, onSalesChange, onSaleRemove, 
         mode="single"
         onImportComplete={handleImportComplete}
         selectedAgent={selectedAgent}
+        vendorCustomFields={vendorCustomFields}
       />
     </div>
   );

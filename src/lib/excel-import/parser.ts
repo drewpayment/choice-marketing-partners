@@ -590,6 +590,17 @@ export function validateAndFormatRow(
     formatted.vendor = String(row.vendor).trim();
   }
 
+  // Pass through any non-builtin keys (vendor custom fields)
+  const knownKeys = new Set([
+    ...requiredFields, ...conditionalFields,
+    'address', 'city', 'employee_name', 'employee_id', 'vendor', 'full_name',
+  ]);
+  for (const [key, value] of Object.entries(row)) {
+    if (!knownKeys.has(key) && value !== undefined && value !== null && value !== '') {
+      formatted[key] = typeof value === 'number' ? value : String(value).trim();
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,
