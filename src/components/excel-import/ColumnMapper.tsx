@@ -23,6 +23,8 @@ interface ColumnMapperProps {
   hasHeaders?: boolean;
   firstRowData?: (string | number)[];
   showHeaderWarning?: boolean;
+  /** Optional extended field definitions (includes vendor custom fields). Defaults to SALES_FIELD_DEFINITIONS. */
+  fieldDefinitions?: FieldDefinition[];
 }
 
 export default function ColumnMapper({
@@ -33,8 +35,10 @@ export default function ColumnMapper({
   isBatchMode,
   hasHeaders = true,
   firstRowData = [],
-  showHeaderWarning = false
+  showHeaderWarning = false,
+  fieldDefinitions,
 }: ColumnMapperProps) {
+  const activeFieldDefs = fieldDefinitions ?? SALES_FIELD_DEFINITIONS;
   const [localMappings, setLocalMappings] = useState<ColumnMapping[]>(mappings);
 
   const handleMappingChange = (excelColumn: string, fieldKey: string | null) => {
@@ -80,7 +84,7 @@ export default function ColumnMapper({
   const hasLastName = mappedFieldKeys.has('last_name');
   const hasValidNameFields = hasFullName || (hasFirstName && hasLastName);
   
-  const missingFields = SALES_FIELD_DEFINITIONS.filter(field => {
+  const missingFields = activeFieldDefs.filter(field => {
     // Vendor is only required in batch mode
     if (field.key === 'vendor' && !isBatchMode) return false;
     // Address and City are only required in batch mode
@@ -112,7 +116,7 @@ export default function ColumnMapper({
 
   // Get available fields for dropdown (excluding already mapped ones)
   const getAvailableFields = (currentMapping: ColumnMapping): FieldDefinition[] => {
-    return SALES_FIELD_DEFINITIONS.filter(field => {
+    return activeFieldDefs.filter(field => {
       return !mappedFieldKeys.has(field.key) || field.key === currentMapping.fieldKey;
     });
   };
@@ -304,7 +308,7 @@ export default function ColumnMapper({
       <div className="flex justify-between items-center pt-4 border-t">
         <div className="text-sm text-muted-foreground">
           <span className="font-medium">{mappedFieldKeys.size}</span> of{' '}
-          <span className="font-medium">{SALES_FIELD_DEFINITIONS.filter(f => f.required).length}</span>{' '}
+          <span className="font-medium">{activeFieldDefs.filter(f => f.required).length}</span>{' '}
           required fields mapped
         </div>
         <div className="flex gap-3">
