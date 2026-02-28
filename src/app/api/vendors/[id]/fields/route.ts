@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
 
+const FEATURE_FLAG = 'vendor_custom_fields'
 const repo = new VendorFieldRepository()
 
 /**
@@ -18,6 +20,18 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Feature flag gate
+    const flagEnabled = await isFeatureEnabled(FEATURE_FLAG, {
+      userId: session.user.id,
+      isAdmin: session.user.isAdmin ?? false,
+      isManager: session.user.isManager ?? false,
+      isSubscriber: false,
+      subscriberId: null,
+    })
+    if (!flagEnabled) {
+      return NextResponse.json({ fields: [], isConfigured: false, featureDisabled: true })
     }
 
     const { id } = await params
@@ -53,6 +67,18 @@ export async function POST(
     const session = await getServerSession(authOptions)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    // Feature flag gate
+    const flagEnabled = await isFeatureEnabled(FEATURE_FLAG, {
+      userId: session.user.id,
+      isAdmin: session.user.isAdmin ?? false,
+      isManager: session.user.isManager ?? false,
+      isSubscriber: false,
+      subscriberId: null,
+    })
+    if (!flagEnabled) {
+      return NextResponse.json({ error: 'Feature not enabled' }, { status: 403 })
     }
 
     const { id } = await params
@@ -119,6 +145,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    // Feature flag gate
+    const flagEnabled = await isFeatureEnabled(FEATURE_FLAG, {
+      userId: session.user.id,
+      isAdmin: session.user.isAdmin ?? false,
+      isManager: session.user.isManager ?? false,
+      isSubscriber: false,
+      subscriberId: null,
+    })
+    if (!flagEnabled) {
+      return NextResponse.json({ error: 'Feature not enabled' }, { status: 403 })
+    }
+
     const { id } = await params
     const vendorId = parseInt(id)
     if (isNaN(vendorId)) {
@@ -164,6 +202,18 @@ export async function DELETE(
     const session = await getServerSession(authOptions)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    // Feature flag gate
+    const flagEnabled = await isFeatureEnabled(FEATURE_FLAG, {
+      userId: session.user.id,
+      isAdmin: session.user.isAdmin ?? false,
+      isManager: session.user.isManager ?? false,
+      isSubscriber: false,
+      subscriberId: null,
+    })
+    if (!flagEnabled) {
+      return NextResponse.json({ error: 'Feature not enabled' }, { status: 403 })
     }
 
     const body = await request.json()

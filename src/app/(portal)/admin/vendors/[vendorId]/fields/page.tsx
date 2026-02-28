@@ -3,13 +3,26 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import VendorFieldManager from '@/components/vendor-fields/VendorFieldManager'
 import { VendorRepository } from '@/lib/repositories/VendorRepository'
-import { notFound } from 'next/navigation'
+import { isFeatureEnabled } from '@/lib/feature-flags'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/config'
+import { notFound, redirect } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ vendorId: string }>
 }
 
 export default async function VendorFieldsPage({ params }: PageProps) {
+  const session = await getServerSession(authOptions)
+  const flagEnabled = await isFeatureEnabled('vendor_custom_fields', {
+    userId: session?.user?.id ?? 'anonymous',
+    isAdmin: session?.user?.isAdmin ?? false,
+    isManager: session?.user?.isManager ?? false,
+    isSubscriber: false,
+    subscriberId: null,
+  })
+  if (!flagEnabled) redirect('/admin/vendors')
+
   const { vendorId: vendorIdStr } = await params
   const vendorId = parseInt(vendorIdStr)
 

@@ -1,6 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
 
 
@@ -473,9 +474,19 @@ export class PayrollRepository {
       return { ...sale, custom_fields: customFields }
     })
 
-    // Fetch vendor field configuration
-    const vendorFieldRepo = new VendorFieldRepository()
-    const fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId)
+    // Fetch vendor field configuration (only if feature flag is enabled)
+    let fieldConfig: Awaited<ReturnType<VendorFieldRepository['getFieldsByVendor']>> = []
+    const flagEnabled = await isFeatureEnabled('vendor_custom_fields', {
+      userId: String(userContext.employeeId ?? ''),
+      isAdmin: userContext.isAdmin,
+      isManager: userContext.isManager,
+      isSubscriber: false,
+      subscriberId: null,
+    })
+    if (flagEnabled) {
+      const vendorFieldRepo = new VendorFieldRepository()
+      fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId)
+    }
 
     return {
       employee: {
