@@ -17,6 +17,7 @@ export interface Sale {
   issue_date: string;
   created_at?: string;
   updated_at?: string;
+  custom_fields?: Record<string, unknown>; // Vendor-specific custom field data (JSON)
   
   // Additional fields from joins/aggregations
   agentId?: number;
@@ -119,6 +120,7 @@ export interface SaleFormData {
   status: string;
   amount: number;
   is_active?: number;
+  custom_fields?: Record<string, unknown>; // Vendor-specific custom field data
 }
 
 export interface OverrideFormData {

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { TypeaheadSelect } from '@/components/ui/typeahead-select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useVendorFields } from '@/hooks/useVendorFields';
 import InvoiceSalesTable from './InvoiceSalesTable';
 import InvoiceOverridesTable from './InvoiceOverridesTable';
 import InvoiceExpensesTable from './InvoiceExpensesTable';
@@ -77,6 +78,11 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const [totalAmount, setTotalAmount] = useState(0);
   const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
   const [customDateValue, setCustomDateValue] = useState('');
+
+  // Fetch vendor-specific custom field definitions (feature-flag gated)
+  const { fields: vendorFields, isConfigured: isVendorConfigured } = useVendorFields(
+    parseInt(formData.vendor) || null
+  );
 
   useEffect(() => {
     fetchLookupData();
@@ -181,7 +187,12 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
           city: sale.city,
           status: sale.status,
           amount: sale.amount,
-          is_active: sale.is_active
+          is_active: sale.is_active,
+          custom_fields: sale.custom_fields
+            ? (typeof sale.custom_fields === 'string'
+                ? JSON.parse(sale.custom_fields as unknown as string)
+                : sale.custom_fields)
+            : undefined,
         })),
         overrides: data.overrides.map(override => ({
           name: override.name,
@@ -237,7 +248,12 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
           city: invoice.city,
           status: invoice.status,
           amount: invoice.amount,
-          is_active: 1 // Default to active (1) for existing invoices
+          is_active: 1, // Default to active (1) for existing invoices
+          custom_fields: invoice.custom_fields
+            ? (typeof invoice.custom_fields === 'string'
+                ? JSON.parse(invoice.custom_fields)
+                : invoice.custom_fields)
+            : undefined,
         })),
         overrides: data.overrides.map(override => ({
           overrideId: override.ovrid, // Add override ID for updates
@@ -542,6 +558,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
             onSalesChange={handleSalesChange}
             onSaleRemove={handleSaleRemove}
             selectedAgent={agents.find(a => a.id === formData.agentId)}
+            vendorFields={vendorFields}
+            isVendorConfigured={isVendorConfigured}
           />
         </CardContent>
       </Card>

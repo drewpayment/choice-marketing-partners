@@ -34,6 +34,8 @@ export async function POST(request: Request) {
     // 3. Insert sales records into invoices table
     // 4. Handle transaction rollback on errors
     // 5. Create audit trail entries
+    // 6. Use splitInvoiceData() from '@/lib/excel-import/field-mapper' to separate
+    //    built-in fields from custom fields before insert (custom_fields → JSON column)
     
     // For now, return success
     return NextResponse.json({

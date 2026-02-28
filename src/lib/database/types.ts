@@ -149,6 +149,7 @@ export interface Invoices {
   amount: Generated<string>;
   city: string;
   created_at: Date | null;
+  custom_fields: string | null;
   first_name: string;
   invoice_id: Generated<number>;
   issue_date: Date;
@@ -469,6 +470,18 @@ export interface Vendors {
   updated_at: Date | null;
 }
 
+export interface VendorFieldDefinitions {
+  id: Generated<number>;
+  vendor_id: number;
+  field_key: string;
+  field_label: string;
+  source: "builtin" | "custom";
+  display_order: number;
+  is_active: number;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
 export interface ProductMarketing {
   id: Generated<number>;
   product_id: number;
@@ -526,5 +539,6 @@ export interface DB {
   subscriber_user: SubscriberUser;
   user_notifications: UserNotifications;
   users: Users;
+  vendor_field_definitions: VendorFieldDefinitions;
   vendors: Vendors;
 }

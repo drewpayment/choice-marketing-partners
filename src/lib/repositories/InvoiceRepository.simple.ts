@@ -142,7 +142,8 @@ export class InvoiceRepository {
             agentid: request.agentId,
             issue_date: dayjs(request.issueDate, 'YYYY-MM-DD').toDate(),
             wkending: dayjs(request.weekending, 'YYYY-MM-DD').toDate(),
-            updated_at: new Date()
+            updated_at: new Date(),
+            custom_fields: sale.custom_fields ? JSON.stringify(sale.custom_fields) : null,
           }
 
           if (sale.invoiceId && sale.invoiceId > 0) {

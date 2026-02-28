@@ -16,6 +16,9 @@ import { Switch } from '@/components/ui/switch'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useToast } from '@/hooks/use-toast'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -265,10 +268,10 @@ export default function FeatureFlagsPage() {
       </div>
 
       <Card>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-[220px]">Flag Name</TableHead>
+              <TableHead className="min-w-[220px] max-w-[300px]">Flag Name</TableHead>
               <TableHead className="w-[120px]">Environment</TableHead>
               <TableHead className="w-[200px]">Rollout</TableHead>
               <TableHead className="w-[160px]">Overrides</TableHead>
@@ -280,9 +283,22 @@ export default function FeatureFlagsPage() {
             {flags.map((flag) => (
               <React.Fragment key={flag.id}>
                 <TableRow key={flag.id}>
-                  <TableCell>
-                    <p className="font-mono text-sm font-medium">{flag.name}</p>
-                    {flag.description && <p className="text-xs text-muted-foreground mt-0.5">{flag.description}</p>}
+                  <TableCell className="max-w-[300px]">
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-default">
+                            <p className="font-mono text-sm font-medium">{flag.name}</p>
+                            {flag.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{flag.description}</p>}
+                          </div>
+                        </TooltipTrigger>
+                        {flag.description && (
+                          <TooltipContent side="bottom" align="start" className="max-w-sm">
+                            <p className="text-sm">{flag.description}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ENV_COLORS[flag.environment] ?? 'bg-stone-100 text-stone-600'}`}>

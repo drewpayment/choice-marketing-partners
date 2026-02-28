@@ -106,6 +106,56 @@ export const SALES_FIELD_DEFINITIONS: FieldDefinition[] = [
 ];
 
 /**
+ * Build an extended field definitions list that includes vendor-specific custom fields.
+ * Custom fields are always optional and typed as 'string'.
+ */
+export function buildExtendedFieldDefinitions(
+  customFields: Array<{ field_key: string; field_label: string }>
+): FieldDefinition[] {
+  const customDefs: FieldDefinition[] = customFields.map(cf => ({
+    key: cf.field_key,
+    label: cf.field_label,
+    required: false,
+    aliases: [cf.field_key, cf.field_label.toLowerCase()],
+    type: 'string' as const,
+  }))
+
+  return [...SALES_FIELD_DEFINITIONS, ...customDefs]
+}
+
+/**
+ * Known built-in field keys that map to actual invoice table columns.
+ * Any mapped field NOT in this set is treated as a custom field and stored in custom_fields JSON.
+ */
+export const BUILTIN_FIELD_KEYS = new Set([
+  'sale_date', 'first_name', 'last_name', 'full_name',
+  'address', 'city', 'status', 'amount',
+  'vendor', 'employee_name', 'employee_id',
+])
+
+/**
+ * Split a flat row of mapped data into built-in fields and custom fields.
+ * Custom field values are bundled into a JSON-ready object.
+ */
+export function splitInvoiceData(row: Record<string, unknown>): Record<string, unknown> & { custom_fields: string | null } {
+  const builtin: Record<string, unknown> = {}
+  const custom: Record<string, unknown> = {}
+
+  for (const [key, value] of Object.entries(row)) {
+    if (BUILTIN_FIELD_KEYS.has(key)) {
+      builtin[key] = value
+    } else if (value !== undefined && value !== null && value !== '') {
+      custom[key] = value
+    }
+  }
+
+  return {
+    ...builtin,
+    custom_fields: Object.keys(custom).length > 0 ? JSON.stringify(custom) : null,
+  }
+}
+
+/**
  * Calculate Levenshtein distance between two strings
  * Used for fuzzy matching
  */

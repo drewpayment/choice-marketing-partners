@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { Plus, Search, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -50,6 +51,7 @@ export default function VendorsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newVendorName, setNewVendorName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [customFieldsEnabled, setCustomFieldsEnabled] = useState(false)
   const { toast } = useToast()
 
   // Fetch vendors
@@ -80,6 +82,11 @@ export default function VendorsPage() {
 
   useEffect(() => {
     fetchVendors()
+    // Check feature flag for custom fields
+    fetch('/api/feature-flags/vendor_custom_fields')
+      .then(res => res.json())
+      .then(data => setCustomFieldsEnabled(data.enabled ?? false))
+      .catch(() => setCustomFieldsEnabled(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
@@ -285,6 +292,7 @@ export default function VendorsPage() {
                 <TableHead className="w-[120px]">Status</TableHead>
                 <TableHead className="w-[100px] text-center">Active</TableHead>
                 <TableHead className="w-[180px]">Last Updated</TableHead>
+                {customFieldsEnabled && <TableHead className="w-[140px]">Fields</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -319,6 +327,16 @@ export default function VendorsPage() {
                         })
                       : 'N/A'}
                   </TableCell>
+                  {customFieldsEnabled && (
+                    <TableCell>
+                      <Link href={`/admin/vendors/${vendor.id}/fields`}>
+                        <Button variant="outline" size="sm">
+                          <Settings2 className="h-3 w-3 mr-1" />
+                          Configure
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

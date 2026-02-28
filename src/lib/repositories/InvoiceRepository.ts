@@ -126,6 +126,11 @@ export interface InvoiceSaveRequest {
     city: string
     status: string
     amount: number
+    custom_fields?: Record<string, unknown>
+    // snake_case aliases sent by the form
+    sale_date?: string
+    first_name?: string
+    last_name?: string
   }>
   overrides: Array<{
     overrideId?: number
@@ -391,7 +396,8 @@ export class InvoiceRepository {
           agentid: request.agentId,
           issue_date: dayjs(formattedIssueDate, 'YYYY-MM-DD').toDate(),
           wkending: dayjs(formattedWeekending, 'YYYY-MM-DD').toDate(),
-          updated_at: now
+          updated_at: now,
+          custom_fields: sale.custom_fields ? JSON.stringify(sale.custom_fields) : null,
         }
 
         if (sale.invoiceId && sale.invoiceId > 0) {
@@ -632,7 +638,15 @@ export class InvoiceRepository {
           .where('issue_date', '=', formattedDate)
           .execute()
 
-        // Delete payroll record (paystub)
+        // Delete paystubs record
+        await trx
+          .deleteFrom('paystubs')
+          .where('agent_id', '=', agentId)
+          .where('vendor_id', '=', vendorId)
+          .where('issue_date', '=', formattedDate)
+          .execute()
+
+        // Delete payroll record
         await trx
           .deleteFrom('payroll')
           .where('agent_id', '=', agentId)
