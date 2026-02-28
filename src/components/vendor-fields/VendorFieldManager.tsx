@@ -2,6 +2,23 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Plus, GripVertical, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -46,6 +63,120 @@ function slugify(label: string): string {
     .replace(/^_|_$/g, '')
 }
 
+function SortableFieldRow({
+  field,
+  index,
+  fieldsLength,
+  editingLabelId,
+  editingLabelValue,
+  onEditLabel,
+  onEditLabelChange,
+  onSaveLabel,
+  onCancelEdit,
+  onMove,
+  onToggleActive,
+  onDelete,
+}: {
+  field: FieldDefinition
+  index: number
+  fieldsLength: number
+  editingLabelId: number | null
+  editingLabelValue: string
+  onEditLabel: (field: FieldDefinition) => void
+  onEditLabelChange: (value: string) => void
+  onSaveLabel: (field: FieldDefinition) => void
+  onCancelEdit: () => void
+  onMove: (index: number, direction: 'up' | 'down') => void
+  onToggleActive: (field: FieldDefinition) => void
+  onDelete: (field: FieldDefinition) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    position: isDragging ? 'relative' as const : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-3 border rounded-lg ${
+        field.is_active ? 'bg-card' : 'bg-muted/50 opacity-60'
+      } ${isDragging ? 'shadow-lg ring-2 ring-primary/20' : ''}`}
+    >
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      </button>
+
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <Button variant="ghost" size="sm" onClick={() => onMove(index, 'up')} disabled={index === 0}>
+          <ArrowUp className="h-3 w-3" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => onMove(index, 'down')} disabled={index === fieldsLength - 1}>
+          <ArrowDown className="h-3 w-3" />
+        </Button>
+      </div>
+
+      <div className="flex-1 min-w-0">
+        {editingLabelId === field.id ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={editingLabelValue}
+              onChange={(e) => onEditLabelChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSaveLabel(field)
+                if (e.key === 'Escape') onCancelEdit()
+              }}
+              className="h-8"
+              autoFocus
+            />
+            <Button size="sm" variant="outline" onClick={() => onSaveLabel(field)}>Save</Button>
+            <Button size="sm" variant="ghost" onClick={onCancelEdit}>Cancel</Button>
+          </div>
+        ) : (
+          <span
+            className="font-medium cursor-pointer hover:underline"
+            onClick={() => onEditLabel(field)}
+          >
+            {field.field_label}
+          </span>
+        )}
+        <span className="text-xs text-muted-foreground ml-2">({field.field_key})</span>
+      </div>
+
+      <Badge variant={field.source === 'builtin' ? 'secondary' : 'outline'} className="flex-shrink-0">
+        {field.source}
+      </Badge>
+
+      <Switch
+        checked={field.is_active}
+        onCheckedChange={() => onToggleActive(field)}
+      />
+
+      {field.source === 'custom' && (
+        <Button variant="ghost" size="sm" onClick={() => onDelete(field)} className="text-destructive hover:text-destructive">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  )
+}
+
 export default function VendorFieldManager({ vendorId, vendorName }: VendorFieldManagerProps) {
   const [fields, setFields] = useState<FieldDefinition[]>([])
   const [isConfigured, setIsConfigured] = useState(false)
@@ -57,6 +188,35 @@ export default function VendorFieldManager({ vendorId, vendorName }: VendorField
   const [editingLabelId, setEditingLabelId] = useState<number | null>(null)
   const [editingLabelValue, setEditingLabelValue] = useState('')
   const { toast } = useToast()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = fields.findIndex((f) => f.id === active.id)
+    const newIndex = fields.findIndex((f) => f.id === over.id)
+    const newFields = arrayMove(fields, oldIndex, newIndex)
+    setFields(newFields)
+
+    try {
+      const reorder = newFields.map((f, i) => ({ id: f.id, display_order: i + 1 }))
+      const res = await fetch(`/api/vendors/${vendorId}/fields`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reorder }),
+      })
+      if (!res.ok) throw new Error('Failed to reorder')
+    } catch (error) {
+      logger.error('Error reordering fields:', error)
+      toast({ title: 'Error', description: 'Failed to save order', variant: 'destructive' })
+      fetchFields()
+    }
+  }
 
   const fetchFields = useCallback(async () => {
     try {
@@ -244,72 +404,32 @@ export default function VendorFieldManager({ vendorId, vendorName }: VendorField
           </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className={`flex items-center gap-3 p-3 border rounded-lg ${
-                  field.is_active ? 'bg-card' : 'bg-muted/50 opacity-60'
-                }`}
-              >
-                <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button variant="ghost" size="sm" onClick={() => handleMove(index, 'up')} disabled={index === 0}>
-                    <ArrowUp className="h-3 w-3" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleMove(index, 'down')} disabled={index === fields.length - 1}>
-                    <ArrowDown className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {editingLabelId === field.id ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        value={editingLabelValue}
-                        onChange={(e) => setEditingLabelValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSaveLabel(field)
-                          if (e.key === 'Escape') setEditingLabelId(null)
-                        }}
-                        className="h-8"
-                        autoFocus
-                      />
-                      <Button size="sm" variant="outline" onClick={() => handleSaveLabel(field)}>Save</Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingLabelId(null)}>Cancel</Button>
-                    </div>
-                  ) : (
-                    <span
-                      className="font-medium cursor-pointer hover:underline"
-                      onClick={() => {
-                        setEditingLabelId(field.id)
-                        setEditingLabelValue(field.field_label)
-                      }}
-                    >
-                      {field.field_label}
-                    </span>
-                  )}
-                  <span className="text-xs text-muted-foreground ml-2">({field.field_key})</span>
-                </div>
-
-                <Badge variant={field.source === 'builtin' ? 'secondary' : 'outline'} className="flex-shrink-0">
-                  {field.source}
-                </Badge>
-
-                <Switch
-                  checked={field.is_active}
-                  onCheckedChange={() => handleToggleActive(field)}
-                />
-
-                {field.source === 'custom' && (
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteField(field)} className="text-destructive hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {fields.map((field, index) => (
+                  <SortableFieldRow
+                    key={field.id}
+                    field={field}
+                    index={index}
+                    fieldsLength={fields.length}
+                    editingLabelId={editingLabelId}
+                    editingLabelValue={editingLabelValue}
+                    onEditLabel={(f) => {
+                      setEditingLabelId(f.id)
+                      setEditingLabelValue(f.field_label)
+                    }}
+                    onEditLabelChange={setEditingLabelValue}
+                    onSaveLabel={handleSaveLabel}
+                    onCancelEdit={() => setEditingLabelId(null)}
+                    onMove={handleMove}
+                    onToggleActive={handleToggleActive}
+                    onDelete={handleDeleteField}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </CardContent>
       </Card>
 

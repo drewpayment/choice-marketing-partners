@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS vendor_field_definitions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  vendor_id INT NOT NULL,
+  vendor_id INT UNSIGNED NOT NULL,
   field_key VARCHAR(100) NOT NULL,
   field_label VARCHAR(255) NOT NULL,
   source ENUM('builtin', 'custom') NOT NULL DEFAULT 'custom',
