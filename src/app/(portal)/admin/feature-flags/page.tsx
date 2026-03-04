@@ -76,7 +76,7 @@ export default function FeatureFlagsPage() {
   const [ovValue, setOvValue] = useState('')
   const [ovEnabled, setOvEnabled] = useState(true)
   const [userSearch, setUserSearch] = useState('')
-  const [userResults, setUserResults] = useState<{ id: number; name: string; email: string; user_id: number | null }[]>([])
+  const [userResults, setUserResults] = useState<{ uid: number; name: string; email: string }[]>([])
   const [userSearchOpen, setUserSearchOpen] = useState(false)
   const [selectedUserLabel, setSelectedUserLabel] = useState('')
 
@@ -97,10 +97,10 @@ export default function FeatureFlagsPage() {
     }
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/employees/search?q=${encodeURIComponent(userSearch)}&limit=10`)
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(userSearch)}&limit=10`)
         if (res.ok) {
           const data = await res.json()
-          setUserResults(data.employees ?? [])
+          setUserResults(data.users ?? [])
           setUserSearchOpen(true)
         }
       } catch {
@@ -130,7 +130,7 @@ export default function FeatureFlagsPage() {
       .filter((n) => !isNaN(n))
     if (ids.length === 0) return
     try {
-      const res = await fetch(`/api/employees/resolve-uids?uids=${ids.join(',')}`)
+      const res = await fetch(`/api/users/resolve-uids?uids=${ids.join(',')}`)
       if (!res.ok) return
       const map: Record<string, string> = await res.json()
       // keys come back as numbers from JSON; convert to strings to match context_value
@@ -526,23 +526,22 @@ export default function FeatureFlagsPage() {
                   />
                   {userSearchOpen && userResults.length > 0 && (
                     <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-                      {userResults.map((emp) => (
+                      {userResults.map((user) => (
                         <button
-                          key={emp.id}
+                          key={user.uid}
                           type="button"
                           className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
                           onClick={() => {
-                            const id = String(emp.user_id ?? emp.id)
-                            setOvValue(id)
-                            setSelectedUserLabel(`${emp.name} (${emp.email})`)
+                            setOvValue(String(user.uid))
+                            setSelectedUserLabel(`${user.name} (${user.email})`)
                             setUserSearch('')
                             setUserResults([])
                             setUserSearchOpen(false)
                           }}
                         >
-                          <span className="font-medium">{emp.name}</span>
-                          <span className="text-xs text-muted-foreground">{emp.email}</span>
-                          {emp.user_id && <span className="font-mono text-xs text-muted-foreground">id: {emp.user_id}</span>}
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-xs text-muted-foreground">{user.email}</span>
+                          <span className="font-mono text-xs text-muted-foreground">uid: {user.uid}</span>
                         </button>
                       ))}
                     </div>
