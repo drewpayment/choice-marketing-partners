@@ -612,30 +612,33 @@ export class InvoiceRepository {
    * Delete entire paystub (all related records)
    */
   async deletePaystub(agentId: number, vendorId: number, issueDate: string): Promise<boolean> {
-    const formattedDate = dayjs(issueDate, 'MM-DD-YYYY').toDate()
+    // Handle both YYYY-MM-DD and MM-DD-YYYY formats
+    const formattedDate = /^\d{4}-/.test(issueDate)
+      ? issueDate
+      : dayjs(issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD')
 
     return await db.transaction().execute(async (trx) => {
       try {
-        // Delete all related records
+        // Delete all related records using DATE() for timezone-safe comparison
         await trx
           .deleteFrom('invoices')
           .where('agentid', '=', agentId)
           .where('vendor', '=', vendorId.toString())
-          .where('issue_date', '=', formattedDate)
+          .where(db.fn('DATE', ['issue_date']), '=', formattedDate)
           .execute()
 
         await trx
           .deleteFrom('expenses')
           .where('agentid', '=', agentId)
           .where('vendor_id', '=', vendorId)
-          .where('issue_date', '=', formattedDate)
+          .where(db.fn('DATE', ['issue_date']), '=', formattedDate)
           .execute()
 
         await trx
           .deleteFrom('overrides')
           .where('agentid', '=', agentId)
           .where('vendor_id', '=', vendorId)
-          .where('issue_date', '=', formattedDate)
+          .where(db.fn('DATE', ['issue_date']), '=', formattedDate)
           .execute()
 
         // Delete paystubs record
@@ -643,7 +646,7 @@ export class InvoiceRepository {
           .deleteFrom('paystubs')
           .where('agent_id', '=', agentId)
           .where('vendor_id', '=', vendorId)
-          .where('issue_date', '=', formattedDate)
+          .where(db.fn('DATE', ['issue_date']), '=', formattedDate)
           .execute()
 
         // Delete payroll record
@@ -651,7 +654,7 @@ export class InvoiceRepository {
           .deleteFrom('payroll')
           .where('agent_id', '=', agentId)
           .where('vendor_id', '=', vendorId)
-          .where('pay_date', '=', formattedDate)
+          .where(db.fn('DATE', ['pay_date']), '=', formattedDate)
           .execute()
 
         return true
