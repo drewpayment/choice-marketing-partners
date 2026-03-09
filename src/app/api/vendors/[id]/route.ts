@@ -17,7 +17,7 @@ const updateVendorSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -26,6 +26,7 @@ export async function GET(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const params = await context.params
     const vendorId = parseInt(params.id, 10)
     if (isNaN(vendorId)) {
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
@@ -52,7 +53,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -61,6 +62,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const params = await context.params
     const vendorId = parseInt(params.id, 10)
     if (isNaN(vendorId)) {
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
@@ -109,7 +111,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -118,6 +120,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const params = await context.params
     const vendorId = parseInt(params.id, 10)
     if (isNaN(vendorId)) {
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
