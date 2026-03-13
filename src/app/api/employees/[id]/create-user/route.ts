@@ -61,21 +61,64 @@ export async function POST(
       )
     }
 
-    // Check if user already exists for this employee
-    const existingUser = await db
+    // Check if user already exists for this employee via employee_user link
+    const existingLink = await db
       .selectFrom('employee_user')
       .select('user_id')
       .where('employee_id', '=', employeeId)
       .executeTakeFirst()
 
-    if (existingUser) {
+    if (existingLink) {
       return NextResponse.json(
         { error: 'User account already exists for this employee' },
         { status: 409 }
       )
     }
 
-    // Generate password
+    // Check if a user row already exists (by id or email) without an employee_user link
+    // This handles the case where users.id = employees.id but employee_user was never created
+    const existingUser = await db
+      .selectFrom('users')
+      .select(['uid', 'id', 'email', 'role'])
+      .where((eb) =>
+        eb.or([
+          eb('id', '=', employeeId),
+          eb('email', '=', employee.email),
+        ])
+      )
+      .executeTakeFirst()
+
+    if (existingUser) {
+      // User row exists but no employee_user link — just create the link
+      await db
+        .insertInto('employee_user')
+        .values({
+          employee_id: employeeId,
+          user_id: existingUser.uid,
+        })
+        .execute()
+
+      // Optionally update the role if the admin selected a different one
+      if (existingUser.role !== role) {
+        await db
+          .updateTable('users')
+          .set({ role, updated_at: new Date() })
+          .where('uid', '=', existingUser.uid)
+          .execute()
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'User account already existed and has been linked to this employee',
+        user: {
+          id: existingUser.uid,
+          email: existingUser.email,
+          role: role,
+        },
+      })
+    }
+
+    // No existing user — create a new one
     const password = generatePassword(10)
     const hashedPassword = await bcrypt.hash(password, 12)
 

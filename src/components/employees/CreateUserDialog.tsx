@@ -62,7 +62,7 @@ export function CreateUserDialog({
       }
 
       const data = await response.json()
-      setGeneratedPassword(data.password)
+      setGeneratedPassword(data.password || '')
       setSuccess(true)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create user account')
@@ -110,32 +110,36 @@ export function CreateUserDialog({
               <Check className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription>
-                User account created successfully. A welcome email has been sent to {employeeEmail}.
+                {generatedPassword
+                  ? `User account created successfully. A welcome email has been sent to ${employeeEmail}.`
+                  : `An existing user account was found and linked to this employee. No new password was generated.`}
               </AlertDescription>
             </Alert>
 
-            <div className="space-y-2">
-              <Label>Generated Password</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  value={generatedPassword}
-                  readOnly
-                  className="font-mono"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopy}
-                  title="Copy password"
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+            {generatedPassword && (
+              <div className="space-y-2">
+                <Label>Generated Password</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={generatedPassword}
+                    readOnly
+                    className="font-mono"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopy}
+                    title="Copy password"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Save this password - it won't be shown again.
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Save this password - it won't be shown again.
-              </p>
-            </div>
+            )}
 
             <Button onClick={handleClose} className="w-full">
               Done
