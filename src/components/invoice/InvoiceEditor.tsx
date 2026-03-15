@@ -80,7 +80,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const [customDateValue, setCustomDateValue] = useState('');
 
   // Fetch vendor-specific custom field definitions (feature-flag gated)
-  const { fields: vendorFields, isConfigured: isVendorConfigured } = useVendorFields(
+  const { fields: vendorFields, isConfigured: isVendorConfigured, isLoading: isVendorFieldsLoading } = useVendorFields(
     parseInt(formData.vendor) || null
   );
 
@@ -560,6 +560,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
             selectedAgent={agents.find(a => a.id === formData.agentId)}
             vendorFields={vendorFields}
             isVendorConfigured={isVendorConfigured}
+            isVendorFieldsLoading={isVendorFieldsLoading}
           />
         </CardContent>
       </Card>
