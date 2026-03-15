@@ -314,7 +314,10 @@ export class InvoiceRepository {
         issue_date: dayjs(inv.issue_date).format('YYYY-MM-DD'),
         wkending: dayjs(inv.wkending).format('YYYY-MM-DD'),
         created_at: inv.created_at || undefined,
-        updated_at: inv.updated_at || undefined
+        updated_at: inv.updated_at || undefined,
+        custom_fields: inv.custom_fields
+          ? (typeof inv.custom_fields === 'string' ? JSON.parse(inv.custom_fields) : inv.custom_fields)
+          : undefined
       })),
       overrides: overrides.map(ovr => ({
         ovrid: ovr.ovrid,
