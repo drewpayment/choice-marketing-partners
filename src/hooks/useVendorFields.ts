@@ -19,12 +19,21 @@ export function useVendorFields(vendorId: number | null): UseVendorFieldsResult 
   const flagEnabled = useFeatureFlag('vendor_custom_fields')
   const [fields, setFields] = useState<VendorFieldDefinition[]>([])
   const [isConfigured, setIsConfigured] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  // Start loading as true when we have a vendorId and flag hasn't resolved yet (null)
+  // so consumers don't flash default columns while we're fetching
+  const [isLoading, setIsLoading] = useState(flagEnabled === null && vendorId !== null)
 
   useEffect(() => {
+    if (flagEnabled === null) {
+      // Feature flag still loading — keep isLoading true so consumers wait
+      setIsLoading(vendorId !== null)
+      return
+    }
+
     if (!flagEnabled || !vendorId) {
       setFields([])
       setIsConfigured(false)
+      setIsLoading(false)
       return
     }
 

@@ -69,6 +69,7 @@ interface InvoiceSalesTableProps {
   selectedAgent?: AgentWithSalesIds;
   vendorFields?: VendorFieldDefinition[];
   isVendorConfigured?: boolean;
+  isVendorFieldsLoading?: boolean;
 }
 
 export default function InvoiceSalesTable({
@@ -78,13 +79,39 @@ export default function InvoiceSalesTable({
   selectedAgent,
   vendorFields,
   isVendorConfigured,
+  isVendorFieldsLoading,
 }: InvoiceSalesTableProps) {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Resolve which columns to show
-  const activeColumns = (isVendorConfigured && vendorFields && vendorFields.length > 0)
-    ? resolveEditableColumns(vendorFields)
-    : DEFAULT_EDIT_COLUMNS;
+  let activeColumns: EditableColumn[];
+
+  if (isVendorConfigured && vendorFields && vendorFields.length > 0) {
+    // Vendor fields loaded — use them
+    activeColumns = resolveEditableColumns(vendorFields);
+  } else if (isVendorFieldsLoading && sales.some(s => s.custom_fields && Object.keys(s.custom_fields).length > 0)) {
+    // Vendor fields still loading but we have custom_fields data from SSR —
+    // infer custom columns from existing data so they don't flash away
+    const customKeys = new Set<string>();
+    for (const sale of sales) {
+      if (sale.custom_fields) {
+        for (const key of Object.keys(sale.custom_fields)) {
+          customKeys.add(key);
+        }
+      }
+    }
+    activeColumns = [
+      ...DEFAULT_EDIT_COLUMNS,
+      ...Array.from(customKeys).map(key => ({
+        key,
+        label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        source: 'custom' as const,
+        type: 'text' as const,
+      })),
+    ];
+  } else {
+    activeColumns = DEFAULT_EDIT_COLUMNS;
+  }
 
   const addSale = () => {
     const newSale: InvoiceSaleFormData = {
