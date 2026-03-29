@@ -5,17 +5,19 @@ import BlogFeed from '@/components/blog/BlogFeed'
 import Link from 'next/link'
 
 interface AuthorPageProps {
-  params: { id: string }
-  searchParams: { page?: string }
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ page?: string }>
 }
 
 export default async function AuthorPage({ params, searchParams }: AuthorPageProps) {
-  const authorId = parseInt(params.id, 10)
+  const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
+  const authorId = parseInt(resolvedParams.id, 10)
   if (isNaN(authorId)) {
     notFound()
   }
 
-  const page = parseInt(searchParams.page || '1', 10)
+  const page = parseInt(resolvedSearchParams.page || '1', 10)
   const blogRepo = new BlogRepository()
 
   // Get author info
@@ -105,7 +107,8 @@ export default async function AuthorPage({ params, searchParams }: AuthorPagePro
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: AuthorPageProps) {
-  const authorId = parseInt(params.id, 10)
+  const resolvedParams = await params
+  const authorId = parseInt(resolvedParams.id, 10)
   if (isNaN(authorId)) {
     return {
       title: 'Author Not Found',

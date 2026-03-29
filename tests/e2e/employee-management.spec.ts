@@ -315,6 +315,52 @@ test.describe('Employee Management - Core Functions', () => {
     })
   })
 
+  test.describe('Employee Detail and Edit Page Rendering', () => {
+    test('Edit employee page should render without errors for valid employee', async ({ page }) => {
+      await loginAsAdmin(page)
+
+      // Navigate to edit page for employee ID 1 (Admin User)
+      const response = await page.goto('/admin/employees/1/edit')
+
+      // Page should return 200, not 500 (regression: async params must be awaited in Next.js 15)
+      expect(response?.status()).toBe(200)
+
+      // Should render the edit form heading, not an error page
+      await expect(page.locator('h1')).toContainText('Edit Employee')
+
+      // The employee name should be rendered (proves params.id resolved correctly, not NaN)
+      await expect(page.locator('text=Admin User').first()).toBeVisible()
+    })
+
+    test('Employee detail page should render without errors for valid employee', async ({ page }) => {
+      await loginAsAdmin(page)
+
+      const response = await page.goto('/admin/employees/1')
+
+      // Page should return 200 (regression: async params)
+      expect(response?.status()).toBe(200)
+
+      // Should show employee name, not an error
+      await expect(page.locator('text=Admin User').first()).toBeVisible()
+
+      // Edit link should point to the correct employee
+      const editLink = page.getByRole('link', { name: 'Edit Employee' })
+      await expect(editLink).toBeVisible()
+      await expect(editLink).toHaveAttribute('href', '/admin/employees/1/edit')
+    })
+
+    test('Edit page should return 404 for non-existent employee', async ({ page }) => {
+      await loginAsAdmin(page)
+
+      await page.goto('/admin/employees/99999/edit')
+      await page.waitForLoadState('networkidle')
+
+      // Should show not found page (proves params resolved to a real number, not NaN)
+      const hasNotFound = await page.locator('text=not found').or(page.locator('text=Not Found')).first().isVisible()
+      expect(hasNotFound).toBeTruthy()
+    })
+  })
+
   test.describe('Error Handling and Validation', () => {
     test('Should handle invalid employee routes gracefully', async ({ page }) => {
       await loginAsAdmin(page)

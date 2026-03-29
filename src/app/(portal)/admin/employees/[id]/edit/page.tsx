@@ -4,15 +4,16 @@ import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { EmployeeForm } from '@/components/employees/EmployeeForm'
 
 interface EditEmployeePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: EditEmployeePageProps): Promise<Metadata> {
+  const resolvedParams = await params
   const employeeRepo = new EmployeeRepository()
-  const employee = await employeeRepo.getEmployeeById(parseInt(params.id))
-  
+  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id))
+
   return {
     title: employee ? `Edit ${employee.name} | Choice Marketing Partners` : 'Employee Not Found',
     description: employee ? `Edit employee information for ${employee.name}` : 'Employee not found',
@@ -20,8 +21,9 @@ export async function generateMetadata({ params }: EditEmployeePageProps): Promi
 }
 
 export default async function EditEmployeePage({ params }: EditEmployeePageProps) {
+  const resolvedParams = await params
   const employeeRepo = new EmployeeRepository()
-  const employee = await employeeRepo.getEmployeeById(parseInt(params.id))
+  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id))
 
   if (!employee) {
     notFound()

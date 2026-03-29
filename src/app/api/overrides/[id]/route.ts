@@ -11,7 +11,7 @@ const managerEmployeeRepository = new ManagerEmployeeRepository()
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,7 +20,8 @@ export async function GET(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const managerId = parseInt(params.id)
+    const { id } = await params
+    const managerId = parseInt(id)
     if (isNaN(managerId)) {
       return NextResponse.json({ error: 'Invalid manager ID' }, { status: 400 })
     }
