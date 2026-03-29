@@ -31,7 +31,7 @@ const updateEmployeeSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -40,7 +40,8 @@ export async function GET(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const employeeId = parseInt(params.id)
+    const { id } = await params
+    const employeeId = parseInt(id)
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }
@@ -66,7 +67,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -75,7 +76,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const employeeId = parseInt(params.id)
+    const { id } = await params
+    const employeeId = parseInt(id)
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }
@@ -125,7 +127,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -134,7 +136,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const employeeId = parseInt(params.id)
+    const { id } = await params
+    const employeeId = parseInt(id)
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }

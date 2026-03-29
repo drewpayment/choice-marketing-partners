@@ -23,7 +23,7 @@ const passwordResetSchema = z.object({
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -32,7 +32,8 @@ export async function POST(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const employeeId = parseInt(params.id)
+    const { id } = await params
+    const employeeId = parseInt(id)
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }

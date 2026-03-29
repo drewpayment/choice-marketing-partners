@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { formatDate } from '@/lib/utils/date'
 
 interface BlogPostPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params
   const blogRepo = new BlogRepository()
-  const post = await blogRepo.getPostBySlug(params.slug)
+  const post = await blogRepo.getPostBySlug(slug)
 
   if (!post) {
     notFound()
@@ -86,8 +87,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: BlogPostPageProps) {
+  const { slug } = await params
   const blogRepo = new BlogRepository()
-  const post = await blogRepo.getPostBySlug(params.slug)
+  const post = await blogRepo.getPostBySlug(slug)
 
   if (!post) {
     return {

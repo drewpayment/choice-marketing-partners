@@ -11,7 +11,7 @@ const employeeRepository = new EmployeeRepository()
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,7 +20,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const employeeId = parseInt(params.id)
+    const { id } = await params
+    const employeeId = parseInt(id)
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }

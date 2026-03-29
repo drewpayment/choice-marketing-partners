@@ -10,11 +10,11 @@ import { logger } from '@/lib/utils/logger'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { invoiceId: string } }
+  { params }: { params: Promise<{ invoiceId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -30,7 +30,8 @@ export async function GET(
       )
     }
 
-    const invoiceId = parseInt(params.invoiceId)
+    const { invoiceId: invoiceIdStr } = await params
+    const invoiceId = parseInt(invoiceIdStr)
     if (isNaN(invoiceId)) {
       return NextResponse.json(
         { error: 'Invalid invoice ID' },

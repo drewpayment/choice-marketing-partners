@@ -10,9 +10,9 @@ import Link from 'next/link'
 import { UserAccountActions } from '@/components/employees/UserAccountActions'
 
 interface EmployeeDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: EmployeeDetailPageProps): Promise<Metadata> {
