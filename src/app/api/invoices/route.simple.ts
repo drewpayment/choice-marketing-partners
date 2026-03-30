@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -23,11 +24,18 @@ export async function POST(request: NextRequest) {
       isManager: session.user.isManager
     })
 
+    // Build user context for RBAC
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     const body = await request.json()
     logger.log('📝 Request body:', JSON.stringify(body, null, 2))
 
     // Save invoice data using simplified repository
-    const result = await invoiceRepository.saveInvoiceData(body)
+    const result = await invoiceRepository.saveInvoiceData(body, userContext)
     
     logger.log('✅ Save result:', result)
     

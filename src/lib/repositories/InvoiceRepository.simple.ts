@@ -2,6 +2,7 @@ import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { invoiceAuditRepository } from './InvoiceAuditRepository'
 import { logger } from '@/lib/utils/logger'
+import type { UserContext } from '@/lib/auth/types'
 
 // Simple types for our gradual implementation
 interface SimpleSale {
@@ -70,7 +71,16 @@ export class InvoiceRepository {
   /**
    * Simple save operation - now with transaction support
    */
-  async saveInvoiceData(request: SimpleRequest): Promise<SimpleSaveResult> {
+  async saveInvoiceData(request: SimpleRequest, userContext: UserContext): Promise<SimpleSaveResult> {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+    if (!userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(request.agentId)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
     logger.log('🚀 Starting SIMPLE saveInvoiceData with transaction')
     logger.log('📝 Request data:', {
       agentId: request.agentId,
@@ -448,43 +458,74 @@ export class InvoiceRepository {
   /**
    * Simple get by invoice ID
    */
-  async getInvoiceById(invoiceId: number) {
-    return await db
+  async getInvoiceById(invoiceId: number, userContext: UserContext) {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+
+    const invoice = await db
       .selectFrom('invoices')
       .selectAll()
       .where('invoice_id', '=', invoiceId)
       .executeTakeFirst()
+
+    if (invoice && !userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(invoice.agentid)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
+    return invoice
   }
 
   /**
    * Simple get by agent and vendor
    */
-  async getInvoicesByAgent(agentId: number, vendorId?: number) {
+  async getInvoicesByAgent(agentId: number, vendorId: number | undefined, userContext: UserContext) {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+    if (!userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(agentId)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
     let query = db
       .selectFrom('invoices')
       .selectAll()
       .where('agentid', '=', agentId)
-      
+
     if (vendorId) {
       query = query.where('vendor', '=', vendorId.toString())
     }
-    
+
     return await query.execute()
   }
 
   /**
    * Get invoice page resources (agents, vendors, issue dates)
    */
-  async getInvoicePageResources() {
+  async getInvoicePageResources(userContext: UserContext) {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+
     logger.log('📊 Getting invoice page resources')
-    
+
     try {
       // Get active agents with all sales IDs for filtering
-      const agents = await db
+      let agentQuery = db
         .selectFrom('employees')
         .select(['id', 'name', 'sales_id1', 'sales_id2', 'sales_id3'])
         .where('is_active', '=', 1)
         .where('deleted_at', 'is', null)
+
+      if (!userContext.isAdmin && userContext.isManager && userContext.managedEmployeeIds?.length) {
+        agentQuery = agentQuery.where('id', 'in', userContext.managedEmployeeIds)
+      }
+
+      const agents = await agentQuery
         .orderBy('name')
         .execute()
 
@@ -530,7 +571,16 @@ export class InvoiceRepository {
   /**
    * Get invoice details for a specific agent/vendor/issue date
    */
-  async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string) {
+  async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string, userContext: UserContext) {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+    if (!userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(agentId)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
     logger.log('📋 Getting invoice detail:', { agentId, vendorId, issueDate })
     
     try {

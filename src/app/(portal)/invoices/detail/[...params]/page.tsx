@@ -2,6 +2,7 @@ import { requireManagerAccess } from '@/lib/auth/server-auth';
 import InvoiceEditor from '@/components/invoice/InvoiceEditor';
 import { notFound } from 'next/navigation';
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository';
+import { getEmployeeContext } from '@/lib/auth/payroll-access';
 import { logger } from '@/lib/utils/logger';
 
 interface EditInvoicePageProps {
@@ -14,8 +15,15 @@ export default async function EditInvoicePage({ params: paramsPromise }: EditInv
   const params = await paramsPromise;
   logger.log('🚀 EditInvoicePage reached with params:', params);
 
-  await requireManagerAccess();
-  
+  const session = await requireManagerAccess();
+
+  // Build user context for RBAC
+  const userContext = await getEmployeeContext(
+    session.user.employeeId,
+    session.user.isAdmin,
+    session.user.isManager
+  );
+
   // Extract parameters from the catch-all route
   const vals = params;
   logger.log(vals);
@@ -51,7 +59,7 @@ export default async function EditInvoicePage({ params: paramsPromise }: EditInv
   const vendorIdNum = parseInt(vendorId);
   
   try {
-    const invoiceDetails = await invoiceRepository.getInvoiceDetail(agentId, vendorIdNum, issueDate);
+    const invoiceDetails = await invoiceRepository.getInvoiceDetail(agentId, vendorIdNum, issueDate, userContext);
 
     if (!invoiceDetails) {
       logger.error('❌ Invoice not found for:', { agentId, vendorIdNum, issueDate });

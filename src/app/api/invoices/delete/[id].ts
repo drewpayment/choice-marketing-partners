@@ -44,10 +44,11 @@ export async function DELETE(
     // Delete invoice with audit trail
     const success = await invoiceRepository.deleteInvoice(
       invoiceId,
+      userContext,
       session.user.employeeId, // deletedBy
       'Invoice deleted via web interface', // reason
-      request.headers.get('x-forwarded-for') || 
-      request.headers.get('x-real-ip') || 
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
       'unknown' // ipAddress
     )
 

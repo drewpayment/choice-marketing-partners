@@ -1,6 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { logger } from '@/lib/utils/logger'
+import type { UserContext } from '@/lib/auth/types'
 import type {
   Sale as Invoice,
   Override,
@@ -171,13 +172,23 @@ export class InvoiceRepository {
   /**
    * Get resources needed for invoice page (agents, vendors, upcoming issue dates)
    */
-  async getInvoicePageResources(): Promise<InvoicePageResources> {
+  async getInvoicePageResources(userContext: UserContext): Promise<InvoicePageResources> {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+
     // Get active employees
-    const agents = await db
+    let agentQuery = db
       .selectFrom('employees')
       .select(['id', 'name', 'sales_id1'])
       .where('is_active', '=', 1)
       .where('hidden_payroll', '=', 0)
+
+    if (!userContext.isAdmin && userContext.isManager && userContext.managedEmployeeIds?.length) {
+      agentQuery = agentQuery.where('id', 'in', userContext.managedEmployeeIds)
+    }
+
+    const agents = await agentQuery
       .orderBy('name', 'asc')
       .execute()
 
@@ -213,9 +224,18 @@ export class InvoiceRepository {
   /**
    * Get invoice detail for editing
    */
-  async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string): Promise<InvoiceDetail | null> {
+  async getInvoiceDetail(agentId: number, vendorId: number, issueDate: string, userContext: UserContext): Promise<InvoiceDetail | null> {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+    if (!userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(agentId)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
     logger.log('🔍 Repository - getInvoiceDetail called with:', { agentId, vendorId, issueDate })
-    
+
     agentId = Number(agentId);
     issueDate = dayjs(issueDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
 
@@ -361,7 +381,16 @@ export class InvoiceRepository {
   /**
    * Save invoice data (simplified version for testing)
    */
-  async saveInvoiceData(request: InvoiceSaveRequest): Promise<InvoiceSaveResult> {
+  async saveInvoiceData(request: InvoiceSaveRequest, userContext: UserContext): Promise<InvoiceSaveResult> {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+    if (!userContext.isAdmin && userContext.isManager) {
+      if (!userContext.managedEmployeeIds?.includes(request.agentId)) {
+        throw new Error('Access denied: agent not in your direct reports')
+      }
+    }
+
     logger.log('🚀 Starting simplified saveInvoiceData')
     logger.log('📝 Request data:', {
       agentId: request.agentId,
@@ -487,7 +516,11 @@ export class InvoiceRepository {
   /**
    * Delete single invoice with audit trail
    */
-  async deleteInvoice(invoiceId: number, deletedBy?: number, reason?: string, ipAddress?: string): Promise<boolean> {
+  async deleteInvoice(invoiceId: number, userContext: UserContext, deletedBy?: number, reason?: string, ipAddress?: string): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     return await db.transaction().execute(async (trx) => {
       // Get invoice data before deletion for audit trail
       let previousInvoice = null
@@ -543,11 +576,16 @@ export class InvoiceRepository {
    * Bulk delete invoices with audit trail
    */
   async deleteInvoices(
-    invoiceIds: number[], 
-    deletedBy?: number, 
-    reason?: string, 
+    invoiceIds: number[],
+    userContext: UserContext,
+    deletedBy?: number,
+    reason?: string,
     ipAddress?: string
   ): Promise<{ deletedCount: number; expectedCount: number }> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     return await db.transaction().execute(async (trx) => {
       let deletedCount = 0
 
@@ -614,7 +652,11 @@ export class InvoiceRepository {
   /**
    * Delete entire paystub (all related records)
    */
-  async deletePaystub(agentId: number, vendorId: number, issueDate: string): Promise<boolean> {
+  async deletePaystub(agentId: number, vendorId: number, issueDate: string, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     // Handle both YYYY-MM-DD and MM-DD-YYYY formats
     const formattedDate = /^\d{4}-/.test(issueDate)
       ? issueDate
