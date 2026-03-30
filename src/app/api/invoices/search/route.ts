@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceAuditRepository, InvoiceAuditSearchFilters } from '@/lib/repositories/InvoiceAuditRepository'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 /**
  * POST /api/invoices/search - Search invoices with audit history
@@ -46,8 +47,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Perform the search
-    const results = await invoiceAuditRepository.searchAuditRecords(body)
+    const results = await invoiceAuditRepository.searchAuditRecords(body, userContext)
 
     return NextResponse.json({
       success: true,
@@ -97,8 +104,14 @@ export async function GET(request: NextRequest) {
       // agentIds = await getManagerAssignedAgents(session.user.employeeId)
     }
 
-    const summary = await invoiceAuditRepository.getAuditSummary(agentIds, dateFrom, dateTo)
-    const recentActivity = await invoiceAuditRepository.getRecentAuditActivity(agentIds, 10)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const summary = await invoiceAuditRepository.getAuditSummary(agentIds, dateFrom, dateTo, userContext)
+    const recentActivity = await invoiceAuditRepository.getRecentAuditActivity(agentIds, 10, userContext)
 
     return NextResponse.json({
       success: true,

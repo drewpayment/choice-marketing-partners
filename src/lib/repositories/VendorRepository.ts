@@ -1,6 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { sql } from 'kysely'
+import type { UserContext } from '@/lib/auth/types'
 
 /**
  * Vendor management interfaces
@@ -35,7 +36,10 @@ export class VendorRepository {
   /**
    * Get all vendors with optional filtering
    */
-  async getVendors(filters: VendorFilters = {}): Promise<VendorSummary[]> {
+  async getVendors(filters: VendorFilters = {}, userContext: UserContext): Promise<VendorSummary[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     let query = db
       .selectFrom('vendors')
       .selectAll()
@@ -68,7 +72,10 @@ export class VendorRepository {
   /**
    * Get a single vendor by ID
    */
-  async getVendorById(id: number): Promise<VendorSummary | null> {
+  async getVendorById(id: number, userContext: UserContext): Promise<VendorSummary | null> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const vendor = await db
       .selectFrom('vendors')
       .selectAll()
@@ -89,7 +96,10 @@ export class VendorRepository {
   /**
    * Check if vendor name already exists (case-insensitive)
    */
-  async isNameAvailable(name: string, excludeVendorId?: number): Promise<boolean> {
+  async isNameAvailable(name: string, excludeVendorId?: number, userContext?: UserContext): Promise<boolean> {
+    if (!userContext?.isAdmin) {
+      throw new Error('Admin access required')
+    }
     let query = db
       .selectFrom('vendors')
       .select('id')
@@ -106,7 +116,10 @@ export class VendorRepository {
   /**
    * Create a new vendor
    */
-  async createVendor(data: CreateVendorData): Promise<VendorSummary> {
+  async createVendor(data: CreateVendorData, userContext: UserContext): Promise<VendorSummary> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const now = dayjs().toDate();
     
     const result = await db
@@ -120,7 +133,7 @@ export class VendorRepository {
       .executeTakeFirstOrThrow()
 
     const vendorId = Number(result.insertId)
-    const vendor = await this.getVendorById(vendorId)
+    const vendor = await this.getVendorById(vendorId, userContext)
 
     if (!vendor) {
       throw new Error('Failed to retrieve created vendor')
@@ -132,7 +145,10 @@ export class VendorRepository {
   /**
    * Update an existing vendor
    */
-  async updateVendor(id: number, data: UpdateVendorData): Promise<VendorSummary> {
+  async updateVendor(id: number, data: UpdateVendorData, userContext: UserContext): Promise<VendorSummary> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const updateData: Record<string, string | number | Date> = {}
 
     if (data.name !== undefined) {
@@ -156,7 +172,7 @@ export class VendorRepository {
       .where('id', '=', id)
       .executeTakeFirstOrThrow()
 
-    const vendor = await this.getVendorById(id)
+    const vendor = await this.getVendorById(id, userContext)
 
     if (!vendor) {
       throw new Error('Failed to retrieve updated vendor')
@@ -168,20 +184,27 @@ export class VendorRepository {
   /**
    * Toggle vendor active status
    */
-  async toggleActive(id: number): Promise<VendorSummary> {
-    const vendor = await this.getVendorById(id)
-    
+  async toggleActive(id: number, userContext: UserContext): Promise<VendorSummary> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    const vendor = await this.getVendorById(id, userContext)
+
     if (!vendor) {
       throw new Error('Vendor not found')
     }
 
-    return this.updateVendor(id, { is_active: !vendor.is_active })
+    return this.updateVendor(id, { is_active: !vendor.is_active }, userContext)
   }
 
   /**
    * Delete a vendor (if needed in future)
    */
-  async deleteVendor(id: number): Promise<void> {
+  async deleteVendor(id: number, userContext: UserContext): Promise<void> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     await db
       .deleteFrom('vendors')
       .where('id', '=', id)

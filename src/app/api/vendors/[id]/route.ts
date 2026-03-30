@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { VendorRepository } from '@/lib/repositories/VendorRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const vendorRepository = new VendorRepository()
 
@@ -32,7 +33,13 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
     }
 
-    const vendor = await vendorRepository.getVendorById(vendorId)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const vendor = await vendorRepository.getVendorById(vendorId, userContext)
 
     if (!vendor) {
       return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
@@ -71,9 +78,15 @@ export async function PATCH(
     const body = await request.json()
     const data = updateVendorSchema.parse(body)
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Check if name is changing and if it's available
     if (data.name) {
-      const isAvailable = await vendorRepository.isNameAvailable(data.name, vendorId)
+      const isAvailable = await vendorRepository.isNameAvailable(data.name, vendorId, userContext)
       if (!isAvailable) {
         return NextResponse.json(
           { error: 'A vendor with this name already exists' },
@@ -82,7 +95,7 @@ export async function PATCH(
       }
     }
 
-    const vendor = await vendorRepository.updateVendor(vendorId, data)
+    const vendor = await vendorRepository.updateVendor(vendorId, data, userContext)
 
     return NextResponse.json({ vendor })
   } catch (error) {
@@ -126,7 +139,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
     }
 
-    await vendorRepository.deleteVendor(vendorId)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    await vendorRepository.deleteVendor(vendorId, userContext)
 
     return NextResponse.json({ success: true })
   } catch (error) {

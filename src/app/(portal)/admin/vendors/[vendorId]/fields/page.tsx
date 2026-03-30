@@ -7,6 +7,7 @@ import { isFeatureEnabled } from '@/lib/feature-flags'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { notFound, redirect } from 'next/navigation'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 interface PageProps {
   params: Promise<{ vendorId: string }>
@@ -28,8 +29,14 @@ export default async function VendorFieldsPage({ params }: PageProps) {
 
   if (isNaN(vendorId)) notFound()
 
+  const userContext = await getEmployeeContext(
+    session?.user?.employeeId,
+    session?.user?.isAdmin ?? false,
+    session?.user?.isManager ?? false
+  )
+
   const vendorRepo = new VendorRepository()
-  const vendor = await vendorRepo.getVendorById(vendorId)
+  const vendor = await vendorRepo.getVendorById(vendorId, userContext)
 
   if (!vendor) notFound()
 

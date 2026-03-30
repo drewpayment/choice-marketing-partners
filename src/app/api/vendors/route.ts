@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { VendorRepository } from '@/lib/repositories/VendorRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const vendorRepository = new VendorRepository()
 
@@ -34,7 +35,13 @@ export async function GET(request: NextRequest) {
       status: searchParams.get('status') || undefined
     })
 
-    const vendors = await vendorRepository.getVendors(filters)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const vendors = await vendorRepository.getVendors(filters, userContext)
 
     return NextResponse.json({ vendors })
   } catch (error) {
@@ -68,8 +75,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = createVendorSchema.parse(body)
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Check if name is available
-    const isAvailable = await vendorRepository.isNameAvailable(data.name)
+    const isAvailable = await vendorRepository.isNameAvailable(data.name, undefined, userContext)
     if (!isAvailable) {
       return NextResponse.json(
         { error: 'A vendor with this name already exists' },
@@ -77,7 +90,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const vendor = await vendorRepository.createVendor(data)
+    const vendor = await vendorRepository.createVendor(data, userContext)
 
     return NextResponse.json({ vendor }, { status: 201 })
   } catch (error) {

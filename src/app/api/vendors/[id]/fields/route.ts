@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const FEATURE_FLAG = 'vendor_custom_fields'
 const repo = new VendorFieldRepository()
@@ -40,10 +41,16 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin ?? false,
+      session.user.isManager ?? false
+    )
+
     const includeInactive = request.nextUrl.searchParams.get('includeInactive') === 'true'
-    const isConfigured = await repo.isVendorConfigured(vendorId)
+    const isConfigured = await repo.isVendorConfigured(vendorId, userContext)
     const fields = isConfigured
-      ? await repo.getFieldsByVendor(vendorId, includeInactive)
+      ? await repo.getFieldsByVendor(vendorId, includeInactive, userContext)
       : []
 
     return NextResponse.json({ fields, isConfigured })
@@ -89,9 +96,15 @@ export async function POST(
 
     const body = await request.json()
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin ?? false,
+      session.user.isManager ?? false
+    )
+
     // Handle initialization
     if (body.action === 'initialize') {
-      const fields = await repo.initializeVendorDefaults(vendorId)
+      const fields = await repo.initializeVendorDefaults(vendorId, userContext)
       return NextResponse.json({ fields, isConfigured: true })
     }
 
@@ -104,7 +117,7 @@ export async function POST(
     }
 
     // Auto-generate display_order if not provided
-    const existingFields = await repo.getFieldsByVendor(vendorId, true)
+    const existingFields = await repo.getFieldsByVendor(vendorId, true, userContext)
     const maxOrder = existingFields.reduce((max, f) => Math.max(max, f.display_order), 0)
 
     const field = await repo.createField({
@@ -114,7 +127,7 @@ export async function POST(
       source: 'custom',
       display_order: body.display_order ?? maxOrder + 1,
       is_active: body.is_active ?? true,
-    })
+    }, userContext)
 
     return NextResponse.json({ field }, { status: 201 })
   } catch (error) {
@@ -163,12 +176,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid vendor ID' }, { status: 400 })
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin ?? false,
+      session.user.isManager ?? false
+    )
+
     const body = await request.json()
 
     // Handle bulk reorder
     if (body.reorder && Array.isArray(body.reorder)) {
-      await repo.reorderFields(vendorId, body.reorder)
-      const fields = await repo.getFieldsByVendor(vendorId, true)
+      await repo.reorderFields(vendorId, body.reorder, userContext)
+      const fields = await repo.getFieldsByVendor(vendorId, true, userContext)
       return NextResponse.json({ fields })
     }
 
@@ -178,7 +197,7 @@ export async function PATCH(
         field_label: body.field_label,
         display_order: body.display_order,
         is_active: body.is_active,
-      })
+      }, userContext)
       return NextResponse.json({ field })
     }
 
@@ -216,12 +235,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'Feature not enabled' }, { status: 403 })
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin ?? false,
+      session.user.isManager ?? false
+    )
+
     const body = await request.json()
     if (!body.fieldId) {
       return NextResponse.json({ error: 'fieldId is required' }, { status: 400 })
     }
 
-    await repo.deleteField(body.fieldId)
+    await repo.deleteField(body.fieldId, userContext)
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error('Vendor fields DELETE error:', error)

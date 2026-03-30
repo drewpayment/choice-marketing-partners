@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceAuditRepository } from '@/lib/repositories/InvoiceAuditRepository'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 /**
  * GET /api/invoices/audit/[invoiceId] - Get audit history for specific invoice
@@ -70,8 +71,14 @@ export async function GET(
       */
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Get audit history
-    const auditHistory = await invoiceAuditRepository.getInvoiceAuditHistory(invoiceId)
+    const auditHistory = await invoiceAuditRepository.getInvoiceAuditHistory(invoiceId, userContext)
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import type { UserContext } from '@/lib/auth/types'
 
 /**
  * Search filters for invoice audit investigation
@@ -217,7 +218,10 @@ export class InvoiceAuditRepository {
   /**
    * Search audit records with comprehensive filtering
    */
-  async searchAuditRecords(filters: InvoiceAuditSearchFilters): Promise<InvoiceAuditSearchResult> {
+  async searchAuditRecords(filters: InvoiceAuditSearchFilters, userContext: UserContext): Promise<InvoiceAuditSearchResult> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const page = filters.page || 1
     const limit = filters.limit || 50
     const offset = (page - 1) * limit
@@ -483,11 +487,15 @@ export class InvoiceAuditRepository {
   /**
    * Get audit history for a specific invoice
    */
-  async getInvoiceAuditHistory(invoiceId: number): Promise<InvoiceAuditRecord[]> {
-    const results = await this.searchAuditRecords({ 
-      invoiceId, 
+  async getInvoiceAuditHistory(invoiceId: number, userContext: UserContext): Promise<InvoiceAuditRecord[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    const results = await this.searchAuditRecords({
+      invoiceId,
       limit: 1000 // Get all history for this invoice
-    })
+    }, userContext)
     
     return results.records
   }
@@ -495,7 +503,10 @@ export class InvoiceAuditRepository {
   /**
    * Get audit summary statistics for investigation dashboard
    */
-  async getAuditSummary(agentIds?: number[], dateFrom?: string, dateTo?: string): Promise<InvoiceAuditSummary> {
+  async getAuditSummary(agentIds?: number[], dateFrom?: string, dateTo?: string, userContext?: UserContext): Promise<InvoiceAuditSummary> {
+    if (!userContext?.isAdmin) {
+      throw new Error('Admin access required')
+    }
     let baseQuery = db.selectFrom('invoice_audit as ia')
 
     // Apply agent filter if provided
@@ -581,7 +592,10 @@ export class InvoiceAuditRepository {
   /**
    * Check if invoice has any audit history (for UI indicators)
    */
-  async hasAuditHistory(invoiceId: number): Promise<boolean> {
+  async hasAuditHistory(invoiceId: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const result = await db
       .selectFrom('invoice_audit')
       .select(({ fn }) => fn.count<number>('id').as('count'))
@@ -594,12 +608,16 @@ export class InvoiceAuditRepository {
   /**
    * Get recent audit activity for dashboard
    */
-  async getRecentAuditActivity(agentIds?: number[], limit: number = 20): Promise<InvoiceAuditRecord[]> {
+  async getRecentAuditActivity(agentIds?: number[], limit: number = 20, userContext?: UserContext): Promise<InvoiceAuditRecord[]> {
+    if (!userContext?.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     const results = await this.searchAuditRecords({
       agentIds,
       limit,
       page: 1
-    })
+    }, userContext)
 
     return results.records
   }

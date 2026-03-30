@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import type { UserContext } from '@/lib/auth/types'
 
 // ─── Interfaces ──────────────────────────────────────────────
 
@@ -74,7 +75,10 @@ export class VendorFieldRepository {
    * Get all field definitions for a vendor, ordered by display_order.
    * Returns empty array if vendor has no configuration (caller should use defaults).
    */
-  async getFieldsByVendor(vendorId: number, includeInactive = false): Promise<VendorFieldDefinition[]> {
+  async getFieldsByVendor(vendorId: number, includeInactive = false, userContext?: UserContext): Promise<VendorFieldDefinition[]> {
+    if (!userContext?.isAdmin) {
+      throw new Error('Admin access required')
+    }
     let query = db
       .selectFrom('vendor_field_definitions')
       .selectAll()
@@ -103,7 +107,10 @@ export class VendorFieldRepository {
   /**
    * Check if a vendor has been configured (has any field definitions).
    */
-  async isVendorConfigured(vendorId: number): Promise<boolean> {
+  async isVendorConfigured(vendorId: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const row = await db
       .selectFrom('vendor_field_definitions')
       .select(db.fn.count<number>('id').as('count'))
@@ -117,10 +124,14 @@ export class VendorFieldRepository {
    * Initialize a vendor with the default built-in fields.
    * Idempotent — skips if vendor already has definitions.
    */
-  async initializeVendorDefaults(vendorId: number): Promise<VendorFieldDefinition[]> {
-    const alreadyConfigured = await this.isVendorConfigured(vendorId)
+  async initializeVendorDefaults(vendorId: number, userContext: UserContext): Promise<VendorFieldDefinition[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    const alreadyConfigured = await this.isVendorConfigured(vendorId, userContext)
     if (alreadyConfigured) {
-      return this.getFieldsByVendor(vendorId, true)
+      return this.getFieldsByVendor(vendorId, true, userContext)
     }
 
     const now = dayjs().toDate()
@@ -141,13 +152,16 @@ export class VendorFieldRepository {
       )
       .execute()
 
-    return this.getFieldsByVendor(vendorId, true)
+    return this.getFieldsByVendor(vendorId, true, userContext)
   }
 
   /**
    * Add a custom field to a vendor.
    */
-  async createField(data: CreateFieldData): Promise<VendorFieldDefinition> {
+  async createField(data: CreateFieldData, userContext: UserContext): Promise<VendorFieldDefinition> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const now = dayjs().toDate()
 
     const result = await db
@@ -165,13 +179,16 @@ export class VendorFieldRepository {
       .executeTakeFirstOrThrow()
 
     const id = Number(result.insertId)
-    return this.getFieldById(id) as Promise<VendorFieldDefinition>
+    return this.getFieldById(id, userContext) as Promise<VendorFieldDefinition>
   }
 
   /**
    * Get a single field definition by ID.
    */
-  async getFieldById(id: number): Promise<VendorFieldDefinition | null> {
+  async getFieldById(id: number, userContext: UserContext): Promise<VendorFieldDefinition | null> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const row = await db
       .selectFrom('vendor_field_definitions')
       .selectAll()
@@ -196,7 +213,10 @@ export class VendorFieldRepository {
   /**
    * Update a field definition (label, display_order, is_active).
    */
-  async updateField(id: number, data: UpdateFieldData): Promise<VendorFieldDefinition> {
+  async updateField(id: number, data: UpdateFieldData, userContext: UserContext): Promise<VendorFieldDefinition> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const updateData: Record<string, string | number | Date> = {
       updated_at: dayjs().toDate(),
     }
@@ -211,14 +231,17 @@ export class VendorFieldRepository {
       .where('id', '=', id)
       .executeTakeFirstOrThrow()
 
-    return this.getFieldById(id) as Promise<VendorFieldDefinition>
+    return this.getFieldById(id, userContext) as Promise<VendorFieldDefinition>
   }
 
   /**
    * Bulk reorder fields for a vendor.
    * Accepts an array of { id, display_order } pairs.
    */
-  async reorderFields(vendorId: number, ordering: ReorderFieldData[]): Promise<void> {
+  async reorderFields(vendorId: number, ordering: ReorderFieldData[], userContext: UserContext): Promise<void> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const now = dayjs().toDate()
 
     await db.transaction().execute(async (trx) => {
@@ -236,8 +259,12 @@ export class VendorFieldRepository {
   /**
    * Delete a custom field. Refuses to delete built-in fields.
    */
-  async deleteField(id: number): Promise<void> {
-    const field = await this.getFieldById(id)
+  async deleteField(id: number, userContext: UserContext): Promise<void> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    const field = await this.getFieldById(id, userContext)
     if (!field) throw new Error('Field not found')
     if (field.source === 'builtin') throw new Error('Cannot delete built-in fields')
 

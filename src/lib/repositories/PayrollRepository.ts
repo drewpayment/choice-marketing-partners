@@ -485,7 +485,7 @@ export class PayrollRepository {
     })
     if (flagEnabled) {
       const vendorFieldRepo = new VendorFieldRepository()
-      fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId)
+      fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId, false, userContext)
     }
 
     return {
