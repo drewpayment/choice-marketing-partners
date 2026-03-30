@@ -1,5 +1,6 @@
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { db } from '@/lib/database/client'
+import type { UserContext } from '@/lib/auth/types'
 
 /**
  * Role-aware data access helpers for payroll functionality
@@ -25,12 +26,7 @@ export async function getEmployeeContext(
   employeeId: number | null | undefined,
   isAdmin: boolean,
   isManager: boolean
-): Promise<{
-  employeeId?: number
-  isAdmin: boolean
-  isManager: boolean
-  managedEmployeeIds?: number[]
-}> {
+): Promise<UserContext> {
   const context = {
     employeeId: employeeId || undefined,
     isAdmin,
@@ -51,12 +47,7 @@ export async function getEmployeeContext(
  */
 export async function canAccessAgent(
   agentId: string,
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<boolean> {
   // Admins can access all agents
   if (userContext.isAdmin) return true
@@ -79,12 +70,7 @@ export async function canAccessAgent(
  */
 export function hasEmployeeAccess(
   targetEmployeeId: number,
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): boolean {
   // Admins can access any employee
   if (userContext.isAdmin) return true
@@ -104,12 +90,7 @@ export function hasEmployeeAccess(
  * Get filtered agent list based on user role
  */
 export async function getAccessibleAgents(
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<Array<{
   id: number
   name: string
@@ -144,12 +125,7 @@ export async function getAccessibleAgents(
  * Get filtered vendor list based on user role and accessible data
  */
 export async function getAccessibleVendors(
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<Array<{
   id: number
   name: string
@@ -181,12 +157,7 @@ export async function getAccessibleVendors(
  * Get filtered issue dates based on user role and accessible data
  */
 export async function getAccessibleIssueDates(
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<string[]> {
   const payrollRepository = new PayrollRepository()
   return await payrollRepository.getAvailableIssueDates(userContext)
@@ -199,12 +170,7 @@ export async function validatePayrollAccess(
   employeeId: number,
   vendorId: number,
   issueDate: string,
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<boolean> {
   // Check if user can access this employee
   if (!hasEmployeeAccess(employeeId, userContext)) {
@@ -236,12 +202,7 @@ export async function validatePayrollAccess(
  * Get payroll access summary for user
  */
 export async function getPayrollAccessSummary(
-  userContext: {
-    employeeId?: number
-    isAdmin: boolean
-    isManager: boolean
-    managedEmployeeIds?: number[]
-  }
+  userContext: UserContext
 ): Promise<{
   accessibleAgents: number
   accessibleVendors: number
