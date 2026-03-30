@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import type { UserContext } from '@/lib/auth/types'
 
 export interface SubscriptionDetail {
   id: number
@@ -63,9 +64,9 @@ export interface CreatePaymentData {
 export class BillingRepository {
   async getSubscriptionsBySubscriber(
     subscriberId: number,
-    currentUser: { isAdmin: boolean; subscriberId?: number | null }
+    userContext: UserContext
   ): Promise<SubscriptionDetail[]> {
-    if (!currentUser.isAdmin && currentUser.subscriberId !== subscriberId) {
+    if (!userContext.isAdmin && userContext.subscriberId !== subscriberId) {
       throw new Error('Unauthorized: Cannot access these subscriptions')
     }
 
@@ -167,9 +168,9 @@ export class BillingRepository {
 
   async getPaymentHistory(
     subscriberId: number,
-    currentUser: { isAdmin: boolean; subscriberId?: number | null }
+    userContext: UserContext
   ): Promise<PaymentHistoryItem[]> {
-    if (!currentUser.isAdmin && currentUser.subscriberId !== subscriberId) {
+    if (!userContext.isAdmin && userContext.subscriberId !== subscriberId) {
       throw new Error('Unauthorized: Cannot access payment history')
     }
 

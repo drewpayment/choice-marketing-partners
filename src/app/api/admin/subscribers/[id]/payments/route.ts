@@ -36,7 +36,7 @@ export async function GET(
   try {
     const payments = await repo.getPaymentHistory(subscriberId, {
       isAdmin: true,
-      subscriberId: null,
+      isManager: false,
     })
     return NextResponse.json(payments)
   } catch (error) {

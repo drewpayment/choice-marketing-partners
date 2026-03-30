@@ -11,8 +11,8 @@ jest.mock('@/lib/database/client', () => ({
 
 describe('BillingRepository', () => {
   let repo: BillingRepository
-  const adminUser = { isAdmin: true, subscriberId: null }
-  const subscriberUser = { isAdmin: false, subscriberId: 1 }
+  const adminUser = { isAdmin: true, isManager: false }
+  const subscriberUser = { isAdmin: false, isManager: false, subscriberId: 1 }
 
   beforeEach(() => {
     repo = new BillingRepository()
