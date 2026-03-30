@@ -23,10 +23,10 @@ export async function GET(
       )
     }
 
-    // Only allow managers and admins to view audit history
-    if (!session.user.isManager && !session.user.isAdmin) {
+    // Only allow admins to view audit history
+    if (!session.user.isAdmin) {
       return NextResponse.json(
-        { error: 'Insufficient permissions. Manager or Admin access required.' },
+        { error: 'Admin access required' },
         { status: 403 }
       )
     }

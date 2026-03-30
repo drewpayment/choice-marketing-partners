@@ -96,6 +96,11 @@ export async function POST(request: NextRequest) {
       session.user.isManager
     )
 
+    // Invoice management requires manager or admin access
+    if (!userContext.isAdmin && !userContext.isManager) {
+      return NextResponse.json({ error: 'Manager or admin access required' }, { status: 403 })
+    }
+
     const body = await request.json()
     logger.log('📝 Request body received')
 
