@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth/config';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
 import { z } from 'zod';
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const documentRepository = new DocumentRepository();
 
@@ -107,6 +108,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Admin-only operation
+    if (!session.user.isAdmin) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Parse and validate request body
     const body = await request.json();
     const validatedData = createDocumentSchema.parse(body);
@@ -121,7 +136,7 @@ export async function POST(request: NextRequest) {
       blobPathname: validatedData.blobPathname,
       downloadUrl: validatedData.downloadUrl,
       uploadedBy: session.user.email,
-    });
+    }, userContext);
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
@@ -152,12 +167,26 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Admin-only operation
+    if (!session.user.isAdmin) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Parse and validate request body
     const body = await request.json();
     const validatedData = deleteSchema.parse(body);
 
     // Delete documents
-    const deletedCount = await documentRepository.deleteDocuments(validatedData.ids);
+    const deletedCount = await documentRepository.deleteDocuments(validatedData.ids, userContext);
 
     return NextResponse.json({
       success: true,

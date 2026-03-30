@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth/config';
 import { uploadToBlob, validateFile } from '@/lib/storage/vercel-blob';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,20 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Admin-only operation
+    if (!session.user.isAdmin) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -57,7 +72,7 @@ export async function POST(request: NextRequest) {
       blobPathname: uploadResult.pathname,
       downloadUrl: uploadResult.downloadUrl,
       uploadedBy: session.user.email,
-    });
+    }, userContext);
 
     return NextResponse.json({
       success: true,
