@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -46,7 +47,13 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }
 
-    const employee = await employeeRepository.getEmployeeById(employeeId)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const employee = await employeeRepository.getEmployeeById(employeeId, userContext)
 
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
@@ -85,8 +92,14 @@ export async function PUT(
     const body = await request.json()
     const data = updateEmployeeSchema.parse(body)
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Check if employee exists
-    const existingEmployee = await employeeRepository.getEmployeeById(employeeId)
+    const existingEmployee = await employeeRepository.getEmployeeById(employeeId, userContext)
     if (!existingEmployee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
     }
@@ -102,7 +115,7 @@ export async function PUT(
       }
     }
 
-    const updatedEmployee = await employeeRepository.updateEmployee(employeeId, data)
+    const updatedEmployee = await employeeRepository.updateEmployee(employeeId, data, userContext)
 
     return NextResponse.json({ employee: updatedEmployee })
   } catch (error) {
@@ -142,13 +155,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Check if employee exists
-    const existingEmployee = await employeeRepository.getEmployeeById(employeeId)
+    const existingEmployee = await employeeRepository.getEmployeeById(employeeId, userContext)
     if (!existingEmployee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
     }
 
-    const success = await employeeRepository.softDeleteEmployee(employeeId)
+    const success = await employeeRepository.softDeleteEmployee(employeeId, userContext)
 
     if (!success) {
       return NextResponse.json(

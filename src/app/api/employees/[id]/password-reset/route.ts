@@ -6,6 +6,7 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/database/client'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -41,8 +42,14 @@ export async function POST(
     const body = await request.json()
     const data = passwordResetSchema.parse(body)
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Check if employee exists and has a user account
-    const employee = await employeeRepository.getEmployeeById(employeeId)
+    const employee = await employeeRepository.getEmployeeById(employeeId, userContext)
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
     }

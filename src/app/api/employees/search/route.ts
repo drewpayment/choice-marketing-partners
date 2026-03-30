@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -29,7 +30,13 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit')
     })
 
-    const employees = await employeeRepository.searchEmployees(data.q, data.limit)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const employees = await employeeRepository.searchEmployees(data.q, data.limit, userContext)
 
     return NextResponse.json({ employees })
   } catch (error) {

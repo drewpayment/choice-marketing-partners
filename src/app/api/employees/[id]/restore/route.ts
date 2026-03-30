@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -26,7 +27,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 })
     }
 
-    const success = await employeeRepository.restoreEmployee(employeeId)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const success = await employeeRepository.restoreEmployee(employeeId, userContext)
 
     if (!success) {
       return NextResponse.json(
@@ -35,7 +42,7 @@ export async function PUT(
       )
     }
 
-    const restoredEmployee = await employeeRepository.getEmployeeById(employeeId)
+    const restoredEmployee = await employeeRepository.getEmployeeById(employeeId, userContext)
 
     return NextResponse.json({
       message: 'Employee restored successfully',

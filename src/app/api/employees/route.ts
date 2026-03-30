@@ -6,6 +6,7 @@ import { generatePassword } from '@/lib/utils/password'
 import { sendWelcomeEmail } from '@/lib/services/email'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const employeeRepository = new EmployeeRepository()
 
@@ -63,7 +64,13 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit')
     })
 
-    const result = await employeeRepository.getEmployees(filters)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const result = await employeeRepository.getEmployees(filters, userContext)
 
     return NextResponse.json(result)
   } catch (error) {
@@ -113,6 +120,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Create employee with optional user account
     const employee = await employeeRepository.createEmployeeWithUser(
       {
@@ -136,7 +149,8 @@ export async function POST(request: NextRequest) {
       data.createUser && userPassword ? {
         password: userPassword,
         role: data.userRole
-      } : undefined
+      } : undefined,
+      userContext
     )
 
     // Send welcome email if user account was created
