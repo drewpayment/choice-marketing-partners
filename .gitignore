@@ -34,6 +34,9 @@ instructions/
 .DS_Store
 *.pem
 
+# database backups (contains production data)
+database/backup/*.sql
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -53,3 +56,4 @@ next-env.d.ts
 
 /.swc/
 .DS_Store
+.env*.local
