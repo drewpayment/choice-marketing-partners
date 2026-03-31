@@ -7,26 +7,34 @@ import { validatePageAccess } from './access-control'
  * Server-side authentication and authorization helper for pages
  */
 export async function requireAuth(
-  requiredLevel: 'ADMIN' | 'MANAGER' | 'EMPLOYEE' | 'AUTHENTICATED' = 'AUTHENTICATED'
+  requiredLevel: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE' | 'AUTHENTICATED' = 'AUTHENTICATED'
 ) {
   const session = await getServerSession(authOptions)
-  
+
   if (!session?.user) {
     redirect('/auth/signin')
   }
-  
+
+  // SUPER_ADMIN is handled separately since validatePageAccess doesn't support it
+  if (requiredLevel === 'SUPER_ADMIN') {
+    if (!session.user.isSuperAdmin) {
+      redirect('/forbidden')
+    }
+    return session
+  }
+
   const userRole = {
     isAdmin: session.user.isAdmin,
     isManager: session.user.isManager,
     isAuthenticated: true
   }
-  
+
   const hasAccess = validatePageAccess(requiredLevel, userRole)
-  
+
   if (!hasAccess) {
     redirect('/forbidden')
   }
-  
+
   return session
 }
 
