@@ -48,7 +48,7 @@ export async function GET(
 
     logger.log('✅ API Route - Calling invoiceRepository.getInvoiceDetail')
     // Get invoice details
-    const details = await invoiceRepository.getInvoiceDetail(agentId, vendorId, issueDate)
+    const details = await invoiceRepository.getInvoiceDetail(agentId, vendorId, issueDate, userContext)
     logger.log('📊 API Route - Repository result:', details)
 
     if (!details) {

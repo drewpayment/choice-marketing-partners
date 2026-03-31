@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       session.user.subscriberId,
       {
         isAdmin: session.user.isAdmin,
+        isManager: session.user.isManager ?? false,
         subscriberId: session.user.subscriberId,
       }
     )

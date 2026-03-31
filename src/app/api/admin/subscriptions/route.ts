@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   try {
     const subscriptions = await billingRepo.getSubscriptionsBySubscriber(
       parseInt(subscriberId),
-      { isAdmin: true, subscriberId: null }
+      { isAdmin: true, isManager: false }
     )
     return NextResponse.json(subscriptions)
   } catch (error) {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     const subscriptions = await billingRepo.getSubscriptionsBySubscriber(
       subscriber_id,
-      { isAdmin: true, subscriberId: null }
+      { isAdmin: true, isManager: false }
     )
 
     return NextResponse.json(subscriptions, { status: 201 })

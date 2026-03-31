@@ -28,7 +28,7 @@ export async function GET() {
     }
 
     // Get invoice page resources
-    const resources = await invoiceRepository.getInvoicePageResources()
+    const resources = await invoiceRepository.getInvoicePageResources(userContext)
 
     return NextResponse.json({
       success: true,
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       salesCount: saveRequest.sales.length
     })
     
-    const result = await invoiceRepository.saveInvoiceData(saveRequest)
+    const result = await invoiceRepository.saveInvoiceData(saveRequest, userContext)
     logger.log('✅ Invoice API - Save successful')
 
     return NextResponse.json({
@@ -235,10 +235,11 @@ export async function DELETE(request: NextRequest) {
     // Delete invoices with audit trail
     const result = await invoiceRepository.deleteInvoices(
       invoiceIds,
+      userContext,
       session.user.employeeId, // deletedBy
       'Bulk invoice deletion via web interface', // reason
-      request.headers.get('x-forwarded-for') || 
-      request.headers.get('x-real-ip') || 
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
       'unknown' // ipAddress
     )
 

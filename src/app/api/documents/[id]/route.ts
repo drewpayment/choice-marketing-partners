@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth/config';
 import { DocumentRepository } from '@/lib/repositories/DocumentRepository';
 import { z } from 'zod';
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const documentRepository = new DocumentRepository();
 
@@ -85,6 +86,20 @@ export async function PATCH(
       );
     }
 
+    // Admin-only operation
+    if (!session.user.isAdmin) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Await params in Next.js 15
     const { id } = await params;
     const documentId = parseInt(id);
@@ -109,7 +124,7 @@ export async function PATCH(
     }
 
     // Update document
-    const success = await documentRepository.updateDocument(documentId, validatedData);
+    const success = await documentRepository.updateDocument(documentId, validatedData, userContext);
     
     if (!success) {
       return NextResponse.json(
@@ -152,6 +167,20 @@ export async function DELETE(
       );
     }
 
+    // Admin-only operation
+    if (!session.user.isAdmin) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     // Await params in Next.js 15
     const { id } = await params;
     const documentId = parseInt(id);
@@ -172,7 +201,7 @@ export async function DELETE(
     }
 
     // Delete document from database
-    const deletedCount = await documentRepository.deleteDocuments([documentId]);
+    const deletedCount = await documentRepository.deleteDocuments([documentId], userContext);
     
     if (deletedCount === 0) {
       return NextResponse.json(

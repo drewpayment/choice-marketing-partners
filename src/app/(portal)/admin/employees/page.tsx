@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { redirect } from 'next/navigation'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { EmployeeList } from '@/components/employees/EmployeeList'
 import { EmployeeFilters } from '@/components/employees/EmployeeFilters'
 import { Button } from '@/components/ui/button'
@@ -46,8 +47,14 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
     limit: parseInt(searchParams.limit || '20')
   }
 
+  const userContext = await getEmployeeContext(
+    session.user.employeeId,
+    session.user.isAdmin || false,
+    session.user.isManager || false
+  )
+
   // Fetch employees with server-side rendering
-  const employeePage = await employeeRepository.getEmployees(filters)
+  const employeePage = await employeeRepository.getEmployees(filters, userContext)
 
   return (
     <div className="space-y-6">

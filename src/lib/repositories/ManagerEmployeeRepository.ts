@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import { logger } from '@/lib/utils/logger'
+import type { UserContext } from '@/lib/auth/types'
 
 /**
  * Manager-Employee relationship interfaces
@@ -36,7 +37,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get all managers with employee counts
    */
-  async getManagers(): Promise<Manager[]> {
+  async getManagers(userContext: UserContext): Promise<Manager[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const managers = await db
       .selectFrom('employees')
       .leftJoin('manager_employees', 'employees.id', 'manager_employees.manager_id')
@@ -56,7 +60,7 @@ export class ManagerEmployeeRepository {
     // Get managed employee IDs for each manager
     const managersWithIds = await Promise.all(
       managers.map(async (manager) => {
-        const managedEmployeeIds = await this.getManagedEmployeeIds(manager.id)
+        const managedEmployeeIds = await this.getManagedEmployeeIds(manager.id, userContext)
         return {
           ...manager,
           employeeCount: Number(manager.employeeCount),
@@ -71,7 +75,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get manager details with assigned employees
    */
-  async getManagerWithEmployees(managerId: number): Promise<ManagerWithEmployees | null> {
+  async getManagerWithEmployees(managerId: number, userContext: UserContext): Promise<ManagerWithEmployees | null> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const manager = await db
       .selectFrom('employees')
       .select(['id', 'name', 'email'])
@@ -83,7 +90,7 @@ export class ManagerEmployeeRepository {
 
     if (!manager) return null
 
-    const employees = await this.getManagerEmployees(managerId)
+    const employees = await this.getManagerEmployees(managerId, userContext)
     const managedEmployeeIds = employees.map(emp => emp.id)
 
     return {
@@ -97,7 +104,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get employees assigned to a specific manager
    */
-  async getManagerEmployees(managerId: number): Promise<ManagerEmployee[]> {
+  async getManagerEmployees(managerId: number, userContext: UserContext): Promise<ManagerEmployee[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const employees = await db
       .selectFrom('manager_employees')
       .innerJoin('employees', 'manager_employees.employee_id', 'employees.id')
@@ -122,7 +132,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get all unassigned employees (not assigned to any manager)
    */
-  async getUnassignedEmployees(): Promise<ManagerEmployee[]> {
+  async getUnassignedEmployees(userContext: UserContext): Promise<ManagerEmployee[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const employees = await db
       .selectFrom('employees')
       .leftJoin('manager_employees', 'employees.id', 'manager_employees.employee_id')
@@ -151,7 +164,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get all employees available for assignment (active, non-managers)
    */
-  async getAvailableEmployees(): Promise<ManagerEmployee[]> {
+  async getAvailableEmployees(userContext: UserContext): Promise<ManagerEmployee[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const employees = await db
       .selectFrom('employees')
       .select([
@@ -178,7 +194,10 @@ export class ManagerEmployeeRepository {
   /**
    * Get managed employee IDs for a specific manager
    */
-  async getManagedEmployeeIds(managerId: number): Promise<number[]> {
+  async getManagedEmployeeIds(managerId: number, userContext: UserContext): Promise<number[]> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const relationships = await db
       .selectFrom('manager_employees')
       .select('employee_id')
@@ -191,7 +210,10 @@ export class ManagerEmployeeRepository {
   /**
    * Assign an employee to a manager
    */
-  async assignEmployeeToManager(managerId: number, employeeId: number): Promise<boolean> {
+  async assignEmployeeToManager(managerId: number, employeeId: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     try {
       // Check if assignment already exists
       const existingAssignment = await db
@@ -232,7 +254,10 @@ export class ManagerEmployeeRepository {
   /**
    * Remove an employee from a manager
    */
-  async removeEmployeeFromManager(managerId: number, employeeId: number): Promise<boolean> {
+  async removeEmployeeFromManager(managerId: number, employeeId: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     try {
       const result = await db
         .deleteFrom('manager_employees')
@@ -250,7 +275,10 @@ export class ManagerEmployeeRepository {
   /**
    * Remove employee from any manager (make unassigned)
    */
-  async unassignEmployee(employeeId: number): Promise<boolean> {
+  async unassignEmployee(employeeId: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     try {
       await db
         .deleteFrom('manager_employees')
@@ -267,7 +295,10 @@ export class ManagerEmployeeRepository {
   /**
    * Bulk update assignments for a manager
    */
-  async bulkUpdateAssignments(managerId: number, employeeIds: number[]): Promise<boolean> {
+  async bulkUpdateAssignments(managerId: number, employeeIds: number[], userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     try {
       return await db.transaction().execute(async (trx) => {
         // Remove all current assignments for this manager
@@ -302,7 +333,10 @@ export class ManagerEmployeeRepository {
   /**
    * Update multiple assignments in one transaction
    */
-  async updateAssignments(assignments: Assignment[]): Promise<boolean> {
+  async updateAssignments(assignments: Assignment[], userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     try {
       return await db.transaction().execute(async (trx) => {
         // Process each assignment individually to handle unassignments (managerId = 0)
@@ -339,12 +373,16 @@ export class ManagerEmployeeRepository {
   /**
    * Get assignment statistics
    */
-  async getAssignmentStats(): Promise<{
+  async getAssignmentStats(userContext: UserContext): Promise<{
     totalManagers: number
     totalEmployees: number
     assignedEmployees: number
     unassignedEmployees: number
   }> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     const [managers, employees, assigned] = await Promise.all([
       // Count managers
       db
@@ -390,10 +428,14 @@ export class ManagerEmployeeRepository {
   /**
    * Validate assignment (prevent circular references, etc.)
    */
-  async validateAssignment(managerId: number, employeeId: number): Promise<{
+  async validateAssignment(managerId: number, employeeId: number, userContext: UserContext): Promise<{
     valid: boolean
     error?: string
   }> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
     // If managerId is 0, this is an unassignment - skip manager validation
     if (managerId !== 0) {
       // Check if manager exists and is active

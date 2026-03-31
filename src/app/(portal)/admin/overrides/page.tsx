@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { redirect } from 'next/navigation'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
 import { ManagerAssignmentInterface } from '@/components/overrides/ManagerAssignmentInterface'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 export const metadata: Metadata = {
   title: 'Manager Assignments | Choice Marketing Partners',
@@ -19,17 +20,23 @@ export default async function OverridesPage() {
     redirect('/forbidden')
   }
 
+  const userContext = await getEmployeeContext(
+    session.user.employeeId,
+    session.user.isAdmin,
+    session.user.isManager
+  )
+
   // Fetch managers and employees data
   const [managers, availableEmployees, unassignedEmployees] = await Promise.all([
-    managerEmployeeRepository.getManagers(),
-    managerEmployeeRepository.getAvailableEmployees(),
-    managerEmployeeRepository.getUnassignedEmployees()
+    managerEmployeeRepository.getManagers(userContext),
+    managerEmployeeRepository.getAvailableEmployees(userContext),
+    managerEmployeeRepository.getUnassignedEmployees(userContext)
   ])
 
   // For each manager, get their current employees
   const managersWithEmployees = await Promise.all(
     managers.map(async (manager) => {
-      const employees = await managerEmployeeRepository.getManagerEmployees(manager.id)
+      const employees = await managerEmployeeRepository.getManagerEmployees(manager.id, userContext)
       return {
         ...manager,
         employees

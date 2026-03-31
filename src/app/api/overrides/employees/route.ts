@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const managerEmployeeRepository = new ManagerEmployeeRepository()
 
@@ -27,8 +28,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const availableEmployees = await managerEmployeeRepository.getAvailableEmployees()
-    const unassignedEmployees = await managerEmployeeRepository.getUnassignedEmployees()
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const availableEmployees = await managerEmployeeRepository.getAvailableEmployees(userContext)
+    const unassignedEmployees = await managerEmployeeRepository.getUnassignedEmployees(userContext)
 
     return NextResponse.json({
       availableEmployees,
@@ -54,6 +61,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
     const body = await request.json()
     const data = bulkAssignmentSchema.parse(body)
 
@@ -61,7 +74,8 @@ export async function POST(request: NextRequest) {
     for (const assignment of data.assignments) {
       const validation = await managerEmployeeRepository.validateAssignment(
         assignment.managerId,
-        assignment.employeeId
+        assignment.employeeId,
+        userContext
       )
 
       if (!validation.valid) {
@@ -73,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update assignments
-    const success = await managerEmployeeRepository.updateAssignments(data.assignments)
+    const success = await managerEmployeeRepository.updateAssignments(data.assignments, userContext)
 
     if (!success) {
       return NextResponse.json(

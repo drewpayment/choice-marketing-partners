@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
       const details = await invoiceRepository.getInvoiceDetail(
         parseInt(agentId),
         parseInt(vendorId),
-        issueDate
+        issueDate,
+        userContext
       )
       
       return NextResponse.json({
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, get page resources
     logger.log('📊 Getting invoice page resources')
-    const resources = await invoiceRepository.getInvoicePageResources()
+    const resources = await invoiceRepository.getInvoicePageResources(userContext)
 
     return NextResponse.json({
       success: true,
@@ -88,6 +89,18 @@ export async function POST(request: NextRequest) {
       isManager: session.user.isManager
     })
 
+    // Build user context for RBAC
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    // Invoice management requires manager or admin access
+    if (!userContext.isAdmin && !userContext.isManager) {
+      return NextResponse.json({ error: 'Manager or admin access required' }, { status: 403 })
+    }
+
     const body = await request.json()
     logger.log('📝 Request body received')
 
@@ -97,15 +110,15 @@ export async function POST(request: NextRequest) {
       auditMetadata: {
         userId: session.user.employeeId,
         userEmail: session.user.email || '',
-        ipAddress: request.headers.get('x-forwarded-for') || 
-                  request.headers.get('x-real-ip') || 
+        ipAddress: request.headers.get('x-forwarded-for') ||
+                  request.headers.get('x-real-ip') ||
                   'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown'
       }
     }
 
     // Save invoice data using simplified repository
-    const result = await invoiceRepository.saveInvoiceData(requestWithAudit)
+    const result = await invoiceRepository.saveInvoiceData(requestWithAudit, userContext)
 
     logger.log('✅ Save result:', result)
     
@@ -136,9 +149,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!session.user.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    // Build user context for RBAC
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
 
     const body = await request.json()
     const { agentId, vendorId, issueDate } = body
@@ -150,7 +166,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const success = await mainInvoiceRepository.deletePaystub(agentId, vendorId, issueDate)
+    const success = await mainInvoiceRepository.deletePaystub(agentId, vendorId, issueDate, userContext)
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete paystub' }, { status: 500 })

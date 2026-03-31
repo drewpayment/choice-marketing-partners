@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const managerEmployeeRepository = new ManagerEmployeeRepository()
 
@@ -17,8 +18,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const managers = await managerEmployeeRepository.getManagers()
-    const stats = await managerEmployeeRepository.getAssignmentStats()
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const managers = await managerEmployeeRepository.getManagers(userContext)
+    const stats = await managerEmployeeRepository.getAssignmentStats(userContext)
 
     return NextResponse.json({
       managers,

@@ -1,6 +1,7 @@
 // Document Repository for database operations with Vercel Blob storage
 import { db } from '@/lib/database/client';
 import { logger } from '@/lib/utils/logger'
+import type { UserContext } from '@/lib/auth/types'
 
 export interface DocumentSummary {
   id: number;
@@ -181,7 +182,10 @@ export class DocumentRepository {
     blobPathname: string;
     downloadUrl: string;
     uploadedBy: string;
-  }): Promise<DocumentSummary> {
+  }, userContext: UserContext): Promise<DocumentSummary> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     // Insert the record and get the inserted ID (MySQL compatible)
     const insertResult = await db
       .insertInto('document_files')
@@ -231,8 +235,12 @@ export class DocumentRepository {
     data: Partial<{
       name: string;
       description: string;
-    }>
+    }>,
+    userContext: UserContext
   ): Promise<boolean> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const updateData: {
       name?: string;
       description?: string;
@@ -257,7 +265,10 @@ export class DocumentRepository {
   /**
    * Delete document(s) by setting status to 'deleted'
    */
-  async deleteDocuments(ids: number[]): Promise<number> {
+  async deleteDocuments(ids: number[], userContext: UserContext): Promise<number> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
     const result = await db
       .updateTable('document_files')
       .set({

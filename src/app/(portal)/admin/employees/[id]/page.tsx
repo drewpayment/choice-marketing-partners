@@ -1,6 +1,9 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +31,14 @@ export async function generateMetadata({ params }: EmployeeDetailPageProps): Pro
 
 export default async function EmployeeDetailPage({ params }: EmployeeDetailPageProps) {
   const resolvedParams = await params
+  const session = await getServerSession(authOptions)
+  const userContext = await getEmployeeContext(
+    session?.user?.employeeId,
+    session?.user?.isAdmin || false,
+    session?.user?.isManager || false
+  )
   const employeeRepo = new EmployeeRepository()
-  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id))
+  const employee = await employeeRepo.getEmployeeById(parseInt(resolvedParams.id), userContext)
 
   if (!employee) {
     notFound()

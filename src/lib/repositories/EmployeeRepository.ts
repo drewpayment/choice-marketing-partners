@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import bcrypt from 'bcryptjs'
+import type { UserContext } from '@/lib/auth/types'
 
 /**
  * Employee management interfaces
@@ -86,7 +87,7 @@ export class EmployeeRepository {
   /**
    * Get paginated list of employees with optional filtering
    */
-  async getEmployees(filters: EmployeeFilters = {}): Promise<EmployeePage> {
+  async getEmployees(filters: EmployeeFilters = {}, userContext: UserContext): Promise<EmployeePage> {
     const {
       search,
       status = 'all',
@@ -165,6 +166,18 @@ export class EmployeeRepository {
       }
     }
 
+    // Role-based filtering
+    if (!userContext.isAdmin) {
+      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
+        const accessibleIds = [userContext.employeeId!, ...userContext.managedEmployeeIds]
+        query = query.where('employees.id', 'in', accessibleIds)
+      } else if (userContext.employeeId) {
+        query = query.where('employees.id', '=', userContext.employeeId)
+      } else {
+        return { employees: [], total: 0, page, limit, totalPages: 0 }
+      }
+    }
+
     // Get total count
     const countQuery = query.clearSelect().select(db.fn.count('employees.id').as('count'))
     const totalResult = await countQuery.executeTakeFirst()
@@ -195,7 +208,7 @@ export class EmployeeRepository {
   /**
    * Get detailed employee information by ID
    */
-  async getEmployeeById(id: number): Promise<EmployeeDetail | null> {
+  async getEmployeeById(id: number, userContext?: UserContext): Promise<EmployeeDetail | null> {
     const employee = await db
       .selectFrom('employees')
       .leftJoin('employee_user', 'employees.id', 'employee_user.employee_id')
@@ -230,6 +243,16 @@ export class EmployeeRepository {
 
     if (!employee) return null
 
+    // Role-based access check
+    if (userContext && !userContext.isAdmin) {
+      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
+        const accessibleIds = [userContext.employeeId!, ...userContext.managedEmployeeIds]
+        if (!accessibleIds.includes(id)) return null
+      } else if (userContext.employeeId !== id) {
+        return null
+      }
+    }
+
     return {
       id: employee.id,
       name: employee.name,
@@ -263,7 +286,9 @@ export class EmployeeRepository {
   /**
    * Create a new employee
    */
-  async createEmployee(data: CreateEmployeeData): Promise<EmployeeDetail> {
+  async createEmployee(data: CreateEmployeeData, userContext: UserContext): Promise<EmployeeDetail> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     const result = await db
       .insertInto('employees')
       .values({
@@ -300,7 +325,9 @@ export class EmployeeRepository {
   /**
    * Update an existing employee
    */
-  async updateEmployee(id: number, data: Partial<CreateEmployeeData>): Promise<EmployeeDetail> {
+  async updateEmployee(id: number, data: Partial<CreateEmployeeData>, userContext: UserContext): Promise<EmployeeDetail> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     const updateData: Record<string, unknown> = {
       updated_at: new Date()
     }
@@ -339,7 +366,9 @@ export class EmployeeRepository {
   /**
    * Soft delete an employee
    */
-  async softDeleteEmployee(id: number): Promise<boolean> {
+  async softDeleteEmployee(id: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     const result = await db
       .updateTable('employees')
       .set({
@@ -356,7 +385,9 @@ export class EmployeeRepository {
   /**
    * Restore a soft-deleted employee
    */
-  async restoreEmployee(id: number): Promise<boolean> {
+  async restoreEmployee(id: number, userContext: UserContext): Promise<boolean> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     const result = await db
       .updateTable('employees')
       .set({
@@ -373,7 +404,9 @@ export class EmployeeRepository {
   /**
    * Create a user account for an employee
    */
-  async createEmployeeUser(employeeId: number, userData: CreateUserData): Promise<void> {
+  async createEmployeeUser(employeeId: number, userData: CreateUserData, userContext: UserContext): Promise<void> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     // Create user record
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     
@@ -424,8 +457,11 @@ export class EmployeeRepository {
    */
   async createEmployeeWithUser(
     employeeData: CreateEmployeeData,
-    userData?: CreateUserData
+    userData: CreateUserData | undefined,
+    userContext: UserContext
   ): Promise<EmployeeDetail> {
+    if (!userContext.isAdmin) throw new Error('Admin access required')
+
     return await db.transaction().execute(async (trx) => {
       // Create employee
       const employeeResult = await trx
@@ -550,8 +586,8 @@ export class EmployeeRepository {
   /**
    * Search employees for autocomplete
    */
-  async searchEmployees(query: string, limit: number = 10): Promise<EmployeeSummary[]> {
-    const employees = await db
+  async searchEmployees(query: string, limit: number = 10, userContext?: UserContext): Promise<EmployeeSummary[]> {
+    let searchQuery = db
       .selectFrom('employees')
       .leftJoin('employee_user', 'employees.id', 'employee_user.employee_id')
       .leftJoin('users', 'employee_user.user_id', 'users.uid')
@@ -586,6 +622,20 @@ export class EmployeeRepository {
       )
       .where('employees.is_active', '=', 1)
       .where('employees.deleted_at', 'is', null)
+
+    // Role-based filtering
+    if (userContext && !userContext.isAdmin) {
+      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
+        const accessibleIds = [userContext.employeeId!, ...userContext.managedEmployeeIds]
+        searchQuery = searchQuery.where('employees.id', 'in', accessibleIds)
+      } else if (userContext.employeeId) {
+        searchQuery = searchQuery.where('employees.id', '=', userContext.employeeId)
+      } else {
+        return []
+      }
+    }
+
+    const employees = await searchQuery
       .orderBy('employees.name', 'asc')
       .limit(limit)
       .execute()

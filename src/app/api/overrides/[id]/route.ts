@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { ManagerEmployeeRepository } from '@/lib/repositories/ManagerEmployeeRepository'
 import { logger } from '@/lib/utils/logger'
+import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
 const managerEmployeeRepository = new ManagerEmployeeRepository()
 
@@ -26,14 +27,20 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid manager ID' }, { status: 400 })
     }
 
-    const manager = await managerEmployeeRepository.getManagerWithEmployees(managerId)
+    const userContext = await getEmployeeContext(
+      session.user.employeeId,
+      session.user.isAdmin,
+      session.user.isManager
+    )
+
+    const manager = await managerEmployeeRepository.getManagerWithEmployees(managerId, userContext)
 
     if (!manager) {
       return NextResponse.json({ error: 'Manager not found' }, { status: 404 })
     }
 
-    const availableEmployees = await managerEmployeeRepository.getAvailableEmployees()
-    const unassignedEmployees = await managerEmployeeRepository.getUnassignedEmployees()
+    const availableEmployees = await managerEmployeeRepository.getAvailableEmployees(userContext)
+    const unassignedEmployees = await managerEmployeeRepository.getUnassignedEmployees(userContext)
 
     return NextResponse.json({
       manager,
