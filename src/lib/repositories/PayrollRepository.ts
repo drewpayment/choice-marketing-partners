@@ -127,6 +127,19 @@ export interface PaystubDeletionPreview {
   }
 }
 
+export interface PaystubDeletionResult {
+  success: boolean
+  auditId?: number
+  deleted: {
+    paystubs: number
+    invoices: number
+    overrides: number
+    expenses: number
+    payroll: number
+  }
+  error?: string
+}
+
 /**
  * Repository for payroll-related data operations
  */
@@ -707,6 +720,163 @@ export class PayrollRepository {
         expenseTotal,
       },
     }
+  }
+
+  /**
+   * Delete a pay statement and all related records with full audit trail.
+   * All operations run within a single transaction - full rollback on any failure.
+   */
+  async deletePaystubWithAudit(
+    agentId: number,
+    vendorId: number,
+    issueDate: string,
+    userContext: UserContext,
+    deletedBy: number,
+    reason: string,
+    ipAddress: string
+  ): Promise<PaystubDeletionResult> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      throw new Error('Deletion reason is required')
+    }
+
+    return await db.transaction().execute(async (trx) => {
+      // 1. Re-check payroll.is_paid inside transaction (race condition guard)
+      const payrollRecord = await trx
+        .selectFrom('payroll')
+        .selectAll()
+        .where('agent_id', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['pay_date']), '=', issueDate)
+        .executeTakeFirst()
+
+      if (payrollRecord && payrollRecord.is_paid === 1) {
+        return {
+          success: false,
+          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, payroll: 0 },
+          error: 'Pay statement has been marked as paid and cannot be deleted.',
+        }
+      }
+
+      // 2. Fetch all records before deletion for audit
+      const paystubs = await trx
+        .selectFrom('paystubs')
+        .selectAll()
+        .where('agent_id', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const invoices = await trx
+        .selectFrom('invoices')
+        .selectAll()
+        .where('agentid', '=', agentId)
+        .where('vendor', '=', vendorId.toString())
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const overrides = await trx
+        .selectFrom('overrides')
+        .selectAll()
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const expenses = await trx
+        .selectFrom('expenses')
+        .selectAll()
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      // Calculate totals
+      const paystubTotal = paystubs.reduce((sum, p) => sum + parseFloat(p.amount?.toString() || '0'), 0)
+      const invoiceTotal = invoices.reduce((sum, i) => sum + parseFloat(i.amount?.toString() || '0'), 0)
+      const overrideTotal = overrides.reduce((sum, o) => sum + parseFloat(o.total?.toString() || '0'), 0)
+      const expenseTotal = expenses.reduce((sum, e) => sum + parseFloat(e.amount?.toString() || '0'), 0)
+
+      // 3. Insert audit record with full JSON data
+      const auditResult = await trx
+        .insertInto('payroll_audit')
+        .values({
+          agent_id: agentId,
+          vendor_id: vendorId,
+          issue_date: new Date(issueDate),
+          deleted_by: deletedBy,
+          deletion_reason: reason.trim(),
+          deleted_at: new Date(),
+          ip_address: ipAddress,
+          deleted_paystubs_count: paystubs.length,
+          deleted_invoices_count: invoices.length,
+          deleted_overrides_count: overrides.length,
+          deleted_expenses_count: expenses.length,
+          paystub_total: paystubTotal,
+          invoices_total: invoiceTotal,
+          overrides_total: overrideTotal,
+          expenses_total: expenseTotal,
+          paystub_data: JSON.stringify(paystubs),
+          payroll_data: JSON.stringify(payrollRecord ? [payrollRecord] : []),
+          invoices_data: JSON.stringify(invoices),
+          overrides_data: JSON.stringify(overrides),
+          expenses_data: JSON.stringify(expenses),
+        })
+        .executeTakeFirst()
+
+      const auditId = Number(auditResult.insertId)
+
+      // 4. Delete all related records
+      const invoiceResult = await trx
+        .deleteFrom('invoices')
+        .where('agentid', '=', agentId)
+        .where('vendor', '=', vendorId.toString())
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const overrideResult = await trx
+        .deleteFrom('overrides')
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const expenseResult = await trx
+        .deleteFrom('expenses')
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const paystubResult = await trx
+        .deleteFrom('paystubs')
+        .where('agent_id', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
+      const payrollResult = await trx
+        .deleteFrom('payroll')
+        .where('agent_id', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['pay_date']), '=', issueDate)
+        .execute()
+
+      return {
+        success: true,
+        auditId,
+        deleted: {
+          paystubs: paystubResult.length,
+          invoices: invoiceResult.length,
+          overrides: overrideResult.length,
+          expenses: expenseResult.length,
+          payroll: payrollResult.length,
+        },
+      }
+    })
   }
 
   /**

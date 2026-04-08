@@ -77,4 +77,18 @@ describe('PayrollRepository - Deletion', () => {
       expect(result.isPaid).toBe(true)
     })
   })
+
+  describe('deletePaystubWithAudit', () => {
+    it('throws for non-admin (manager)', async () => {
+      await expect(
+        repo.deletePaystubWithAudit(1, 1, '2026-01-01', managerCtx, 2, 'test reason', '127.0.0.1')
+      ).rejects.toThrow('Admin access required')
+    })
+
+    it('throws for non-admin (employee)', async () => {
+      await expect(
+        repo.deletePaystubWithAudit(1, 1, '2026-01-01', employeeCtx, 3, 'test reason', '127.0.0.1')
+      ).rejects.toThrow('Admin access required')
+    })
+  })
 })
