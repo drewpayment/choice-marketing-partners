@@ -111,6 +111,7 @@ export default function PayrollMonitoringClient() {
   const [searchInput, setSearchInput] = useState(''); // Local search input state
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deletePreview, setDeletePreview] = useState<any>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<PayrollRecord | null>(null);

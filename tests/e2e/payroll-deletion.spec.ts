@@ -12,7 +12,7 @@ test.describe('Pay Statement Deletion', () => {
 
   test('preview endpoint blocks deletion of paid records', async ({ request }) => {
     // This test verifies the API directly
-    const loginResponse = await request.post('/api/auth/callback/credentials', {
+    await request.post('/api/auth/callback/credentials', {
       form: {
         email: 'admin@test.com',
         password: 'password123',
