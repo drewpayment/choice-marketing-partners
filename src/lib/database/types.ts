@@ -294,6 +294,30 @@ export interface Paystubs {
   weekend_date: Date;
 }
 
+export interface PayrollAudit {
+  id: Generated<number>;
+  agent_id: number;
+  vendor_id: number;
+  issue_date: Date;
+  deleted_by: number;
+  deletion_reason: string;
+  deleted_at: Date;
+  ip_address: string | null;
+  deleted_paystubs_count: number;
+  deleted_invoices_count: number;
+  deleted_overrides_count: number;
+  deleted_expenses_count: number;
+  paystub_total: Decimal;
+  invoices_total: Decimal;
+  overrides_total: Decimal;
+  expenses_total: Decimal;
+  paystub_data: string;
+  payroll_data: string;
+  invoices_data: string;
+  overrides_data: string;
+  expenses_data: string;
+}
+
 export interface Permissions {
   created_at: Date | null;
   emp_id: number;
@@ -520,6 +544,7 @@ export interface DB {
   overrides: Overrides;
   password_resets: PasswordResets;
   payroll: Payroll;
+  payroll_audit: PayrollAudit;
   payroll_restriction: PayrollRestriction;
   paystubs: Paystubs;
   permissions: Permissions;
