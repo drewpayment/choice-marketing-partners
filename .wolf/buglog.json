@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-04-08T03:40:19.126Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/components/payroll/PaystubDetailView.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-08T03:40:19.126Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-04-08T03:40:32.842Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/components/payroll/PaystubDetailView.tsx",
+      "root_cause": "26 lines replaced/restructured",
+      "fix": "Rewrote 37→12 lines (26 removed) | Also: onClick={async () => {; if (!confirm('Are you sure you want to delete this",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-04-08T03:40:41.139Z"
+    }
+  ]
+}
