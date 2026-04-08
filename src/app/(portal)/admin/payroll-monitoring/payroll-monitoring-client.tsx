@@ -331,6 +331,9 @@ export default function PayrollMonitoringClient() {
       const response = await fetch(
         `/api/admin/payroll/${record.employeeId}/${record.vendorId}/${record.payDate}/preview`
       );
+      if (!response.ok) {
+        throw new Error('Preview request failed');
+      }
       const data = await response.json();
       setDeletePreview(data);
     } catch {
