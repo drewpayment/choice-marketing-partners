@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -148,6 +149,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Admin-only: pay statement deletion requires admin access
+    if (!session.user.isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
     // Build user context for RBAC
     const userContext = await getEmployeeContext(
       session.user.employeeId,
@@ -177,7 +183,6 @@ export async function DELETE(request: NextRequest) {
       request.headers.get('x-real-ip') ||
       'unknown'
 
-    const { PayrollRepository } = await import('@/lib/repositories/PayrollRepository')
     const payrollRepo = new PayrollRepository()
 
     const result = await payrollRepo.deletePaystubWithAudit(

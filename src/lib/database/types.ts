@@ -301,7 +301,7 @@ export interface PayrollAudit {
   issue_date: Date;
   deleted_by: number;
   deletion_reason: string;
-  deleted_at: Date;
+  deleted_at: Generated<Date>;
   ip_address: string | null;
   deleted_paystubs_count: number;
   deleted_invoices_count: number;

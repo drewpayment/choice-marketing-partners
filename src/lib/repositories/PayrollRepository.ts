@@ -640,7 +640,15 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['pay_date']), '=', issueDate)
       .executeTakeFirst()
 
-    if (payrollRecord && payrollRecord.is_paid === 1) {
+    if (!payrollRecord) {
+      return {
+        canDelete: false,
+        isPaid: false,
+        reason: 'No pay statement found for the specified employee, vendor, and date.',
+      }
+    }
+
+    if (payrollRecord.is_paid === 1) {
       return {
         canDelete: false,
         isPaid: true,
@@ -753,7 +761,15 @@ export class PayrollRepository {
         .where(db.fn('DATE', ['pay_date']), '=', issueDate)
         .executeTakeFirst()
 
-      if (payrollRecord && payrollRecord.is_paid === 1) {
+      if (!payrollRecord) {
+        return {
+          success: false,
+          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, payroll: 0 },
+          error: 'No pay statement found for the specified employee, vendor, and date.',
+        }
+      }
+
+      if (payrollRecord.is_paid === 1) {
         return {
           success: false,
           deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, payroll: 0 },
@@ -869,11 +885,11 @@ export class PayrollRepository {
         success: true,
         auditId,
         deleted: {
-          paystubs: paystubResult.length,
-          invoices: invoiceResult.length,
-          overrides: overrideResult.length,
-          expenses: expenseResult.length,
-          payroll: payrollResult.length,
+          paystubs: Number(paystubResult[0]?.numAffectedRows ?? 0n),
+          invoices: Number(invoiceResult[0]?.numAffectedRows ?? 0n),
+          overrides: Number(overrideResult[0]?.numAffectedRows ?? 0n),
+          expenses: Number(expenseResult[0]?.numAffectedRows ?? 0n),
+          payroll: Number(payrollResult[0]?.numAffectedRows ?? 0n),
         },
       }
     })

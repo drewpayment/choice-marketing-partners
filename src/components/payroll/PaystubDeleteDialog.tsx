@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
 
-interface DeletionPreview {
+export interface DeletionPreview {
   canDelete: boolean
   isPaid: boolean
   reason?: string
