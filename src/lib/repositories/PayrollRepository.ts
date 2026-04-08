@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
+import type { UserContext } from '@/lib/auth/types'
 
 
 export interface PayrollFilters {
@@ -105,6 +106,25 @@ export interface PaystubDetail {
     source: 'builtin' | 'custom'
     display_order: number
   }>
+}
+
+export interface PaystubDeletionPreview {
+  canDelete: boolean
+  isPaid: boolean
+  reason?: string
+  agent?: { id: number; name: string }
+  vendor?: { id: number; name: string }
+  issueDate?: string
+  summary?: {
+    paystubCount: number
+    invoiceCount: number
+    overrideCount: number
+    expenseCount: number
+    paystubTotal: number
+    invoiceTotal: number
+    overrideTotal: number
+    expenseTotal: number
+  }
 }
 
 /**
@@ -582,6 +602,111 @@ export class PayrollRepository {
       .execute()
 
     return results.map(r => r.issue_date.toISOString().split('T')[0]).filter(Boolean)
+  }
+
+  /**
+   * Preview what will be deleted for a pay statement.
+   * Checks payroll.is_paid and returns counts/totals of related records.
+   */
+  async previewPaystubDeletion(
+    agentId: number,
+    vendorId: number,
+    issueDate: string,
+    userContext: UserContext
+  ): Promise<PaystubDeletionPreview> {
+    if (!userContext.isAdmin) {
+      throw new Error('Admin access required')
+    }
+
+    // Check if payroll record is paid
+    const payrollRecord = await db
+      .selectFrom('payroll')
+      .select(['is_paid'])
+      .where('agent_id', '=', agentId)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['pay_date']), '=', issueDate)
+      .executeTakeFirst()
+
+    if (payrollRecord && payrollRecord.is_paid === 1) {
+      return {
+        canDelete: false,
+        isPaid: true,
+        reason: 'Pay statement has been marked as paid and cannot be deleted.',
+      }
+    }
+
+    // Get employee info
+    const employee = await db
+      .selectFrom('employees')
+      .select(['id', 'name'])
+      .where('id', '=', agentId)
+      .executeTakeFirst()
+
+    // Get vendor info
+    const vendor = await db
+      .selectFrom('vendors')
+      .select(['id', 'name'])
+      .where('id', '=', vendorId)
+      .executeTakeFirst()
+
+    // Count and total paystubs
+    const paystubs = await db
+      .selectFrom('paystubs')
+      .selectAll()
+      .where('agent_id', '=', agentId)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+      .execute()
+
+    // Count and total invoices
+    const invoices = await db
+      .selectFrom('invoices')
+      .selectAll()
+      .where('agentid', '=', agentId)
+      .where('vendor', '=', vendorId.toString())
+      .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+      .execute()
+
+    // Count and total overrides
+    const overrides = await db
+      .selectFrom('overrides')
+      .selectAll()
+      .where('agentid', '=', agentId)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+      .execute()
+
+    // Count and total expenses
+    const expenses = await db
+      .selectFrom('expenses')
+      .selectAll()
+      .where('agentid', '=', agentId)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+      .execute()
+
+    const paystubTotal = paystubs.reduce((sum, p) => sum + parseFloat(p.amount?.toString() || '0'), 0)
+    const invoiceTotal = invoices.reduce((sum, i) => sum + parseFloat(i.amount?.toString() || '0'), 0)
+    const overrideTotal = overrides.reduce((sum, o) => sum + parseFloat(o.total?.toString() || '0'), 0)
+    const expenseTotal = expenses.reduce((sum, e) => sum + parseFloat(e.amount?.toString() || '0'), 0)
+
+    return {
+      canDelete: true,
+      isPaid: false,
+      agent: employee ? { id: employee.id, name: employee.name } : undefined,
+      vendor: vendor ? { id: vendor.id, name: vendor.name } : undefined,
+      issueDate,
+      summary: {
+        paystubCount: paystubs.length,
+        invoiceCount: invoices.length,
+        overrideCount: overrides.length,
+        expenseCount: expenses.length,
+        paystubTotal,
+        invoiceTotal,
+        overrideTotal,
+        expenseTotal,
+      },
+    }
   }
 
   /**
