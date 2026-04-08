@@ -1,0 +1,57 @@
+{
+  "session_id": "session-2026-04-08-2336",
+  "started": "2026-04-08T03:36:03.491Z",
+  "files_read": {
+    "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx": {
+      "count": 6,
+      "tokens": 7708,
+      "first_read": "2026-04-08T03:39:40.008Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 54,
+      "at": "2026-04-08T03:39:58.529Z"
+    },
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 130,
+      "at": "2026-04-08T03:40:04.850Z"
+    },
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 501,
+      "at": "2026-04-08T03:40:19.126Z"
+    },
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 137,
+      "at": "2026-04-08T03:40:32.841Z"
+    },
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 126,
+      "at": "2026-04-08T03:40:41.138Z"
+    },
+    {
+      "file": "/Users/drewpayment/dev/choice-marketing-partners/src/components/payroll/PaystubDetailView.tsx",
+      "action": "edit",
+      "tokens": 87,
+      "at": "2026-04-08T03:40:59.356Z"
+    }
+  ],
+  "edit_counts": {
+    "src/components/payroll/PaystubDetailView.tsx": 6
+  },
+  "anatomy_hits": 1,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 5,
+  "cerebrum_warnings": 0,
+  "stop_count": 3
+}

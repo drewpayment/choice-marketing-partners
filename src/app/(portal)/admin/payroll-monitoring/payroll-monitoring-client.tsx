@@ -44,8 +44,10 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
+import { PaystubDeleteDialog, type DeletionPreview } from '@/components/payroll/PaystubDeleteDialog';
 
 interface PayrollRecord {
   id: number;
@@ -108,7 +110,11 @@ export default function PayrollMonitoringClient() {
   });
   const [searchInput, setSearchInput] = useState(''); // Local search input state
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePreview, setDeletePreview] = useState<DeletionPreview | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState<PayrollRecord | null>(null);
+
   const { toast } = useToast();
 
   const loadPayrollData = useCallback(async () => {
@@ -313,6 +319,63 @@ export default function PayrollMonitoringClient() {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleDeleteClick = async (record: PayrollRecord) => {
+    setSelectedForDelete(record);
+    setDeleteDialogOpen(true);
+    setIsLoadingPreview(true);
+    setDeletePreview(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/payroll/${record.employeeId}/${record.vendorId}/${record.payDate}/preview`
+      );
+      if (!response.ok) {
+        throw new Error('Preview request failed');
+      }
+      const data = await response.json();
+      setDeletePreview(data);
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to load deletion preview.',
+        variant: 'destructive',
+      });
+      setDeleteDialogOpen(false);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handleConfirmDelete = async (reason: string) => {
+    if (!selectedForDelete) return;
+
+    const response = await fetch(
+      `/api/admin/payroll/${selectedForDelete.employeeId}/${selectedForDelete.vendorId}/${selectedForDelete.payDate}`,
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      toast({
+        title: 'Deletion failed',
+        description: data.error || 'Failed to delete pay statement.',
+        variant: 'destructive',
+      });
+      throw new Error(data.error);
+    }
+
+    toast({
+      title: 'Pay statement deleted',
+      description: 'The pay statement and all related records have been removed.',
+    });
+
+    loadPayrollData();
   };
 
   const getFilteredRecords = (): PayrollRecord[] => {
@@ -649,6 +712,7 @@ export default function PayrollMonitoringClient() {
                         </div>
                       </TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -679,6 +743,18 @@ export default function PayrollMonitoringClient() {
                               </>
                             )}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {!record.isPaid && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteClick(record)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -771,6 +847,13 @@ export default function PayrollMonitoringClient() {
           )}
         </CardContent>
       </Card>
+      <PaystubDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        preview={deletePreview}
+        isLoadingPreview={isLoadingPreview}
+        onConfirmDelete={handleConfirmDelete}
+      />
     </div>
   );
 }
