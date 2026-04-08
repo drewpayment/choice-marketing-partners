@@ -1,24 +1,30 @@
 import type { UserContext } from '@/lib/auth/types'
 
-const mockExecute = jest.fn()
-const mockExecuteTakeFirst = jest.fn()
+// Must use `var` (not const/let) so jest.mock hoisting doesn't hit TDZ
+// eslint-disable-next-line no-var
+var mockChain: any
 
-const mockChain = {
-  selectFrom: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  selectAll: jest.fn().mockReturnThis(),
-  where: jest.fn().mockReturnThis(),
-  execute: mockExecute,
-  executeTakeFirst: mockExecuteTakeFirst,
-  fn: jest.fn().mockReturnValue('DATE_EXPR'),
-}
-
-;(mockChain.fn as any).count = jest.fn().mockReturnValue({ as: jest.fn() })
-;(mockChain.fn as any).sum = jest.fn().mockReturnValue({ as: jest.fn() })
-
-jest.mock('@/lib/database/client', () => ({
-  db: mockChain,
+jest.mock('../VendorFieldRepository', () => ({
+  VendorFieldRepository: jest.fn().mockImplementation(() => ({
+    getFieldsByVendor: jest.fn().mockResolvedValue([]),
+  })),
 }))
+
+jest.mock('@/lib/database/client', () => {
+  mockChain = {
+    selectFrom: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    selectAll: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue([]),
+    executeTakeFirst: jest.fn().mockResolvedValue(null),
+    fn: Object.assign(jest.fn().mockReturnValue('DATE_EXPR'), {
+      count: jest.fn().mockReturnValue({ as: jest.fn() }),
+      sum: jest.fn().mockReturnValue({ as: jest.fn() }),
+    }),
+  }
+  return { db: mockChain }
+})
 
 jest.mock('@/lib/feature-flags', () => ({
   isFeatureEnabled: jest.fn().mockResolvedValue(false),
@@ -71,7 +77,7 @@ describe('PayrollRepository - Deletion', () => {
     })
 
     it('returns canDelete: false when payroll is paid', async () => {
-      mockExecuteTakeFirst.mockResolvedValueOnce({ is_paid: 1 })
+      mockChain.executeTakeFirst.mockResolvedValueOnce({ is_paid: 1 })
       const result = await repo.previewPaystubDeletion(1, 5, '2026-01-01', adminCtx)
       expect(result.canDelete).toBe(false)
       expect(result.isPaid).toBe(true)

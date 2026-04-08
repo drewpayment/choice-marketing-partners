@@ -61,7 +61,7 @@ jest.mock('@/lib/utils/logger', () => ({
   },
 }))
 
-jest.mock('./InvoiceAuditRepository', () => ({
+jest.mock('../InvoiceAuditRepository', () => ({
   invoiceAuditRepository: {
     createAuditRecord: jest.fn().mockResolvedValue(undefined),
   },
