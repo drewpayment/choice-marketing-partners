@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { logger } from '@/lib/utils/logger'
+import { PaystubDeleteDialog, type DeletionPreview } from '@/components/payroll/PaystubDeleteDialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface FieldConfig {
   field_key: string
@@ -103,12 +105,76 @@ interface PaystubDetailProps {
 
 export default function PaystubDetailView({ paystub, userContext, returnUrl }: PaystubDetailProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletePreview, setDeletePreview] = useState<DeletionPreview | null>(null)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isSalesExpanded, setIsSalesExpanded] = useState(true)
   const [isOverridesExpanded, setIsOverridesExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
+
+  const handleDeleteClick = async () => {
+    setDeleteDialogOpen(true)
+    setIsLoadingPreview(true)
+    setDeletePreview(null)
+
+    try {
+      const response = await fetch(
+        `/api/admin/payroll/${paystub.employee.id}/${paystub.vendor.id}/${paystub.issueDate}/preview`
+      )
+      if (!response.ok) {
+        throw new Error('Preview request failed')
+      }
+      const data = await response.json()
+      setDeletePreview(data)
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to load deletion preview.',
+        variant: 'destructive',
+      })
+      setDeleteDialogOpen(false)
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }
+
+  const handleConfirmDelete = async (reason: string) => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch(
+        `/api/admin/payroll/${paystub.employee.id}/${paystub.vendor.id}/${paystub.issueDate}`,
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        }
+      )
+
+      if (!response.ok) {
+        const data = await response.json()
+        toast({
+          title: 'Deletion failed',
+          description: data.error || 'Failed to delete pay statement.',
+          variant: 'destructive',
+        })
+        throw new Error(data.error)
+      }
+
+      toast({
+        title: 'Pay statement deleted',
+        description: 'The pay statement and all related records have been removed.',
+      })
+      router.push(returnUrl || '/payroll')
+    } catch (error) {
+      logger.error('Delete paystub error:', error)
+      setIsDeleting(false)
+      throw error
+    }
+  }
 
   // Use vendor field config if available, otherwise fall back to hardcoded defaults
   const activeFieldConfig = paystub.fieldConfig?.length ? paystub.fieldConfig : DEFAULT_FIELD_CONFIG
@@ -358,32 +424,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                 variant="outline"
                 size="sm"
                 disabled={isDeleting}
-                onClick={async () => {
-                  if (!confirm('Are you sure you want to delete this pay statement? This will remove all sales, overrides, and expenses. This action cannot be undone.')) {
-                    return
-                  }
-                  setIsDeleting(true)
-                  try {
-                    const res = await fetch('/api/invoices', {
-                      method: 'DELETE',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        agentId: paystub.employee.id,
-                        vendorId: paystub.vendor.id,
-                        issueDate: paystub.issueDate,
-                      }),
-                    })
-                    if (!res.ok) {
-                      const data = await res.json()
-                      throw new Error(data.error || 'Failed to delete')
-                    }
-                    router.push(returnUrl || '/payroll')
-                  } catch (error) {
-                    logger.error('Delete paystub error:', error)
-                    alert(error instanceof Error ? error.message : 'Failed to delete pay statement')
-                    setIsDeleting(false)
-                  }
-                }}
+                onClick={handleDeleteClick}
                 className="bg-destructive/10 hover:bg-destructive/10 border-destructive text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -417,32 +458,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           <Button
             variant="outline"
             disabled={isDeleting}
-            onClick={async () => {
-              if (!confirm('Are you sure you want to delete this pay statement? This will remove all sales, overrides, and expenses. This action cannot be undone.')) {
-                return
-              }
-              setIsDeleting(true)
-              try {
-                const res = await fetch('/api/invoices', {
-                  method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    agentId: paystub.employee.id,
-                    vendorId: paystub.vendor.id,
-                    issueDate: paystub.issueDate,
-                  }),
-                })
-                if (!res.ok) {
-                  const data = await res.json()
-                  throw new Error(data.error || 'Failed to delete')
-                }
-                router.push(returnUrl || '/payroll')
-              } catch (error) {
-                logger.error('Delete paystub error:', error)
-                alert(error instanceof Error ? error.message : 'Failed to delete pay statement')
-                setIsDeleting(false)
-              }
-            }}
+            onClick={handleDeleteClick}
             className="col-span-2 w-full min-h-[44px] bg-destructive/10 hover:bg-destructive/20 border-destructive text-destructive"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -709,6 +725,15 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             </div>
           </CardContent>
         </Card>
+      )}
+      {userContext.isAdmin && (
+        <PaystubDeleteDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          preview={deletePreview}
+          isLoadingPreview={isLoadingPreview}
+          onConfirmDelete={handleConfirmDelete}
+        />
       )}
     </div>
   )
