@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
-import { invoiceRepository as mainInvoiceRepository } from '@/lib/repositories/InvoiceRepository'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { logger } from '@/lib/utils/logger'
 
@@ -139,8 +138,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * DELETE /api/invoices - Delete entire paystub (all invoices, overrides, expenses, payroll record)
- * Body: { agentId, vendorId, issueDate }
+ * DELETE /api/invoices - Delete entire pay statement (all invoices, overrides, expenses, payroll record)
+ * Body: { agentId, vendorId, issueDate, reason }
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -157,7 +156,7 @@ export async function DELETE(request: NextRequest) {
     )
 
     const body = await request.json()
-    const { agentId, vendorId, issueDate } = body
+    const { agentId, vendorId, issueDate, reason } = body
 
     if (!agentId || !vendorId || !issueDate) {
       return NextResponse.json(
@@ -166,13 +165,41 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const success = await mainInvoiceRepository.deletePaystub(agentId, vendorId, issueDate, userContext)
-
-    if (!success) {
-      return NextResponse.json({ error: 'Failed to delete paystub' }, { status: 500 })
+    if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'A deletion reason is required' },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json({ success: true, message: 'Paystub deleted successfully' })
+    const ipAddress =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
+
+    const { PayrollRepository } = await import('@/lib/repositories/PayrollRepository')
+    const payrollRepo = new PayrollRepository()
+
+    const result = await payrollRepo.deletePaystubWithAudit(
+      agentId,
+      vendorId,
+      issueDate,
+      userContext,
+      session.user.employeeId,
+      reason,
+      ipAddress
+    )
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 409 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Pay statement deleted successfully',
+      deleted: result.deleted,
+      auditId: result.auditId,
+    })
   } catch (error) {
     logger.error('DELETE /api/invoices error:', error)
     return NextResponse.json(

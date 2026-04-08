@@ -194,19 +194,7 @@ describe('InvoiceRepository RBAC', () => {
       })
     })
 
-    describe('deletePaystub', () => {
-      it('throws for manager', async () => {
-        await expect(
-          repo.deletePaystub(1, 1, '2024-01-01', managerCtx)
-        ).rejects.toThrow('Admin access required')
-      })
 
-      it('throws for employee', async () => {
-        await expect(
-          repo.deletePaystub(1, 1, '2024-01-01', employeeCtx)
-        ).rejects.toThrow('Admin access required')
-      })
-    })
   })
 
   // Test getInvoiceById and getInvoicesByAgent on simple repo only (main repo doesn't have them)
