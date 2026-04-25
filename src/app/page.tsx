@@ -50,6 +50,9 @@ export default async function HomePage() {
             <a href="#clients" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               Partners
             </a>
+            <Link href="/careers" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              Careers
+            </Link>
           </div>
           <Button asChild>
             <Link href="/auth/signin">Sign In</Link>
@@ -326,6 +329,9 @@ export default async function HomePage() {
             </Link>
             <Link href="/blog" className="text-sm text-stone-500 transition-colors hover:text-stone-300">
               Blog
+            </Link>
+            <Link href="/careers" className="text-sm text-stone-500 transition-colors hover:text-stone-300">
+              Careers
             </Link>
             <p className="text-sm text-stone-600">
               &copy; {new Date().getFullYear()} Choice Marketing Partners

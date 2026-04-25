@@ -17,7 +17,8 @@ import {
   Building2,
   CreditCard,
   Package,
-  Flag
+  Flag,
+  Briefcase
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -36,6 +37,12 @@ const adminNavItems = [
     icon: UserCheck,
     label: 'Employee Management',
     description: 'Manage employees and user accounts'
+  },
+  {
+    href: '/admin/careers',
+    icon: Briefcase,
+    label: 'Careers',
+    description: 'Manage job postings and applications'
   },
   {
     href: '/admin/vendors',

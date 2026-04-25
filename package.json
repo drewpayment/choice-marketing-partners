@@ -39,6 +39,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.17",
     "dotenv": "^17.2.1",
+    "framer-motion": "^12.38.0",
     "jsonwebtoken": "^9.0.2",
     "kysely": "^0.28.5",
     "kysely-codegen": "^0.18.5",
