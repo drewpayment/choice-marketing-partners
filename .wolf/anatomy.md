@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-08T03:40:59.350Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-26T04:48:18.843Z
 > Files: 433 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -15,7 +15,7 @@
 - `next-env.d.ts` — / <reference types="next" /> (~72 tok)
 - `next.config.ts` — Next.js configuration (~519 tok)
 - `package-lock.json` — npm lock file (~278337 tok)
-- `package.json` — Node.js package manifest (~771 tok)
+- `package.json` — Node.js package manifest (~796 tok)
 - `playwright.config.ts` — Playwright test configuration (~636 tok)
 - `postcss.config.mjs` — Declares config (~22 tok)
 - `PRODUCTION_SETUP.md` — Vercel Environment Variables Configuration Guide (~775 tok)

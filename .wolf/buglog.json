@@ -32,6 +32,22 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-04-08T03:40:41.139Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-04-26T04:48:07.007Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"^17.2.1\"",
+      "fix": "Changed to \"^17.2.3\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 5,
+      "last_seen": "2026-04-26T04:48:18.853Z"
     }
   ]
 }
