@@ -5,6 +5,7 @@ import { Plus, Inbox, QrCode } from 'lucide-react'
 import { authOptions } from '@/lib/auth/config'
 import { Button } from '@/components/ui/button'
 import { JobPostingRepository } from '@/lib/repositories/JobPostingRepository'
+import { getSiteUrl } from '@/lib/utils/site-url'
 import JobsTable from '@/components/admin/careers/JobsTable'
 import QRCodeDialog from '@/components/admin/careers/QRCodeDialog'
 
@@ -22,7 +23,7 @@ export default async function AdminCareersPage() {
     { includeDeleted: false },
   )
 
-  const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL
+  const siteOrigin = getSiteUrl()
 
   return (
     <div className="mx-auto max-w-6xl py-10 px-4 sm:px-6 lg:px-8">
