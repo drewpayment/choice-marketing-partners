@@ -161,6 +161,48 @@ export interface Invoices {
   wkending: Date;
 }
 
+export interface JobApplications {
+  applicant_email: string;
+  applicant_name: string;
+  applicant_phone: string | null;
+  cover_letter: string | null;
+  id: Generated<number>;
+  job_posting_id: number;
+  notes: string | null;
+  resume_filename: string | null;
+  resume_url: string | null;
+  status: Generated<"contacted" | "hired" | "new" | "rejected" | "reviewing">;
+  submitted_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export interface JobPostings {
+  apply_url: string | null;
+  benefits: string | null;
+  created_at: Generated<Date>;
+  created_by: number;
+  deleted_at: Date | null;
+  department: "admin" | "engineering" | "marketing" | "operations" | "other" | "sales";
+  description: string;
+  employment_type: "contract" | "full-time" | "part-time" | "seasonal";
+  id: Generated<number>;
+  location_city: string | null;
+  location_state: string | null;
+  posted_at: Date | null;
+  qualifications: string;
+  responsibilities: string;
+  salary_max: Decimal | null;
+  salary_min: Decimal | null;
+  salary_show_as: Generated<"exact" | "hidden" | "range" | "starting-at" | "up-to">;
+  salary_type: "annual" | "hourly" | null;
+  slug: string;
+  status: Generated<"active" | "closed" | "draft" | "filled">;
+  summary: string | null;
+  title: string;
+  updated_at: Generated<Date>;
+  work_setting: "hybrid" | "in-person" | "remote";
+}
+
 export interface Jobs {
   attempts: number;
   available_at: number;
@@ -532,6 +574,8 @@ export interface DB {
   expenses: Expenses;
   invoice_audit: InvoiceAudit;
   invoices: Invoices;
+  job_applications: JobApplications;
+  job_postings: JobPostings;
   jobs: Jobs;
   links: Links;
   manager_employees: ManagerEmployees;

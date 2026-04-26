@@ -3,6 +3,8 @@ import { db } from '@/lib/database/client'
 import { notFound } from 'next/navigation'
 import BlogFeed from '@/components/blog/BlogFeed'
 import Link from 'next/link'
+import MarketingHeader from '@/components/marketing/MarketingHeader'
+import MarketingFooter from '@/components/marketing/MarketingFooter'
 
 interface AuthorPageProps {
   params: Promise<{ id: string }>
@@ -38,6 +40,7 @@ export default async function AuthorPage({ params, searchParams }: AuthorPagePro
 
   return (
     <div className="min-h-screen bg-background">
+      <MarketingHeader />
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-lg shadow-lg p-8">
           {/* Back to blog link */}
@@ -101,6 +104,7 @@ export default async function AuthorPage({ params, searchParams }: AuthorPagePro
           )}
         </div>
       </div>
+      <MarketingFooter />
     </div>
   )
 }
