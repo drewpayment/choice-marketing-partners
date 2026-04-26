@@ -6,7 +6,7 @@ import PayrollFilters from '@/components/payroll/PayrollFilters'
 import { Suspense } from 'react'
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     employeeId?: string
     vendorId?: string
     issueDate?: string
@@ -15,13 +15,15 @@ interface PageProps {
     status?: 'paid' | 'unpaid' | 'all'
     page?: string
     limit?: string
-  }
+  }>
 }
 
 export default async function PayrollPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams
+
   // Require employee-level access or higher
   const session = await requireAuth('EMPLOYEE')
-  
+
   // Get user context for role-based data access
   const userContext = await getEmployeeContext(
     session.user.employeeId,
@@ -30,14 +32,14 @@ export default async function PayrollPage({ searchParams }: PageProps) {
   )
   // Build filters from search params
   const filters = {
-    employeeId: searchParams.employeeId ? parseInt(searchParams.employeeId) : undefined,
-    vendorId: searchParams.vendorId ? parseInt(searchParams.vendorId) : undefined,
-    issueDate: searchParams.issueDate,
-    startDate: searchParams.startDate,
-    endDate: searchParams.endDate,
-    status: searchParams.status || 'all',
-    page: searchParams.page ? parseInt(searchParams.page) : 1,
-    limit: searchParams.limit ? parseInt(searchParams.limit) : 20
+    employeeId: resolvedSearchParams.employeeId ? parseInt(resolvedSearchParams.employeeId) : undefined,
+    vendorId: resolvedSearchParams.vendorId ? parseInt(resolvedSearchParams.vendorId) : undefined,
+    issueDate: resolvedSearchParams.issueDate,
+    startDate: resolvedSearchParams.startDate,
+    endDate: resolvedSearchParams.endDate,
+    status: resolvedSearchParams.status || 'all',
+    page: resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1,
+    limit: resolvedSearchParams.limit ? parseInt(resolvedSearchParams.limit) : 20
   }
 
   // Get payroll data
