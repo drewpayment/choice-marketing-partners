@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
-import { Plus, Inbox } from 'lucide-react'
+import { Plus, Inbox, QrCode } from 'lucide-react'
 import { authOptions } from '@/lib/auth/config'
 import { Button } from '@/components/ui/button'
 import { JobPostingRepository } from '@/lib/repositories/JobPostingRepository'
 import JobsTable from '@/components/admin/careers/JobsTable'
+import QRCodeDialog from '@/components/admin/careers/QRCodeDialog'
 
 export default async function AdminCareersPage() {
   const session = await getServerSession(authOptions)
@@ -21,6 +22,8 @@ export default async function AdminCareersPage() {
     { includeDeleted: false },
   )
 
+  const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL
+
   return (
     <div className="mx-auto max-w-6xl py-10 px-4 sm:px-6 lg:px-8">
       <header className="mb-8 flex items-center justify-between gap-3">
@@ -31,6 +34,19 @@ export default async function AdminCareersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <QRCodeDialog
+            path="/careers"
+            siteOrigin={siteOrigin}
+            filename="careers-qr"
+            title="QR code for the careers page"
+            subtitle="Public careers listing"
+            trigger={
+              <Button variant="outline">
+                <QrCode className="size-4" />
+                Careers QR
+              </Button>
+            }
+          />
           <Button asChild variant="outline">
             <Link href="/admin/careers/applications">
               <Inbox className="size-4" />
@@ -46,7 +62,7 @@ export default async function AdminCareersPage() {
         </div>
       </header>
 
-      <JobsTable jobs={jobs} />
+      <JobsTable jobs={jobs} siteOrigin={siteOrigin} />
     </div>
   )
 }

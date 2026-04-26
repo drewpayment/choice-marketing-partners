@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, Pencil } from 'lucide-react'
+import { ExternalLink, Pencil, QrCode } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import QRCodeDialog from '@/components/admin/careers/QRCodeDialog'
 import {
   Select,
   SelectContent,
@@ -33,9 +34,10 @@ const STATUS_CLASS: Record<JobStatus, string> = {
 
 interface Props {
   jobs: JobPosting[]
+  siteOrigin?: string
 }
 
-export default function JobsTable({ jobs }: Props) {
+export default function JobsTable({ jobs, siteOrigin }: Props) {
   const [status, setStatus] = useState<JobStatus | 'all'>('all')
 
   const visible = useMemo(
@@ -105,6 +107,23 @@ export default function JobsTable({ jobs }: Props) {
                           </Link>
                         </Button>
                       )}
+                      <QRCodeDialog
+                        path={`/careers/${job.slug}`}
+                        siteOrigin={siteOrigin}
+                        filename={`job-${job.slug}-qr`}
+                        title="QR code for this posting"
+                        subtitle={job.title}
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`QR code for ${job.title}`}
+                          >
+                            <QrCode className="size-4" />
+                            QR
+                          </Button>
+                        }
+                      />
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/admin/careers/${job.id}/edit`}>
                           <Pencil className="size-4" />
