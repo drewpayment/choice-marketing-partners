@@ -2,6 +2,8 @@ import { BlogRepository } from '@/lib/repositories/blog'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils/date'
+import MarketingHeader from '@/components/marketing/MarketingHeader'
+import MarketingFooter from '@/components/marketing/MarketingFooter'
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -18,6 +20,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <MarketingHeader />
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-lg shadow-lg p-8">
           {/* Back to blog link */}
@@ -81,6 +84,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </footer>
         </div>
       </div>
+      <MarketingFooter />
     </div>
   )
 }

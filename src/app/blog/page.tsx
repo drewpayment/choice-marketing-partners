@@ -1,5 +1,7 @@
 import { BlogRepository } from '@/lib/repositories/blog'
 import BlogFeed from '@/components/blog/BlogFeed'
+import MarketingHeader from '@/components/marketing/MarketingHeader'
+import MarketingFooter from '@/components/marketing/MarketingFooter'
 import { Suspense } from 'react'
 
 interface BlogPageProps {
@@ -13,6 +15,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <MarketingHeader />
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-lg shadow-lg p-8">
           <h1 className="text-4xl font-bold text-foreground mb-8 text-center">
@@ -51,6 +54,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           )}
         </div>
       </div>
+      <MarketingFooter />
     </div>
   )
 }
