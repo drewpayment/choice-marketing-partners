@@ -6,14 +6,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   
-  // Ignore TypeScript and ESLint errors during build for deployment
+  // Ignore TypeScript errors during build for deployment
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
+
+
   // Optimize for better hydration handling and performance
   experimental: {
     // This helps with hydration issues
