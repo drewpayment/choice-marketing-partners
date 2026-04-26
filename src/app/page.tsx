@@ -6,7 +6,6 @@ import CommaClubModal from '@/components/comma-club/CommaClubModal'
 import TestimonialSection from '@/components/testimonials/TestimonialSection'
 import BlogFeed from '@/components/blog/BlogFeed'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import {
   DollarSign,
@@ -46,9 +45,6 @@ export default async function HomePage() {
             </a>
             <a href="#agent_testimonials" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               Testimonials
-            </a>
-            <a href="#clients" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-              Partners
             </a>
             <Link href="/careers" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               Careers
@@ -253,66 +249,6 @@ export default async function HomePage() {
               testimonials={customers}
               id="customer_testimonials"
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Partnerships Section */}
-      <section id="clients" className="bg-muted py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Our Network
-            </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Partnerships
-            </h2>
-          </div>
-          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
-            {[
-              { name: 'Santanna Energy', url: 'https://santannaenergyservices.com/', logo: '/images/clients/santanna.jpeg' },
-              { name: 'Continuum Energy', url: 'https://continuumenergyservices.com/', logo: '/images/clients/continuum.jpg' },
-              { name: 'Palmco Energy', url: 'https://palmcoenergy.com/', logo: '/images/clients/palmco.jpeg' },
-              { name: 'AT&T', url: 'https://www.att.com/', logo: '/images/clients/att.png' },
-              { name: 'Spectrum', url: 'https://www.spectrum.com/', logo: '/images/clients/charter.png' },
-              { name: 'DirecTV', url: 'https://www.directv.com/', logo: '/images/clients/directv.png' },
-            ].map((client) => (
-              <a
-                key={client.name}
-                href={client.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center justify-center rounded-xl bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
-              >
-                <Image
-                  src={client.logo}
-                  alt={client.name}
-                  width={64}
-                  height={64}
-                  className="h-12 w-full object-contain transition-transform group-hover:scale-105"
-                />
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-950 py-20 sm:py-24">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Ready to simplify your payroll?
-          </h2>
-          <p className="mt-4 text-lg text-cyan-200">
-            Join Choice Marketing Partners and take control of your commissions, paystubs, and documents.
-          </p>
-          <div className="mt-10">
-            <Button asChild size="lg" className="bg-amber-600 text-white shadow-lg hover:bg-amber-700">
-              <Link href="/contact">
-                Get Started Today
-                <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
           </div>
         </div>
       </section>
