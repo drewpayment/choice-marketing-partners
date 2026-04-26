@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Choice Marketing Partners
+
+Payroll management system for Choice Marketing Partners, migrated from a legacy Laravel/PHP application to a modern Next.js stack. Handles employee payroll, invoices, commissions, document management, and vendor tracking.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **Language:** TypeScript (strict mode)
+- **Database:** MySQL with [Kysely](https://kysely.dev/) ORM
+- **Auth:** NextAuth.js (credentials + bcrypt)
+- **Storage:** Vercel Blob (new uploads), legacy `public/uploads/` (read-only)
+- **UI:** Tailwind CSS 4 + shadcn/ui + Radix primitives
+- **Email:** Resend + React Email
+- **Hosting:** Vercel
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- [Bun](https://bun.sh/) (recommended) or Node.js 24+
+- MySQL database
+- Copy `.env.example` to `.env.local` and fill in required values
+
+### Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install           # Install dependencies
+bun dev               # Start dev server (Turbopack)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bun test              # Unit tests (Jest)
+bun test:e2e          # E2E tests (Playwright)
+bun test:e2e:headed   # E2E with visible browser
+bun test:e2e:ui       # Interactive Playwright UI
+bun test:coverage     # Coverage report
+```
 
-## Learn More
+### Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun build             # Production build
+bun start             # Start production server
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                # Next.js App Router
+    (portal)/         # Protected authenticated routes
+    admin/            # Admin-only pages
+    manager/          # Manager+ access pages
+    api/              # API routes
+  lib/
+    database/         # Kysely client & auto-generated types
+    repositories/     # Business logic layer (repository pattern)
+    auth/             # NextAuth configuration
+    storage/          # Vercel Blob utilities
+  components/         # React components (shadcn/ui)
+tests/                # E2E Playwright tests
+docs/                 # Roadmap, plans, and archive
+```
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Repository pattern** for all database access (`src/lib/repositories/`)
+- **Role-based access control:** Admin > Manager > Employee
+- **Route protection** via `middleware.ts` with role-scoped layouts
+- **Self-service password reset** with JWT tokens and email delivery
+- **Dual file storage** (Vercel Blob for new uploads, legacy filesystem for migrated files)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md) for deployment and environment variable configuration.
+
+## Documentation
+
+- [`docs/roadmap.md`](docs/roadmap.md) — Feature roadmap and completed work
+- [`docs/plans/`](docs/plans/) — Implementation plans for features
+- [`docs/archive/`](docs/archive/) — Historical implementation notes
