@@ -6,8 +6,6 @@ import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 
-const vendorRepository = new VendorRepository()
-
 const createVendorSchema = z.object({
   name: z.string().min(1, 'Vendor name is required').max(300, 'Name is too long'),
   is_active: z.boolean().optional()
@@ -41,7 +39,7 @@ export async function GET(request: NextRequest) {
       session.user.isManager
     )
 
-    const vendors = await vendorRepository.getVendors(filters, userContext)
+    const vendors = await new VendorRepository().getVendors(filters, userContext)
 
     return NextResponse.json({ vendors })
   } catch (error) {
@@ -81,6 +79,8 @@ export async function POST(request: NextRequest) {
       session.user.isManager
     )
 
+    const vendorRepository = new VendorRepository()
+
     // Check if name is available
     const isAvailable = await vendorRepository.isNameAvailable(data.name, undefined, userContext)
     if (!isAvailable) {
@@ -94,8 +94,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ vendor }, { status: 201 })
   } catch (error) {
+    // Race-window backstop: the DB UNIQUE constraint can fire if another
+    // request creates the same name between isNameAvailable and createVendor.
+    if (isDuplicateEntryError(error)) {
+      return NextResponse.json(
+        { error: 'A vendor with this name already exists' },
+        { status: 409 }
+      )
+    }
+
     logger.error('Error creating vendor:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
@@ -108,4 +117,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+function isDuplicateEntryError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'ER_DUP_ENTRY'
+  )
 }
