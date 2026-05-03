@@ -843,8 +843,16 @@ export class DailyPayRepository {
   }
 }
 
-/** Compute the cutoff work_date that is "now closed" given the canonical TZ + cutoff config.
- *  Returns null if the configured cutoff has not yet been crossed for any week. */
+/**
+ * Returns the wkending of the most recent past cutoff in the canonical timezone.
+ *
+ * Returns `null` only on the cutoff day before the cutoff time has been reached —
+ * i.e., the brief active-editing window where this week's cutoff hasn't fired yet.
+ * Outside that window, always returns the wkending of the most recent crossed cutoff.
+ *
+ * This makes the cron unconditionally idempotent: if a previous run failed and left
+ * stragglers, any subsequent hourly fire (on Sat, Sun, Mon, Tue, …) will pick them up.
+ */
 export function computeJustCrossedCutoff(
   now: Date,
   cutoffDayOfWeek: number,
@@ -870,16 +878,27 @@ export function computeJustCrossedCutoff(
   const localDow = weekdayMap[map.weekday]
   const localTime = `${map.hour}:${map.minute}:${map.second}`
 
-  const isAfterCutoffSameDay = localDow === cutoffDayOfWeek && localTime >= cutoffTimeLocal
-  const isPastCutoffWeekday =
-    cutoffDayOfWeek === 6
-      ? localDow === 0
-      : (localDow > cutoffDayOfWeek && localDow <= 6) || localDow === 0
+  // Edge case: it's the cutoff day, but cutoff time hasn't been reached yet.
+  // The most recent cutoff was a week ago; treat as "no new cutoff to process"
+  // so the cron sleeps through the active-editing window.
+  if (localDow === cutoffDayOfWeek && localTime < cutoffTimeLocal) {
+    return null
+  }
 
-  if (!isAfterCutoffSameDay && !isPastCutoffWeekday) return null
+  // Days back from `now` to the most recent cutoff datetime.
+  const daysBack = (localDow - cutoffDayOfWeek + 7) % 7
+  // Days forward from cutoff to that week's wkending.
+  const daysForward = (WEEK_END_DAY - cutoffDayOfWeek + 7) % 7
+  const offset = daysForward - daysBack
 
-  const cutoffYmd = `${map.year}-${map.month}-${map.day}`
-  return { cutoffWorkDate: cutoffYmd }
+  // Apply offset using local-date arithmetic on the canonical-TZ components.
+  // setDate handles month/year rollover and DST transitions correctly within +/- 14d.
+  const yy = Number(map.year)
+  const mm = Number(map.month) - 1
+  const dd = Number(map.day)
+  const wkeDate = new Date(yy, mm, dd + offset)
+  const wkeYmd = `${wkeDate.getFullYear()}-${String(wkeDate.getMonth() + 1).padStart(2, '0')}-${String(wkeDate.getDate()).padStart(2, '0')}`
+  return { cutoffWorkDate: wkeYmd }
 }
 
 export const dailyPayRepository = new DailyPayRepository()
