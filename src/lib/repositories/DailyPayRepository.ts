@@ -126,7 +126,10 @@ export class PaystubAlreadyPaidError extends Error {
   }
 }
 
-const WEEK_END_DAY = 0 // Sunday — matches existing paystubs.weekend_date convention
+// 6 = Saturday. Verified against existing paystubs.weekend_date / invoices.wkending /
+// overrides.wkending — Saturday is the dominant week-ending in the data; the few
+// non-Saturday rows are off-cycle bonus paystubs, not weekly pay periods.
+const WEEK_END_DAY = 6
 
 function toNumber(value: unknown): number {
   if (value === null || value === undefined) return 0
@@ -134,20 +137,40 @@ function toNumber(value: unknown): number {
   return parseFloat(String(value)) || 0
 }
 
-function formatDateOnly(d: Date): string {
-  const yyyy = d.getUTCFullYear()
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(d.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+/**
+ * Convert a 'YYYY-MM-DD' string to a JS Date suitable for binding to a MySQL DATE column.
+ *
+ * mysql2 formats Date bindings using LOCAL time. `new Date('YYYY-MM-DD')` creates a UTC-midnight
+ * Date, which mysql2 converts to the previous day in any UTC-offset-negative timezone (e.g. EDT
+ * shifts 2026-04-01T00:00:00Z to "2026-03-31"). Constructing via `new Date(y, m, d)` produces
+ * local-midnight, which round-trips cleanly through mysql2 in any server timezone.
+ */
+export function dateOnlyToDate(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
 
-/** Compute the wkending (Sunday) for a given work date, matching the existing paystub convention. */
-export function wkendingFor(workDate: Date): Date {
-  const d = new Date(Date.UTC(workDate.getUTCFullYear(), workDate.getUTCMonth(), workDate.getUTCDate()))
-  const dow = d.getUTCDay() // 0=Sun..6=Sat
-  const daysUntilSunday = (WEEK_END_DAY - dow + 7) % 7
-  d.setUTCDate(d.getUTCDate() + daysUntilSunday)
-  return d
+/**
+ * Extract a 'YYYY-MM-DD' string from whatever mysql2 returned for a DATE column.
+ * mysql2 with dateStrings:false returns local-midnight Dates, so we use local getters
+ * to symmetrically inverse `dateOnlyToDate` above.
+ */
+export function dateOnlyFromDb(value: Date | string | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value.length >= 10 ? value.slice(0, 10) : value
+  const y = value.getFullYear()
+  const m = String(value.getMonth() + 1).padStart(2, '0')
+  const d = String(value.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** Compute the wkending (Saturday) for a given work date string, matching the existing paystub convention. */
+export function wkendingFor(workDate: string): string {
+  const d = dateOnlyToDate(workDate)
+  const dow = d.getDay() // 0=Sun..6=Sat (local)
+  const daysUntilEnd = (WEEK_END_DAY - dow + 7) % 7
+  d.setDate(d.getDate() + daysUntilEnd)
+  return dateOnlyFromDb(d)
 }
 
 /**
@@ -384,7 +407,7 @@ export class DailyPayRepository {
         employee_id: ctx.employeeId,
         vendor_id: input.vendorId,
         punched_at: now,
-        work_date: new Date(workDate),
+        work_date: dateOnlyToDate(workDate),
         latitude: String(input.latitude),
         longitude: String(input.longitude),
         accuracy_meters: input.accuracyMeters,
@@ -419,8 +442,8 @@ export class DailyPayRepository {
     const counts = await db
       .selectFrom('daily_punch_records')
       .select(['status', db.fn.countAll().as('c')])
-      .$if(!!filters.fromDate, (q) => q.where('work_date', '>=', new Date(filters.fromDate!)))
-      .$if(!!filters.toDate, (q) => q.where('work_date', '<=', new Date(filters.toDate!)))
+      .$if(!!filters.fromDate, (q) => q.where('work_date', '>=', dateOnlyToDate(filters.fromDate!)))
+      .$if(!!filters.toDate, (q) => q.where('work_date', '<=', dateOnlyToDate(filters.toDate!)))
       .groupBy('status')
       .execute()
 
@@ -473,12 +496,13 @@ export class DailyPayRepository {
       const amount = toNumber(enrollment.daily_rate)
 
       if (!opts.confirmDouble) {
+        const sameDayWorkDate = dateOnlyFromDb(punch.work_date as Date | string | null)
         const sameDay = await trx
           .selectFrom('daily_punch_records as p')
           .innerJoin('daily_pay_records as r', 'r.punch_id', 'p.id')
           .select(['p.id'])
           .where('p.employee_id', '=', punch.employee_id)
-          .where('p.work_date', '=', punch.work_date)
+          .where('p.work_date', '=', dateOnlyToDate(sameDayWorkDate))
           .where('p.status', '=', 'approved')
           .where('r.reversed_at', 'is', null)
           .where('p.id', '!=', id)
@@ -486,8 +510,8 @@ export class DailyPayRepository {
         if (sameDay) throw new ApprovalRequiresConfirmationError(Number(sameDay.id))
       }
 
-      const punchWorkDate = punch.work_date instanceof Date ? punch.work_date : new Date(punch.work_date)
-      const wke = wkendingFor(punchWorkDate)
+      const punchWorkDateStr = dateOnlyFromDb(punch.work_date as Date | string | null)
+      const wkeStr = wkendingFor(punchWorkDateStr)
 
       const insertResult = await trx
         .insertInto('daily_pay_records')
@@ -495,8 +519,8 @@ export class DailyPayRepository {
           punch_id: id,
           employee_id: punch.employee_id,
           vendor_id: punch.vendor_id,
-          work_date: punchWorkDate,
-          wkending: wke,
+          work_date: dateOnlyToDate(punchWorkDateStr),
+          wkending: dateOnlyToDate(wkeStr),
           amount: String(amount),
           description: 'Daily incentive',
           created_by: ctx.employeeId ?? null,
@@ -565,7 +589,7 @@ export class DailyPayRepository {
           .select(['is_paid'])
           .where('agent_id', '=', payRecord.employee_id)
           .where('vendor_id', '=', payRecord.vendor_id)
-          .where(db.fn('DATE', ['pay_date']), '=', formatDateOnly(matchingPaystub.issue_date as Date))
+          .where(db.fn('DATE', ['pay_date']), '=', dateOnlyFromDb(matchingPaystub.issue_date as Date))
           .executeTakeFirst()
         if (paid?.is_paid === 1) throw new PaystubAlreadyPaidError()
       }
@@ -599,7 +623,7 @@ export class DailyPayRepository {
         decided_by: null,
       })
       .where('status', '=', 'pending')
-      .where('work_date', '<=', new Date(cutoffWorkDate))
+      .where('work_date', '<=', dateOnlyToDate(cutoffWorkDate))
       .executeTakeFirst()
     return Number(result.numUpdatedRows ?? 0)
   }
@@ -629,7 +653,7 @@ export class DailyPayRepository {
       ])
       .where('r.employee_id', '=', employeeId)
       .where('r.vendor_id', '=', vendorId)
-      .where('r.wkending', '=', new Date(weekendDate))
+      .where('r.wkending', '=', dateOnlyToDate(weekendDate))
       .where('r.reversed_at', 'is', null)
       .orderBy('r.work_date', 'asc')
       .execute()
@@ -637,7 +661,7 @@ export class DailyPayRepository {
     const records: DailyPayLineItem[] = rows.map((r) => ({
       id: Number(r.id),
       punchId: Number(r.punch_id),
-      workDate: typeof r.work_date === 'string' ? r.work_date : formatDateOnly(r.work_date as Date),
+      workDate: dateOnlyFromDb(r.work_date as Date | string | null),
       punchedAt: (r.punched_at as Date | null) ?? null,
       latitude: r.latitude !== null ? toNumber(r.latitude) : null,
       longitude: r.longitude !== null ? toNumber(r.longitude) : null,
@@ -662,7 +686,7 @@ export class DailyPayRepository {
 
     const employeeIds = Array.from(new Set(keys.map((k) => k.employeeId)))
     const vendorIds = Array.from(new Set(keys.map((k) => k.vendorId)))
-    const weekendDates = Array.from(new Set(keys.map((k) => k.weekendDate))).map((s) => new Date(s))
+    const weekendDates = Array.from(new Set(keys.map((k) => k.weekendDate))).map(dateOnlyToDate)
 
     const rows = await db
       .selectFrom('daily_pay_records')
@@ -681,7 +705,7 @@ export class DailyPayRepository {
       .execute()
 
     for (const r of rows) {
-      const wkeStr = typeof r.wkending === 'string' ? r.wkending : formatDateOnly(r.wkending as Date)
+      const wkeStr = dateOnlyFromDb(r.wkending as Date | string | null)
       const key = `${r.employee_id}|${r.vendor_id}|${wkeStr}`
       out.set(key, { total: toNumber(r.total), count: Number(r.count) })
     }
@@ -739,6 +763,12 @@ export class DailyPayRepository {
       .innerJoin('vendors as v', 'v.id', 'p.vendor_id')
       .leftJoin('employees as decider', 'decider.id', 'p.decided_by')
       .leftJoin('daily_pay_records as r', 'r.punch_id', 'p.id')
+      .leftJoin('daily_pay_enrollments as enr', (join) =>
+        join
+          .onRef('enr.employee_id', '=', 'p.employee_id')
+          .onRef('enr.vendor_id', '=', 'p.vendor_id')
+          .on('enr.is_active', '=', 1),
+      )
       .select([
         'p.id',
         'p.employee_id',
@@ -760,14 +790,15 @@ export class DailyPayRepository {
         'p.created_at',
         'r.amount',
         'r.reversed_at',
+        'enr.daily_rate as enrollment_rate',
       ])
 
     if (onlyId) q = q.where('p.id', '=', onlyId)
     if (filters.status && filters.status !== 'all') q = q.where('p.status', '=', filters.status)
     if (filters.vendorId) q = q.where('p.vendor_id', '=', filters.vendorId)
     if (filters.employeeId) q = q.where('p.employee_id', '=', filters.employeeId)
-    if (filters.fromDate) q = q.where('p.work_date', '>=', new Date(filters.fromDate))
-    if (filters.toDate) q = q.where('p.work_date', '<=', new Date(filters.toDate))
+    if (filters.fromDate) q = q.where('p.work_date', '>=', dateOnlyToDate(filters.fromDate))
+    if (filters.toDate) q = q.where('p.work_date', '<=', dateOnlyToDate(filters.toDate))
     if (filters.search) {
       const s = `%${filters.search}%`
       q = q.where((eb) => eb.or([eb('emp.name', 'like', s), eb('v.name', 'like', s)]))
@@ -789,7 +820,7 @@ export class DailyPayRepository {
       vendorId: Number(r.vendor_id),
       vendorName: r.vendor_name,
       punchedAt: r.punched_at as Date,
-      workDate: typeof r.work_date === 'string' ? r.work_date : formatDateOnly(r.work_date as Date),
+      workDate: dateOnlyFromDb(r.work_date as Date | string | null),
       latitude: r.latitude !== null ? toNumber(r.latitude) : null,
       longitude: r.longitude !== null ? toNumber(r.longitude) : null,
       accuracyMeters: r.accuracy_meters,
@@ -801,7 +832,12 @@ export class DailyPayRepository {
       ipAddress: r.ip_address,
       userAgent: r.user_agent,
       createdAt: (r.created_at as Date | null) ?? null,
-      amount: r.amount !== null ? toNumber(r.amount) : null,
+      amount:
+        r.amount !== null
+          ? toNumber(r.amount)
+          : r.enrollment_rate !== null
+            ? toNumber(r.enrollment_rate)
+            : null,
       payRecordReversedAt: (r.reversed_at as Date | null) ?? null,
     }))
   }

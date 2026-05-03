@@ -501,7 +501,7 @@ export class PayrollRepository {
 
     // Get daily-pay records that match this paystub's weekend_date.
     // Only loaded when we know the paystub's weekend_date — daily pay is keyed by wkending.
-    const { dailyPayRepository } = await import('./DailyPayRepository')
+    const { dailyPayRepository, dateOnlyFromDb } = await import('./DailyPayRepository')
     const weekendDate = paystub?.weekend_date
     let dailyPay: Awaited<ReturnType<typeof dailyPayRepository.getDailyPayForPaystub>> = {
       totalAmount: 0,
@@ -509,10 +509,7 @@ export class PayrollRepository {
       records: [],
     }
     if (weekendDate) {
-      const wkeStr =
-        weekendDate instanceof Date
-          ? `${weekendDate.getUTCFullYear()}-${String(weekendDate.getUTCMonth() + 1).padStart(2, '0')}-${String(weekendDate.getUTCDate()).padStart(2, '0')}`
-          : String(weekendDate)
+      const wkeStr = dateOnlyFromDb(weekendDate as Date | string | null)
       dailyPay = await dailyPayRepository.getDailyPayForPaystub(agentIdForQueries, vendorId, wkeStr)
     }
 
