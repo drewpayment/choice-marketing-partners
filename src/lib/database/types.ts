@@ -562,7 +562,65 @@ export interface ProductMarketing {
   updated_at: Generated<Date | null>;
 }
 
+export interface DailyPaySettings {
+  id: Generated<number>;
+  is_auto_cutoff_enabled: Generated<number>;
+  cutoff_day_of_week: Generated<number>;
+  cutoff_time_local: Generated<string>;
+  cutoff_timezone: Generated<string>;
+  updated_by: number | null;
+  updated_at: Generated<Date>;
+}
+
+export interface DailyPayEnrollments {
+  id: Generated<number>;
+  employee_id: number;
+  vendor_id: number;
+  daily_rate: Decimal;
+  is_active: Generated<number>;
+  created_by: number | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export interface DailyPunchRecords {
+  id: Generated<number>;
+  employee_id: number;
+  vendor_id: number;
+  punched_at: Date;
+  work_date: Date;
+  latitude: Decimal | null;
+  longitude: Decimal | null;
+  accuracy_meters: number | null;
+  status: Generated<"pending" | "approved" | "declined" | "auto_rejected">;
+  decided_by: number | null;
+  decided_at: Date | null;
+  decline_reason: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: Generated<Date>;
+}
+
+export interface DailyPayRecords {
+  id: Generated<number>;
+  punch_id: number;
+  employee_id: number;
+  vendor_id: number;
+  work_date: Date;
+  wkending: Date;
+  amount: Decimal;
+  description: Generated<string>;
+  created_by: number | null;
+  created_at: Generated<Date>;
+  reversed_at: Date | null;
+  reversed_by: number | null;
+}
+
 export interface DB {
+  daily_pay_enrollments: DailyPayEnrollments;
+  daily_pay_records: DailyPayRecords;
+  daily_pay_settings: DailyPaySettings;
+  daily_punch_records: DailyPunchRecords;
   comments: Comments;
   company_options: CompanyOptions;
   document_files: DocumentFiles;

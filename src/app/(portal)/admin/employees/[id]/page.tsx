@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, User, Shield, Users, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 import { UserAccountActions } from '@/components/employees/UserAccountActions'
+import EmployeeEnrollmentsSection from '@/components/daily-pay/employee-enrollments-section'
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -186,6 +187,9 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
             hasUser: !!employee.user,
           }}
         />
+
+        {/* Daily Pay Enrollments */}
+        <EmployeeEnrollmentsSection employeeId={employee.id} employeeName={employee.name} />
 
         {/* Contact Information */}
         <Card>

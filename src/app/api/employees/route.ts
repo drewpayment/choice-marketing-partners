@@ -54,14 +54,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const get = (k: string) => searchParams.get(k) ?? undefined
     const filters = employeeFiltersSchema.parse({
-      search: searchParams.get('search'),
-      status: searchParams.get('status'),
-      role: searchParams.get('role'),
-      hasUser: searchParams.get('hasUser') === 'true' ? true : 
+      search: get('search'),
+      status: get('status'),
+      role: get('role'),
+      hasUser: searchParams.get('hasUser') === 'true' ? true :
                searchParams.get('hasUser') === 'false' ? false : undefined,
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit')
+      page: get('page'),
+      limit: get('limit')
     })
 
     const userContext = await getEmployeeContext(

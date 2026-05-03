@@ -91,10 +91,22 @@ export interface PaystubDetail {
     notes: string
     issue_date: Date
   }>
+  dailyPay: Array<{
+    id: number
+    workDate: string
+    punchedAt: string | null
+    latitude: number | null
+    longitude: number | null
+    accuracyMeters: number | null
+    description: string
+    amount: number
+    createdByName: string | null
+  }>
   totals: {
     sales: number
     overrides: number
     expenses: number
+    dailyPay: number
     netPay: number
   }
   isPaid: boolean
@@ -487,10 +499,28 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .executeTakeFirst()
 
+    // Get daily-pay records that match this paystub's weekend_date.
+    // Only loaded when we know the paystub's weekend_date — daily pay is keyed by wkending.
+    const { dailyPayRepository } = await import('./DailyPayRepository')
+    const weekendDate = paystub?.weekend_date
+    let dailyPay: Awaited<ReturnType<typeof dailyPayRepository.getDailyPayForPaystub>> = {
+      totalAmount: 0,
+      recordCount: 0,
+      records: [],
+    }
+    if (weekendDate) {
+      const wkeStr =
+        weekendDate instanceof Date
+          ? `${weekendDate.getUTCFullYear()}-${String(weekendDate.getUTCMonth() + 1).padStart(2, '0')}-${String(weekendDate.getUTCDate()).padStart(2, '0')}`
+          : String(weekendDate)
+      dailyPay = await dailyPayRepository.getDailyPayForPaystub(agentIdForQueries, vendorId, wkeStr)
+    }
+
     // Calculate totals
     const salesTotal = sales.reduce((sum, invoice) => sum + parseFloat(invoice.amount || '0'), 0)
     const overridesTotal = overrides.reduce((sum, override) => sum + parseFloat(override.total || '0'), 0)
     const expensesTotal = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0)
+    const dailyPayTotal = dailyPay.totalAmount
 
     // Parse custom_fields JSON for each sale
     const salesWithCustomFields = sales.map(sale => {
@@ -540,11 +570,23 @@ export class PayrollRepository {
       sales: salesWithCustomFields,
       overrides,
       expenses,
+      dailyPay: dailyPay.records.map((r) => ({
+        id: r.id,
+        workDate: r.workDate,
+        punchedAt: r.punchedAt ? r.punchedAt.toISOString() : null,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        accuracyMeters: r.accuracyMeters,
+        description: r.description,
+        amount: r.amount,
+        createdByName: r.createdByName,
+      })),
       totals: {
         sales: salesTotal,
         overrides: overridesTotal,
         expenses: expensesTotal,
-        netPay: salesTotal + overridesTotal + expensesTotal
+        dailyPay: dailyPayTotal,
+        netPay: salesTotal + overridesTotal + expensesTotal + dailyPayTotal
       },
       isPaid: false, // Will be determined by payroll table later
       generatedAt: paystub?.created_at?.toISOString(),

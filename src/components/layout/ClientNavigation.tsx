@@ -50,6 +50,11 @@ export function ClientNavigation({ user }: ClientNavigationProps) {
       show: !user.isSubscriber
     },
     {
+      href: '/punch-in',
+      label: 'Punch In',
+      show: !user.isSubscriber
+    },
+    {
       href: '/documents',
       label: 'Documents',
       show: !user.isSubscriber
