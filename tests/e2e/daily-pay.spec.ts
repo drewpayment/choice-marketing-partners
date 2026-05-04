@@ -1,23 +1,27 @@
+import { execSync } from 'child_process'
 import { test, expect } from '../fixtures/auth'
 
 /**
  * End-to-end test for the daily-pay punch tracking feature.
  *
- * **Important:** this test requires the daily-pay seed script to have run first
- * to insert two pending punches for Drew Payment (id=7) at CMP Corp (id=8) on
- * work_date=2026-01-14, and to mark the matching paystub at /payroll/7/8/2026-01-28
- * as unpaid so the reverse path can be exercised:
+ * The test deliberately uses real data + real DB joins because the bugs caught
+ * during initial development were all mysql2/timezone interactions that unit
+ * tests with mocks could not reproduce.
  *
- *   bun run scripts/seed-daily-pay-test.ts
- *
- * The test deliberately uses real data + real DB joins because the bugs we caught
- * during initial development were all mysql2/timezone interactions that pure
- * unit tests with mocks could not reproduce.
+ * `beforeAll` runs the seed script which:
+ *   - Inserts an enrollment for Drew Payment (id=7) at CMP Corp (id=8) at $125/day
+ *   - Inserts two pending punches with work_date=2026-01-14
+ *   - Marks the matching paystub (/payroll/7/8/2026-01-28, weekend_date=2026-01-17)
+ *     as unpaid so the reverse-approval flow can be exercised
  */
 
 const PAYSTUB_URL = '/payroll/7/8/2026-01-28'
 
 test.describe.configure({ mode: 'serial' })
+
+test.beforeAll(() => {
+  execSync('bun run scripts/seed-daily-pay-test.ts', { stdio: 'inherit' })
+})
 
 test.describe('Daily Pay — admin approval flow', () => {
   test('punch approval shows up on the matching paystub', async ({ adminPage }) => {
