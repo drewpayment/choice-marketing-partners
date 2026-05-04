@@ -18,7 +18,8 @@ import {
   CreditCard,
   Package,
   Flag,
-  Briefcase
+  Briefcase,
+  MapPin
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -67,6 +68,12 @@ const adminNavItems = [
     icon: BarChart3,
     label: 'Payroll Monitor',
     description: 'Track paid/unpaid status'
+  },
+  {
+    href: '/admin/daily-pay/punches',
+    icon: MapPin,
+    label: 'Daily Pay',
+    description: 'Punches, enrollments, cutoff'
   },
   {
     href: '/admin/overrides',
@@ -159,7 +166,7 @@ export default function AdminSidebar() {
                     <li>
                       <ul role="list" className="-mx-2 space-y-1">
                         {visibleNavItems.map((item) => {
-                          const isActive = pathname === item.href;
+                          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                           return (
                             <li key={item.href}>
                               <Link
@@ -216,7 +223,7 @@ export default function AdminSidebar() {
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
                   {visibleNavItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
                       <li key={item.href}>
                         <Link

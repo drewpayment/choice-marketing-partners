@@ -20,8 +20,10 @@ export const ROUTE_ACCESS = {
   EMPLOYEE: [
     '/payroll',
     '/documents',
+    '/punch-in',
     '/api/payroll',
-    '/api/documents'
+    '/api/documents',
+    '/api/punch'
   ],
   
   // Manager level or higher

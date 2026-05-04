@@ -83,10 +83,22 @@ interface PaystubDetailProps {
       notes: string
       issue_date: Date
     }>
+    dailyPay?: Array<{
+      id: number
+      workDate: string
+      punchedAt: string | null
+      latitude: number | null
+      longitude: number | null
+      accuracyMeters: number | null
+      description: string
+      amount: number
+      createdByName: string | null
+    }>
     totals: {
       sales: number
       overrides: number
       expenses: number
+      dailyPay?: number
       netPay: number
     }
     isPaid?: boolean
@@ -468,7 +480,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       </div>
 
       {/* Summary Cards - Responsive Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 px-4 md:px-0">
+      <div className={`grid grid-cols-2 ${(paystub.dailyPay && paystub.dailyPay.length > 0) ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 md:gap-4 px-4 md:px-0`}>
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
             <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
@@ -482,6 +494,29 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
             </p>
           </CardContent>
         </Card>
+
+        {paystub.dailyPay && paystub.dailyPay.length > 0 && (
+          <Card
+            className="border-[var(--status-green-600)] shadow-[0_0_0_3px_var(--status-green-50)]"
+          >
+            <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+              <CardTitle className="flex items-center gap-1.5 text-xs md:text-sm font-medium text-muted-foreground">
+                Daily Pay
+                <span className="rounded bg-[var(--status-green-50)] px-1.5 py-px text-[9px] font-bold text-[var(--status-green-600)]">
+                  NEW
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+              <div className="text-lg md:text-2xl font-bold text-[var(--status-green-600)]">
+                {formatCurrency(paystub.totals.dailyPay ?? 0)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {paystub.dailyPay.length} day(s) approved
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
@@ -588,6 +623,101 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily Incentives — populated from approved punches */}
+      {paystub.dailyPay && paystub.dailyPay.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--status-green-50)]">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--status-green-600)"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+              </div>
+              <div>
+                <CardTitle className="text-sm md:text-base font-bold">
+                  Daily Incentives{' '}
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    ({paystub.dailyPay.length})
+                  </span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Auto-populated from approved punches
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs md:text-sm">Work date</TableHead>
+                    <TableHead className="text-xs md:text-sm">Punch time</TableHead>
+                    <TableHead className="text-xs md:text-sm">Location</TableHead>
+                    <TableHead className="text-xs md:text-sm">Approved by</TableHead>
+                    <TableHead className="text-xs md:text-sm">Description</TableHead>
+                    <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paystub.dailyPay.map((d) => (
+                    <TableRow key={d.id}>
+                      <TableCell className="text-xs md:text-sm">
+                        {new Intl.DateTimeFormat('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        }).format(new Date(d.workDate + 'T00:00:00'))}
+                      </TableCell>
+                      <TableCell className="text-xs md:text-sm">
+                        {d.punchedAt
+                          ? new Intl.DateTimeFormat('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            }).format(new Date(d.punchedAt))
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="text-xs md:text-sm">
+                        {d.latitude !== null && d.longitude !== null
+                          ? `${d.latitude.toFixed(4)}, ${d.longitude.toFixed(4)}${
+                              d.accuracyMeters != null ? ` · ±${d.accuracyMeters}m` : ''
+                            }`
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="text-xs md:text-sm">{d.createdByName ?? '—'}</TableCell>
+                      <TableCell className="text-xs md:text-sm">{d.description}</TableCell>
+                      <TableCell className="text-right text-xs md:text-sm font-bold tabular-nums">
+                        {formatCurrency(d.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-[var(--status-green-50)] border-t-2 border-[var(--status-green-600)]">
+                    <TableCell colSpan={5} className="font-semibold">
+                      Subtotal — Daily Incentives
+                    </TableCell>
+                    <TableCell className="text-right font-bold tabular-nums text-[var(--status-green-600)]">
+                      {formatCurrency(paystub.totals.dailyPay ?? 0)}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sales Transactions — Dynamic Columns */}
       {paystub.sales.length > 0 && (
