@@ -446,6 +446,7 @@ export interface Users {
   created_at: Date | null;
   deleted_at: Date | null;
   email: string;
+  email_verified_at: Generated<Date | null>;
   id: number;
   name: string;
   password: string;
@@ -562,8 +563,22 @@ export interface ProductMarketing {
   updated_at: Generated<Date | null>;
 }
 
+export interface EmailDeliveryEvents {
+  bounce_type: string | null;
+  created_at: Generated<Date>;
+  email: string;
+  event_type: string;
+  id: Generated<number>;
+  occurred_at: Date | null;
+  payload: string | null;
+  resend_email_id: string | null;
+  subject: string | null;
+  svix_id: string;
+}
+
 export interface DB {
   comments: Comments;
+  email_delivery_events: EmailDeliveryEvents;
   company_options: CompanyOptions;
   document_files: DocumentFiles;
   documents: Documents;

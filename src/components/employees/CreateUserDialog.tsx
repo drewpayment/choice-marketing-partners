@@ -43,6 +43,7 @@ export function CreateUserDialog({
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [generatedPassword, setGeneratedPassword] = useState('')
+  const [verificationSent, setVerificationSent] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const handleSubmit = async () => {
@@ -63,6 +64,7 @@ export function CreateUserDialog({
 
       const data = await response.json()
       setGeneratedPassword(data.password || '')
+      setVerificationSent(!!data.verificationSent)
       setSuccess(true)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create user account')
@@ -84,6 +86,7 @@ export function CreateUserDialog({
       setError('')
       setSuccess(false)
       setGeneratedPassword('')
+      setVerificationSent(false)
       setCopied(false)
     }, 300)
   }
@@ -110,7 +113,9 @@ export function CreateUserDialog({
               <Check className="h-4 w-4" />
               <AlertTitle>Success!</AlertTitle>
               <AlertDescription>
-                {generatedPassword
+                {verificationSent
+                  ? `User account created. A verification email has been sent to ${employeeEmail}; they will set their own password before first sign-in.`
+                  : generatedPassword
                   ? `User account created successfully. A welcome email has been sent to ${employeeEmail}.`
                   : `An existing user account was found and linked to this employee. No new password was generated.`}
               </AlertDescription>
@@ -136,7 +141,7 @@ export function CreateUserDialog({
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Save this password - it won't be shown again.
+                  Save this password - it won&apos;t be shown again.
                 </p>
               </div>
             )}
@@ -149,7 +154,10 @@ export function CreateUserDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="role">User Role</Label>
-              <Select value={role} onValueChange={(value: any) => setRole(value)}>
+              <Select
+                value={role}
+                onValueChange={(value) => setRole(value as 'admin' | 'author' | 'subscriber')}
+              >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>

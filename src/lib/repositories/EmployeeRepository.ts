@@ -36,6 +36,7 @@ export interface EmployeeDetail extends EmployeeSummary {
     email: string
     role: string
     created_at: Date | null
+    emailVerifiedAt: Date | null
   }
 }
 
@@ -61,6 +62,12 @@ export interface CreateEmployeeData {
 export interface CreateUserData {
   password: string
   role?: 'admin' | 'author' | 'subscriber'
+  /**
+   * When true, the account is created unverified (email_verified_at = NULL).
+   * The supplied password is a throwaway; the user sets a real one through
+   * the email-verification flow.
+   */
+  requireVerification?: boolean
 }
 
 export interface EmployeeFilters {
@@ -236,7 +243,8 @@ export class EmployeeRepository {
         'users.uid as user_uid',
         'users.email as user_email',
         'users.role as user_role',
-        'users.created_at as user_created_at'
+        'users.created_at as user_created_at',
+        'users.email_verified_at as user_email_verified_at'
       ])
       .where('employees.id', '=', id)
       .executeTakeFirst()
@@ -278,7 +286,8 @@ export class EmployeeRepository {
         uid: employee.user_uid,
         email: employee.user_email!,
         role: employee.user_role!,
-        created_at: employee.user_created_at
+        created_at: employee.user_created_at,
+        emailVerifiedAt: employee.user_email_verified_at ?? null
       } : undefined
     }
   }
@@ -418,6 +427,7 @@ export class EmployeeRepository {
         email: '', // Will be populated from employee email
         password: hashedPassword,
         role: userData.role || 'subscriber',
+        email_verified_at: userData.requireVerification ? null : new Date(),
         created_at: new Date(),
         updated_at: new Date()
       })
@@ -502,6 +512,7 @@ export class EmployeeRepository {
             email: employeeData.email,
             password: hashedPassword,
             role: userData.role || 'subscriber',
+            email_verified_at: userData.requireVerification ? null : new Date(),
             created_at: new Date(),
             updated_at: new Date()
           })
@@ -547,7 +558,8 @@ export class EmployeeRepository {
           'users.uid as user_uid',
           'users.email as user_email',
           'users.role as user_role',
-          'users.created_at as user_created_at'
+          'users.created_at as user_created_at',
+          'users.email_verified_at as user_email_verified_at'
         ])
         .where('employees.id', '=', employeeId)
         .executeTakeFirstOrThrow()
@@ -577,10 +589,36 @@ export class EmployeeRepository {
           uid: createdEmployee.user_uid,
           email: createdEmployee.user_email!,
           role: createdEmployee.user_role!,
-          created_at: createdEmployee.user_created_at
+          created_at: createdEmployee.user_created_at,
+          emailVerifiedAt: createdEmployee.user_email_verified_at ?? null
         } : undefined
       }
     })
+  }
+
+  /**
+   * Counts of user accounts by email-verification state — used to measure
+   * adoption of the email-verification flow.
+   */
+  async getEmailVerificationStats(): Promise<{ pending: number; verified: number }> {
+    const pendingRow = await db
+      .selectFrom('users')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('deleted_at', 'is', null)
+      .where('email_verified_at', 'is', null)
+      .executeTakeFirst()
+
+    const verifiedRow = await db
+      .selectFrom('users')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('deleted_at', 'is', null)
+      .where('email_verified_at', 'is not', null)
+      .executeTakeFirst()
+
+    return {
+      pending: Number(pendingRow?.count ?? 0),
+      verified: Number(verifiedRow?.count ?? 0),
+    }
   }
 
   /**

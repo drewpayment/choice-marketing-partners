@@ -7,7 +7,7 @@ import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { EmployeeList } from '@/components/employees/EmployeeList'
 import { EmployeeFilters } from '@/components/employees/EmployeeFilters'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, MailX } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -66,12 +66,20 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
             Manage employees and their user accounts
           </p>
         </div>
-        <Link href="/admin/employees/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/employees/email-alerts">
+            <Button variant="outline">
+              <MailX className="mr-2 h-4 w-4" />
+              Email Alerts
+            </Button>
+          </Link>
+          <Link href="/admin/employees/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Employee
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Statistics */}

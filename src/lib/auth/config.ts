@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/database/client'
 import { logger } from '@/lib/utils/logger'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -21,7 +22,7 @@ export const authOptions: NextAuthOptions = {
           // Find user by email
           const user = await db
             .selectFrom('users')
-            .select(['id', 'email', 'password', 'name'])
+            .select(['id', 'email', 'password', 'name', 'email_verified_at'])
             .where('email', '=', credentials.email)
             .executeTakeFirst()
 
@@ -31,9 +32,27 @@ export const authOptions: NextAuthOptions = {
 
           // Verify password
           const isValidPassword = await bcrypt.compare(credentials.password, user.password)
-          
+
           if (!isValidPassword) {
             return null
+          }
+
+          // Email verification gate (feature-flagged). Accounts created before
+          // the verification flow are grandfathered with a non-null
+          // email_verified_at, so only genuinely unverified accounts are blocked.
+          if (user.email_verified_at == null) {
+            const mustVerify = await isFeatureEnabled('require-email-verification', {
+              userId: String(user.id),
+              isAdmin: false,
+              isManager: false,
+              isSubscriber: false,
+              subscriberId: null,
+            })
+            if (mustVerify) {
+              throw new Error(
+                'Please verify your email address before signing in. Check your inbox for the verification link.'
+              )
+            }
           }
 
           // Get employee data for role information - direct relationship
@@ -87,6 +106,11 @@ export const authOptions: NextAuthOptions = {
             ].filter(Boolean) as string[]
           }
         } catch (error) {
+          // Surface the email-verification gate message to the client;
+          // swallow everything else as a generic auth failure.
+          if (error instanceof Error && error.message.startsWith('Please verify your email')) {
+            throw error
+          }
           logger.error('Authentication error:', error)
           return null
         }

@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ArrowLeft, Edit, Mail, Phone, MapPin, User, Shield, Users, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 import { UserAccountActions } from '@/components/employees/UserAccountActions'
+import { EmailDeliveryRepository } from '@/lib/repositories/EmailDeliveryRepository'
+import { EmailDeliveryBadge } from '@/components/employees/EmailDeliveryBadge'
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -43,6 +45,10 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
   if (!employee) {
     notFound()
   }
+
+  const deliveryStatus = await new EmailDeliveryRepository().getLatestStatusForEmail(
+    employee.email
+  )
 
   const getEmployeeInitials = (name: string) => {
     return name
@@ -147,6 +153,7 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
                       Hidden from Payroll
                     </Badge>
                   )}
+                  <EmailDeliveryBadge status={deliveryStatus} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,6 +192,7 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
             email: employee.email,
             hasUser: !!employee.user,
           }}
+          emailUnverified={!!employee.user && employee.user.emailVerifiedAt === null}
         />
 
         {/* Contact Information */}

@@ -1,0 +1,180 @@
+'use client'
+
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useIsClient } from '@/hooks/useIsClient'
+
+function VerifyEmailForm() {
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isClient = useIsClient()
+  const token = searchParams.get('token')
+
+  useEffect(() => {
+    if (isClient && !token) {
+      setError('Invalid verification link. Please ask an administrator to resend it.')
+    }
+  }, [isClient, token])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to verify email')
+        setLoading(false)
+        return
+      }
+
+      setSuccess(true)
+      setTimeout(() => {
+        router.push('/auth/signin')
+      }, 3000)
+    } catch {
+      setError('An error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <div className="max-w-md w-full space-y-8">
+            <div className="h-8 bg-muted rounded w-3/4 mx-auto"></div>
+            <div className="h-10 bg-muted rounded"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center">
+          <div className="rounded-md bg-primary/10 p-4">
+            <h3 className="text-lg font-medium text-primary">
+              Email Verified!
+            </h3>
+            <p className="mt-2 text-sm text-primary">
+              Your account is ready. Redirecting to sign in page...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
+            Verify your email
+          </h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Set a password to finish setting up your account
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="password" className="sr-only">
+                New Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder-muted-foreground text-foreground rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="New password (min 8 characters)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
+              />
+            </div>
+            <div>
+              <label htmlFor="confirm-password" className="sr-only">
+                Confirm Password
+              </label>
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder-muted-foreground text-foreground rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-4">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading || !token}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+            >
+              {loading ? 'Verifying...' : 'Verify & set password'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <div className="max-w-md w-full space-y-8">
+            <div className="h-8 bg-muted rounded w-3/4 mx-auto"></div>
+            <div className="h-10 bg-muted rounded"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
+  )
+}
