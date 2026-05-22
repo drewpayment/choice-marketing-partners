@@ -23,11 +23,13 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [verificationSent, setVerificationSent] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
     name: employee?.name || '',
     email: employee?.email || '',
+    confirmEmail: '',
     phone_no: employee?.phone_no || '',
     address: employee?.address || '',
     address_2: employee?.address_2 || '',
@@ -55,6 +57,16 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+
+    // Require a matching re-typed email on create to catch address typos
+    if (
+      mode === 'create' &&
+      formData.email.trim().toLowerCase() !== formData.confirmEmail.trim().toLowerCase()
+    ) {
+      setError('Email addresses do not match')
+      setIsLoading(false)
+      return
+    }
 
     try {
       const employeeData: CreateEmployeeData = {
@@ -88,6 +100,7 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
         ? employeeData
         : {
             ...employeeData,
+            confirmEmail: formData.confirmEmail,
             createUser: formData.createUser,
             userRole: formData.role
             // Password is optional - backend will auto-generate if not provided
@@ -104,9 +117,12 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
 
       if (response.ok) {
         const result = await response.json()
-        
-        // Store generated password if provided
-        if (result.generatedPassword) {
+
+        if (result.verificationSent) {
+          // Verification flow: employee sets their own password via email
+          setVerificationSent(true)
+        } else if (result.generatedPassword) {
+          // Store generated password if provided
           setGeneratedPassword(result.generatedPassword)
         } else {
           // No generated password, redirect immediately
@@ -126,6 +142,25 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
 
   return (
     <div className="space-y-6">
+      {/* Success message when an email-verification link was sent */}
+      {verificationSent && (
+        <Card className="border-primary bg-primary/10">
+          <CardHeader>
+            <CardTitle className="text-primary">Employee Created Successfully! 🎉</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-primary">
+              A verification email has been sent to <strong>{formData.email}</strong>.
+              The employee must verify their email and set a password before they
+              can sign in.
+            </p>
+            <Button onClick={() => router.push('/admin/employees')}>
+              Go to Employee List
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Success message with generated password */}
       {generatedPassword && (
         <Card className="border-primary bg-primary/10">
@@ -209,6 +244,24 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
                   required
                 />
               </div>
+
+              {mode === 'create' && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmEmail">Confirm Email Address *</Label>
+                  <Input
+                    id="confirmEmail"
+                    type="email"
+                    value={formData.confirmEmail}
+                    onChange={(e) => handleInputChange('confirmEmail', e.target.value)}
+                    onPaste={(e) => e.preventDefault()}
+                    placeholder="Re-type email address"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Re-type the address to avoid typos. Pasting is disabled.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="phone_no">Phone Number</Label>

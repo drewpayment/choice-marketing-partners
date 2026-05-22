@@ -4,7 +4,9 @@ import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/database/client'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import { sendWelcomeEmail } from '@/lib/services/email'
+import { sendWelcomeEmail, sendVerificationEmail } from '@/lib/services/email'
+import { generateEmailVerificationToken } from '@/lib/auth/email-verification'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
 
 // Generate secure random password
@@ -118,7 +120,16 @@ export async function POST(
       })
     }
 
-    // No existing user — create a new one
+    // No existing user — create a new one.
+    // When the verification flag is on, the account starts unverified and the
+    // generated password is a throwaway (the user sets their own via email).
+    const requireVerification = await isFeatureEnabled('require-email-verification', {
+      userId: session.user.id,
+      isAdmin: session.user.isAdmin,
+      isManager: session.user.isManager ?? false,
+      isSubscriber: false,
+      subscriberId: null,
+    })
     const password = generatePassword(10)
     const hashedPassword = await bcrypt.hash(password, 12)
 
@@ -133,6 +144,7 @@ export async function POST(
           name: employee.name,
           password: hashedPassword,
           role: role,
+          email_verified_at: requireVerification ? null : new Date(),
           created_at: new Date(),
           updated_at: new Date(),
         })
@@ -158,6 +170,32 @@ export async function POST(
 
       return user
     })
+
+    // Verification flow: send a verification link, never expose a password
+    if (requireVerification) {
+      try {
+        const token = generateEmailVerificationToken(employee.email, String(result.id))
+        const baseUrl =
+          process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        await sendVerificationEmail(
+          employee.email,
+          `${baseUrl}/auth/verify-email?token=${token}`
+        )
+      } catch (emailError) {
+        logger.error('Failed to send verification email:', emailError)
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `User account created. A verification email has been sent to ${employee.email}.`,
+        verificationSent: true,
+        user: {
+          id: result.id,
+          email: result.email,
+          role: result.role,
+        },
+      })
+    }
 
     // Send welcome email
     try {

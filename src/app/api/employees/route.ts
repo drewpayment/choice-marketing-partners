@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { generatePassword } from '@/lib/utils/password'
-import { sendWelcomeEmail } from '@/lib/services/email'
+import { sendWelcomeEmail, sendVerificationEmail } from '@/lib/services/email'
+import { generateEmailVerificationToken } from '@/lib/auth/email-verification'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
@@ -23,6 +25,7 @@ const employeeFiltersSchema = z.object({
 const createEmployeeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Valid email is required'),
+  confirmEmail: z.string().min(1, 'Please confirm the email address'),
   phone_no: z.string().optional(),
   address: z.string().min(1, 'Address is required'),
   address_2: z.string().optional(),
@@ -40,7 +43,10 @@ const createEmployeeSchema = z.object({
   createUser: z.boolean().optional().default(false),
   password: z.string().optional(), // Optional - will auto-generate if not provided
   userRole: z.enum(['admin', 'author', 'subscriber']).optional().default('subscriber')
-})
+}).refine(
+  (d) => d.email.trim().toLowerCase() === d.confirmEmail.trim().toLowerCase(),
+  { message: 'Email addresses do not match', path: ['confirmEmail'] }
+)
 
 /**
  * GET /api/employees - Get paginated list of employees with filtering
@@ -105,10 +111,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate password if user creation is requested but no password provided
+    // When the verification flag is on, new accounts must verify their email
+    // and set their own password before first login.
+    const requireVerification = data.createUser
+      ? await isFeatureEnabled('require-email-verification', {
+          userId: session.user.id,
+          isAdmin: session.user.isAdmin,
+          isManager: session.user.isManager ?? false,
+          isSubscriber: false,
+          subscriberId: null,
+        })
+      : false
+
+    // Generate password if user creation is requested but no password provided.
+    // In verification mode this value is a throwaway (never shared) — the user
+    // sets their real password through the verification link.
     let generatedPassword: string | undefined
     let userPassword: string | undefined
-    
+
     if (data.createUser) {
       if (data.password) {
         // Use provided password
@@ -148,29 +168,51 @@ export async function POST(request: NextRequest) {
       },
       data.createUser && userPassword ? {
         password: userPassword,
-        role: data.userRole
+        role: data.userRole,
+        requireVerification
       } : undefined,
       userContext
     )
 
-    // Send welcome email if user account was created
-    if (data.createUser && userPassword) {
-      try {
-        await sendWelcomeEmail({
-          to: data.email,
-          name: data.name,
-          password: userPassword
-        })
-      } catch (emailError) {
-        // Log email error but don't fail the employee creation
-        logger.error('Failed to send welcome email:', emailError)
+    // Send the appropriate onboarding email if a user account was created
+    let verificationSent = false
+    if (data.createUser && userPassword && employee.user) {
+      if (requireVerification) {
+        try {
+          const token = generateEmailVerificationToken(
+            employee.user.email,
+            String(employee.user.uid)
+          )
+          const baseUrl =
+            process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+          await sendVerificationEmail(
+            employee.user.email,
+            `${baseUrl}/auth/verify-email?token=${token}`
+          )
+          verificationSent = true
+        } catch (emailError) {
+          logger.error('Failed to send verification email:', emailError)
+        }
+      } else {
+        try {
+          await sendWelcomeEmail({
+            to: data.email,
+            name: data.name,
+            password: userPassword
+          })
+        } catch (emailError) {
+          // Log email error but don't fail the employee creation
+          logger.error('Failed to send welcome email:', emailError)
+        }
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       employee,
-      // Only return generated password to admin (not stored anywhere)
-      generatedPassword: generatedPassword
+      // Only return the generated password when verification is off; in
+      // verification mode the user sets their own password.
+      generatedPassword: requireVerification ? undefined : generatedPassword,
+      verificationSent
     }, { status: 201 })
   } catch (error) {
     logger.error('Error creating employee:', error)

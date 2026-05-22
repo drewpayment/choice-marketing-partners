@@ -1,4 +1,7 @@
 import { Resend } from 'resend'
+import { render } from '@react-email/render'
+import React from 'react'
+import VerifyEmail from '@/components/emails/VerifyEmail'
 import { logger } from '@/lib/utils/logger'
 
 /**
@@ -210,7 +213,7 @@ export async function sendPasswordResetEmail(
     }
 
     logger.log('✅ Password reset email sent successfully:', { id: data?.id, to })
-    return { 
+    return {
       success: true,
       messageId: data?.id
     }
@@ -219,6 +222,42 @@ export async function sendPasswordResetEmail(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
+/**
+ * Sends an email-verification message to a newly created employee account.
+ * The recipient clicks through to verify the address and set their password.
+ * @param to Recipient email
+ * @param verifyUrl Verification link (contains the signed token)
+ */
+export async function sendVerificationEmail(
+  to: string,
+  verifyUrl: string,
+): Promise<EmailResponse> {
+  try {
+    const html = await render(React.createElement(VerifyEmail, { verifyUrl, email: to }))
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: 'Verify your email — Choice Marketing Partners',
+      html,
+    })
+
+    if (error) {
+      logger.error('❌ Resend error (verification email):', error)
+      return { success: false, error: error.message || 'Failed to send email' }
+    }
+
+    logger.log('✅ Verification email sent successfully:', { id: data?.id, to })
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    logger.error('❌ Failed to send verification email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
     }
   }
 }
