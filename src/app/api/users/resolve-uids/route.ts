@@ -6,7 +6,8 @@ import { logger } from '@/lib/utils/logger'
 
 /**
  * GET /api/users/resolve-uids?uids=1,2,3
- * Returns a map of uid -> user name. Admin only.
+ * Returns a map of users.id -> user name. Admin only.
+ * (The `uids` query param name is historical — values are matched against users.id.)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -17,24 +18,24 @@ export async function GET(request: NextRequest) {
     }
 
     const raw = new URL(request.url).searchParams.get('uids') ?? ''
-    const uids = raw
+    const ids = raw
       .split(',')
       .map((s) => parseInt(s.trim(), 10))
       .filter((n) => !isNaN(n))
 
-    if (uids.length === 0) {
+    if (ids.length === 0) {
       return NextResponse.json({})
     }
 
     const rows = await db
       .selectFrom('users')
-      .select(['users.uid', 'users.name'])
-      .where('users.uid', 'in', uids)
+      .select(['users.id', 'users.name'])
+      .where('users.id', 'in', ids)
       .execute()
 
     const map: Record<number, string> = {}
     for (const row of rows) {
-      map[row.uid] = row.name
+      map[row.id] = row.name
     }
 
     return NextResponse.json(map)

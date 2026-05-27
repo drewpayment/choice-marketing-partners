@@ -76,7 +76,7 @@ export default function FeatureFlagsClient() {
   const [ovValue, setOvValue] = useState('')
   const [ovEnabled, setOvEnabled] = useState(true)
   const [userSearch, setUserSearch] = useState('')
-  const [userResults, setUserResults] = useState<{ uid: number; name: string; email: string }[]>([])
+  const [userResults, setUserResults] = useState<{ id: number; name: string; email: string }[]>([])
   const [userSearchOpen, setUserSearchOpen] = useState(false)
   const [selectedUserLabel, setSelectedUserLabel] = useState('')
 
@@ -528,11 +528,11 @@ export default function FeatureFlagsClient() {
                     <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
                       {userResults.map((user) => (
                         <button
-                          key={user.uid}
+                          key={user.id}
                           type="button"
                           className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent"
                           onClick={() => {
-                            setOvValue(String(user.uid))
+                            setOvValue(String(user.id))
                             setSelectedUserLabel(`${user.name} (${user.email})`)
                             setUserSearch('')
                             setUserResults([])
@@ -541,13 +541,13 @@ export default function FeatureFlagsClient() {
                         >
                           <span className="font-medium">{user.name}</span>
                           <span className="text-xs text-muted-foreground">{user.email}</span>
-                          <span className="font-mono text-xs text-muted-foreground">uid: {user.uid}</span>
+                          <span className="font-mono text-xs text-muted-foreground">user id: {user.id}</span>
                         </button>
                       ))}
                     </div>
                   )}
                   {ovValue && (
-                    <p className="mt-1 text-xs text-muted-foreground font-mono">uid: {ovValue}</p>
+                    <p className="mt-1 text-xs text-muted-foreground font-mono">user id: {ovValue}</p>
                   )}
                 </div>
               )}

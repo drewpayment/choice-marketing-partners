@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const users = await db
       .selectFrom('users')
-      .select(['users.uid', 'users.name', 'users.email'])
+      .select(['users.id', 'users.name', 'users.email'])
       .where('users.deleted_at', 'is', null)
       .where((eb) =>
         eb.or([
