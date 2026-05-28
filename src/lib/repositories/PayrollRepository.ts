@@ -507,8 +507,11 @@ export class PayrollRepository {
       return { ...sale, custom_fields: customFields }
     })
 
-    // Fetch vendor field configuration (only if feature flag is enabled)
-    let fieldConfig: Awaited<ReturnType<VendorFieldRepository['getFieldsByVendor']>> = []
+    // Fetch vendor field configuration (only if feature flag is enabled).
+    // Use the non-privileged display read — anyone authorized to view this
+    // paystub may read the vendor's field labels. getFieldsByVendor is admin-only
+    // and would throw for the employee viewing their own paystub.
+    let fieldConfig: Awaited<ReturnType<VendorFieldRepository['getActiveFieldsForDisplay']>> = []
     const flagEnabled = await isFeatureEnabled('vendor_custom_fields', {
       userId: String(userContext.employeeId ?? ''),
       isAdmin: userContext.isAdmin,
@@ -518,7 +521,7 @@ export class PayrollRepository {
     })
     if (flagEnabled) {
       const vendorFieldRepo = new VendorFieldRepository()
-      fieldConfig = await vendorFieldRepo.getFieldsByVendor(vendorId, false, userContext)
+      fieldConfig = await vendorFieldRepo.getActiveFieldsForDisplay(vendorId)
     }
 
     return {

@@ -105,6 +105,34 @@ export class VendorFieldRepository {
   }
 
   /**
+   * Read active field definitions for rendering a paystub. Unlike
+   * getFieldsByVendor (admin management), this is a non-privileged display read:
+   * any user already authorized to view the paystub may read the vendor's field
+   * labels/order. Returns only active fields.
+   */
+  async getActiveFieldsForDisplay(vendorId: number): Promise<VendorFieldDefinition[]> {
+    const rows = await db
+      .selectFrom('vendor_field_definitions')
+      .selectAll()
+      .where('vendor_id', '=', vendorId)
+      .where('is_active', '=', 1)
+      .orderBy('display_order', 'asc')
+      .execute()
+
+    return rows.map(row => ({
+      id: row.id,
+      vendor_id: row.vendor_id,
+      field_key: row.field_key,
+      field_label: row.field_label,
+      source: row.source,
+      display_order: row.display_order,
+      is_active: row.is_active === 1,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }))
+  }
+
+  /**
    * Check if a vendor has been configured (has any field definitions).
    */
   async isVendorConfigured(vendorId: number, userContext: UserContext): Promise<boolean> {
