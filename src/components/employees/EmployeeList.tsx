@@ -156,7 +156,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
 
       const { snapshot } = await res.json()
       await updateSession({ startImpersonation: snapshot })
-      window.location.href = '/'
+      window.location.href = '/dashboard'
     } catch (error) {
       logger.error('Error starting impersonation:', error)
       alert('Failed to start emulation')
