@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useFeatureFlag } from '@/hooks/useFeatureFlag'
 import { EmployeeSummary, EmployeePage } from '@/lib/repositories/EmployeeRepository'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,7 +18,9 @@ import {
   User,
   Shield,
   UserCheck,
-  Users
+  Users,
+  UserCog,
+  Loader2
 } from 'lucide-react'
 import {
   Pagination,
@@ -27,6 +31,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 import { logger } from '@/lib/utils/logger'
 
@@ -47,6 +62,14 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
   const employees = initialData.employees
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { data: session, update: updateSession } = useSession()
+  const emulateFlag = useFeatureFlag('admin-emulate-user')
+  const canEmulate =
+    session?.user?.isSuperAdmin === true &&
+    emulateFlag === true &&
+    !session?.impersonation
+  const [emulateTarget, setEmulateTarget] = useState<EmployeeSummary | null>(null)
+  const [isEmulating, setIsEmulating] = useState(false)
 
   const getEmployeeInitials = (name: string) => {
     return name
@@ -119,6 +142,36 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
       alert('Failed to delete employee')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const confirmEmulate = async () => {
+    const employee = emulateTarget
+    if (!employee?.user_id) return
+
+    setIsEmulating(true)
+    try {
+      const res = await fetch('/api/admin/impersonate/start', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: String(employee.user_id) }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'Failed to start emulation')
+        setIsEmulating(false)
+        return
+      }
+
+      const { snapshot } = await res.json()
+      await updateSession({ startImpersonation: snapshot })
+      window.location.href = '/dashboard'
+    } catch (error) {
+      logger.error('Error starting impersonation:', error)
+      alert('Failed to start emulation')
+      setIsEmulating(false)
     }
   }
 
@@ -261,8 +314,8 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                 </Link>
 
                 {employee.deleted_at ? (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleRestore(employee)}
                     disabled={isLoading}
@@ -270,13 +323,25 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                     <RotateCcw className="h-3 w-3" />
                   </Button>
                 ) : (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleDelete(employee)}
                     disabled={isLoading}
                   >
                     <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+
+                {canEmulate && employee.user_id && !employee.deleted_at && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEmulateTarget(employee)}
+                    disabled={isLoading}
+                    title={`Emulate ${employee.name}`}
+                  >
+                    <UserCog className="h-3 w-3" />
                   </Button>
                 )}
               </div>
@@ -336,6 +401,49 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
           </div>
         </div>
       )}
+
+      {/* Emulate confirmation */}
+      <AlertDialog
+        open={!!emulateTarget}
+        onOpenChange={(open) => {
+          if (!open && !isEmulating) setEmulateTarget(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <UserCog />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Emulate {emulateTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You&apos;ll see the app exactly as{' '}
+              <strong>{emulateTarget?.name}</strong>{' '}
+              does for the next 30 minutes. The session is read-only — you
+              can&apos;t make changes while emulating, and you can stop at any
+              time from the banner at the top of the page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isEmulating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                confirmEmulate()
+              }}
+              disabled={isEmulating}
+            >
+              {isEmulating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Starting…
+                </>
+              ) : (
+                'Emulate'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )
