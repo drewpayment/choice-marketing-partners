@@ -19,7 +19,8 @@ import {
   Shield,
   UserCheck,
   Users,
-  UserCog
+  UserCog,
+  Loader2
 } from 'lucide-react'
 import {
   Pagination,
@@ -30,6 +31,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 import { logger } from '@/lib/utils/logger'
 
@@ -56,6 +68,8 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
     session?.user?.isSuperAdmin === true &&
     emulateFlag === true &&
     !session?.impersonation
+  const [emulateTarget, setEmulateTarget] = useState<EmployeeSummary | null>(null)
+  const [isEmulating, setIsEmulating] = useState(false)
 
   const getEmployeeInitials = (name: string) => {
     return name
@@ -131,15 +145,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
     }
   }
 
-  const handleEmulate = async (employee: EmployeeSummary) => {
-    if (!employee.user_id) return
-    if (!confirm(
-      `Emulate ${employee.name}? You'll see the app as them for 30 minutes, read-only.`
-    )) {
-      return
-    }
+  const confirmEmulate = async () => {
+    const employee = emulateTarget
+    if (!employee?.user_id) return
 
-    setIsLoading(true)
+    setIsEmulating(true)
     try {
       const res = await fetch('/api/admin/impersonate/start', {
         method: 'POST',
@@ -151,6 +161,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         alert(data.error || 'Failed to start emulation')
+        setIsEmulating(false)
         return
       }
 
@@ -160,8 +171,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
     } catch (error) {
       logger.error('Error starting impersonation:', error)
       alert('Failed to start emulation')
-    } finally {
-      setIsLoading(false)
+      setIsEmulating(false)
     }
   }
 
@@ -327,7 +337,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleEmulate(employee)}
+                    onClick={() => setEmulateTarget(employee)}
                     disabled={isLoading}
                     title={`Emulate ${employee.name}`}
                   >
@@ -391,6 +401,48 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
           </div>
         </div>
       )}
+
+      {/* Emulate confirmation */}
+      <AlertDialog
+        open={!!emulateTarget}
+        onOpenChange={(open) => {
+          if (!open && !isEmulating) setEmulateTarget(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <UserCog />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Emulate {emulateTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You&apos;ll see the app exactly as {emulateTarget?.name} does for the
+              next 30 minutes. The session is read-only — you can&apos;t make
+              changes while emulating, and you can stop at any time from the
+              banner at the top of the page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isEmulating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                confirmEmulate()
+              }}
+              disabled={isEmulating}
+            >
+              {isEmulating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Starting…
+                </>
+              ) : (
+                'Emulate'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )
