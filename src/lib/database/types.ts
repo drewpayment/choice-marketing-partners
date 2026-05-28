@@ -83,6 +83,7 @@ export interface Employees {
   is_active: number;
   is_admin: Generated<number>;
   is_mgr: Generated<number>;
+  is_super_admin: Generated<number>;
   name: string;
   phone_no: string | null;
   postal_code: string | null;
@@ -562,6 +563,22 @@ export interface ProductMarketing {
   updated_at: Generated<Date | null>;
 }
 
+export interface UserImpersonationLog {
+  id: Generated<number>;
+  actor_user_id: string;
+  target_user_id: string;
+  actor_employee_id: number | null;
+  target_employee_id: number | null;
+  started_at: Generated<Date>;
+  ended_at: Date | null;
+  end_reason: "manual" | "expired" | "rejected_mutation" | null;
+  expires_at: Date | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  blocked_method: string | null;
+  blocked_path: string | null;
+}
+
 export interface DB {
   comments: Comments;
   company_options: CompanyOptions;
@@ -606,6 +623,7 @@ export interface DB {
   subscribers: Subscribers;
   subscriber_subscriptions: SubscriberSubscriptions;
   subscriber_user: SubscriberUser;
+  user_impersonation_log: UserImpersonationLog;
   user_notifications: UserNotifications;
   users: Users;
   vendor_field_definitions: VendorFieldDefinitions;

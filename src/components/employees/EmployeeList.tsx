@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useFeatureFlag } from '@/hooks/useFeatureFlag'
 import { EmployeeSummary, EmployeePage } from '@/lib/repositories/EmployeeRepository'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,7 +18,8 @@ import {
   User,
   Shield,
   UserCheck,
-  Users
+  Users,
+  UserCog
 } from 'lucide-react'
 import {
   Pagination,
@@ -47,6 +50,12 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
   const employees = initialData.employees
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { data: session, update: updateSession } = useSession()
+  const emulateFlag = useFeatureFlag('admin-emulate-user')
+  const canEmulate =
+    session?.user?.isSuperAdmin === true &&
+    emulateFlag === true &&
+    !session?.impersonation
 
   const getEmployeeInitials = (name: string) => {
     return name
@@ -117,6 +126,40 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
     } catch (error) {
       logger.error('Error deleting employee:', error)
       alert('Failed to delete employee')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEmulate = async (employee: EmployeeSummary) => {
+    if (!employee.user_id) return
+    if (!confirm(
+      `Emulate ${employee.name}? You'll see the app as them for 30 minutes, read-only.`
+    )) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/admin/impersonate/start', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: String(employee.user_id) }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'Failed to start emulation')
+        return
+      }
+
+      const { snapshot } = await res.json()
+      await updateSession({ startImpersonation: snapshot })
+      window.location.href = '/'
+    } catch (error) {
+      logger.error('Error starting impersonation:', error)
+      alert('Failed to start emulation')
     } finally {
       setIsLoading(false)
     }
@@ -261,8 +304,8 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                 </Link>
 
                 {employee.deleted_at ? (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleRestore(employee)}
                     disabled={isLoading}
@@ -270,13 +313,25 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
                     <RotateCcw className="h-3 w-3" />
                   </Button>
                 ) : (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleDelete(employee)}
                     disabled={isLoading}
                   >
                     <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+
+                {canEmulate && employee.user_id && !employee.deleted_at && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEmulate(employee)}
+                    disabled={isLoading}
+                    title={`Emulate ${employee.name}`}
+                  >
+                    <UserCog className="h-3 w-3" />
                   </Button>
                 )}
               </div>

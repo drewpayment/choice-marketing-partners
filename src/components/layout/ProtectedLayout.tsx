@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth/utils'
 import { ClientNavigation } from './ClientNavigation'
+import { ImpersonationBanner } from './ImpersonationBanner'
 
 interface ProtectedLayoutProps {
   children: React.ReactNode
@@ -10,6 +11,7 @@ export default async function ProtectedLayout({ children }: ProtectedLayoutProps
 
   return (
     <div className="min-h-screen bg-background">
+      <ImpersonationBanner />
       <ClientNavigation user={session.user} />
       <main>{children}</main>
     </div>

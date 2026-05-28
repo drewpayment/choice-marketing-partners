@@ -121,7 +121,8 @@ export class EmployeeRepository {
           .then(true)
           .else(false)
           .end()
-          .as('hasUser')
+          .as('hasUser'),
+        'users.id as user_id'
       ])
 
     // Apply filters
@@ -196,7 +197,8 @@ export class EmployeeRepository {
         is_active: Boolean(emp.is_active),
         is_admin: Boolean(emp.is_admin),
         is_mgr: Boolean(emp.is_mgr),
-        hasUser: !!Number(emp.hasUser)
+        hasUser: !!Number(emp.hasUser),
+        user_id: emp.user_id ?? null
       })),
       total,
       page,

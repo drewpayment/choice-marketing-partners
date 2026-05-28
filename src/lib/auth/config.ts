@@ -101,8 +101,8 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user }) {
-      // Add custom fields to JWT token
+    async jwt({ token, user, trigger, session: updatePayload }) {
+      // Add custom fields to JWT token on initial sign-in
       if (user) {
         token.isAdmin = user.isAdmin
         token.isManager = user.isManager
@@ -113,10 +113,32 @@ export const authOptions: NextAuthOptions = {
         token.subscriberId = user.subscriberId
         token.salesIds = user.salesIds
       }
+
+      // Handle impersonation start/stop via useSession().update(...)
+      if (trigger === 'update' && updatePayload) {
+        const payload = updatePayload as {
+          startImpersonation?: import('@/types/auth').ImpersonationSnapshot
+          stopImpersonation?: boolean
+        }
+
+        if (payload.stopImpersonation) {
+          delete token.impersonation
+        } else if (payload.startImpersonation && token.isSuperAdmin) {
+          // Only a SuperAdmin token can start impersonation. The API route
+          // validates this too — this is defense-in-depth at the JWT layer.
+          token.impersonation = payload.startImpersonation
+        }
+      }
+
+      // Auto-clear expired impersonation on every refresh
+      if (token.impersonation && token.impersonation.expiresAt < Date.now()) {
+        delete token.impersonation
+      }
+
       return token
     },
     async session({ session, token }) {
-      // Add custom fields to session object
+      // Default: surface the real authenticated user's fields
       if (token) {
         session.user = {
           ...session.user,
@@ -129,6 +151,34 @@ export const authOptions: NextAuthOptions = {
           employeeId: token.employeeId as number,
           subscriberId: token.subscriberId as number | null,
           salesIds: token.salesIds as string[]
+        }
+
+        // While impersonating, swap session.user to the target snapshot and
+        // attach an envelope describing the actor → target relationship.
+        // SuperAdmin is always forced false during impersonation — escalation
+        // through impersonation must not be possible.
+        if (token.impersonation && token.impersonation.expiresAt >= Date.now()) {
+          const imp = token.impersonation
+          session.user = {
+            ...session.user,
+            id: imp.actAsUserId,
+            isAdmin: imp.isAdmin,
+            isManager: imp.isManager,
+            isSuperAdmin: false,
+            isActive: imp.isActive,
+            isSubscriber: imp.isSubscriber,
+            employeeId: imp.employeeId,
+            subscriberId: imp.subscriberId ?? null,
+            salesIds: imp.salesIds,
+            name: imp.targetName,
+          }
+          session.impersonation = {
+            actorUserId: token.sub!,
+            actorName: (token.name as string | undefined) ?? 'Admin',
+            targetUserId: imp.actAsUserId,
+            targetName: imp.targetName,
+            expiresAt: imp.expiresAt,
+          }
         }
       }
       return session
