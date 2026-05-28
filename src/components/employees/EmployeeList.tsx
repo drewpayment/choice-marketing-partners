@@ -416,10 +416,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
             </AlertDialogMedia>
             <AlertDialogTitle>Emulate {emulateTarget?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              You&apos;ll see the app exactly as {emulateTarget?.name} does for the
-              next 30 minutes. The session is read-only — you can&apos;t make
-              changes while emulating, and you can stop at any time from the
-              banner at the top of the page.
+              You&apos;ll see the app exactly as{' '}
+              <strong>{emulateTarget?.name}</strong> does for the next 30 minutes.
+              The session is read-only — you can&apos;t make changes while
+              emulating, and you can stop at any time from the banner at the top
+              of the page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
