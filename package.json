@@ -41,7 +41,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^12.38.0",
     "jsonwebtoken": "^9.0.2",
-    "kysely": "^0.28.14",
+    "kysely": "^0.28.17",
     "kysely-codegen": "^0.18.5",
     "lucide-react": "^0.542.0",
     "mysql2": "^3.14.3",
