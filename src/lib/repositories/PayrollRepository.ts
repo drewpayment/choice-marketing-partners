@@ -4,6 +4,11 @@ import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
 import type { UserContext } from '@/lib/auth/types'
+import {
+  getEmployeeVisibilityCutoff,
+  DEFAULT_RELEASE_HOUR,
+  DEFAULT_RELEASE_MINUTE,
+} from '@/lib/utils/payroll-visibility'
 
 
 export interface PayrollFilters {
@@ -161,6 +166,10 @@ export class PayrollRepository {
     const limit = filters.limit || 20
     const offset = (page - 1) * limit
 
+    // Non-admins may only see paystubs whose issue_date has been released.
+    // Future-dated paystubs stay hidden until their release time arrives.
+    const issueDateCutoff = await this.getEmployeeIssueDateCutoff(userContext)
+
     // Get distinct agent/vendor/issue_date combinations from paystubs
     let query = db
       .selectFrom('paystubs')
@@ -205,6 +214,11 @@ export class PayrollRepository {
           }
         }
       }
+
+      // Hide unreleased (future-dated) paystubs from non-admins
+      if (issueDateCutoff) {
+        query = query.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
+      }
     }
 
     // Apply additional filters
@@ -243,6 +257,11 @@ export class PayrollRepository {
         countQuery = countQuery.where('employees.id', 'in', userContext.managedEmployeeIds)
       } else if (userContext.employeeId) {
         countQuery = countQuery.where('employees.id', '=', userContext.employeeId)
+      }
+
+      // Hide unreleased (future-dated) paystubs from non-admins
+      if (issueDateCutoff) {
+        countQuery = countQuery.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
       }
     }
 
@@ -430,6 +449,13 @@ export class PayrollRepository {
       return null
     }
 
+    // Non-admins cannot view a paystub whose issue_date has not been released
+    // yet (e.g. before 8pm the day before payday).
+    const issueDateCutoff = await this.getEmployeeIssueDateCutoff(userContext)
+    if (issueDateCutoff && issueDate.slice(0, 10) > issueDateCutoff) {
+      return null
+    }
+
     // Get employee info
     const employee = await db
       .selectFrom('employees')
@@ -610,6 +636,12 @@ export class PayrollRepository {
         query = query.where('employees.id', '=', userContext.employeeId)
       } else {
         return []
+      }
+
+      // Hide unreleased (future-dated) paystubs from non-admins
+      const issueDateCutoff = await this.getEmployeeIssueDateCutoff(userContext)
+      if (issueDateCutoff) {
+        query = query.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
       }
     }
 
@@ -1117,6 +1149,38 @@ export class PayrollRepository {
     }
 
     return countsMap
+  }
+
+  /**
+   * Compute the latest paystub issue_date (inclusive, YYYY-MM-DD) that a
+   * non-admin user is currently allowed to see, based on the configured
+   * payroll release time. Used to hide future-dated paystubs that have been
+   * generated but not yet released (e.g. before 8pm the day before payday).
+   *
+   * Returns `null` for admins, who are never restricted.
+   */
+  private async getEmployeeIssueDateCutoff(userContext: {
+    isAdmin: boolean
+  }): Promise<string | null> {
+    if (userContext.isAdmin) return null
+
+    let release = { hour: DEFAULT_RELEASE_HOUR, minute: DEFAULT_RELEASE_MINUTE }
+    try {
+      const restriction = await db
+        .selectFrom('payroll_restriction')
+        .select(['hour', 'minute'])
+        .where('id', '=', 1)
+        .executeTakeFirst()
+
+      if (restriction) {
+        release = { hour: restriction.hour, minute: restriction.minute }
+      }
+    } catch (error) {
+      // Fall back to the secure default (8pm) rather than exposing paystubs.
+      logger.warn('Failed to load payroll_restriction, using default release time', error)
+    }
+
+    return getEmployeeVisibilityCutoff(release)
   }
 
   private hasEmployeeAccess(
