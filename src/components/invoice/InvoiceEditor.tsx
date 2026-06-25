@@ -19,6 +19,13 @@ import InvoiceOverridesTable from './InvoiceOverridesTable';
 import InvoiceExpensesTable from './InvoiceExpensesTable';
 import { formatCurrency } from '@/lib/utils';
 import { logger } from '@/lib/utils/logger'
+import {
+  MIN_PAYROLL_YEAR,
+  maxPayrollYear,
+  extractYear,
+  isYearInRange,
+  allowedRangeLabel,
+} from '@/lib/utils/dateValidation'
 
 interface InvoiceEditorProps {
   mode: 'create' | 'edit';
@@ -53,7 +60,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
     vendor: '',
     agentId: agentId || 0,
     issueDate: issueDate || '',
-    weekending: initialData?.weekending ? dayjs(initialData.weekending, 'MM-DD-YYYY').format('yyyy-MM-dd') : '',
+    weekending: initialData?.weekending ? dayjs(initialData.weekending, 'MM-DD-YYYY').format('YYYY-MM-DD') : '',
     sales: [],
     overrides: [],
     expenses: []
@@ -78,6 +85,11 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const [totalAmount, setTotalAmount] = useState(0);
   const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
   const [customDateValue, setCustomDateValue] = useState('');
+  const [customDateError, setCustomDateError] = useState('');
+
+  // Shared date-input bounds (single source of truth — same range as server/importer).
+  const dateInputMin = `${MIN_PAYROLL_YEAR}-01-01`;
+  const dateInputMax = `${maxPayrollYear()}-12-31`;
 
   // Fetch vendor-specific custom field definitions (feature-flag gated)
   const { fields: vendorFields, isConfigured: isVendorConfigured, isLoading: isVendorFieldsLoading } = useVendorFields(
@@ -290,6 +302,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
       // Open custom date dialog
       setShowCustomDateDialog(true);
       setCustomDateValue('');
+      setCustomDateError('');
     } else {
       // Use selected existing date
       setFormData(prev => ({ ...prev, issueDate: value }));
@@ -297,18 +310,30 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   };
 
   const handleCustomDateConfirm = () => {
-    if (customDateValue) {
-      // Convert from yyyy-MM-dd to MM/DD/YYYY for consistency
-      const formatted = dayjs(customDateValue).format('MM/DD/YYYY');
-      setFormData(prev => ({ ...prev, issueDate: formatted }));
-      setShowCustomDateDialog(false);
-      setCustomDateValue('');
+    if (!customDateValue) {
+      return;
     }
+
+    // Guardrail: reject out-of-range years (e.g. the 2926 typo). Keep the dialog
+    // open and surface an inline error so the user can correct it (criterion B1).
+    const year = extractYear(customDateValue);
+    if (year === null || !isYearInRange(year)) {
+      setCustomDateError(`Issue date year must be within ${allowedRangeLabel()}.`);
+      return;
+    }
+
+    // Convert from YYYY-MM-DD to MM/DD/YYYY for consistency.
+    const formatted = dayjs(customDateValue, 'YYYY-MM-DD').format('MM/DD/YYYY');
+    setFormData(prev => ({ ...prev, issueDate: formatted }));
+    setShowCustomDateDialog(false);
+    setCustomDateValue('');
+    setCustomDateError('');
   };
 
   const handleCustomDateCancel = () => {
     setShowCustomDateDialog(false);
     setCustomDateValue('');
+    setCustomDateError('');
   };
 
   const handleSalesChange = (sales: InvoiceSaleFormData[]) => {
@@ -405,6 +430,29 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         toast({
           title: 'Validation Error',
           description: 'Please select a weekending date',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Year-range guardrail (criterion B4). Blocks out-of-range issueDate /
+      // weekending (including values pasted into the date inputs) before any
+      // network request. The server re-validates authoritatively (Area A).
+      const issueYear = extractYear(formData.issueDate);
+      if (issueYear === null || !isYearInRange(issueYear)) {
+        toast({
+          title: 'Validation Error',
+          description: `Issue date year must be within ${allowedRangeLabel()}.`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const weekendingYear = extractYear(formData.weekending);
+      if (weekendingYear === null || !isYearInRange(weekendingYear)) {
+        toast({
+          title: 'Validation Error',
+          description: `Weekending date year must be within ${allowedRangeLabel()}.`,
           variant: 'destructive'
         });
         return;
@@ -514,17 +562,32 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
                   <SelectValue placeholder="Select issue date" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* Show custom date if it's not in the existing dates list */}
-                  {formData.issueDate && !issueDates.includes(formData.issueDate) && (
-                    <SelectItem key={formData.issueDate} value={formData.issueDate}>
-                      {formData.issueDate}
-                    </SelectItem>
-                  )}
-                  {issueDates.map(date => (
-                    <SelectItem key={date} value={date}>
-                      {dayjs(date).format('MM/DD/YYYY')}
-                    </SelectItem>
-                  ))}
+                  {/* Escape hatch (edit mode): show the current value if it is not
+                      in the fetched list — but NEVER inject an out-of-range value
+                      so a previously-saved bad date (e.g. 2926) cannot be
+                      re-selected (criterion C3/C4). */}
+                  {formData.issueDate &&
+                    !issueDates.includes(formData.issueDate) &&
+                    (() => {
+                      const y = extractYear(formData.issueDate);
+                      return y !== null && isYearInRange(y);
+                    })() && (
+                      <SelectItem key={formData.issueDate} value={formData.issueDate}>
+                        {formData.issueDate}
+                      </SelectItem>
+                    )}
+                  {/* Filter out-of-range values from the rendered options so a bad
+                      DB value can never be selected from the dropdown (C1/C4). */}
+                  {issueDates
+                    .filter(date => {
+                      const y = extractYear(date);
+                      return y !== null && isYearInRange(y);
+                    })
+                    .map(date => (
+                      <SelectItem key={date} value={date}>
+                        {dayjs(date).format('MM/DD/YYYY')}
+                      </SelectItem>
+                    ))}
                   <SelectItem value="__CUSTOM__" className="font-medium text-primary">
                     Custom Date...
                   </SelectItem>
@@ -538,6 +601,8 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
               </Label>
               <Input
                 type="date"
+                min={dateInputMin}
+                max={dateInputMax}
                 value={formData.weekending}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, weekending: e.target.value }))}
                 required
@@ -621,10 +686,18 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
             <Input
               id="customDate"
               type="date"
+              min={dateInputMin}
+              max={dateInputMax}
               value={customDateValue}
-              onChange={(e) => setCustomDateValue(e.target.value)}
+              onChange={(e) => {
+                setCustomDateValue(e.target.value);
+                if (customDateError) setCustomDateError('');
+              }}
               className="mt-2"
             />
+            {customDateError && (
+              <p className="mt-2 text-sm text-destructive">{customDateError}</p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCustomDateCancel}>
