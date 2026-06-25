@@ -57,10 +57,20 @@ export async function POST(request: NextRequest) {
   const repo = new ImpersonationRepository()
   const existing = await repo.getActiveImpersonation(session.user.id)
   if (existing) {
-    return NextResponse.json(
-      { error: 'An impersonation session is already open' },
-      { status: 409 }
-    )
+    // A timed-out session is auto-cleared from the JWT on refresh, but nothing
+    // writes the expiry back to the DB — so the audit row leaks as "open" and
+    // would block every future session. If the open row is past its TTL, close
+    // it as expired and proceed; only a genuinely live session returns 409.
+    const expired =
+      !existing.expires_at || existing.expires_at.getTime() < Date.now()
+    if (expired) {
+      await repo.stopImpersonation(session.user.id, 'expired')
+    } else {
+      return NextResponse.json(
+        { error: 'An impersonation session is already open' },
+        { status: 409 }
+      )
+    }
   }
 
   const ip =
