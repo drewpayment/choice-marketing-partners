@@ -2,6 +2,7 @@ import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { invoiceAuditRepository } from './InvoiceAuditRepository'
 import { logger } from '@/lib/utils/logger'
+import { assertPayrollDateInRange } from '@/lib/utils/dateValidation'
 import type { UserContext } from '@/lib/auth/types'
 
 // Simple types for our gradual implementation
@@ -79,6 +80,18 @@ export class InvoiceRepository {
       if (!userContext.managedEmployeeIds?.includes(request.agentId)) {
         throw new Error('Access denied: agent not in your direct reports')
       }
+    }
+
+    // Defense-in-depth date guardrail (criterion A backstop). Protects every
+    // caller, including any non-HTTP path that bypasses the API route, from
+    // persisting out-of-range years. Throws PayrollDateRangeError before any
+    // write occurs. customParseFormat is NOT loaded, so the later
+    // dayjs(x, 'FORMAT') calls fall back to native parsing — we cannot rely on
+    // them to reject bad input, hence this explicit guard.
+    assertPayrollDateInRange(request.issueDate, 'issueDate')
+    assertPayrollDateInRange(request.weekending, 'weekending')
+    for (let i = 0; i < (request.sales?.length || 0); i++) {
+      assertPayrollDateInRange(request.sales[i]?.sale_date, `sales[${i}].sale_date`)
     }
 
     logger.log('🚀 Starting SIMPLE saveInvoiceData with transaction')

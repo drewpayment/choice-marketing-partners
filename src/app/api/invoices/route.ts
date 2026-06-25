@@ -5,6 +5,10 @@ import { invoiceRepository } from '@/lib/repositories/InvoiceRepository.simple'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { logger } from '@/lib/utils/logger'
+import {
+  assertPayrollDateInRange,
+  PayrollDateRangeError,
+} from '@/lib/utils/dateValidation'
 
 /**
  * GET /api/invoices - Get invoice page resources or invoice details
@@ -103,6 +107,34 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     logger.log('📝 Request body received')
+
+    // Authoritative date-range validation BEFORE any DB write / audit /
+    // recalculation (criteria A1–A9, A8). Out-of-range dates are rejected with
+    // a 400 and an actionable, machine-readable body. Nothing is persisted.
+    try {
+      assertPayrollDateInRange(body?.issueDate, 'issueDate')
+      assertPayrollDateInRange(body?.weekending, 'weekending')
+
+      if (Array.isArray(body?.sales)) {
+        body.sales.forEach((sale: { sale_date?: string }, index: number) => {
+          assertPayrollDateInRange(sale?.sale_date, `sales[${index}].sale_date`)
+        })
+      }
+    } catch (validationError) {
+      if (validationError instanceof PayrollDateRangeError) {
+        logger.warn('🚫 Rejected out-of-range payroll date:', validationError.message)
+        return NextResponse.json(
+          {
+            success: false,
+            error: validationError.message,
+            field: validationError.field,
+            allowedRange: validationError.range,
+          },
+          { status: 400 }
+        )
+      }
+      throw validationError
+    }
 
     // Add audit metadata
     const requestWithAudit = {
