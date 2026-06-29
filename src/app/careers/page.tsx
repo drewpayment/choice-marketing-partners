@@ -8,6 +8,11 @@ import JobListings from '@/components/careers/JobListings'
 import StatsBar from '@/components/careers/StatsBar'
 import CareersCTA from '@/components/careers/CareersCTA'
 
+// Render on every request so newly published/edited job postings appear
+// immediately. Without this the route is statically cached at build time and
+// the listing never reflects postings created after deploy.
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Careers | Choice Marketing Partners',
   description:

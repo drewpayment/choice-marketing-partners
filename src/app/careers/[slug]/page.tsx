@@ -13,6 +13,10 @@ import {
   formatWorkSetting,
 } from '@/components/careers/jobFormatters'
 
+// Render on every request so status/content changes to a posting are reflected
+// immediately instead of being served from the static route cache.
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: Promise<{ slug: string }>
 }
