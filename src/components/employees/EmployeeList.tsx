@@ -233,7 +233,10 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
   const createPageUrl = (page: number) => {
     const params = new URLSearchParams()
     if (currentFilters.search) params.set('search', currentFilters.search)
-    if (currentFilters.status !== 'all') params.set('status', currentFilters.status)
+    // Always carry status: the server-side default depends on whether a
+    // search term is present ('all' with search, 'active' without), so an
+    // omitted status can silently narrow the results when paging.
+    params.set('status', currentFilters.status)
     if (currentFilters.role !== 'all') params.set('role', currentFilters.role)
     if (currentFilters.hasUser !== undefined) params.set('hasUser', currentFilters.hasUser.toString())
     params.set('page', page.toString())
