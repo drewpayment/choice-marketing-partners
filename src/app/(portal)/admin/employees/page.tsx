@@ -36,10 +36,12 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
     redirect('/forbidden')
   }
 
-  // Parse search parameters with active as default status
+  // Parse search parameters. An explicit status always wins; otherwise default
+  // to 'all' when searching (so search isn't silently scoped to active-only)
+  // and 'active' when just browsing.
   const filters = {
     search: searchParams.search,
-    status: (searchParams.status || 'active') as 'active' | 'inactive' | 'all',
+    status: (searchParams.status || (searchParams.search ? 'all' : 'active')) as 'active' | 'inactive' | 'all',
     role: (searchParams.role || 'all') as 'admin' | 'manager' | 'employee' | 'all',
     hasUser: searchParams.hasUser === 'true' ? true : 
              searchParams.hasUser === 'false' ? false : undefined,
@@ -53,8 +55,11 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
     session.user.isManager || false
   )
 
-  // Fetch employees with server-side rendering
-  const employeePage = await employeeRepository.getEmployees(filters, userContext)
+  // Fetch employees and database-wide stats in parallel
+  const [employeePage, stats] = await Promise.all([
+    employeeRepository.getEmployees(filters, userContext),
+    employeeRepository.getEmployeeStats(userContext)
+  ])
 
   return (
     <div className="space-y-6">
@@ -77,24 +82,24 @@ export default async function EmployeesPage({ searchParams: paramsPromise }: Emp
       {/* Statistics */}
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold">{employeePage.total}</div>
+          <div className="text-2xl font-bold">{stats.total}</div>
           <p className="text-sm text-muted-foreground">Total Employees</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold text-primary">
-            {employeePage.employees.filter(emp => emp.is_active && !emp.deleted_at).length}
+            {stats.active}
           </div>
           <p className="text-sm text-muted-foreground">Active</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold text-primary">
-            {employeePage.employees.filter(emp => emp.hasUser).length}
+            {stats.withUserAccounts}
           </div>
           <p className="text-sm text-muted-foreground">With User Accounts</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold text-purple-600">
-            {employeePage.employees.filter(emp => emp.is_admin || emp.is_mgr).length}
+            {stats.managersAdmins}
           </div>
           <p className="text-sm text-muted-foreground">Managers/Admins</p>
         </div>

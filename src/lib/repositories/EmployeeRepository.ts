@@ -1,5 +1,7 @@
 import { db } from '@/lib/database/client'
 import bcrypt from 'bcryptjs'
+import type { ExpressionBuilder } from 'kysely'
+import type { DB } from '@/lib/database/types'
 import type { UserContext } from '@/lib/auth/types'
 
 /**
@@ -80,6 +82,13 @@ export interface EmployeePage {
   totalPages: number
 }
 
+export interface EmployeeStats {
+  total: number            // employees WHERE deleted_at IS NULL (all statuses)
+  active: number           // is_active > 0 AND deleted_at IS NULL
+  withUserAccounts: number // deleted_at IS NULL AND EXISTS employee_user link
+  managersAdmins: number   // is_active > 0 AND deleted_at IS NULL AND (is_admin = 1 OR is_mgr = 1)
+}
+
 /**
  * Repository for employee-related data operations
  */
@@ -101,9 +110,7 @@ export class EmployeeRepository {
 
     let query = db
       .selectFrom('employees')
-      .leftJoin('employee_user', 'employees.id', 'employee_user.employee_id')
-      .leftJoin('users', 'employee_user.user_id', 'users.uid')
-      .select([
+      .select((eb) => [
         'employees.id',
         'employees.name',
         'employees.email',
@@ -116,13 +123,19 @@ export class EmployeeRepository {
         'employees.phone_no',
         'employees.created_at',
         'employees.deleted_at',
-        db.case()
-          .when('users.uid', 'is not', null)
-          .then(true)
-          .else(false)
-          .end()
-          .as('hasUser'),
-        'users.id as user_id'
+        // Whether the employee has any linked user account (no row-multiplying join)
+        eb.exists(
+          eb.selectFrom('employee_user')
+            .select('employee_user.user_id')
+            .whereRef('employee_user.employee_id', '=', 'employees.id')
+        ).as('hasUser'),
+        // users.id (matches session.user.id used by the emulation button) via scalar subquery
+        eb.selectFrom('employee_user')
+          .innerJoin('users', 'users.uid', 'employee_user.user_id')
+          .select('users.id')
+          .whereRef('employee_user.employee_id', '=', 'employees.id')
+          .limit(1)
+          .as('user_id')
       ])
 
     // Apply filters
@@ -131,6 +144,7 @@ export class EmployeeRepository {
         eb.or([
           eb('employees.name', 'like', `%${search}%`),
           eb('employees.email', 'like', `%${search}%`),
+          eb('employees.phone_no', 'like', `%${search}%`),
           eb('employees.sales_id1', 'like', `%${search}%`),
           eb('employees.sales_id2', 'like', `%${search}%`),
           eb('employees.sales_id3', 'like', `%${search}%`)
@@ -160,10 +174,16 @@ export class EmployeeRepository {
     }
 
     if (hasUser !== undefined) {
+      const linkExists = (eb: ExpressionBuilder<DB, 'employees'>) =>
+        eb.exists(
+          eb.selectFrom('employee_user')
+            .select('employee_user.user_id')
+            .whereRef('employee_user.employee_id', '=', 'employees.id')
+        )
       if (hasUser) {
-        query = query.where('users.uid', 'is not', null)
+        query = query.where((eb) => linkExists(eb))
       } else {
-        query = query.where('users.uid', 'is', null)
+        query = query.where((eb) => eb.not(linkExists(eb)))
       }
     }
 
@@ -204,6 +224,91 @@ export class EmployeeRepository {
       page,
       limit,
       totalPages: Math.ceil(total / limit)
+    }
+  }
+
+  /**
+   * Get database-wide employee statistics, scoped by role.
+   *
+   * Uses a single query with conditional aggregation. Role scoping mirrors
+   * getEmployees: admins see global stats; managers see themselves plus their
+   * managed employees; plain employees see only themselves; a user with no
+   * employeeId and no admin rights gets all zeros.
+   */
+  async getEmployeeStats(userContext: UserContext): Promise<EmployeeStats> {
+    let query = db.selectFrom('employees')
+
+    // Role-based scoping
+    if (!userContext.isAdmin) {
+      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
+        const accessibleIds = [userContext.employeeId!, ...userContext.managedEmployeeIds]
+        query = query.where('employees.id', 'in', accessibleIds)
+      } else if (userContext.employeeId) {
+        query = query.where('employees.id', '=', userContext.employeeId)
+      } else {
+        return { total: 0, active: 0, withUserAccounts: 0, managersAdmins: 0 }
+      }
+    }
+
+    const row = await query
+      .select((eb) => [
+        // total: not soft-deleted (all statuses)
+        eb.fn.sum(
+          eb.case()
+            .when('employees.deleted_at', 'is', null)
+            .then(1)
+            .else(0)
+            .end()
+        ).as('total'),
+        // active: is_active > 0 and not soft-deleted
+        eb.fn.sum(
+          eb.case()
+            .when(eb.and([
+              eb('employees.is_active', '>', 0),
+              eb('employees.deleted_at', 'is', null)
+            ]))
+            .then(1)
+            .else(0)
+            .end()
+        ).as('active'),
+        // withUserAccounts: not soft-deleted and has a linked user account
+        eb.fn.sum(
+          eb.case()
+            .when(eb.and([
+              eb('employees.deleted_at', 'is', null),
+              eb.exists(
+                eb.selectFrom('employee_user')
+                  .select('employee_user.user_id')
+                  .whereRef('employee_user.employee_id', '=', 'employees.id')
+              )
+            ]))
+            .then(1)
+            .else(0)
+            .end()
+        ).as('withUserAccounts'),
+        // managersAdmins: active, not deleted, and admin or manager
+        eb.fn.sum(
+          eb.case()
+            .when(eb.and([
+              eb('employees.is_active', '>', 0),
+              eb('employees.deleted_at', 'is', null),
+              eb.or([
+                eb('employees.is_admin', '=', 1),
+                eb('employees.is_mgr', '=', 1)
+              ])
+            ]))
+            .then(1)
+            .else(0)
+            .end()
+        ).as('managersAdmins')
+      ])
+      .executeTakeFirst()
+
+    return {
+      total: Number(row?.total ?? 0),
+      active: Number(row?.active ?? 0),
+      withUserAccounts: Number(row?.withUserAccounts ?? 0),
+      managersAdmins: Number(row?.managersAdmins ?? 0)
     }
   }
 

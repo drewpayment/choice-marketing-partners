@@ -27,9 +27,26 @@ export function EmployeeFilters({ initialFilters }: EmployeeFiltersProps) {
   const [status, setStatus] = useState(initialFilters.status)
   const [role, setRole] = useState(initialFilters.role)
   const [hasUser, setHasUser] = useState<string>(
-    initialFilters.hasUser === true ? 'true' : 
+    initialFilters.hasUser === true ? 'true' :
     initialFilters.hasUser === false ? 'false' : 'all'
   )
+  // Tracks whether the user has explicitly picked a status. Until they do,
+  // the status auto-widens/narrows as they type a search term so it's
+  // visually obvious that search now looks beyond "Active" employees.
+  // A status arriving via the URL only counts as explicit when it differs
+  // from what auto-widening would have produced for that URL's search term
+  // (updateFilters always writes status to the URL, explicit or not).
+  const [statusTouched, setStatusTouched] = useState(() => {
+    const urlStatus = searchParams.get('status')
+    return urlStatus !== null && urlStatus !== (initialFilters.search ? 'all' : 'active')
+  })
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    if (!statusTouched) {
+      setStatus(value.trim() ? 'all' : 'active')
+    }
+  }
 
   const updateFilters = () => {
     const params = new URLSearchParams(searchParams)
@@ -65,6 +82,7 @@ export function EmployeeFilters({ initialFilters }: EmployeeFiltersProps) {
   const clearFilters = () => {
     setSearch('')
     setStatus('active')  // Default to active instead of all
+    setStatusTouched(false)
     setRole('all')
     setHasUser('all')
     router.push('/admin/employees?status=active')  // Include active status in URL
@@ -82,9 +100,9 @@ export function EmployeeFilters({ initialFilters }: EmployeeFiltersProps) {
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               id="search"
-              placeholder="Name, email, sales ID..."
+              placeholder="Name, email, phone, sales ID..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && updateFilters()}
               className="pl-8"
             />
@@ -94,7 +112,13 @@ export function EmployeeFilters({ initialFilters }: EmployeeFiltersProps) {
         {/* Status Filter */}
         <div className="space-y-2">
           <Label>Status</Label>
-          <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
+          <Select
+            value={status}
+            onValueChange={(value) => {
+              setStatusTouched(true)
+              setStatus(value as typeof status)
+            }}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
