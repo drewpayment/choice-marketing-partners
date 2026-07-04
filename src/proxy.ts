@@ -4,7 +4,7 @@ import { isImpersonationAllowedWrite } from '@/lib/auth/impersonation-guard'
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (!MUTATING_METHODS.has(request.method)) return NextResponse.next()
 
   const pathname = request.nextUrl.pathname
