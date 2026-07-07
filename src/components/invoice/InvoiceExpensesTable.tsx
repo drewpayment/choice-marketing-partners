@@ -3,6 +3,7 @@
 import { InvoiceExpenseFormData } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -51,11 +52,18 @@ export default function InvoiceExpensesTable({ expenses, onExpensesChange, onExp
           {expenses.map((expense, index) => (
             <TableRow key={index}>
               <TableCell>
-                <Input
-                  value={expense.type}
-                  onChange={(e) => updateExpense(index, 'type', e.target.value)}
-                  placeholder="Expense type"
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={expense.type}
+                    onChange={(e) => updateExpense(index, 'type', e.target.value)}
+                    placeholder="Expense type"
+                  />
+                  {expense.isRecurring && (
+                    <Badge variant="secondary" className="shrink-0">
+                      Recurring
+                    </Badge>
+                  )}
+                </div>
               </TableCell>
               <TableCell>
                 <CurrencyInput

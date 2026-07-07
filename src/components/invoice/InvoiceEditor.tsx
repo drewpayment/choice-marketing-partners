@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import dayjs from 'dayjs';
 import { InvoiceFormData, InvoiceDetailResponse, InvoiceSaleFormData, InvoiceOverrideFormData, InvoiceExpenseFormData, Agent, AgentWithSalesIds, Vendor } from '@/types/database';
 import { InvoiceDetail } from '@/lib/repositories/InvoiceRepository';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -26,6 +29,35 @@ interface InvoiceEditorProps {
   vendorId?: number;
   issueDate?: string;
   initialData?: InvoiceDetail; // Add support for SSR data
+}
+
+interface AdvanceItem {
+  advance_id: number;
+  amount: number;
+  advance_date: string;
+  method: string;
+  notes: string;
+}
+
+// Normalize an issue date in any of our formats (YYYY-MM-DD, MM-DD-YYYY, MM/DD/YYYY)
+// to the YYYY-MM-DD the advances/scheduled-expenses APIs expect.
+function normalizeToIsoDate(value: string): string | null {
+  if (!value) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const m = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (m) {
+    const mm = m[1].padStart(2, '0');
+    const dd = m[2].padStart(2, '0');
+    return `${m[3]}-${mm}-${dd}`;
+  }
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : null;
+}
+
+function formatAdvanceMethod(method: string): string {
+  const m = (method || 'other').toLowerCase();
+  if (m === 'ach') return 'ACH';
+  return m.charAt(0).toUpperCase() + m.slice(1);
 }
 
 /**
@@ -78,6 +110,13 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   const [totalAmount, setTotalAmount] = useState(0);
   const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
   const [customDateValue, setCustomDateValue] = useState('');
+  const [advances, setAdvances] = useState<AdvanceItem[]>([]);
+  const [recurringLoading, setRecurringLoading] = useState(false);
+
+  const advancesTotal = advances.reduce((sum, a) => sum + (a.amount || 0), 0);
+  const isoIssueDate = normalizeToIsoDate(formData.issueDate);
+  const currencyFmt = (amount: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
   // Fetch vendor-specific custom field definitions (feature-flag gated)
   const { fields: vendorFields, isConfigured: isVendorConfigured, isLoading: isVendorFieldsLoading } = useVendorFields(
@@ -108,6 +147,85 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
   useEffect(() => {
     calculateTotals();
   }, [calculateTotals]);
+
+  // Pre-populate recurring expense templates (create mode only).
+  // When agent + vendor + weekending are all chosen we fetch the templates due
+  // for that statement week and inject them as ordinary, removable expense rows
+  // badged "Recurring". Edit mode is intentionally skipped so we never double-
+  // inject rows that were already materialized on a prior save (limitation).
+  useEffect(() => {
+    if (mode !== 'create') return;
+    const agentId = formData.agentId;
+    const vendorId = parseInt(formData.vendor);
+    const wkending = formData.weekending;
+    if (!agentId || !vendorId || !wkending) return;
+
+    let cancelled = false;
+    const loadDueTemplates = async () => {
+      setRecurringLoading(true);
+      try {
+        const res = await fetch(
+          `/api/scheduled-expenses/due?agentId=${agentId}&vendorId=${vendorId}&wkending=${wkending}`
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        if (cancelled) return;
+        const templates: Array<{ type: string; amount: number; notes: string }> = json.data ?? [];
+        setFormData(prev => {
+          // Replace any previously-injected recurring rows so changing the week
+          // re-derives cleanly; user-entered expenses are preserved.
+          const manualRows = prev.expenses.filter(e => !e.isRecurring);
+          const recurringRows: InvoiceExpenseFormData[] = templates.map(t => ({
+            type: t.type,
+            amount: t.amount,
+            notes: t.notes,
+            isRecurring: true,
+          }));
+          return { ...prev, expenses: [...manualRows, ...recurringRows] };
+        });
+      } catch (error) {
+        logger.error('Failed to load recurring expense templates:', error);
+      } finally {
+        if (!cancelled) setRecurringLoading(false);
+      }
+    };
+
+    loadDueTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, formData.agentId, formData.vendor, formData.weekending]);
+
+  // Fetch advances (daily pay) already recorded against this agent+vendor+issue
+  // date so the admin sees the same net the rep will see. Display-only.
+  useEffect(() => {
+    const agentId = formData.agentId;
+    const vendorId = parseInt(formData.vendor);
+    if (!agentId || !vendorId || !isoIssueDate) {
+      setAdvances([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadAdvances = async () => {
+      try {
+        const res = await fetch(
+          `/api/advances?agentId=${agentId}&vendorId=${vendorId}&issueDate=${isoIssueDate}`
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        if (cancelled) return;
+        setAdvances(json.data ?? []);
+      } catch (error) {
+        logger.error('Failed to load advances:', error);
+      }
+    };
+
+    loadAdvances();
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.agentId, formData.vendor, isoIssueDate]);
 
   const fetchLookupData = async () => {
     try {
@@ -412,15 +530,25 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
 
       setSaving(true);
 
+      // Strip UI-only flags (isRecurring) before persisting; recurring rows are
+      // saved as ordinary expenses.
+      const payload = {
+        ...formData,
+        expenses: formData.expenses.map((e) => ({
+          expenseId: e.expenseId,
+          type: e.type,
+          amount: e.amount,
+          notes: e.notes,
+        })),
+        pendingDeletes,
+      };
+
       const response = await fetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          pendingDeletes
-        }),
+        body: JSON.stringify(payload),
       });
       
       if (!response.ok) {
@@ -593,11 +721,77 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         </CardContent>
       </Card>
 
+      {/* Daily Pay Received (advances) — read-only awareness panel */}
+      {advances.length > 0 && (
+        <Card className="border-primary/30">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+            <div>
+              <CardTitle className="text-base md:text-lg">Daily Pay Received</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Already paid to this agent for this statement — subtracted from net pay.
+              </p>
+            </div>
+            <Link
+              href="/admin/daily-pay"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              Manage <ExternalLink className="h-4 w-4" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border">
+              {advances.map(advance => (
+                <div key={advance.advance_id} className="flex items-baseline justify-between gap-3 py-2 first:pt-0">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {dayjs(advance.advance_date).format('MM/DD/YYYY')}
+                      </span>
+                      <Badge variant="secondary" className="text-xs">
+                        {formatAdvanceMethod(advance.method)}
+                      </Badge>
+                    </div>
+                    {advance.notes ? (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">{advance.notes}</p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 text-sm font-medium tabular-nums text-destructive">
+                    −{currencyFmt(advance.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+              <span className="text-sm font-medium text-foreground">Total daily pay</span>
+              <span className="text-sm font-semibold tabular-nums text-destructive">
+                −{currencyFmt(advancesTotal)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <Card>
-        <CardContent className="flex justify-between items-center pt-6">
-          <div className="text-lg font-semibold">
-            Total: {formatCurrency(totalAmount)}
+        <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            {advancesTotal > 0 ? (
+              <>
+                <div className="text-sm text-muted-foreground tabular-nums">
+                  Earned: {formatCurrency(totalAmount)} · Daily pay: −{currencyFmt(advancesTotal)}
+                </div>
+                <div className="text-lg font-semibold tabular-nums">
+                  Net Pay: {formatCurrency(totalAmount - advancesTotal)}
+                </div>
+              </>
+            ) : (
+              <div className="text-lg font-semibold tabular-nums">
+                Total: {formatCurrency(totalAmount)}
+              </div>
+            )}
+            {recurringLoading && (
+              <div className="text-xs text-muted-foreground">Loading recurring expenses…</div>
+            )}
           </div>
           <div className="space-x-2">
             <Button variant="outline" onClick={handleCancel} disabled={saving}>

@@ -136,6 +136,7 @@ export interface ExpenseFormData {
   type: string;
   amount: number;
   notes: string;
+  isRecurring?: boolean; // UI-only: pre-populated from a recurring template (not persisted)
 }
 
 // Lookup types

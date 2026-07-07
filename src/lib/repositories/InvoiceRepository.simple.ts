@@ -1,6 +1,7 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
 import { invoiceAuditRepository } from './InvoiceAuditRepository'
+import { expenseAuditRepository } from './ExpenseAuditRepository'
 import { logger } from '@/lib/utils/logger'
 import type { UserContext } from '@/lib/auth/types'
 
@@ -96,6 +97,8 @@ export class InvoiceRepository {
         const expenseResults = []
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let deletedSales: any[] = []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let deletedExpenses: any[] = []
 
         // Handle deletes first (avoid the race condition we had before)
         if (request.pendingDeletes) {
@@ -128,6 +131,13 @@ export class InvoiceRepository {
           }
           
           if (request.pendingDeletes.expenses?.length) {
+            // Capture rows before deletion for the audit trail
+            deletedExpenses = await trx
+              .selectFrom('expenses')
+              .selectAll()
+              .where('expid', 'in', request.pendingDeletes.expenses)
+              .execute()
+
             await trx
               .deleteFrom('expenses')
               .where('expid', 'in', request.pendingDeletes.expenses)
@@ -239,23 +249,30 @@ export class InvoiceRepository {
           }
 
           if (expense.expenseId && expense.expenseId > 0) {
+            // Capture existing state for the audit trail
+            const existingExpense = await trx
+              .selectFrom('expenses')
+              .selectAll()
+              .where('expid', '=', expense.expenseId)
+              .executeTakeFirst()
+
             await trx
               .updateTable('expenses')
               .set(expenseData)
               .where('expid', '=', expense.expenseId)
               .execute()
-            expenseResults.push({ ...expenseData, expid: expense.expenseId })
+            expenseResults.push({ ...expenseData, expid: expense.expenseId, _previousData: existingExpense || null })
           } else {
             const result = await trx
               .insertInto('expenses')
               .values({ ...expenseData, created_at: new Date() })
               .executeTakeFirst()
             const newId = Number(result.insertId)
-            expenseResults.push({ ...expenseData, expid: newId })
+            expenseResults.push({ ...expenseData, expid: newId, _previousData: null })
           }
         }
 
-        return { salesResults, overrideResults, expenseResults, deletedSales }
+        return { salesResults, overrideResults, expenseResults, deletedSales, deletedExpenses }
       })
 
       logger.log('✅ Transaction completed successfully')
@@ -265,7 +282,7 @@ export class InvoiceRepository {
       
       // Create audit trail if metadata provided
       if (request.auditMetadata) {
-        await this.createAuditTrail(request, result.salesResults, result.overrideResults, result.expenseResults, result.deletedSales)
+        await this.createAuditTrail(request, result.salesResults, result.overrideResults, result.expenseResults, result.deletedSales, result.deletedExpenses)
       }
       
       return {
@@ -292,9 +309,23 @@ export class InvoiceRepository {
       const salesTotal = sales.reduce((sum, sale) => sum + parseFloat(sale.amount), 0)
       const overridesTotal = overrides.reduce((sum, override) => sum + parseFloat(override.total), 0)
       const expensesTotal = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0)
-      const totalAmount = salesTotal + overridesTotal + expensesTotal
 
-      logger.log('📊 Totals:', { salesTotal, overridesTotal, expensesTotal, totalAmount })
+      // Advances live OUTSIDE the invoice-save request (they're recorded via the
+      // advances API, not the invoice editor). Re-query them here so persisted
+      // paystubs.amount / payroll.amount stay consistent with the live net-pay
+      // computation: netPay = sales + overrides + expenses - advances.
+      const advancesResult = await db
+        .selectFrom('advances')
+        .select(db.fn.sum('amount').as('total'))
+        .where('agentid', '=', request.agentId)
+        .where('vendor_id', '=', parseInt(request.vendor))
+        .where(db.fn('DATE', ['issue_date']), '=', dayjs(request.issueDate, 'YYYY-MM-DD').format('YYYY-MM-DD'))
+        .executeTakeFirst()
+      const advancesTotal = parseFloat(advancesResult?.total?.toString() || '0')
+
+      const totalAmount = salesTotal + overridesTotal + expensesTotal - advancesTotal
+
+      logger.log('📊 Totals:', { salesTotal, overridesTotal, expensesTotal, advancesTotal, totalAmount })
 
       // Get employee and vendor names
       const [employee, vendor] = await Promise.all([
@@ -383,11 +414,11 @@ export class InvoiceRepository {
   /**
    * Create audit trail for the changes
    */
-  private async createAuditTrail(request: SimpleRequest, sales: any[], _overrides: any[], _expenses: any[], deletedSales: any[] = []) {
+  private async createAuditTrail(request: SimpleRequest, sales: any[], _overrides: any[], expenses: any[] = [], deletedSales: any[] = [], deletedExpenses: any[] = []) {
     if (!request.auditMetadata) return
 
     logger.log('📝 Creating audit trail')
-    
+
     try {
       // Create audit records for updated/created sales
       for (const sale of sales) {
@@ -447,8 +478,64 @@ export class InvoiceRepository {
         
         logger.log(`✅ Audit record created for deleted invoice ${deletedSale.invoice_id}`)
       }
-      
-      logger.log('✅ Audit trail created for', sales.length, 'invoice changes and', deletedSales.length, 'deletions')
+
+      // Create audit records for created/updated expenses
+      for (const expense of expenses) {
+        if (!expense.expid) continue
+        const isUpdate = !!expense._previousData
+        await expenseAuditRepository.createAuditRecord(
+          expense.expid,
+          isUpdate ? 'UPDATE' : 'CREATE',
+          isUpdate
+            ? {
+                type: expense._previousData.type,
+                amount: expense._previousData.amount,
+                notes: expense._previousData.notes,
+                agentid: expense._previousData.agentid,
+                vendor_id: expense._previousData.vendor_id,
+                issue_date: expense._previousData.issue_date,
+                wkending: expense._previousData.wkending,
+              }
+            : null,
+          {
+            type: expense.type,
+            amount: expense.amount,
+            notes: expense.notes,
+            agentid: expense.agentid,
+            vendor_id: expense.vendor_id,
+            issue_date: expense.issue_date,
+            wkending: expense.wkending,
+          },
+          request.auditMetadata.userId,
+          isUpdate ? 'Expense updated via web interface' : 'New expense created via web interface',
+          request.auditMetadata.ipAddress
+        )
+        logger.log(`✅ Audit record created for expense ${expense.expid} (${isUpdate ? 'UPDATE' : 'CREATE'})`)
+      }
+
+      // Create audit records for deleted expenses
+      for (const deletedExpense of deletedExpenses) {
+        await expenseAuditRepository.createAuditRecord(
+          deletedExpense.expid,
+          'DELETE',
+          {
+            type: deletedExpense.type,
+            amount: deletedExpense.amount,
+            notes: deletedExpense.notes,
+            agentid: deletedExpense.agentid,
+            vendor_id: deletedExpense.vendor_id,
+            issue_date: deletedExpense.issue_date,
+            wkending: deletedExpense.wkending,
+          },
+          null,
+          request.auditMetadata.userId,
+          'Expense deleted via web interface',
+          request.auditMetadata.ipAddress
+        )
+        logger.log(`✅ Audit record created for deleted expense ${deletedExpense.expid}`)
+      }
+
+      logger.log('✅ Audit trail created for', sales.length, 'invoice changes,', deletedSales.length, 'invoice deletions,', expenses.length, 'expense changes and', deletedExpenses.length, 'expense deletions')
     } catch (error) {
       logger.error('❌ Error creating audit trail:', error)
       // Don't throw - audit errors shouldn't fail the main operation

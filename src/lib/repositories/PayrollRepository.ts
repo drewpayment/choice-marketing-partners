@@ -1,5 +1,6 @@
 import { db } from '@/lib/database/client'
 import dayjs from 'dayjs'
+import { AdvanceRepository } from '@/lib/repositories/AdvanceRepository'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
@@ -42,11 +43,14 @@ export interface PayrollSummary {
   vendorId: number
   vendorName: string
   issueDate: string
+  weekendDate: string | null
   totalSales: number
   totalOverrides: number
   totalExpenses: number
+  totalAdvances: number
   netPay: number
   paystubCount: number
+  isPaid: boolean
   lastUpdated: string // ISO timestamp of most recent update to any paystub in this group
 }
 
@@ -96,10 +100,22 @@ export interface PaystubDetail {
     notes: string
     issue_date: Date
   }>
+  advances: Array<{
+    advance_id: number
+    agentid: number
+    vendor_id: number
+    amount: number
+    advance_date: string
+    issue_date: string
+    wkending: string
+    method: string
+    notes: string
+  }>
   totals: {
     sales: number
     overrides: number
     expenses: number
+    advances: number
     netPay: number
   }
   isPaid: boolean
@@ -125,10 +141,12 @@ export interface PaystubDeletionPreview {
     invoiceCount: number
     overrideCount: number
     expenseCount: number
+    advanceCount: number
     paystubTotal: number
     invoiceTotal: number
     overrideTotal: number
     expenseTotal: number
+    advanceTotal: number
   }
 }
 
@@ -140,6 +158,7 @@ export interface PaystubDeletionResult {
     invoices: number
     overrides: number
     expenses: number
+    advances: number
     payroll: number
   }
   error?: string
@@ -182,6 +201,7 @@ export class PayrollRepository {
         'paystubs.vendor_id as vendorId',
         'vendors.name as vendorName',
         'paystubs.issue_date as issueDate',
+        db.fn.max('paystubs.weekend_date').as('weekendDate'),
         db.fn.sum('paystubs.amount').as('netPay'),
         db.fn.max('paystubs.updated_at').as('lastUpdated')
       ])
@@ -381,11 +401,14 @@ export class PayrollRepository {
       .filter((item): item is NonNullable<typeof item> => item !== null)
 
     // Batch fetch all totals in parallel to avoid race conditions
-    const [salesTotals, overridesTotals, expensesTotals, paystubCounts] = await Promise.all([
+    const advanceRepo = new AdvanceRepository()
+    const [salesTotals, overridesTotals, expensesTotals, advancesTotals, paystubCounts, paidMap] = await Promise.all([
       this.getBatchSalesTotals(salesCombinations),
       this.getBatchOverridesTotals(salesCombinations),
       this.getBatchExpensesTotals(salesCombinations),
-      this.getBatchPaystubCounts(combinations)
+      advanceRepo.getBatchAdvancesTotals(salesCombinations),
+      this.getBatchPaystubCounts(combinations),
+      this.getBatchIsPaid(combinations)
     ])
 
     // Build summaries using the batched data
@@ -399,6 +422,7 @@ export class PayrollRepository {
       const salesTotal = salesTotals.get(key) || 0
       const overridesTotal = overridesTotals.get(key) || 0
       const expensesTotal = expensesTotals.get(key) || 0
+      const advancesTotal = advancesTotals.get(key) || 0
       const paystubCount = paystubCounts.get(key) || 0
 
       summaries.push({
@@ -408,11 +432,16 @@ export class PayrollRepository {
         vendorId: result.vendorId,
         vendorName: result.vendorName || 'Unknown',
         issueDate: result.issueDate.toISOString().split('T')[0],
+        weekendDate: result.weekendDate
+          ? new Date(result.weekendDate).toISOString().split('T')[0]
+          : null,
         totalSales: salesTotal,
         totalOverrides: overridesTotal,
         totalExpenses: expensesTotal,
+        totalAdvances: advancesTotal,
         netPay: parseFloat(result.netPay?.toString() || '0'),
         paystubCount,
+        isPaid: paidMap.get(key) || false,
         lastUpdated: result.lastUpdated?.toISOString() || new Date().toISOString()
       })
     }
@@ -504,6 +533,10 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .execute()
 
+    // Get advances (first-class daily-pay advances that settle against this statement)
+    const advanceRepo = new AdvanceRepository()
+    const advances = await advanceRepo.getAdvancesForStatement(agentIdForQueries, vendorId, issueDate)
+
     // Get paystub info
     const paystub = await db
       .selectFrom('paystubs')
@@ -513,10 +546,21 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .executeTakeFirst()
 
+    // Resolve real paid state from the payroll table (keyed by pay_date == issue_date)
+    const payrollRow = await db
+      .selectFrom('payroll')
+      .select('is_paid')
+      .where('agent_id', '=', agentIdForQueries)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['pay_date']), '=', issueDate)
+      .executeTakeFirst()
+    const isPaid = Number(payrollRow?.is_paid ?? 0) === 1
+
     // Calculate totals
     const salesTotal = sales.reduce((sum, invoice) => sum + parseFloat(invoice.amount || '0'), 0)
     const overridesTotal = overrides.reduce((sum, override) => sum + parseFloat(override.total || '0'), 0)
     const expensesTotal = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0)
+    const advancesTotal = advances.reduce((sum, advance) => sum + advance.amount, 0)
 
     // Parse custom_fields JSON for each sale
     const salesWithCustomFields = sales.map(sale => {
@@ -569,13 +613,15 @@ export class PayrollRepository {
       sales: salesWithCustomFields,
       overrides,
       expenses,
+      advances,
       totals: {
         sales: salesTotal,
         overrides: overridesTotal,
         expenses: expensesTotal,
-        netPay: salesTotal + overridesTotal + expensesTotal
+        advances: advancesTotal,
+        netPay: salesTotal + overridesTotal + expensesTotal - advancesTotal
       },
-      isPaid: false, // Will be determined by payroll table later
+      isPaid,
       generatedAt: paystub?.created_at?.toISOString(),
       weekending: paystub?.weekend_date ? dayjs(paystub.weekend_date).format('MM-DD-YYYY') : undefined,
       fieldConfig: fieldConfig.length > 0 ? fieldConfig.map(f => ({
@@ -741,10 +787,20 @@ export class PayrollRepository {
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
       .execute()
 
+    // Count and total advances
+    const advances = await db
+      .selectFrom('advances')
+      .selectAll()
+      .where('agentid', '=', agentId)
+      .where('vendor_id', '=', vendorId)
+      .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+      .execute()
+
     const paystubTotal = paystubs.reduce((sum, p) => sum + parseFloat(p.amount?.toString() || '0'), 0)
     const invoiceTotal = invoices.reduce((sum, i) => sum + parseFloat(i.amount?.toString() || '0'), 0)
     const overrideTotal = overrides.reduce((sum, o) => sum + parseFloat(o.total?.toString() || '0'), 0)
     const expenseTotal = expenses.reduce((sum, e) => sum + parseFloat(e.amount?.toString() || '0'), 0)
+    const advanceTotal = advances.reduce((sum, a) => sum + parseFloat(a.amount?.toString() || '0'), 0)
 
     return {
       canDelete: true,
@@ -757,10 +813,12 @@ export class PayrollRepository {
         invoiceCount: invoices.length,
         overrideCount: overrides.length,
         expenseCount: expenses.length,
+        advanceCount: advances.length,
         paystubTotal,
         invoiceTotal,
         overrideTotal,
         expenseTotal,
+        advanceTotal,
       },
     }
   }
@@ -799,7 +857,7 @@ export class PayrollRepository {
       if (!payrollRecord) {
         return {
           success: false,
-          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, payroll: 0 },
+          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, advances: 0, payroll: 0 },
           error: 'No pay statement found for the specified employee, vendor, and date.',
         }
       }
@@ -807,7 +865,7 @@ export class PayrollRepository {
       if (payrollRecord.is_paid === 1) {
         return {
           success: false,
-          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, payroll: 0 },
+          deleted: { paystubs: 0, invoices: 0, overrides: 0, expenses: 0, advances: 0, payroll: 0 },
           error: 'Pay statement has been marked as paid and cannot be deleted.',
         }
       }
@@ -845,11 +903,20 @@ export class PayrollRepository {
         .where(db.fn('DATE', ['issue_date']), '=', issueDate)
         .execute()
 
+      const advances = await trx
+        .selectFrom('advances')
+        .selectAll()
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
       // Calculate totals
       const paystubTotal = paystubs.reduce((sum, p) => sum + parseFloat(p.amount?.toString() || '0'), 0)
       const invoiceTotal = invoices.reduce((sum, i) => sum + parseFloat(i.amount?.toString() || '0'), 0)
       const overrideTotal = overrides.reduce((sum, o) => sum + parseFloat(o.total?.toString() || '0'), 0)
       const expenseTotal = expenses.reduce((sum, e) => sum + parseFloat(e.amount?.toString() || '0'), 0)
+      const advanceTotal = advances.reduce((sum, a) => sum + parseFloat(a.amount?.toString() || '0'), 0)
 
       // 3. Insert audit record with full JSON data
       const auditResult = await trx
@@ -866,15 +933,18 @@ export class PayrollRepository {
           deleted_invoices_count: invoices.length,
           deleted_overrides_count: overrides.length,
           deleted_expenses_count: expenses.length,
+          deleted_advances_count: advances.length,
           paystub_total: paystubTotal,
           invoices_total: invoiceTotal,
           overrides_total: overrideTotal,
           expenses_total: expenseTotal,
+          advances_total: advanceTotal,
           paystub_data: JSON.stringify(paystubs),
           payroll_data: JSON.stringify(payrollRecord ? [payrollRecord] : []),
           invoices_data: JSON.stringify(invoices),
           overrides_data: JSON.stringify(overrides),
           expenses_data: JSON.stringify(expenses),
+          advances_data: JSON.stringify(advances),
         })
         .executeTakeFirst()
 
@@ -902,6 +972,13 @@ export class PayrollRepository {
         .where(db.fn('DATE', ['issue_date']), '=', issueDate)
         .execute()
 
+      await trx
+        .deleteFrom('advances')
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
       const paystubResult = await trx
         .deleteFrom('paystubs')
         .where('agent_id', '=', agentId)
@@ -924,6 +1001,7 @@ export class PayrollRepository {
           invoices: Number(invoiceResult[0]?.numAffectedRows ?? 0n),
           overrides: Number(overrideResult[0]?.numAffectedRows ?? 0n),
           expenses: Number(expenseResult[0]?.numAffectedRows ?? 0n),
+          advances: advances.length,
           payroll: Number(payrollResult[0]?.numAffectedRows ?? 0n),
         },
       }
@@ -1113,6 +1191,46 @@ export class PayrollRepository {
       .executeTakeFirst()
 
     return Number(result?.count || 0)
+  }
+
+  /**
+   * Batch-resolve payroll.is_paid for each (agent_id, vendor_id, issue_date→pay_date)
+   * combination. Keyed `${agentId}-${vendorId}-${issueDate}`. Missing/0 => false.
+   */
+  private async getBatchIsPaid(
+    combinations: Array<{ agentId: string; vendorId: number; issueDate: string }>
+  ): Promise<Map<string, boolean>> {
+    const paidMap = new Map<string, boolean>()
+
+    if (combinations.length === 0) return paidMap
+
+    const agentIds = [...new Set(combinations.map(c => parseInt(c.agentId)).filter(id => !isNaN(id)))]
+    const vendorIds = [...new Set(combinations.map(c => c.vendorId))]
+    const issueDates = [...new Set(combinations.map(c => c.issueDate))]
+
+    if (agentIds.length === 0 || vendorIds.length === 0 || issueDates.length === 0) return paidMap
+
+    const results = await db
+      .selectFrom('payroll')
+      .select([
+        'agent_id',
+        'vendor_id',
+        'pay_date',
+        db.fn.max('is_paid').as('is_paid')
+      ])
+      .where('agent_id', 'in', agentIds)
+      .where('vendor_id', 'in', vendorIds)
+      .where(db.fn('DATE', ['pay_date']), 'in', issueDates)
+      .groupBy(['agent_id', 'vendor_id', 'pay_date'])
+      .execute()
+
+    for (const result of results) {
+      const payDate = result.pay_date.toISOString().split('T')[0]
+      const key = `${result.agent_id}-${result.vendor_id}-${payDate}`
+      paidMap.set(key, Number(result.is_paid || 0) === 1)
+    }
+
+    return paidMap
   }
 
   private async getBatchPaystubCounts(

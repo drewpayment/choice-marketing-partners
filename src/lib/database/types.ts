@@ -99,6 +99,87 @@ export interface EmployeeUser {
   user_id: number;
 }
 
+export interface Advances {
+  advance_id: Generated<number>;
+  agentid: number;
+  vendor_id: number;
+  amount: Decimal;
+  advance_date: Date;
+  issue_date: Date;
+  wkending: Date;
+  method: Generated<string>;
+  notes: Generated<string>;
+  created_by: number;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
+export interface AdvanceAudit {
+  id: Generated<number>;
+  advance_id: number;
+  action_type: "CREATE" | "UPDATE" | "DELETE";
+  changed_by: number;
+  changed_at: Generated<Date>;
+  previous_amount: Decimal | null;
+  previous_advance_date: Date | null;
+  previous_issue_date: Date | null;
+  previous_wkending: Date | null;
+  previous_method: string | null;
+  previous_notes: string | null;
+  previous_agentid: number | null;
+  previous_vendor_id: number | null;
+  current_amount: Decimal | null;
+  current_advance_date: Date | null;
+  current_issue_date: Date | null;
+  current_wkending: Date | null;
+  current_method: string | null;
+  current_notes: string | null;
+  current_agentid: number | null;
+  current_vendor_id: number | null;
+  change_reason: string | null;
+  ip_address: string | null;
+}
+
+export interface ScheduledExpenses {
+  id: Generated<number>;
+  agentid: number;
+  vendor_id: number;
+  type: string;
+  amount: Decimal;
+  notes: Generated<string>;
+  frequency: string;
+  start_date: Date;
+  end_date: Date | null;
+  is_active: Generated<number>;
+  created_by: number;
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
+export interface ExpenseAudit {
+  id: Generated<number>;
+  expense_id: number;
+  action_type: "CREATE" | "UPDATE" | "DELETE";
+  changed_by: number;
+  changed_at: Generated<Date>;
+  previous_type: string | null;
+  previous_amount: Decimal | null;
+  previous_notes: string | null;
+  previous_agentid: number | null;
+  previous_vendor_id: number | null;
+  previous_issue_date: Date | null;
+  previous_wkending: Date | null;
+  current_type: string | null;
+  current_amount: Decimal | null;
+  current_notes: string | null;
+  current_agentid: number | null;
+  current_vendor_id: number | null;
+  current_issue_date: Date | null;
+  current_wkending: Date | null;
+  change_reason: string | null;
+  ip_address: string | null;
+}
+
 export interface Expenses {
   agentid: number;
   amount: Generated<Decimal>;
@@ -350,15 +431,18 @@ export interface PayrollAudit {
   deleted_invoices_count: number;
   deleted_overrides_count: number;
   deleted_expenses_count: number;
+  deleted_advances_count: Generated<number>;
   paystub_total: Decimal;
   invoices_total: Decimal;
   overrides_total: Decimal;
   expenses_total: Decimal;
+  advances_total: Generated<Decimal>;
   paystub_data: string;
   payroll_data: string;
   invoices_data: string;
   overrides_data: string;
   expenses_data: string;
+  advances_data: string | null;
 }
 
 export interface Permissions {
@@ -580,6 +664,8 @@ export interface UserImpersonationLog {
 }
 
 export interface DB {
+  advance_audit: AdvanceAudit;
+  advances: Advances;
   comments: Comments;
   company_options: CompanyOptions;
   document_files: DocumentFiles;
@@ -588,6 +674,7 @@ export interface DB {
   employee_permission: EmployeePermission;
   employee_user: EmployeeUser;
   employees: Employees;
+  expense_audit: ExpenseAudit;
   expenses: Expenses;
   invoice_audit: InvoiceAudit;
   invoices: Invoices;
@@ -608,6 +695,7 @@ export interface DB {
   payroll_audit: PayrollAudit;
   payroll_restriction: PayrollRestriction;
   paystubs: Paystubs;
+  scheduled_expenses: ScheduledExpenses;
   permissions: Permissions;
   personal_access_tokens: PersonalAccessTokens;
   posts: Posts;

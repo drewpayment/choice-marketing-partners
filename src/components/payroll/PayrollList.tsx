@@ -6,6 +6,7 @@ import { PayrollSummary } from '@/lib/repositories/PayrollRepository'
 import { formatDate } from '@/lib/utils/date'
 import { cn } from '@/lib/utils'
 import { useEffect, useRef, useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 import {
   Table,
   TableBody,
@@ -45,8 +46,44 @@ interface PayrollListProps {
 export default function PayrollList({ data, pagination, userContext }: PayrollListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
   const [sortField, setSortField] = useState<keyof PayrollSummary>('lastUpdated')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  // Per-row email send state, keyed by employee-vendor-issueDate, prevents double-fire.
+  const [sendingKey, setSendingKey] = useState<string | null>(null)
+
+  const rowKey = (item: PayrollSummary) =>
+    `${item.employeeId}-${item.vendorId}-${item.issueDate}`
+
+  const handleSendEmail = async (item: PayrollSummary) => {
+    const key = rowKey(item)
+    if (sendingKey) return // a send is already in flight
+    setSendingKey(key)
+    try {
+      const res = await fetch('/api/payroll/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeId: item.employeeId,
+          vendorId: item.vendorId,
+          issueDate: item.issueDate,
+        }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok || !body?.success) {
+        throw new Error(body?.message || 'Failed to send the pay statement email.')
+      }
+      toast({ title: 'Email sent', description: body.message })
+    } catch (error) {
+      toast({
+        title: 'Could not send email',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingKey(null)
+    }
+  }
 
   // Build returnUrl from current search params to preserve filters
   const buildReturnUrl = () => {
@@ -355,14 +392,14 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                     </Link>
                     {isElevated && (
                       <button
-                        className="inline-flex min-h-11 items-center text-primary hover:text-primary"
+                        className="inline-flex min-h-11 items-center text-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={sendingKey !== null}
                         onClick={(e) => {
                           e.stopPropagation()
-                          // TODO: Implement email functionality
-                          alert('Email functionality will be implemented in TASK-306')
+                          handleSendEmail(item)
                         }}
                       >
-                        Send Email
+                        {sendingKey === rowKey(item) ? 'Sending…' : 'Send Email'}
                       </button>
                     )}
                   </div>

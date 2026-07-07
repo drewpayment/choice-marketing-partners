@@ -83,10 +83,22 @@ interface PaystubDetailProps {
       notes: string
       issue_date: Date
     }>
+    advances?: Array<{
+      advance_id: number
+      agentid: number
+      vendor_id: number
+      amount: number
+      advance_date: string
+      issue_date: string
+      wkending: string
+      method: string
+      notes: string
+    }>
     totals: {
       sales: number
       overrides: number
       expenses: number
+      advances?: number
       netPay: number
     }
     isPaid?: boolean
@@ -103,6 +115,62 @@ interface PaystubDetailProps {
   returnUrl?: string
 }
 
+interface CollapsibleSectionProps {
+  title: string
+  count: number
+  isExpanded: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}
+
+// Hoisted to module scope so it is not recreated on every parent render
+// (which would remount its subtree and reset any local state).
+function CollapsibleSection({ title, count, isExpanded, onToggle, children }: CollapsibleSectionProps) {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onToggle()
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        className="cursor-pointer hover:bg-muted transition-colors"
+        onClick={onToggle}
+        onKeyDown={handleKeyDown}
+        role="button"
+        aria-expanded={isExpanded}
+        tabIndex={0}
+      >
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center text-base md:text-lg">
+            {title}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">({count})</span>
+          </CardTitle>
+          <svg
+            className={cn(
+              "h-5 w-5 text-muted-foreground transition-transform",
+              isExpanded ? "rotate-180" : ""
+            )}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent>
+          {children}
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
 export default function PaystubDetailView({ paystub, userContext, returnUrl }: PaystubDetailProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -115,6 +183,12 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
   const [isSalesExpanded, setIsSalesExpanded] = useState(true)
   const [isOverridesExpanded, setIsOverridesExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
+  const [isAdvancesExpanded, setIsAdvancesExpanded] = useState(false)
+
+  const advances = paystub.advances ?? []
+  const advancesTotal = paystub.totals.advances ?? 0
+  // "Earned this week" is everything credited before daily pay is netted out.
+  const earnedThisWeek = paystub.totals.sales + paystub.totals.overrides + paystub.totals.expenses
 
   const handleDeleteClick = async () => {
     setDeleteDialogOpen(true)
@@ -187,6 +261,12 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
     }).format(num)
   }
 
+  const formatMethod = (method: string): string => {
+    const m = (method || 'other').toLowerCase()
+    if (m === 'ach') return 'ACH'
+    return m.charAt(0).toUpperCase() + m.slice(1)
+  }
+
   // Convert YYYY-MM-DD to MM-DD-YYYY for invoice route
   const formatDateForInvoiceRoute = (dateStr: string): string => {
     const parts = dateStr.split('-')
@@ -213,76 +293,20 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
     }
   }
 
-  interface CollapsibleSectionProps {
-    title: string
-    count: number
-    isExpanded: boolean
-    onToggle: () => void
-    children: React.ReactNode
-  }
-
-  const CollapsibleSection = ({ title, count, isExpanded, onToggle, children }: CollapsibleSectionProps) => {
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault()
-        onToggle()
-      }
-    }
-
-    return (
-      <Card>
-        <CardHeader
-          className="cursor-pointer hover:bg-muted transition-colors"
-          onClick={onToggle}
-          onKeyDown={handleKeyDown}
-          role="button"
-          aria-expanded={isExpanded}
-          tabIndex={0}
-        >
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center text-base md:text-lg">
-              {title}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">({count})</span>
-            </CardTitle>
-            <svg
-              className={cn(
-                "h-5 w-5 text-muted-foreground transition-transform",
-                isExpanded ? "rotate-180" : ""
-              )}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </CardHeader>
-        {isExpanded && (
-          <CardContent>
-            {children}
-          </CardContent>
-        )}
-      </Card>
-    )
-  }
-
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true)
     try {
-      const response = await fetch(`/api/payroll/pdf/${paystub.employee.id}/${paystub.vendor.id}/${paystub.issueDate}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+      const response = await fetch(
+        `/api/payroll/pdf/${paystub.employee.id}/${paystub.vendor.id}/${paystub.issueDate}`
+      )
 
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `paystub-${paystub.employee.name}-${paystub.issueDate}.pdf`
+        const safeName = paystub.employee.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase()
+        a.download = `paystub_${safeName}_${paystub.issueDate}.pdf`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -292,7 +316,11 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       }
     } catch (error) {
       logger.error('PDF generation error:', error)
-      alert('Failed to generate PDF. Please try again.')
+      toast({
+        title: 'Download failed',
+        description: 'Could not generate the paystub PDF. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
       setIsGeneratingPDF(false)
     }
@@ -315,13 +343,20 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       })
 
       if (response.ok) {
-        alert('Email sent successfully!')
+        toast({
+          title: 'Email sent',
+          description: 'The pay statement was emailed successfully.',
+        })
       } else {
         throw new Error('Failed to send email')
       }
     } catch (error) {
       logger.error('Email sending error:', error)
-      alert('Failed to send email. Please try again.')
+      toast({
+        title: 'Email failed',
+        description: 'Could not send the pay statement email. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
       setIsSendingEmail(false)
     }
@@ -525,11 +560,61 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
               </Badge>
             </div>
             <p className="hidden md:block text-xs text-muted-foreground mt-2">
-              Sales + Overrides + Adjustments = Net Pay
+              {advancesTotal > 0
+                ? 'Sales + Overrides + Adjustments − Daily Pay = Net Pay'
+                : 'Sales + Overrides + Adjustments = Net Pay'}
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Net-pay reconciliation — only when daily pay was taken this week */}
+      {advancesTotal > 0 && (
+        <div className="px-4 md:px-0">
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Earned this week
+                  </p>
+                  <p className="text-lg font-semibold tabular-nums text-foreground">
+                    {formatCurrency(earnedThisWeek)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Sales + Overrides + Adjustments</p>
+                </div>
+                <div className="text-muted-foreground hidden sm:block" aria-hidden="true">→</div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Daily pay received
+                  </p>
+                  <p className="text-lg font-semibold tabular-nums text-destructive">
+                    −{formatCurrency(advancesTotal)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {advances.length} payment{advances.length === 1 ? '' : 's'} already paid out
+                  </p>
+                </div>
+                <div className="text-muted-foreground hidden sm:block" aria-hidden="true">→</div>
+                <div className="min-w-0 border-t border-border pt-3 sm:border-t-0 sm:pt-0">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Net deposit
+                  </p>
+                  <p
+                    className={cn(
+                      'text-lg font-semibold tabular-nums',
+                      paystub.totals.netPay >= 0 ? 'text-primary' : 'text-destructive'
+                    )}
+                  >
+                    {formatCurrency(paystub.totals.netPay)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Remaining to be deposited</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Employee and Vendor Info - Desktop Only */}
       <div className="hidden md:grid md:grid-cols-2 gap-6">
@@ -600,7 +685,33 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           isExpanded={isSalesExpanded}
           onToggle={() => setIsSalesExpanded(!isSalesExpanded)}
         >
-          <div className="overflow-x-auto -mx-2 md:mx-0">
+          {/* Mobile: two-line rows so nothing hides behind horizontal scroll */}
+          <div className="sm:hidden divide-y divide-border">
+            {paystub.sales.map((sale) => {
+              const row = sale as unknown as Record<string, unknown>
+              const name = getBuiltinValue(row, 'full_name') || getBuiltinValue(row, 'invoice_id')
+              const amount = getBuiltinValue(row, 'amount')
+              const date = getBuiltinValue(row, 'sale_date')
+              const secondary = getBuiltinValue(row, 'city') || getBuiltinValue(row, 'invoice_id')
+              return (
+                <div key={sale.invoice_id} className="py-3 first:pt-0">
+                  <div className="flex justify-between items-baseline gap-3">
+                    <span className="text-sm font-medium text-foreground truncate min-w-0">{name}</span>
+                    <span className="text-sm font-medium tabular-nums shrink-0">{amount}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline gap-3 mt-0.5">
+                    <span className="text-xs text-muted-foreground">{date}</span>
+                    {secondary ? (
+                      <span className="text-xs text-muted-foreground truncate">{secondary}</span>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop / tablet: full table */}
+          <div className="hidden sm:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -630,7 +741,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                           key={field.field_key}
                           className={cn(
                             "text-xs md:text-sm",
-                            field.field_key === 'amount' && "text-right font-medium",
+                            field.field_key === 'amount' && "text-right font-medium tabular-nums",
                             field.field_key === 'invoice_id' && "font-medium"
                           )}
                         >
@@ -654,14 +765,37 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           isExpanded={isOverridesExpanded}
           onToggle={() => setIsOverridesExpanded(!isOverridesExpanded)}
         >
-          <div className="overflow-x-auto -mx-2 md:mx-0">
+          {/* Mobile: two-line rows */}
+          <div className="sm:hidden divide-y divide-border">
+            {paystub.overrides.map((override) => (
+              <div key={override.ovrid} className="py-3 first:pt-0">
+                <div className="flex justify-between items-baseline gap-3">
+                  <span className="text-sm font-medium text-foreground truncate min-w-0">{override.name}</span>
+                  <span className="text-sm font-medium tabular-nums shrink-0">
+                    {formatCurrency(override.total)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-3 mt-0.5">
+                  <span className="text-xs text-muted-foreground">
+                    {Math.trunc(Number(override.sales) || 0)} sale(s)
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {override.commission}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop / tablet: full table */}
+          <div className="hidden sm:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs md:text-sm">ID</TableHead>
                   <TableHead className="text-xs md:text-sm">Name</TableHead>
                   <TableHead className="text-right text-xs md:text-sm">Sales</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell text-xs md:text-sm">Commission</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Commission</TableHead>
                   <TableHead className="text-right text-xs md:text-sm">Total</TableHead>
                 </TableRow>
               </TableHeader>
@@ -670,9 +804,9 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                   <TableRow key={override.ovrid}>
                     <TableCell className="font-medium text-xs md:text-sm">#{override.ovrid}</TableCell>
                     <TableCell className="text-xs md:text-sm">{override.name}</TableCell>
-                    <TableCell className="text-right text-xs md:text-sm">{override.sales}</TableCell>
-                    <TableCell className="text-right hidden sm:table-cell text-xs md:text-sm">{override.commission}</TableCell>
-                    <TableCell className="text-right font-medium text-xs md:text-sm">
+                    <TableCell className="text-right text-xs md:text-sm tabular-nums">{Math.trunc(Number(override.sales) || 0)}</TableCell>
+                    <TableCell className="text-right text-xs md:text-sm tabular-nums">{override.commission}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm tabular-nums">
                       {formatCurrency(override.total)}
                     </TableCell>
                   </TableRow>
@@ -691,7 +825,35 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
           isExpanded={isExpensesExpanded}
           onToggle={() => setIsExpensesExpanded(!isExpensesExpanded)}
         >
-          <div className="overflow-x-auto -mx-2 md:mx-0">
+          {/* Mobile: two-line rows */}
+          <div className="sm:hidden divide-y divide-border">
+            {paystub.expenses.map((expense) => {
+              const amt = parseFloat(expense.amount) || 0
+              return (
+                <div key={expense.expid} className="py-3 first:pt-0">
+                  <div className="flex justify-between items-baseline gap-3">
+                    <span className="text-sm font-medium text-foreground truncate min-w-0">{expense.type}</span>
+                    <span
+                      className={cn(
+                        "text-sm font-medium tabular-nums shrink-0",
+                        amt < 0 ? "text-destructive" : "text-foreground"
+                      )}
+                    >
+                      {formatCurrency(amt)}
+                    </span>
+                  </div>
+                  {expense.notes ? (
+                    <div className="mt-0.5">
+                      <span className="text-xs text-muted-foreground">{expense.notes}</span>
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop / tablet: full table */}
+          <div className="hidden sm:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -702,16 +864,98 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paystub.expenses.map((expense) => (
-                  <TableRow key={expense.expid}>
-                    <TableCell className="font-medium text-xs md:text-sm">#{expense.expid}</TableCell>
-                    <TableCell className="text-xs md:text-sm">{expense.type}</TableCell>
-                    <TableCell className="hidden md:table-cell text-xs md:text-sm">{expense.notes}</TableCell>
-                    <TableCell className="text-right font-medium text-primary text-xs md:text-sm">
-                      {formatCurrency(expense.amount)}
+                {paystub.expenses.map((expense) => {
+                  const amt = parseFloat(expense.amount) || 0
+                  return (
+                    <TableRow key={expense.expid}>
+                      <TableCell className="font-medium text-xs md:text-sm">#{expense.expid}</TableCell>
+                      <TableCell className="text-xs md:text-sm">{expense.type}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs md:text-sm">{expense.notes}</TableCell>
+                      <TableCell
+                        className={cn(
+                          "text-right font-medium text-xs md:text-sm tabular-nums",
+                          amt < 0 ? "text-destructive" : "text-foreground"
+                        )}
+                      >
+                        {formatCurrency(amt)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Daily Pay Received (advances) */}
+      {advances.length > 0 && (
+        <CollapsibleSection
+          title="Daily Pay Received"
+          count={advances.length}
+          isExpanded={isAdvancesExpanded}
+          onToggle={() => setIsAdvancesExpanded(!isAdvancesExpanded)}
+        >
+          {/* Mobile: two-line rows */}
+          <div className="sm:hidden divide-y divide-border">
+            {advances.map((advance) => (
+              <div key={advance.advance_id} className="py-3 first:pt-0">
+                <div className="flex justify-between items-baseline gap-3">
+                  <span className="text-sm font-medium text-foreground">
+                    {formatDate(advance.advance_date)}
+                  </span>
+                  <span className="text-sm font-medium tabular-nums shrink-0 text-destructive">
+                    −{formatCurrency(advance.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-3 mt-0.5">
+                  <Badge variant="secondary" className="text-xs">
+                    {formatMethod(advance.method)}
+                  </Badge>
+                  {advance.notes ? (
+                    <span className="text-xs text-muted-foreground truncate min-w-0 text-right">
+                      {advance.notes}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop / tablet: full table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs md:text-sm">Date Paid</TableHead>
+                  <TableHead className="text-xs md:text-sm">Method</TableHead>
+                  <TableHead className="hidden md:table-cell text-xs md:text-sm">Notes</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {advances.map((advance) => (
+                  <TableRow key={advance.advance_id}>
+                    <TableCell className="text-xs md:text-sm">{formatDate(advance.advance_date)}</TableCell>
+                    <TableCell className="text-xs md:text-sm">
+                      <Badge variant="secondary" className="text-xs">
+                        {formatMethod(advance.method)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-xs md:text-sm">{advance.notes}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm tabular-nums text-destructive">
+                      −{formatCurrency(advance.amount)}
                     </TableCell>
                   </TableRow>
                 ))}
+                <TableRow>
+                  <TableCell colSpan={3} className="text-right text-xs md:text-sm font-medium">
+                    Total daily pay received
+                  </TableCell>
+                  <TableCell className="text-right font-semibold text-xs md:text-sm tabular-nums text-destructive">
+                    −{formatCurrency(advancesTotal)}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>
