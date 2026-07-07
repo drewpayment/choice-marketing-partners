@@ -97,17 +97,17 @@ function formatCurrency(cents: number): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    active: 'bg-emerald-50 text-teal-700',
-    past_due: 'bg-amber-50 text-amber-700',
-    canceled: 'bg-stone-100 text-stone-500',
-    paused: 'bg-stone-100 text-stone-500',
-    paid: 'bg-emerald-50 text-teal-700',
-    failed: 'bg-red-50 text-red-700',
-    pending: 'bg-amber-50 text-amber-700',
+    active: 'bg-emerald-50 text-teal-700 dark:bg-emerald-950 dark:text-emerald-300',
+    past_due: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    canceled: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+    paused: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+    paid: 'bg-emerald-50 text-teal-700 dark:bg-emerald-950 dark:text-emerald-300',
+    failed: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+    pending: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   }
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-stone-100 text-stone-500'}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'}`}
     >
       {status.replace('_', ' ')}
     </span>

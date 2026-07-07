@@ -68,7 +68,8 @@ export default async function PayrollPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Access Summary */}
+      {/* Access Summary (admins/managers only — meaningless for a single-agent employee) */}
+      {(session.user.isAdmin || session.user.isManager) && (
       <div className="px-4 mb-6 sm:px-0">
         <div className="bg-card overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -120,6 +121,7 @@ export default async function PayrollPage({ searchParams }: PageProps) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Filters */}
       <div className="px-4 mb-6 sm:px-0">

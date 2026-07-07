@@ -24,24 +24,24 @@ const painPoints = [
     title: 'No Online Credibility',
     description:
       "Prospects can't find you online, so they go with someone they can. A professional website builds trust before the first meeting.",
-    iconBg: 'bg-red-50',
-    iconColor: 'text-red-600',
+    iconBg: 'bg-red-50 dark:bg-red-950',
+    iconColor: 'text-red-600 dark:text-red-400',
   },
   {
     icon: FileText,
     title: 'Manual Document Sharing',
     description:
       'Emailing paystubs and contracts one by one is slow and error-prone. A digital portal lets your team access everything instantly.',
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-50 dark:bg-amber-950',
+    iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
     icon: Target,
     title: 'No Lead Capture',
     description:
       "Without a website, every prospect you meet has no way to learn more. You're leaving money on the table.",
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-teal-600',
+    iconBg: 'bg-sky-50 dark:bg-sky-950',
+    iconColor: 'text-teal-600 dark:text-teal-400',
   },
 ]
 
@@ -123,7 +123,7 @@ export default function WebsiteServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-teal-600 via-teal-800 to-stone-900 py-24 px-6 md:px-12">
         <div className="max-w-4xl mx-auto text-center space-y-7">
@@ -158,16 +158,16 @@ export default function WebsiteServicesPage() {
       </section>
 
       {/* Pain Points Section */}
-      <section className="py-20 px-6 md:px-12 bg-white">
+      <section className="py-20 px-6 md:px-12 bg-background">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs font-semibold tracking-widest text-amber-600 font-mono">
+            <p className="text-xs font-semibold tracking-widest text-amber-600 dark:text-amber-400 font-mono">
               THE PROBLEM
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
               You&apos;re Losing Business Without a Digital Presence
             </h2>
-            <p className="text-stone-500">
+            <p className="text-muted-foreground">
               In today&apos;s market, your prospects research you online before they ever pick up the phone.
             </p>
           </div>
@@ -175,13 +175,13 @@ export default function WebsiteServicesPage() {
             {painPoints.map((point) => (
               <div
                 key={point.title}
-                className="p-8 rounded-xl border border-stone-200 bg-stone-50 space-y-4"
+                className="p-8 rounded-xl border border-border bg-muted/50 space-y-4"
               >
                 <div className={`w-12 h-12 rounded-lg ${point.iconBg} flex items-center justify-center`}>
                   <point.icon className={`h-6 w-6 ${point.iconColor}`} />
                 </div>
-                <h3 className="text-lg font-semibold text-stone-900">{point.title}</h3>
-                <p className="text-sm text-stone-500 leading-relaxed">{point.description}</p>
+                <h3 className="text-lg font-semibold text-foreground">{point.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{point.description}</p>
               </div>
             ))}
           </div>
@@ -189,16 +189,16 @@ export default function WebsiteServicesPage() {
       </section>
 
       {/* What We Build Section */}
-      <section id="services" className="py-20 px-6 md:px-12 bg-stone-50">
+      <section id="services" className="py-20 px-6 md:px-12 bg-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs font-semibold tracking-widest text-teal-700 font-mono">
+            <p className="text-xs font-semibold tracking-widest text-teal-700 dark:text-teal-400 font-mono">
               OUR SERVICES
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
               Everything You Need to Go Digital
             </h2>
-            <p className="text-stone-500">
+            <p className="text-muted-foreground">
               From simple landing pages to full-featured web applications, we build it all.
             </p>
           </div>
@@ -206,13 +206,13 @@ export default function WebsiteServicesPage() {
             {services.map((svc) => (
               <div
                 key={svc.title}
-                className="p-8 rounded-xl border border-stone-200 bg-white space-y-5"
+                className="p-8 rounded-xl border border-border bg-card space-y-5"
               >
                 <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${svc.gradient} flex items-center justify-center`}>
                   <svc.icon className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-stone-900">{svc.title}</h3>
-                <p className="text-sm text-stone-500 leading-relaxed">{svc.description}</p>
+                <h3 className="text-xl font-bold text-foreground">{svc.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{svc.description}</p>
               </div>
             ))}
           </div>
@@ -220,13 +220,13 @@ export default function WebsiteServicesPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-6 md:px-12 bg-white">
+      <section className="py-20 px-6 md:px-12 bg-background">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs font-semibold tracking-widest text-teal-700 font-mono">
+            <p className="text-xs font-semibold tracking-widest text-teal-700 dark:text-teal-400 font-mono">
               HOW IT WORKS
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
               From Idea to Launch in 3 Simple Steps
             </h2>
           </div>
@@ -236,8 +236,8 @@ export default function WebsiteServicesPage() {
                 <div className={`w-16 h-16 ${step.bg} rounded-full flex items-center justify-center mx-auto`}>
                   <span className="text-3xl font-bold text-white">{step.number}</span>
                 </div>
-                <h3 className="text-xl font-bold text-stone-900">{step.title}</h3>
-                <p className="text-sm text-stone-500 leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
@@ -245,16 +245,16 @@ export default function WebsiteServicesPage() {
       </section>
 
       {/* Pricing Calculator Section */}
-      <section id="pricing" className="py-20 px-6 md:px-12 bg-stone-50">
+      <section id="pricing" className="py-20 px-6 md:px-12 bg-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs font-semibold tracking-widest text-amber-600 font-mono">
+            <p className="text-xs font-semibold tracking-widest text-amber-600 dark:text-amber-400 font-mono">
               PRICING
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
               Choose the Right Plan for Your Business
             </h2>
-            <p className="text-stone-500">
+            <p className="text-muted-foreground">
               Select a tier, add features you need, and see your monthly total instantly.
             </p>
           </div>
@@ -267,7 +267,7 @@ export default function WebsiteServicesPage() {
             />
           ) : (
             <div className="text-center py-12 border rounded-xl">
-              <p className="text-stone-500">
+              <p className="text-muted-foreground">
                 Pricing plans are being configured. Check back soon!
               </p>
             </div>

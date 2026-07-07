@@ -55,7 +55,7 @@ export function ImpersonationBanner() {
   return (
     <div
       role="alert"
-      className="bg-red-600 text-white px-4 py-2 text-sm flex items-center justify-between"
+      className="bg-destructive text-white px-4 py-2 text-sm flex items-center justify-between"
     >
       <div>
         <strong>Acting as {impersonation.targetName}</strong>

@@ -43,16 +43,16 @@ interface FeatureFlag {
 }
 
 const ENV_COLORS: Record<string, string> = {
-  production: 'bg-blue-50 text-blue-700',
-  staging: 'bg-green-50 text-green-700',
-  development: 'bg-yellow-50 text-yellow-700',
-  all: 'bg-purple-50 text-purple-700',
+  production: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  staging: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+  development: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300',
+  all: 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
 }
 
 const OVERRIDE_COLORS: Record<string, string> = {
-  role: 'bg-green-50 text-green-700',
-  user: 'bg-blue-50 text-blue-700',
-  subscriber: 'bg-orange-50 text-orange-700',
+  role: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+  user: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  subscriber: 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
 }
 
 export default function FeatureFlagsClient() {
@@ -256,7 +256,7 @@ export default function FeatureFlagsClient() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-3xl font-bold">Feature Flags</h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
               Super Admin
             </span>
           </div>
@@ -301,7 +301,7 @@ export default function FeatureFlagsClient() {
                     </TooltipProvider>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ENV_COLORS[flag.environment] ?? 'bg-stone-100 text-stone-600'}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ENV_COLORS[flag.environment] ?? 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300'}`}>
                       {flag.environment}
                     </span>
                   </TableCell>
@@ -321,7 +321,7 @@ export default function FeatureFlagsClient() {
                         </span>
                       ))}
                       {flag.overrides.length > 2 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
                           +{flag.overrides.length - 2}
                         </span>
                       )}

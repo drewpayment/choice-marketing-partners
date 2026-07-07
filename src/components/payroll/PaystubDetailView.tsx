@@ -499,14 +499,14 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
 
         <Card>
           <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Adjustments</CardTitle>
           </CardHeader>
           <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-destructive">
+            <div className={`text-lg md:text-2xl font-bold ${paystub.totals.expenses < 0 ? 'text-destructive' : 'text-foreground'}`}>
               {formatCurrency(paystub.totals.expenses)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {paystub.expenses.length} expense(s)
+              {paystub.expenses.length} adjustment(s)
             </p>
           </CardContent>
         </Card>
@@ -524,6 +524,9 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                 {paystub.isPaid ? 'Paid' : 'Unpaid'}
               </Badge>
             </div>
+            <p className="hidden md:block text-xs text-muted-foreground mt-2">
+              Sales + Overrides + Adjustments = Net Pay
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -667,7 +670,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
                   <TableRow key={override.ovrid}>
                     <TableCell className="font-medium text-xs md:text-sm">#{override.ovrid}</TableCell>
                     <TableCell className="text-xs md:text-sm">{override.name}</TableCell>
-                    <TableCell className="text-right text-xs md:text-sm">{formatCurrency(override.sales)}</TableCell>
+                    <TableCell className="text-right text-xs md:text-sm">{override.sales}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-xs md:text-sm">{override.commission}</TableCell>
                     <TableCell className="text-right font-medium text-xs md:text-sm">
                       {formatCurrency(override.total)}
@@ -683,7 +686,7 @@ export default function PaystubDetailView({ paystub, userContext, returnUrl }: P
       {/* Expenses */}
       {paystub.expenses.length > 0 && (
         <CollapsibleSection
-          title="Expenses"
+          title="Adjustments & Reimbursements"
           count={paystub.expenses.length}
           isExpanded={isExpensesExpanded}
           onToggle={() => setIsExpensesExpanded(!isExpensesExpanded)}

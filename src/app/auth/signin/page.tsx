@@ -4,7 +4,10 @@ import { signIn, getSession } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useIsClient } from '@/hooks/useIsClient'
-import { useFeatureFlag } from '@/hooks/useFeatureFlag'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -13,7 +16,6 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const isClient = useIsClient()
-  const showForgotPassword = useFeatureFlag('show-forgot-password')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,7 +30,7 @@ export default function SignIn() {
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        setError('Email or password is incorrect')
       } else {
         // Get the session to check user role and redirect appropriately
         const session = await getSession()
@@ -80,66 +82,58 @@ export default function SignIn() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px" suppressHydrationWarning={true}>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
+          <div className="space-y-4" suppressHydrationWarning={true}>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder-muted-foreground text-foreground rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
                 suppressHydrationWarning={true}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder-muted-foreground text-foreground rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 suppressHydrationWarning={true}
               />
             </div>
           </div>
 
-          {showForgotPassword && (
-            <div className="text-sm">
-              <a
-                href="/auth/forgot-password"
-                className="font-medium text-primary hover:text-primary/80"
-              >
-                Forgot your password?
-              </a>
-            </div>
-          )}
+          <div className="text-sm">
+            <a
+              href="/auth/forgot-password"
+              className="font-medium text-primary hover:text-primary/80"
+            >
+              Forgot your password?
+            </a>
+          </div>
 
           {error && (
-            <div className="text-destructive text-sm text-center">{error}</div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-            >
+            <Button type="submit" disabled={loading} className="w-full">
               {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

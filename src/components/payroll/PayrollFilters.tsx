@@ -182,6 +182,18 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
     router.push(`/payroll?${params.toString()}`)
   }
 
+  // Count only meaningful, non-default filters (status 'all' is the default;
+  // page/limit are pagination, not filters).
+  const activeFilterCount =
+    [
+      filters.employeeId,
+      filters.vendorId,
+      filters.issueDate,
+      filters.startDate,
+      filters.endDate,
+    ].filter(Boolean).length +
+    (filters.status && filters.status !== 'all' ? 1 : 0)
+
   if (loading) {
     return (
       <div className="bg-card shadow rounded-lg animate-pulse">
@@ -376,9 +388,9 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
           </Button>
           
           <div className="text-sm text-muted-foreground">
-            {Object.values(filters).filter(Boolean).length > 0 && (
+            {activeFilterCount > 0 && (
               <span>
-                {Object.values(filters).filter(Boolean).length} filter(s) applied
+                {activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'} applied
               </span>
             )}
           </div>
