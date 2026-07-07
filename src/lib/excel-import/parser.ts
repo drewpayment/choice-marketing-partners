@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { ColumnMapping } from './field-mapper';
 import { logger } from '@/lib/utils/logger'
+import { isYearInRange, allowedRangeLabel } from '@/lib/utils/dateValidation'
 
 export interface ParsedData {
   headers: string[];
@@ -654,6 +655,21 @@ function validateAndFormatDate(
             globalDateFormat === 'ISO' ? 'YYYY-MM-DD' :
             'MM/DD/YYYY or YYYY-MM-DD'
           }. Received: ${typeof value === 'string' || typeof value === 'number' ? value : typeof value}`
+        }
+      };
+    }
+
+    // Year-range guardrail (criteria D1/D2/D4) — same shared range as the
+    // server and client so import accept/reject decisions never drift. Rejects
+    // typo'd years (e.g. 2926) and mis-mapped numeric columns resolving to a
+    // far-future/past year. Row is marked invalid, not silently imported.
+    if (!isYearInRange(date.getFullYear())) {
+      return {
+        error: {
+          row: rowNumber,
+          field,
+          value,
+          message: `Date for ${field} has a year (${date.getFullYear()}) outside the allowed range ${allowedRangeLabel()}. Received: ${typeof value === 'string' || typeof value === 'number' ? value : typeof value}`
         }
       };
     }
