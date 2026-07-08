@@ -12,6 +12,7 @@ function errorStatus(message: string): number {
   if (message.includes('Access denied')) return 403
   if (message.includes('not found')) return 404
   if (message.includes('Invalid frequency')) return 400
+  if (message.includes('Invalid monthly_weekday')) return 400
   return 500
 }
 
@@ -42,7 +43,7 @@ export async function PATCH(
     )
 
     const body = await request.json()
-    const { type, amount, notes, frequency, startDate, endDate, isActive } = body
+    const { type, amount, notes, frequency, monthlyWeek, monthlyWeekday, startDate, endDate, isActive } = body
 
     const updated = await scheduledExpenseRepository.updateTemplate(
       templateId,
@@ -51,6 +52,9 @@ export async function PATCH(
         amount: amount != null ? Number(amount) : undefined,
         notes,
         frequency,
+        // undefined = leave unchanged; null = clear; number = set.
+        monthlyWeek: monthlyWeek === undefined ? undefined : monthlyWeek === null ? null : Number(monthlyWeek),
+        monthlyWeekday: monthlyWeekday === undefined ? undefined : monthlyWeekday === null ? null : Number(monthlyWeekday),
         startDate,
         endDate,
         isActive,

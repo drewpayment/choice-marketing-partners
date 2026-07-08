@@ -12,6 +12,7 @@ function errorStatus(message: string): number {
   if (message.includes('Access denied')) return 403
   if (message.includes('not found')) return 404
   if (message.includes('Invalid frequency')) return 400
+  if (message.includes('Invalid monthly_weekday')) return 400
   return 500
 }
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     )
 
     const body = await request.json()
-    const { agentId, vendorId, type, amount, frequency, startDate, endDate, notes, isActive } = body
+    const { agentId, vendorId, type, amount, frequency, monthlyWeek, monthlyWeekday, startDate, endDate, notes, isActive } = body
 
     if (agentId == null || vendorId == null || !type || amount == null || !frequency || !startDate) {
       return NextResponse.json(
@@ -86,6 +87,8 @@ export async function POST(request: NextRequest) {
         type,
         amount: Number(amount),
         frequency,
+        monthlyWeek: monthlyWeek != null ? Number(monthlyWeek) : null,
+        monthlyWeekday: monthlyWeekday != null ? Number(monthlyWeekday) : null,
         startDate,
         endDate: endDate ?? null,
         notes,

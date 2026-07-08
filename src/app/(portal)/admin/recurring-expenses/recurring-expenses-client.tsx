@@ -41,12 +41,42 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { logger } from '@/lib/utils/logger'
 
-const FREQUENCIES = ['weekly', 'biweekly', 'monthly'] as const
+const FREQUENCIES = ['weekly', 'biweekly', 'monthly', 'monthly_weekday'] as const
 type Frequency = (typeof FREQUENCIES)[number]
 const FREQUENCY_LABEL: Record<Frequency, string> = {
   weekly: 'Weekly',
   biweekly: 'Bi-weekly',
   monthly: 'Monthly',
+  monthly_weekday: 'Monthly (day of week)',
+}
+
+// monthly_week: 1=first … 4=fourth, 5=last
+const ORDINALS: { value: string; label: string }[] = [
+  { value: '1', label: 'First' },
+  { value: '2', label: 'Second' },
+  { value: '3', label: 'Third' },
+  { value: '4', label: 'Fourth' },
+  { value: '5', label: 'Last' },
+]
+// monthly_weekday: 0=Sunday … 6=Saturday (matches JS Date.getDay())
+const WEEKDAYS: { value: string; label: string }[] = [
+  { value: '0', label: 'Sunday' },
+  { value: '1', label: 'Monday' },
+  { value: '2', label: 'Tuesday' },
+  { value: '3', label: 'Wednesday' },
+  { value: '4', label: 'Thursday' },
+  { value: '5', label: 'Friday' },
+  { value: '6', label: 'Saturday' },
+]
+
+/** Human-readable cadence, e.g. "First Monday of month" for monthly_weekday. */
+function cadenceLabel(t: Pick<Template, 'frequency' | 'monthly_week' | 'monthly_weekday'>): string {
+  if (t.frequency === 'monthly_weekday' && t.monthly_week != null && t.monthly_weekday != null) {
+    const ord = ORDINALS.find(o => o.value === String(t.monthly_week))?.label ?? ''
+    const day = WEEKDAYS.find(w => w.value === String(t.monthly_weekday))?.label ?? ''
+    return `${ord} ${day} of month`.trim()
+  }
+  return FREQUENCY_LABEL[t.frequency]
 }
 
 interface AgentOption {
@@ -66,6 +96,8 @@ interface Template {
   amount: number
   notes: string
   frequency: Frequency
+  monthly_week: number | null
+  monthly_weekday: number | null
   start_date: string
   end_date: string | null
   is_active: number
@@ -241,7 +273,7 @@ export default function RecurringExpensesClient() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium text-foreground">{t.type}</span>
                       <Badge variant="secondary" className="text-xs">
-                        {FREQUENCY_LABEL[t.frequency]}
+                        {cadenceLabel(t)}
                       </Badge>
                       {!t.is_active && (
                         <Badge variant="outline" className="text-xs text-muted-foreground">
@@ -319,7 +351,7 @@ export default function RecurringExpensesClient() {
             <AlertDialogDescription>
               {deleting && (
                 <>
-                  &quot;{deleting.type}&quot; ({money(deleting.amount)}, {FREQUENCY_LABEL[deleting.frequency]}).
+                  &quot;{deleting.type}&quot; ({money(deleting.amount)}, {cadenceLabel(deleting)}).
                   Existing statements are unaffected; it just won&apos;t populate future ones.
                 </>
               )}
@@ -337,15 +369,29 @@ export default function RecurringExpensesClient() {
   )
 }
 
-const schema = z.object({
-  vendorId: z.string().min(1, 'Select a vendor'),
-  type: z.string().trim().min(1, 'Type is required'),
-  amount: z.number().refine(v => v !== 0, 'Amount cannot be zero'),
-  frequency: z.enum(FREQUENCIES),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().optional().or(z.literal('')),
-  notes: z.string().optional().or(z.literal('')),
-})
+const schema = z
+  .object({
+    vendorId: z.string().min(1, 'Select a vendor'),
+    type: z.string().trim().min(1, 'Type is required'),
+    amount: z.number().refine(v => v !== 0, 'Amount cannot be zero'),
+    frequency: z.enum(FREQUENCIES),
+    monthlyWeek: z.string().optional().or(z.literal('')),
+    monthlyWeekday: z.string().optional().or(z.literal('')),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().optional().or(z.literal('')),
+    notes: z.string().optional().or(z.literal('')),
+  })
+  .superRefine((val, ctx) => {
+    // For monthly_weekday both the ordinal and weekday are required.
+    if (val.frequency === 'monthly_weekday') {
+      if (!val.monthlyWeek) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyWeek'], message: 'Select a week' })
+      }
+      if (!val.monthlyWeekday) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyWeekday'], message: 'Select a day' })
+      }
+    }
+  })
 type FormValues = z.infer<typeof schema>
 
 interface TemplateDialogProps {
@@ -373,6 +419,8 @@ function TemplateDialog({ agentId, vendors, template, onClose, onSaved }: Templa
       type: template?.type ?? '',
       amount: template?.amount ?? 0,
       frequency: template?.frequency ?? 'weekly',
+      monthlyWeek: template?.monthly_week != null ? String(template.monthly_week) : '',
+      monthlyWeekday: template?.monthly_weekday != null ? String(template.monthly_weekday) : '',
       startDate: template?.start_date ?? dayjs().format('YYYY-MM-DD'),
       endDate: template?.end_date ?? '',
       notes: template?.notes ?? '',
@@ -385,12 +433,22 @@ function TemplateDialog({ agentId, vendors, template, onClose, onSaved }: Templa
     try {
       const url = isEdit ? `/api/scheduled-expenses/${template!.id}` : '/api/scheduled-expenses'
       const method = isEdit ? 'PATCH' : 'POST'
+      const isMonthlyWeekday = values.frequency === 'monthly_weekday'
+      // Send numbers for monthly_weekday, explicit null otherwise so the backend
+      // clears the columns for every other frequency.
+      const monthlyWeek = isMonthlyWeekday && values.monthlyWeek ? parseInt(values.monthlyWeek) : null
+      const monthlyWeekday =
+        isMonthlyWeekday && values.monthlyWeekday !== '' && values.monthlyWeekday != null
+          ? parseInt(values.monthlyWeekday)
+          : null
       const body = isEdit
         ? {
             vendorId: parseInt(values.vendorId),
             type: values.type,
             amount: values.amount,
             frequency: values.frequency,
+            monthlyWeek,
+            monthlyWeekday,
             startDate: values.startDate,
             endDate: values.endDate || null,
             notes: values.notes || '',
@@ -401,6 +459,8 @@ function TemplateDialog({ agentId, vendors, template, onClose, onSaved }: Templa
             type: values.type,
             amount: values.amount,
             frequency: values.frequency,
+            monthlyWeek,
+            monthlyWeekday,
             startDate: values.startDate,
             endDate: values.endDate || null,
             notes: values.notes || '',
@@ -491,9 +551,61 @@ function TemplateDialog({ agentId, vendors, template, onClose, onSaved }: Templa
               </Select>
             </div>
 
+            {watched.frequency === 'monthly_weekday' && (
+              <div className="grid grid-cols-2 gap-4 sm:col-span-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="tmpl-monthly-week">Week</Label>
+                  <Select
+                    value={watched.monthlyWeek || ''}
+                    onValueChange={v => setValue('monthlyWeek', v, { shouldValidate: true })}
+                  >
+                    <SelectTrigger id="tmpl-monthly-week" className="min-h-11">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORDINALS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.monthlyWeek && (
+                    <p className="text-xs text-destructive">{errors.monthlyWeek.message}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="tmpl-monthly-weekday">Day of week</Label>
+                  <Select
+                    value={watched.monthlyWeekday || ''}
+                    onValueChange={v => setValue('monthlyWeekday', v, { shouldValidate: true })}
+                  >
+                    <SelectTrigger id="tmpl-monthly-weekday" className="min-h-11">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {WEEKDAYS.map(w => (
+                        <SelectItem key={w.value} value={w.value}>
+                          {w.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.monthlyWeekday && (
+                    <p className="text-xs text-destructive">{errors.monthlyWeekday.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label htmlFor="tmpl-start">Start date</Label>
               <Input id="tmpl-start" type="date" {...register('startDate')} className="min-h-11" />
+              {watched.frequency === 'monthly_weekday' && (
+                <p className="text-xs text-muted-foreground">
+                  Only applies on or after this date; it doesn&apos;t set the recurrence day.
+                </p>
+              )}
               {errors.startDate && (
                 <p className="text-xs text-destructive">{errors.startDate.message}</p>
               )}

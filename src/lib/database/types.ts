@@ -148,6 +148,8 @@ export interface ScheduledExpenses {
   amount: Decimal;
   notes: Generated<string>;
   frequency: string;
+  monthly_week: number | null; // 1=first … 4=fourth, 5=last (monthly_weekday freq only)
+  monthly_weekday: number | null; // 0=Sunday … 6=Saturday (monthly_weekday freq only)
   start_date: Date;
   end_date: Date | null;
   is_active: Generated<number>;

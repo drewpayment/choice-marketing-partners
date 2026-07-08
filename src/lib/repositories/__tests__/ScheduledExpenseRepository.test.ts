@@ -94,6 +94,96 @@ describe('isTemplateDue cadence math', () => {
       expect(isTemplateDue(t, '2026-01-25')).toBe(false) // past end_date
     })
   })
+
+  describe('monthly_weekday (nth weekday of month)', () => {
+    // Statements end on Sundays. Jan 2026: Jan 1 is a Thursday, so Mondays fall on
+    // the 5th, 12th, 19th, 26th and Sunday statement-ends are Jan 4, 11, 18, 25.
+    // First Monday of Jan 2026 = Jan 5, which lives in the window ending Jan 11
+    // (window = Jan 5 … Jan 11 inclusive).
+    const firstMonday = {
+      frequency: 'monthly_weekday',
+      start_date: '2026-01-01',
+      end_date: null,
+      monthly_week: 1,
+      monthly_weekday: 1, // Monday
+    }
+
+    it('first Monday: due in the week whose window contains it, not others', () => {
+      expect(isTemplateDue(firstMonday, '2026-01-11')).toBe(true) // window Jan 5–11 ⊇ Jan 5
+      expect(isTemplateDue(firstMonday, '2026-01-04')).toBe(false) // window Dec 29–Jan 4, Jan 5 not yet
+      expect(isTemplateDue(firstMonday, '2026-01-18')).toBe(false) // window Jan 12–18
+      expect(isTemplateDue(firstMonday, '2026-01-25')).toBe(false) // window Jan 19–25
+    })
+
+    it('fires again the next month (first Monday of Feb 2026 = Feb 2)', () => {
+      // Feb 2026 Mondays: 2, 9, 16, 23. First Monday = Feb 2, window ending Feb 8.
+      expect(isTemplateDue(firstMonday, '2026-02-08')).toBe(true) // window Feb 2–8 ⊇ Feb 2
+      expect(isTemplateDue(firstMonday, '2026-02-01')).toBe(false) // window Jan 26–Feb 1
+    })
+
+    it('LAST Friday in a 5-Friday month (Jan 2026 Fridays: 2,9,16,23,30 → Jan 30)', () => {
+      const lastFriday = {
+        frequency: 'monthly_weekday',
+        start_date: '2026-01-01',
+        end_date: null,
+        monthly_week: 5, // last
+        monthly_weekday: 5, // Friday
+      }
+      // Jan 30 lives in the window ending Feb 1 (Jan 26 … Feb 1).
+      expect(isTemplateDue(lastFriday, '2026-02-01')).toBe(true)
+      // Must NOT confuse "last" with the 4th Friday (Jan 23, window ending Jan 25).
+      expect(isTemplateDue(lastFriday, '2026-01-25')).toBe(false)
+    })
+
+    it('straddle — occurrence in the EARLIER month (last Fri Jan 30, wkending Feb 1)', () => {
+      const lastFriday = {
+        frequency: 'monthly_weekday',
+        start_date: '2026-01-01',
+        end_date: null,
+        monthly_week: 5,
+        monthly_weekday: 5, // Friday
+      }
+      // Window Jan 26 … Feb 1 straddles Jan/Feb; the January occurrence (Jan 30) hits.
+      expect(isTemplateDue(lastFriday, '2026-02-01')).toBe(true)
+    })
+
+    it('straddle — occurrence in the LATER month (first Sun Feb 1, wkending Feb 1)', () => {
+      const firstSunday = {
+        frequency: 'monthly_weekday',
+        start_date: '2026-01-01',
+        end_date: null,
+        monthly_week: 1,
+        monthly_weekday: 0, // Sunday
+      }
+      // Window Jan 26 … Feb 1 straddles Jan/Feb; the February occurrence (Feb 1) hits.
+      expect(isTemplateDue(firstSunday, '2026-02-01')).toBe(true)
+      // Jan's own first Sunday (Jan 4) already passed; not double-counted mid-Jan.
+      expect(isTemplateDue(firstSunday, '2026-01-25')).toBe(false)
+    })
+
+    it('gates on the OCCURRENCE date, not wkending (start_date)', () => {
+      // Occurrence = first Monday = Jan 5; wkending Jan 11.
+      const base = { frequency: 'monthly_weekday', end_date: null, monthly_week: 1, monthly_weekday: 1 }
+      expect(isTemplateDue({ ...base, start_date: '2026-01-05' }, '2026-01-11')).toBe(true) // start == occ
+      // start_date Jan 6 is after the occurrence (Jan 5) but before wkending (Jan 11):
+      // gating on the occurrence rejects it, gating on wkending would (wrongly) accept.
+      expect(isTemplateDue({ ...base, start_date: '2026-01-06' }, '2026-01-11')).toBe(false)
+    })
+
+    it('gates on the OCCURRENCE date, not wkending (end_date)', () => {
+      const base = { frequency: 'monthly_weekday', start_date: '2026-01-01', monthly_week: 1, monthly_weekday: 1 }
+      // Occurrence Jan 5, wkending Jan 11.
+      expect(isTemplateDue({ ...base, end_date: '2026-01-04' }, '2026-01-11')).toBe(false) // end < occ
+      expect(isTemplateDue({ ...base, end_date: '2026-01-05' }, '2026-01-11')).toBe(true) // end == occ
+      // end_date Jan 10 is >= occurrence (Jan 5) but < wkending (Jan 11): still due.
+      expect(isTemplateDue({ ...base, end_date: '2026-01-10' }, '2026-01-11')).toBe(true)
+    })
+
+    it('is not due when the monthly fields are missing (malformed)', () => {
+      const bad = { frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: null }
+      expect(isTemplateDue(bad, '2026-01-11')).toBe(false)
+    })
+  })
 })
 
 describe('ScheduledExpenseRepository RBAC + validation', () => {
@@ -123,6 +213,33 @@ describe('ScheduledExpenseRepository RBAC + validation', () => {
         adminCtx
       )
     ).rejects.toThrow('Invalid frequency')
+  })
+
+  it('rejects monthly_weekday create without the two required fields', async () => {
+    await expect(
+      repo.createTemplate(
+        { agentid: 3, vendorId: 1, type: 'lease', amount: -10, frequency: 'monthly_weekday', startDate: '2026-01-04' },
+        adminCtx
+      )
+    ).rejects.toThrow('Invalid monthly_weekday')
+  })
+
+  it('rejects an out-of-range monthly_week', async () => {
+    await expect(
+      repo.createTemplate(
+        { agentid: 3, vendorId: 1, type: 'lease', amount: -10, frequency: 'monthly_weekday', monthlyWeek: 6, monthlyWeekday: 1, startDate: '2026-01-04' },
+        adminCtx
+      )
+    ).rejects.toThrow('Invalid monthly_weekday')
+  })
+
+  it('rejects monthly_week/monthly_weekday on a non-monthly_weekday frequency', async () => {
+    await expect(
+      repo.createTemplate(
+        { agentid: 3, vendorId: 1, type: 'gas', amount: -10, frequency: 'weekly', monthlyWeek: 1, monthlyWeekday: 1, startDate: '2026-01-04' },
+        adminCtx
+      )
+    ).rejects.toThrow('Invalid monthly_weekday')
   })
 
   it('getDueTemplates rejects employee role (statement building is admin/manager)', async () => {
