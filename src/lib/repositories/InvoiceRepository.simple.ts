@@ -31,6 +31,7 @@ interface SimpleExpense {
   type: string
   amount: number
   notes: string
+  scheduledExpenseId?: number  // recurring template id this row was materialized from
 }
 
 interface SimpleRequest {
@@ -142,6 +143,13 @@ export class InvoiceRepository {
               .deleteFrom('expenses')
               .where('expid', 'in', request.pendingDeletes.expenses)
               .execute()
+
+            // Drop any recurring-template application links pointing at these
+            // now-deleted expense rows so the template's history stays accurate.
+            await trx
+              .deleteFrom('scheduled_expense_applications')
+              .where('expense_id', 'in', request.pendingDeletes.expenses)
+              .execute()
             logger.log('✅ Deleted', request.pendingDeletes.expenses.length, 'expenses')
           }
         }
@@ -248,6 +256,7 @@ export class InvoiceRepository {
             updated_at: new Date()
           }
 
+          let expid: number
           if (expense.expenseId && expense.expenseId > 0) {
             // Capture existing state for the audit trail
             const existingExpense = await trx
@@ -261,14 +270,45 @@ export class InvoiceRepository {
               .set(expenseData)
               .where('expid', '=', expense.expenseId)
               .execute()
-            expenseResults.push({ ...expenseData, expid: expense.expenseId, _previousData: existingExpense || null })
+            expid = expense.expenseId
+            expenseResults.push({ ...expenseData, expid, _previousData: existingExpense || null })
           } else {
             const result = await trx
               .insertInto('expenses')
               .values({ ...expenseData, created_at: new Date() })
               .executeTakeFirst()
-            const newId = Number(result.insertId)
-            expenseResults.push({ ...expenseData, expid: newId, _previousData: null })
+            expid = Number(result.insertId)
+            expenseResults.push({ ...expenseData, expid, _previousData: null })
+          }
+
+          // Recurring-template link: if this expense was materialized from a
+          // scheduled_expenses template, record an application row. Keyed on
+          // (scheduled_expense_id, issue_date) so re-saving a statement is
+          // idempotent — the upsert refreshes the snapshot instead of duplicating.
+          if (expense.scheduledExpenseId && expense.scheduledExpenseId > 0) {
+            const now = new Date()
+            await trx
+              .insertInto('scheduled_expense_applications')
+              .values({
+                scheduled_expense_id: expense.scheduledExpenseId,
+                expense_id: expid,
+                agentid: request.agentId,
+                vendor_id: parseInt(request.vendor),
+                issue_date: dayjs(request.issueDate, 'YYYY-MM-DD').toDate(),
+                wkending: dayjs(request.weekending, 'YYYY-MM-DD').toDate(),
+                amount: expense.amount.toString(),
+                applied_by: request.auditMetadata?.userId ?? request.agentId,
+                created_at: now,
+                updated_at: now,
+              })
+              .onDuplicateKeyUpdate({
+                expense_id: expid,
+                amount: expense.amount.toString(),
+                wkending: dayjs(request.weekending, 'YYYY-MM-DD').toDate(),
+                applied_by: request.auditMetadata?.userId ?? request.agentId,
+                updated_at: now,
+              })
+              .execute()
           }
         }
 

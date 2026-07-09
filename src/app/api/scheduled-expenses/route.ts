@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/config'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
 import { ScheduledExpenseRepository } from '@/lib/repositories/ScheduledExpenseRepository'
 import { logger } from '@/lib/utils/logger'
+import dayjs from 'dayjs'
 
 const scheduledExpenseRepository = new ScheduledExpenseRepository()
 
@@ -18,7 +19,13 @@ function errorStatus(message: string): number {
 
 /**
  * GET /api/scheduled-expenses?agentId=&vendorId=&activeOnly=
- * List recurring expense templates for an agent (role-filtered).
+ *
+ * Two modes:
+ *  - agentId provided → list templates for that single agent (role-filtered,
+ *    unchanged legacy behavior — an employee may read their own).
+ *  - agentId ABSENT → admin overview: ALL templates (admin) or the manager's
+ *    direct reports (manager), each enriched with agent_name, vendor_name,
+ *    last_applied and next_due. Plain employees get 403.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -35,14 +42,25 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const agentIdParam = searchParams.get('agentId')
-    const agentId = agentIdParam ? parseInt(agentIdParam) : session.user.employeeId
+    const activeOnly = searchParams.get('activeOnly') === 'true'
+
+    // Overview mode: no agentId → return the enriched template list.
+    if (!agentIdParam) {
+      const data = await scheduledExpenseRepository.getAllTemplates(userContext, {
+        activeOnly,
+        today: dayjs().format('YYYY-MM-DD'),
+      })
+      return NextResponse.json({ success: true, data })
+    }
+
+    const agentId = parseInt(agentIdParam)
     if (isNaN(agentId)) {
       return NextResponse.json({ error: 'Invalid agentId' }, { status: 400 })
     }
 
     const data = await scheduledExpenseRepository.getTemplatesByAgent(agentId, userContext, {
       vendorId: searchParams.get('vendorId') ? parseInt(searchParams.get('vendorId')!) : undefined,
-      activeOnly: searchParams.get('activeOnly') === 'true',
+      activeOnly,
     })
 
     return NextResponse.json({ success: true, data })

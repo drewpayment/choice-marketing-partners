@@ -972,6 +972,15 @@ export class PayrollRepository {
         .where(db.fn('DATE', ['issue_date']), '=', issueDate)
         .execute()
 
+      // Drop recurring-template application links for this statement so template
+      // history reflects the deletion (the whole statement week is being removed).
+      await trx
+        .deleteFrom('scheduled_expense_applications')
+        .where('agentid', '=', agentId)
+        .where('vendor_id', '=', vendorId)
+        .where(db.fn('DATE', ['issue_date']), '=', issueDate)
+        .execute()
+
       await trx
         .deleteFrom('advances')
         .where('agentid', '=', agentId)

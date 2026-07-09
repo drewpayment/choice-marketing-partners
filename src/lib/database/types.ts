@@ -158,6 +158,20 @@ export interface ScheduledExpenses {
   updated_at: Generated<Date | null>;
 }
 
+export interface ScheduledExpenseApplications {
+  id: Generated<number>;
+  scheduled_expense_id: number;
+  expense_id: number | null; // expid of the materialized `expenses` row
+  agentid: number;
+  vendor_id: number;
+  issue_date: Date;
+  wkending: Date;
+  amount: Decimal;
+  applied_by: number; // employees.id of the admin who saved the statement
+  created_at: Generated<Date | null>;
+  updated_at: Generated<Date | null>;
+}
+
 export interface ExpenseAudit {
   id: Generated<number>;
   expense_id: number;
@@ -698,6 +712,7 @@ export interface DB {
   payroll_restriction: PayrollRestriction;
   paystubs: Paystubs;
   scheduled_expenses: ScheduledExpenses;
+  scheduled_expense_applications: ScheduledExpenseApplications;
   permissions: Permissions;
   personal_access_tokens: PersonalAccessTokens;
   posts: Posts;

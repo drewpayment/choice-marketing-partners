@@ -170,7 +170,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
         if (!res.ok) return;
         const json = await res.json();
         if (cancelled) return;
-        const templates: Array<{ type: string; amount: number; notes: string }> = json.data ?? [];
+        const templates: Array<{ id: number; type: string; amount: number; notes: string }> = json.data ?? [];
         setFormData(prev => {
           // Replace any previously-injected recurring rows so changing the week
           // re-derives cleanly; user-entered expenses are preserved.
@@ -180,6 +180,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
             amount: t.amount,
             notes: t.notes,
             isRecurring: true,
+            scheduledExpenseId: t.id, // link back to the template so the save path logs an application
           }));
           return { ...prev, expenses: [...manualRows, ...recurringRows] };
         });
@@ -530,8 +531,9 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
 
       setSaving(true);
 
-      // Strip UI-only flags (isRecurring) before persisting; recurring rows are
-      // saved as ordinary expenses.
+      // Strip the UI-only isRecurring flag before persisting; recurring rows save
+      // as ordinary expenses. scheduledExpenseId is kept so the save path can log
+      // an application row linking the materialized expense back to its template.
       const payload = {
         ...formData,
         expenses: formData.expenses.map((e) => ({
@@ -539,6 +541,7 @@ export default function InvoiceEditor({ mode, agentId, vendorId, issueDate, init
           type: e.type,
           amount: e.amount,
           notes: e.notes,
+          scheduledExpenseId: e.scheduledExpenseId,
         })),
         pendingDeletes,
       };

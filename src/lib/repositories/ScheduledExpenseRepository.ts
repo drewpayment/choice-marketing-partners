@@ -182,6 +182,138 @@ export function isTemplateDue(
   }
 }
 
+/**
+ * Where a template lands NEXT relative to `fromDate`, as a discriminated union
+ * the admin UI renders directly. Unlike isTemplateDue() (which answers "is this
+ * template due for THIS statement week?"), projectNextDue() answers "when will it
+ * apply next?" and needs no statement week to be chosen.
+ *
+ *  - paused:       is_active = 0. No projection.
+ *  - ended:        end_date has passed and no future occurrence remains.
+ *  - every_week:   weekly cadence — applies to every statement week (no single date).
+ *  - week_window:  biweekly cadence — the next due 7-day block [start … end].
+ *  - date:         a single calendar date (monthly anniversary or the nth/last
+ *                  weekday-of-month occurrence).
+ */
+export type NextDue =
+  | { kind: 'paused' }
+  | { kind: 'ended' }
+  | { kind: 'every_week' }
+  | { kind: 'week_window'; start: string; end: string } // YYYY-MM-DD, both inclusive
+  | { kind: 'date'; date: string } // YYYY-MM-DD
+
+/**
+ * Project the NEXT application of `template` on/after `fromDate` (YYYY-MM-DD).
+ * Pure + deterministic — date-only dayjs math, never new Date('YYYY-MM-DD').
+ * Mirrors the cadence semantics of isTemplateDue() but forward-projects instead
+ * of testing a specific statement week.
+ */
+export function projectNextDue(
+  template: {
+    frequency: string
+    start_date: Date | string
+    end_date: Date | string | null
+    is_active?: number
+    monthly_week?: number | null
+    monthly_weekday?: number | null
+  },
+  fromDate: string
+): NextDue {
+  if (template.is_active === 0) return { kind: 'paused' }
+
+  const from = dayjs(fromDate, 'YYYY-MM-DD').startOf('day')
+  const start = dayjs(template.start_date).startOf('day')
+  const end = template.end_date ? dayjs(template.end_date).startOf('day') : null
+
+  // Lower bound for the next occurrence: never before start_date, never before fromDate.
+  const lb = start.isAfter(from) ? start : from
+
+  // If the window has fully closed before the lower bound, nothing remains.
+  if (end && end.isBefore(lb)) return { kind: 'ended' }
+
+  switch (template.frequency) {
+    case 'weekly':
+      // Applies every statement week within [start, end]; end/paused handled above.
+      return { kind: 'every_week' }
+
+    case 'biweekly': {
+      // Due blocks are [start + 14k, +6d] for k = 0, 1, 2 … Find the first block
+      // that contains or falls after `lb`.
+      let k: number
+      if (start.isAfter(from)) {
+        k = 0 // the start block is itself in the future
+      } else {
+        const blockIdx = Math.floor(from.diff(start, 'day') / 14)
+        const blockEnd = start.add(blockIdx * 14 + 6, 'day')
+        k = blockEnd.isBefore(from) ? blockIdx + 1 : blockIdx
+      }
+      const winStart = start.add(k * 14, 'day')
+      const winEnd = winStart.add(6, 'day')
+      if (end && end.isBefore(winStart)) return { kind: 'ended' }
+      return { kind: 'week_window', start: winStart.format('YYYY-MM-DD'), end: winEnd.format('YYYY-MM-DD') }
+    }
+
+    case 'monthly': {
+      // Next clamped anniversary (start's day-of-month) on/after the lower bound.
+      const startDay = start.date()
+      let month = lb.startOf('month')
+      for (let i = 0; i < 600; i++) {
+        const day = Math.min(startDay, month.daysInMonth())
+        const anniv = month.date(day)
+        if (!anniv.isBefore(lb)) {
+          if (end && anniv.isAfter(end)) return { kind: 'ended' }
+          return { kind: 'date', date: anniv.format('YYYY-MM-DD') }
+        }
+        month = month.add(1, 'month')
+      }
+      return { kind: 'ended' }
+    }
+
+    case 'monthly_weekday': {
+      const mw = template.monthly_week
+      const wd = template.monthly_weekday
+      if (mw == null || wd == null) return { kind: 'ended' } // malformed; nothing to project
+
+      // Next nth/last <weekday> occurrence on/after the lower bound.
+      let month = lb.startOf('month')
+      for (let i = 0; i < 600; i++) {
+        const occ = nthWeekdayOfMonth(month, mw, wd)
+        if (!occ.isBefore(lb)) {
+          if (end && occ.isAfter(end)) return { kind: 'ended' }
+          return { kind: 'date', date: occ.format('YYYY-MM-DD') }
+        }
+        month = month.add(1, 'month')
+      }
+      return { kind: 'ended' }
+    }
+
+    default:
+      return { kind: 'ended' }
+  }
+}
+
+/**
+ * A template enriched with the joined agent/vendor names, its most recent
+ * application (or null), and its projected next occurrence — the admin overview
+ * shape returned by getAllTemplates().
+ */
+export interface ScheduledExpenseTemplateWithMeta extends ScheduledExpenseRecord {
+  agent_name: string
+  vendor_name: string
+  last_applied: { issue_date: string; wkending: string; applied_at: string | null } | null
+  next_due: NextDue
+}
+
+/** A single materialized application of a template, for the applications history view. */
+export interface ScheduledExpenseApplicationRecord {
+  id: number
+  issue_date: string
+  wkending: string
+  amount: number
+  applied_at: string | null
+  applied_by_name: string
+}
+
 export class ScheduledExpenseRepository {
   /** Create a recurring template (admin/manager over the agent). */
   async createTemplate(
@@ -356,6 +488,124 @@ export class ScheduledExpenseRepository {
       .execute()
 
     return rows.filter((r) => isTemplateDue(r, wkending)).map((r) => this.mapRow(r))
+  }
+
+  /**
+   * Admin overview: ALL templates (admin) or those for the manager's direct
+   * reports (manager). Plain employees are denied. Each row is enriched with the
+   * agent/vendor names, the most recent application, and the projected next
+   * occurrence (relative to `today`). Ordered active-first, then agent name.
+   */
+  async getAllTemplates(
+    userContext: UserContext,
+    opts: { activeOnly?: boolean; today?: string } = {}
+  ): Promise<ScheduledExpenseTemplateWithMeta[]> {
+    if (!userContext.isAdmin && !userContext.isManager) {
+      throw new Error('Insufficient permissions')
+    }
+
+    let query = db
+      .selectFrom('scheduled_expenses as se')
+      .innerJoin('employees as e', 'e.id', 'se.agentid')
+      .leftJoin('vendors as v', 'v.id', 'se.vendor_id')
+      .selectAll('se')
+      .select(['e.name as agent_name', 'v.name as vendor_name'])
+
+    // Managers are scoped to their direct reports; admins see everything.
+    if (!userContext.isAdmin) {
+      const managed = userContext.managedEmployeeIds ?? []
+      if (managed.length === 0) return []
+      query = query.where('se.agentid', 'in', managed)
+    }
+
+    if (opts.activeOnly) query = query.where('se.is_active', '=', 1)
+
+    const rows: TemplateRow[] = await query
+      .orderBy('se.is_active', 'desc')
+      .orderBy('e.name', 'asc')
+      .execute()
+
+    if (rows.length === 0) return []
+
+    // Latest application per template — one grouped query, merged in JS to avoid
+    // a correlated LEFT JOIN. Rows arrive newest-first, so the first hit per
+    // template id is the latest.
+    const templateIds = rows.map((r) => r.id)
+    const appRows: TemplateRow[] = await db
+      .selectFrom('scheduled_expense_applications')
+      .select(['scheduled_expense_id', 'issue_date', 'wkending', 'created_at'])
+      .where('scheduled_expense_id', 'in', templateIds)
+      .orderBy('issue_date', 'desc')
+      .execute()
+
+    const latestByTemplate = new Map<number, TemplateRow>()
+    for (const a of appRows) {
+      if (!latestByTemplate.has(a.scheduled_expense_id)) latestByTemplate.set(a.scheduled_expense_id, a)
+    }
+
+    const today = opts.today ?? dayjs().format('YYYY-MM-DD')
+
+    return rows.map((row) => {
+      const base = this.mapRow(row)
+      const latest = latestByTemplate.get(row.id)
+      return {
+        ...base,
+        agent_name: row.agent_name ?? '',
+        vendor_name: row.vendor_name ?? '',
+        last_applied: latest
+          ? {
+              issue_date: dayjs(latest.issue_date).format('YYYY-MM-DD'),
+              wkending: dayjs(latest.wkending).format('YYYY-MM-DD'),
+              applied_at: latest.created_at ? dayjs(latest.created_at).toISOString() : null,
+            }
+          : null,
+        next_due: projectNextDue(row, today),
+      }
+    })
+  }
+
+  /**
+   * Application history for a single template (read RBAC identical to
+   * getTemplateById). Rows newest-first, joined with the applying admin's name.
+   */
+  async getApplications(
+    templateId: number,
+    userContext: UserContext
+  ): Promise<ScheduledExpenseApplicationRecord[]> {
+    const template = await db
+      .selectFrom('scheduled_expenses')
+      .select('agentid')
+      .where('id', '=', templateId)
+      .executeTakeFirst()
+
+    if (!template) throw new Error('Scheduled expense not found')
+    if (!this.canRead(template.agentid, userContext)) {
+      throw new Error('Access denied: agent not in your direct reports')
+    }
+
+    const rows: TemplateRow[] = await db
+      .selectFrom('scheduled_expense_applications as a')
+      .leftJoin('employees as e', 'e.id', 'a.applied_by')
+      .select([
+        'a.id',
+        'a.issue_date',
+        'a.wkending',
+        'a.amount',
+        'a.created_at',
+        'e.name as applied_by_name',
+      ])
+      .where('a.scheduled_expense_id', '=', templateId)
+      .orderBy('a.issue_date', 'desc')
+      .execute()
+
+    return rows.map((r) => ({
+      id: r.id,
+      issue_date: dayjs(r.issue_date).format('YYYY-MM-DD'),
+      wkending: dayjs(r.wkending).format('YYYY-MM-DD'),
+      amount: parseFloat(r.amount?.toString() || '0'),
+      applied_at: r.created_at ? dayjs(r.created_at).toISOString() : null,
+      applied_by_name: r.applied_by_name ?? '',
+    }))
   }
 
   // ---------------------------------------------------------------------------

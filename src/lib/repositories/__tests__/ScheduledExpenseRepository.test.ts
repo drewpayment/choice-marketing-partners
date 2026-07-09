@@ -28,7 +28,7 @@ jest.mock('@/lib/utils/logger', () => ({
   logger: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
 }))
 
-import { ScheduledExpenseRepository, isTemplateDue } from '../ScheduledExpenseRepository'
+import { ScheduledExpenseRepository, isTemplateDue, projectNextDue } from '../ScheduledExpenseRepository'
 
 const adminCtx: UserContext = { employeeId: 1, isAdmin: true, isManager: false }
 const employeeCtx: UserContext = { employeeId: 3, isAdmin: false, isManager: false }
@@ -182,6 +182,104 @@ describe('isTemplateDue cadence math', () => {
     it('is not due when the monthly fields are missing (malformed)', () => {
       const bad = { frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: null }
       expect(isTemplateDue(bad, '2026-01-11')).toBe(false)
+    })
+  })
+})
+
+describe('projectNextDue forward projection', () => {
+  it('returns paused for an inactive template regardless of cadence', () => {
+    const t = { frequency: 'weekly', start_date: '2026-01-04', end_date: null, is_active: 0 }
+    expect(projectNextDue(t, '2026-01-10')).toEqual({ kind: 'paused' })
+  })
+
+  describe('weekly', () => {
+    const t = { frequency: 'weekly', start_date: '2026-01-04', end_date: null }
+    it('projects every_week while inside the window', () => {
+      expect(projectNextDue(t, '2026-01-10')).toEqual({ kind: 'every_week' })
+    })
+    it('is ended once end_date has passed', () => {
+      const ended = { frequency: 'weekly', start_date: '2026-01-04', end_date: '2026-01-01' }
+      expect(projectNextDue(ended, '2026-01-10')).toEqual({ kind: 'ended' })
+    })
+  })
+
+  describe('biweekly (7-day due blocks [start + 14k, +6d])', () => {
+    const t = { frequency: 'biweekly', start_date: '2026-01-04', end_date: null }
+    it('returns the current block when fromDate falls inside it', () => {
+      expect(projectNextDue(t, '2026-01-04')).toEqual({
+        kind: 'week_window', start: '2026-01-04', end: '2026-01-10',
+      })
+      expect(projectNextDue(t, '2026-01-20')).toEqual({
+        kind: 'week_window', start: '2026-01-18', end: '2026-01-24',
+      })
+    })
+    it('advances to the next block when fromDate is past the current block end', () => {
+      // Jan 11 is past the Jan 4–10 block → next block Jan 18–24.
+      expect(projectNextDue(t, '2026-01-11')).toEqual({
+        kind: 'week_window', start: '2026-01-18', end: '2026-01-24',
+      })
+    })
+    it('projects the very first block when fromDate precedes start_date', () => {
+      expect(projectNextDue(t, '2025-12-28')).toEqual({
+        kind: 'week_window', start: '2026-01-04', end: '2026-01-10',
+      })
+    })
+    it('is ended once end_date is before the projected block', () => {
+      const ended = { frequency: 'biweekly', start_date: '2026-01-04', end_date: '2026-01-05' }
+      expect(projectNextDue(ended, '2026-02-01')).toEqual({ kind: 'ended' })
+    })
+  })
+
+  describe('monthly (clamped anniversary day-of-month)', () => {
+    const t = { frequency: 'monthly', start_date: '2026-01-15', end_date: null }
+    it('projects this month when the anniversary has not passed', () => {
+      expect(projectNextDue(t, '2026-01-01')).toEqual({ kind: 'date', date: '2026-01-15' })
+    })
+    it('rolls to next month once the anniversary has passed', () => {
+      expect(projectNextDue(t, '2026-01-20')).toEqual({ kind: 'date', date: '2026-02-15' })
+    })
+    it('clamps a day-31 start to a short month', () => {
+      const eom = { frequency: 'monthly', start_date: '2026-01-31', end_date: null }
+      expect(projectNextDue(eom, '2026-02-01')).toEqual({ kind: 'date', date: '2026-02-28' })
+    })
+    it('is ended when the next anniversary would exceed end_date', () => {
+      const ended = { frequency: 'monthly', start_date: '2026-01-15', end_date: '2026-01-20' }
+      expect(projectNextDue(ended, '2026-01-16')).toEqual({ kind: 'ended' })
+    })
+  })
+
+  describe('monthly_weekday (nth / last weekday of month)', () => {
+    const firstMonday = {
+      frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: null,
+      monthly_week: 1, monthly_weekday: 1,
+    }
+    it('projects the first Monday of the current month', () => {
+      // Jan 2026 Mondays: 5, 12, 19, 26.
+      expect(projectNextDue(firstMonday, '2026-01-01')).toEqual({ kind: 'date', date: '2026-01-05' })
+    })
+    it('rolls forward once this month\'s occurrence has passed', () => {
+      // Feb 2026 first Monday = Feb 2.
+      expect(projectNextDue(firstMonday, '2026-01-06')).toEqual({ kind: 'date', date: '2026-02-02' })
+    })
+    it('projects the LAST Friday of the month', () => {
+      const lastFriday = {
+        frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: null,
+        monthly_week: 5, monthly_weekday: 5,
+      }
+      // Jan 2026 Fridays: 2, 9, 16, 23, 30 → last = Jan 30.
+      expect(projectNextDue(lastFriday, '2026-01-01')).toEqual({ kind: 'date', date: '2026-01-30' })
+    })
+    it('is ended when the next occurrence would exceed end_date', () => {
+      const ended = {
+        frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: '2026-01-10',
+        monthly_week: 1, monthly_weekday: 1,
+      }
+      // From Jan 6, Jan 5 has passed → next is Feb 2, which is after end_date Jan 10.
+      expect(projectNextDue(ended, '2026-01-06')).toEqual({ kind: 'ended' })
+    })
+    it('is ended when the monthly fields are missing (malformed)', () => {
+      const bad = { frequency: 'monthly_weekday', start_date: '2026-01-01', end_date: null }
+      expect(projectNextDue(bad, '2026-01-06')).toEqual({ kind: 'ended' })
     })
   })
 })

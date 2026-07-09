@@ -137,6 +137,7 @@ export interface ExpenseFormData {
   amount: number;
   notes: string;
   isRecurring?: boolean; // UI-only: pre-populated from a recurring template (not persisted)
+  scheduledExpenseId?: number; // recurring template id this row was materialized from (persisted as an application link)
 }
 
 // Lookup types
