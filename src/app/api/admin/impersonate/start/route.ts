@@ -54,13 +54,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // The JWT is the source of truth for impersonation state, and we know from
+  // the session.impersonation check above that this actor is NOT impersonating.
+  // Any open log row is therefore an orphan (e.g. the actor was logged out
+  // mid-impersonation and the row was never closed) — close it and proceed
+  // rather than locking the actor out with a 409.
   const repo = new ImpersonationRepository()
   const existing = await repo.getActiveImpersonation(session.user.id)
   if (existing) {
-    return NextResponse.json(
-      { error: 'An impersonation session is already open' },
-      { status: 409 }
-    )
+    await repo.stopImpersonation(session.user.id, 'superseded')
   }
 
   const ip =

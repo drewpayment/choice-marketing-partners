@@ -671,7 +671,7 @@ export interface UserImpersonationLog {
   target_employee_id: number | null;
   started_at: Generated<Date>;
   ended_at: Date | null;
-  end_reason: "manual" | "expired" | "rejected_mutation" | null;
+  end_reason: "manual" | "expired" | "rejected_mutation" | "superseded" | null;
   expires_at: Date | null;
   ip_address: string | null;
   user_agent: string | null;

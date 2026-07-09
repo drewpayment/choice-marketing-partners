@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useFeatureFlag } from '@/hooks/useFeatureFlag'
+import { useToast } from '@/hooks/use-toast'
 import { EmployeeSummary, EmployeePage } from '@/lib/repositories/EmployeeRepository'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -62,6 +63,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
   const employees = initialData.employees
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
   const { data: session, update: updateSession } = useSession()
   const emulateFlag = useFeatureFlag('admin-emulate-user')
   const canEmulate =
@@ -135,11 +137,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
         // Refresh the page to get updated data from server
         router.refresh()
       } else {
-        alert('Failed to delete employee')
+        toast({ title: 'Failed to delete employee', variant: 'destructive' })
       }
     } catch (error) {
       logger.error('Error deleting employee:', error)
-      alert('Failed to delete employee')
+      toast({ title: 'Failed to delete employee', variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }
@@ -160,7 +162,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'Failed to start emulation')
+        toast({
+          title: 'Failed to start emulation',
+          description: data.error,
+          variant: 'destructive',
+        })
         setIsEmulating(false)
         return
       }
@@ -170,7 +176,7 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
       window.location.href = '/dashboard'
     } catch (error) {
       logger.error('Error starting impersonation:', error)
-      alert('Failed to start emulation')
+      toast({ title: 'Failed to start emulation', variant: 'destructive' })
       setIsEmulating(false)
     }
   }
@@ -191,11 +197,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
         // Refresh the page to get updated data from server
         router.refresh()
       } else {
-        alert('Failed to restore employee')
+        toast({ title: 'Failed to restore employee', variant: 'destructive' })
       }
     } catch (error) {
       logger.error('Error restoring employee:', error)
-      alert('Failed to restore employee')
+      toast({ title: 'Failed to restore employee', variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }

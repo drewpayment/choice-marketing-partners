@@ -71,7 +71,7 @@ export class ImpersonationRepository {
 
   async stopImpersonation(
     actorUserId: string,
-    reason: 'manual' | 'expired'
+    reason: 'manual' | 'expired' | 'superseded'
   ): Promise<number> {
     const result = await db
       .updateTable('user_impersonation_log')
