@@ -54,10 +54,10 @@ function formatCurrency(cents: number): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    active: 'bg-emerald-50 text-teal-700',
-    past_due: 'bg-amber-50 text-amber-700',
-    canceled: 'bg-stone-100 text-stone-500',
-    paused: 'bg-stone-100 text-stone-500',
+    active: 'bg-emerald-50 text-teal-700 dark:bg-emerald-950 dark:text-emerald-300',
+    past_due: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    canceled: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+    paused: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
   }
 
   const labels: Record<string, string> = {
@@ -163,8 +163,8 @@ export default function SubscribersClient() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-50 p-2">
-                <DollarSign className="h-5 w-5 text-teal-700" />
+              <div className="rounded-lg bg-emerald-50 p-2 dark:bg-emerald-950">
+                <DollarSign className="h-5 w-5 text-teal-700 dark:text-emerald-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
@@ -176,8 +176,8 @@ export default function SubscribersClient() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-amber-50 p-2">
-                <AlertTriangle className="h-5 w-5 text-amber-700" />
+              <div className="rounded-lg bg-amber-50 p-2 dark:bg-amber-950">
+                <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Past Due</p>

@@ -18,7 +18,9 @@ import {
   CreditCard,
   Package,
   Flag,
-  Briefcase
+  Briefcase,
+  HandCoins,
+  Repeat
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAdminLayout } from '@/contexts/AdminLayoutContext';
@@ -67,6 +69,18 @@ const adminNavItems = [
     icon: BarChart3,
     label: 'Payroll Monitor',
     description: 'Track paid/unpaid status'
+  },
+  {
+    href: '/admin/daily-pay',
+    icon: HandCoins,
+    label: 'Daily Pay',
+    description: 'Record advances paid to agents'
+  },
+  {
+    href: '/admin/recurring-expenses',
+    icon: Repeat,
+    label: 'Recurring Expenses',
+    description: 'Manage recurring expense templates'
   },
   {
     href: '/admin/overrides',

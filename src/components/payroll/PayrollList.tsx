@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { PayrollSummary } from '@/lib/repositories/PayrollRepository'
 import { formatDate } from '@/lib/utils/date'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 import {
   Table,
   TableBody,
@@ -45,8 +46,44 @@ interface PayrollListProps {
 export default function PayrollList({ data, pagination, userContext }: PayrollListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
   const [sortField, setSortField] = useState<keyof PayrollSummary>('lastUpdated')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  // Per-row email send state, keyed by employee-vendor-issueDate, prevents double-fire.
+  const [sendingKey, setSendingKey] = useState<string | null>(null)
+
+  const rowKey = (item: PayrollSummary) =>
+    `${item.employeeId}-${item.vendorId}-${item.issueDate}`
+
+  const handleSendEmail = async (item: PayrollSummary) => {
+    const key = rowKey(item)
+    if (sendingKey) return // a send is already in flight
+    setSendingKey(key)
+    try {
+      const res = await fetch('/api/payroll/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeId: item.employeeId,
+          vendorId: item.vendorId,
+          issueDate: item.issueDate,
+        }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok || !body?.success) {
+        throw new Error(body?.message || 'Failed to send the pay statement email.')
+      }
+      toast({ title: 'Email sent', description: body.message })
+    } catch (error) {
+      toast({
+        title: 'Could not send email',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingKey(null)
+    }
+  }
 
   // Build returnUrl from current search params to preserve filters
   const buildReturnUrl = () => {
@@ -128,6 +165,37 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
     }).format(amount)
   }
 
+  const isElevated = userContext.isAdmin || userContext.isManager
+
+  const buildDetailHref = (item: PayrollSummary) =>
+    `/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`
+
+  // Horizontal scroll affordance for the desktop table
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [scrollShadow, setScrollShadow] = useState({ left: false, right: false })
+
+  useEffect(() => {
+    // The shadcn <Table> wraps the table in its own overflow-x-auto container
+    // ([data-slot="table-container"]), which is the element that actually scrolls.
+    const el = scrollRef.current?.querySelector<HTMLElement>('[data-slot="table-container"]')
+    if (!el) return
+
+    const update = () => {
+      setScrollShadow({
+        left: el.scrollLeft > 1,
+        right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+      })
+    }
+
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      el.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [sortedData.length])
+
   if (data.length === 0) {
     return (
       <div className="bg-card shadow rounded-lg">
@@ -135,9 +203,13 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
           <svg className="mx-auto h-12 w-12 text-muted-foreground" stroke="currentColor" fill="none" viewBox="0 0 48 48">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-foreground">No payroll data</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            No payroll data found for the selected criteria.
+          <h3 className="mt-2 text-sm font-medium text-foreground">
+            {isElevated ? 'No payroll data' : 'No statements yet'}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground mx-auto max-w-sm">
+            {isElevated
+              ? 'No payroll data found for the selected criteria.'
+              : 'Your first statement will appear here once payroll is published. Questions? Contact your manager.'}
           </p>
         </div>
       </div>
@@ -157,7 +229,8 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="relative hidden md:block">
+        <div ref={scrollRef}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -174,7 +247,20 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   )}
                 </div>
               </TableHead>
-              <TableHead 
+              <TableHead
+                className="text-right cursor-pointer hover:bg-muted"
+                onClick={() => handleSort('netPay')}
+              >
+                <div className="flex items-center justify-end space-x-1">
+                  <span>Net Pay</span>
+                  {sortField === 'netPay' && (
+                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
+                      ↑
+                    </span>
+                  )}
+                </div>
+              </TableHead>
+              <TableHead
                 className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('vendorName')}
               >
@@ -239,20 +325,7 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   )}
                 </div>
               </TableHead>
-              <TableHead 
-                className="text-right cursor-pointer hover:bg-muted"
-                onClick={() => handleSort('netPay')}
-              >
-                <div className="flex items-center justify-end space-x-1">
-                  <span>Net Pay</span>
-                  {sortField === 'netPay' && (
-                    <span className={sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'}>
-                      ↑
-                    </span>
-                  )}
-                </div>
-              </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted"
                 onClick={() => handleSort('lastUpdated')}
               >
@@ -270,23 +343,27 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
           </TableHeader>
           <TableBody>
             {sortedData.map((item) => (
-              <TableRow key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}>
+              <TableRow
+                key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
+                className="cursor-pointer hover:bg-muted"
+                onClick={() => router.push(buildDetailHref(item))}
+              >
                 <TableCell className="font-medium">
                   {item.employeeName}
                   <div className="text-xs text-muted-foreground">
                     Agent: {item.agentId}
                   </div>
                 </TableCell>
-                <TableCell>{item.vendorName}</TableCell>
-                <TableCell>{formatDate(item.issueDate)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(item.totalSales)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(item.totalOverrides)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(item.totalExpenses)}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right tabular-nums whitespace-nowrap">
                   <span className={`font-medium ${item.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
                     {formatCurrency(item.netPay)}
                   </span>
                 </TableCell>
+                <TableCell>{item.vendorName}</TableCell>
+                <TableCell>{formatDate(item.issueDate)}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.totalSales)}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.totalOverrides)}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{formatCurrency(item.totalExpenses)}</TableCell>
                 <TableCell>
                   <div className="text-xs text-foreground">
                     {new Date(item.lastUpdated).toLocaleDateString()}
@@ -296,113 +373,113 @@ export default function PayrollList({ data, pagination, userContext }: PayrollLi
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Link
-                    href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-                    className="text-primary hover:text-primary mr-4"
-                  >
-                    View Details
-                  </Link>
-                  {(userContext.isAdmin || userContext.isManager) && (
-                    <button
-                      className="text-primary hover:text-primary"
-                      onClick={() => {
-                        // TODO: Implement email functionality
-                        alert('Email functionality will be implemented in TASK-306')
-                      }}
+                  <div className="flex items-center justify-end gap-4">
+                    <Link
+                      href={buildDetailHref(item)}
+                      className="inline-flex min-h-11 items-center text-primary hover:text-primary"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Send Email
-                    </button>
-                  )}
+                      View Details
+                      <svg
+                        className="ml-1 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    {isElevated && (
+                      <button
+                        className="inline-flex min-h-11 items-center text-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={sendingKey !== null}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSendEmail(item)
+                        }}
+                      >
+                        {sendingKey === rowKey(item) ? 'Sending…' : 'Send Email'}
+                      </button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        </div>
+        {scrollShadow.left && (
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-card to-transparent"
+            aria-hidden="true"
+          />
+        )}
+        {scrollShadow.right && (
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent"
+            aria-hidden="true"
+          />
+        )}
       </div>
 
-      {/* Mobile Card View (Employees Only) */}
-      {!userContext.isAdmin && !userContext.isManager && (
-        <div className="md:hidden space-y-3 p-4">
-          {sortedData.map((item) => (
-            <Link
-              key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
-              href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-              className="block"
-              aria-label={`View payroll details for ${item.vendorName}, ${formatDate(item.issueDate)}, net pay ${formatCurrency(item.netPay)}`}
-            >
-                <div className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-muted">
-                  {/* Vendor Name - Primary */}
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {item.vendorName}
-                    </h3>
-                    <svg
-                      className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
+      {/* Mobile Card View (All Roles) */}
+      <div className="md:hidden space-y-3 p-4">
+        {sortedData.map((item) => (
+          <Link
+            key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}
+            href={buildDetailHref(item)}
+            className="block min-h-11 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`View payroll details for ${isElevated ? `${item.employeeName}, ` : ''}${item.vendorName}, ${formatDate(item.issueDate)}, net pay ${formatCurrency(item.netPay)}`}
+          >
+            <div className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow active:bg-muted">
+              {/* Vendor Name - Primary */}
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-semibold text-foreground">
+                  {item.vendorName}
+                </h3>
+                <svg
+                  className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
 
-                  {/* Issue Date */}
-                  <div className="text-sm text-muted-foreground mb-3">
-                    {formatDate(item.issueDate)}
-                  </div>
-
-                  {/* Net Pay - Highlighted */}
-                  <div className="flex justify-between items-center pt-3 border-t border-border">
-                    <span className="text-sm font-medium text-foreground">Net Pay</span>
-                    <span className={`text-xl font-bold ${item.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                      {formatCurrency(item.netPay)}
-                    </span>
-                  </div>
+              {/* Employee (elevated roles see multiple people) */}
+              {isElevated && (
+                <div className="text-sm font-medium text-foreground mb-1">
+                  {item.employeeName}
                 </div>
-              </Link>
-            ))
-          }
-        </div>
-      )}
+              )}
 
-      {/* Mobile Table Fallback (Managers/Admins on Mobile) */}
-      {(userContext.isAdmin || userContext.isManager) && (
-        <div className="md:hidden overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-sm">Employee</TableHead>
-                <TableHead className="text-sm">Vendor</TableHead>
-                <TableHead className="text-right text-sm">Net Pay</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.map((item) => (
-                <TableRow key={`${item.employeeId}-${item.vendorId}-${item.issueDate}`}>
-                  <TableCell className="font-medium text-sm">
-                    {item.employeeName}
-                  </TableCell>
-                  <TableCell className="text-sm">{item.vendorName}</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      href={`/payroll/${item.employeeId}/${item.vendorId}/${item.issueDate}?returnUrl=${encodeURIComponent(buildReturnUrl())}`}
-                      className="text-sm font-medium text-primary"
-                    >
-                      {formatCurrency(item.netPay)}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              {/* Issue Date */}
+              <div className="text-sm text-muted-foreground mb-3">
+                {formatDate(item.issueDate)}
+              </div>
+
+              {/* Net Pay - Highlighted */}
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="text-sm font-medium text-foreground">Net Pay</span>
+                <span className={`text-xl font-bold tabular-nums ${item.netPay >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                  {formatCurrency(item.netPay)}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
 
       {/* Pagination */}
       {(pagination.totalPages > 1 || pagination.total > pagination.limit) && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-border sm:px-6">
           <div className="flex items-center text-sm text-foreground">
-            <span>
+            <span className="sm:hidden">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <span className="hidden sm:inline">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
             </span>
           </div>

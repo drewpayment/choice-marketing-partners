@@ -1,33 +1,44 @@
-// Simple toast hook for notifications
+// Toast hook backed by Sonner.
+//
+// This is a thin adapter that PRESERVES the existing call-site contract used
+// throughout the app:
+//
+//   const { toast } = useToast()
+//   toast({ title, description?, variant?: 'default' | 'destructive' })
+//
+// It delegates to the Sonner <Toaster /> mounted once at the app root
+// (see src/components/providers.tsx). Nothing here renders UI itself.
 'use client';
 
-import { useState, useCallback } from 'react';
-import { logger } from '@/lib/utils/logger'
+import { useCallback } from 'react';
+import { toast as sonnerToast } from 'sonner';
 
-interface Toast {
-  id: string;
+interface ToastOptions {
   title: string;
   description?: string;
   variant?: 'default' | 'destructive';
 }
 
-export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+// Heuristic: default-variant toasts whose title reads as a positive outcome are
+// shown with Sonner's green "success" styling; everything else stays neutral.
+// Destructive is always mapped to the red "error" style.
+const SUCCESS_TITLE_RE =
+  /\b(success|saved|created|updated|deleted|removed|added|recorded|assigned|paused|resumed|initialized|initialised|sent|published|complete|completed|done)\b/i;
 
-  const toast = useCallback(({ title, description, variant = 'default' }: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast = { id, title, description, variant };
-    
-    setToasts(prev => [...prev, newToast]);
-    
-    // Auto remove toast after 5 seconds
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 5000);
-    
-    // For now, just log to console as a simple implementation
-    logger.log(`Toast (${variant}): ${title}${description ? ` - ${description}` : ''}`);
+export function useToast() {
+  const toast = useCallback(({ title, description, variant = 'default' }: ToastOptions) => {
+    const options = description ? { description } : undefined;
+
+    if (variant === 'destructive') {
+      return sonnerToast.error(title, options);
+    }
+
+    if (SUCCESS_TITLE_RE.test(title)) {
+      return sonnerToast.success(title, options);
+    }
+
+    return sonnerToast(title, options);
   }, []);
 
-  return { toast, toasts };
+  return { toast };
 }

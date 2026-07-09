@@ -45,16 +45,16 @@ function formatCurrency(cents: number): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    active: 'bg-emerald-50 text-teal-700',
-    paid: 'bg-emerald-50 text-teal-700',
-    past_due: 'bg-amber-50 text-amber-700',
-    pending: 'bg-amber-50 text-amber-700',
-    failed: 'bg-red-50 text-red-700',
-    canceled: 'bg-stone-100 text-stone-500',
+    active: 'bg-emerald-50 text-teal-700 dark:bg-emerald-950 dark:text-emerald-300',
+    paid: 'bg-emerald-50 text-teal-700 dark:bg-emerald-950 dark:text-emerald-300',
+    past_due: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    pending: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    failed: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+    canceled: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
   }
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-stone-100 text-stone-500'}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'}`}
     >
       {status.replace('_', ' ')}
     </span>
@@ -189,8 +189,8 @@ export default function SubscriberDashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-50 p-2">
-                <DollarSign className="h-5 w-5 text-teal-700" />
+              <div className="rounded-lg bg-emerald-50 p-2 dark:bg-emerald-950">
+                <DollarSign className="h-5 w-5 text-teal-700 dark:text-emerald-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Amount</p>
@@ -205,8 +205,8 @@ export default function SubscriberDashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-50 p-2">
-                <CalendarDays className="h-5 w-5 text-blue-700" />
+              <div className="rounded-lg bg-blue-50 p-2 dark:bg-blue-950">
+                <CalendarDays className="h-5 w-5 text-blue-700 dark:text-blue-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">

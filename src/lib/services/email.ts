@@ -159,6 +159,68 @@ export async function sendApplicationNotification(
   }
 }
 
+interface SendPaystubStatementEmailParams {
+  to: string
+  employeeName: string
+  vendorName: string
+  weekEnding: string
+  pdf: Buffer
+  filename: string
+}
+
+/**
+ * Emails a rendered pay-statement PDF to an employee as an attachment.
+ * Reuses the shared Resend client + FROM_EMAIL convention used by the other
+ * notification senders in this module.
+ */
+export async function sendPaystubStatementEmail(
+  params: SendPaystubStatementEmailParams,
+): Promise<EmailResponse> {
+  const { to, employeeName, vendorName, weekEnding, pdf, filename } = params
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `Your pay statement — week ending ${weekEnding}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Your Pay Statement</h2>
+          <p>Hi ${employeeName},</p>
+          <p>
+            Your pay statement for <strong>${vendorName}</strong> (week ending
+            <strong>${weekEnding}</strong>) is attached to this email as a PDF.
+          </p>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 5px 0;"><strong>Vendor:</strong> ${vendorName}</p>
+            <p style="margin: 5px 0;"><strong>Week ending:</strong> ${weekEnding}</p>
+          </div>
+          <p>If you have any questions about this statement, please reply to this email or contact your manager.</p>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            Best regards,<br>
+            Choice Marketing Partners Team
+          </p>
+        </div>
+      `,
+      attachments: [{ filename, content: pdf }],
+    })
+
+    if (error) {
+      logger.error('❌ Resend error (paystub statement):', error)
+      return { success: false, error: error.message || 'Failed to send email' }
+    }
+
+    logger.log('✅ Pay statement email sent successfully:', { id: data?.id, to })
+    return { success: true, messageId: data?.id }
+  } catch (error) {
+    logger.error('❌ Failed to send pay statement email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
 /**
  * Sends a password reset email
  * @param to Recipient email

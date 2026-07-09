@@ -58,6 +58,13 @@ describe('ImpersonationRepository', () => {
     expect(count).toBe(1)
   })
 
+  it("stopImpersonation accepts 'superseded' (orphan cleanup on re-start)", async () => {
+    mockExecuteTakeFirst.mockResolvedValueOnce({ numUpdatedRows: BigInt(1) })
+
+    const count = await repo.stopImpersonation('a-1', 'superseded')
+    expect(count).toBe(1)
+  })
+
   it('logBlockedMutation runs an insert', async () => {
     mockExecute.mockResolvedValueOnce(undefined)
 
