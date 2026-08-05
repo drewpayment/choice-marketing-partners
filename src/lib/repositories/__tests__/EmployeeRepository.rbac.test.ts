@@ -134,6 +134,8 @@ describe('EmployeeRepository RBAC', () => {
         leftJoin: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue([]),
         executeTakeFirst: jest.fn().mockResolvedValue({
           id: 1, name: 'Test', email: 'test@test.com', phone_no: null,
           address: '123 St', address_2: null, city: null, state: null,
@@ -215,6 +217,10 @@ describe('EmployeeRepository RBAC', () => {
         leftJoin: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        // getEmployeeById resolves the login account in a second, ordered query
+        // (both linkage conventions live on `users`, not employee_user).
+        orderBy: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue([]),
         executeTakeFirst: jest.fn().mockResolvedValue(employeeData),
       }
       ;(db.selectFrom as jest.Mock).mockReturnValue(mockSelect)

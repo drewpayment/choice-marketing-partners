@@ -33,9 +33,9 @@ export async function PUT(
       session.user.isManager
     )
 
-    const success = await employeeRepository.restoreEmployee(employeeId, userContext)
+    const result = await employeeRepository.restoreEmployee(employeeId, userContext)
 
-    if (!success) {
+    if (!result.restored) {
       return NextResponse.json(
         { error: 'Failed to restore employee or employee not found' },
         { status: 500 }
@@ -46,7 +46,14 @@ export async function PUT(
 
     return NextResponse.json({
       message: 'Employee restored successfully',
-      employee: restoredEmployee
+      employee: restoredEmployee,
+      // Optional: the login email stayed parked because the address is now taken.
+      ...(result.emailsStillParked > 0
+        ? {
+            warning:
+              'The login email for this employee could not be released because the address is now in use. Update the employee email manually to restore login access.'
+          }
+        : {})
     })
   } catch (error) {
     logger.error('Error restoring employee:', error)

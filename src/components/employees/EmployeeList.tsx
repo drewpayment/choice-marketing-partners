@@ -194,6 +194,11 @@ export function EmployeeList({ initialData, currentFilters }: EmployeeListProps)
       })
 
       if (response.ok) {
+        // The login email can stay parked when the address was reused meanwhile.
+        const data = await response.json().catch(() => ({}))
+        if (data.warning) {
+          toast({ title: 'Employee restored', description: data.warning })
+        }
         // Refresh the page to get updated data from server
         router.refresh()
       } else {

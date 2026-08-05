@@ -4,11 +4,12 @@ import { authOptions } from '@/lib/auth/config'
 import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
+import { emailConflictMessage, normalizeEmail } from '@/lib/utils/email'
 
 const employeeRepository = new EmployeeRepository()
 
 const emailCheckSchema = z.object({
-  email: z.string().email('Valid email is required'),
+  email: z.string().trim().email('Valid email is required'),
   excludeEmployeeId: z.number().optional()
 })
 
@@ -26,12 +27,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = emailCheckSchema.parse(body)
 
-    const available = await employeeRepository.isEmailAvailable(
-      data.email,
+    const owner = await employeeRepository.findEmailOwner(
+      normalizeEmail(data.email),
       data.excludeEmployeeId
     )
 
-    return NextResponse.json({ available })
+    // `message` is the same actionable text the create/update routes return, so
+    // the inline check and the submit-time error always agree.
+    return NextResponse.json({
+      available: owner === null,
+      message: owner ? emailConflictMessage(owner) : null
+    })
   } catch (error) {
     logger.error('Error checking email availability:', error)
     
