@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, useRef, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { EmployeeDetail, CreateEmployeeData } from '@/lib/repositories/EmployeeRepository'
+import { normalizeEmail } from '@/lib/utils/email'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,10 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [emailConflict, setEmailConflict] = useState<string | null>(null)
+  const [checkingEmail, setCheckingEmail] = useState(false)
+  // Guards against a slow earlier check overwriting a newer result.
+  const emailCheckSeq = useRef(0)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -49,6 +54,54 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    if (field === 'email') setEmailConflict(null)
+  }
+
+  /**
+   * Lightweight pre-submit check so the admin learns *who* holds the address
+   * before saving. The server-side check remains authoritative.
+   */
+  const checkEmailAvailability = async () => {
+    const email = normalizeEmail(formData.email)
+
+    // Bump the sequence on every path — including the early returns — so a
+    // slow in-flight check can never paint a conflict on a newer value. That
+    // also orphans its finally-block, so the early returns must clear the
+    // spinner themselves or "Checking availability..." sticks forever.
+    const seq = ++emailCheckSeq.current
+    setEmailConflict(null)
+
+    // Only ask the server about a plausible, actually-changed address.
+    const isCheckable = Boolean(email) && email.includes('@')
+    const isUnchanged = Boolean(employee) && normalizeEmail(employee!.email) === email
+    if (!isCheckable || isUnchanged) {
+      setCheckingEmail(false)
+      return
+    }
+
+    setCheckingEmail(true)
+
+    try {
+      const response = await fetch('/api/employees/email-available', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, excludeEmployeeId: employee?.id })
+      })
+
+      if (!response.ok) return
+
+      const result = await response.json()
+      if (seq !== emailCheckSeq.current) return
+      if (!result.available) {
+        setEmailConflict(result.message || 'Email address is already in use.')
+      }
+    } catch (error) {
+      // Non-blocking: the submit-time check still guards the write.
+      logger.error('Error checking email availability:', error)
+    } finally {
+      if (seq === emailCheckSeq.current) setCheckingEmail(false)
+    }
   }
 
   const onSubmit = async (e: FormEvent) => {
@@ -59,7 +112,8 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
     try {
       const employeeData: CreateEmployeeData = {
         name: formData.name,
-        email: formData.email,
+        // Trim to match the inline availability check (and the API schemas).
+        email: formData.email.trim(),
         phone_no: formData.phone_no,
         address: formData.address,
         address_2: formData.address_2,
@@ -205,9 +259,20 @@ export function EmployeeForm({ employee, mode = 'create' }: EmployeeFormProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
+                  onBlur={checkEmailAvailability}
                   placeholder="john@example.com"
+                  aria-invalid={emailConflict ? true : undefined}
+                  aria-describedby={emailConflict ? 'email-conflict' : undefined}
                   required
                 />
+                {checkingEmail && (
+                  <p className="text-sm text-muted-foreground">Checking availability...</p>
+                )}
+                {emailConflict && (
+                  <p id="email-conflict" className="text-sm text-destructive">
+                    {emailConflict}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

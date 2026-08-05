@@ -31,7 +31,9 @@ function makeRecordingEb() {
   const subquery: Record<string, unknown> = {}
   subquery.select = jest.fn(() => subquery)
   subquery.innerJoin = jest.fn(() => subquery)
+  subquery.where = jest.fn(() => subquery)
   subquery.whereRef = jest.fn(() => subquery)
+  subquery.orderBy = jest.fn(() => subquery)
   subquery.limit = jest.fn(() => subquery)
   subquery.as = jest.fn(() => ({}))
 
@@ -58,6 +60,8 @@ function makeRecordingEb() {
     return { __exists: x }
   }
   eb.selectFrom = () => subquery
+  // The linked-login relation correlates on employees.id via eb.ref().
+  eb.ref = (col: string) => ({ __ref: col })
   eb.calls = calls
   return eb
 }
@@ -122,21 +126,27 @@ describe('EmployeeRepository.getEmployees — search & join changes', () => {
     expect(cols).toContain('employees.sales_id3')
   })
 
-  it('hasUser: true filters with an EXISTS subquery (no NOT)', async () => {
+  // The hasUser filter is a set operation over the whole table, so it uses
+  // uncorrelated IN-subqueries (employees.id IN users.id / IN employee_user)
+  // rather than a correlated EXISTS — `users.id` has no index, and the
+  // correlated form measured ~400x slower on the production snapshot.
+  it('hasUser: true filters with semi-join IN subqueries (no NOT)', async () => {
     const mockQuery = setupGetEmployeesMock()
     await repo.getEmployees({ hasUser: true }, adminCtx)
 
     const records = collectWhereEbRecords(mockQuery)
-    expect(records.some((r) => r.type === 'exists')).toBe(true)
+    const inCols = records.filter((r) => r.type === 'cmp' && r.args?.[1] === 'in').map((r) => r.col)
+    expect(inCols).toContain('employees.id')
     expect(records.some((r) => r.type === 'not')).toBe(false)
   })
 
-  it('hasUser: false filters with a NOT EXISTS subquery', async () => {
+  it('hasUser: false negates the same semi-join', async () => {
     const mockQuery = setupGetEmployeesMock()
     await repo.getEmployees({ hasUser: false }, adminCtx)
 
     const records = collectWhereEbRecords(mockQuery)
-    expect(records.some((r) => r.type === 'exists')).toBe(true)
+    const inCols = records.filter((r) => r.type === 'cmp' && r.args?.[1] === 'in').map((r) => r.col)
+    expect(inCols).toContain('employees.id')
     expect(records.some((r) => r.type === 'not')).toBe(true)
   })
 

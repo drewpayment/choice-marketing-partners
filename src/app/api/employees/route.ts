@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
-import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { EmployeeRepository, isDuplicateEmailError } from '@/lib/repositories/EmployeeRepository'
+import { emailConflictMessage, normalizeEmail } from '@/lib/utils/email'
 import { generatePassword } from '@/lib/utils/password'
 import { sendWelcomeEmail } from '@/lib/services/email'
 import { z } from 'zod'
@@ -22,7 +23,7 @@ const employeeFiltersSchema = z.object({
 
 const createEmployeeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Valid email is required'),
+  email: z.string().trim().email('Valid email is required'),
   phone_no: z.string().optional(),
   address: z.string().min(1, 'Address is required'),
   address_2: z.string().optional(),
@@ -96,11 +97,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = createEmployeeSchema.parse(body)
 
-    // Check email availability
-    const emailAvailable = await employeeRepository.isEmailAvailable(data.email)
-    if (!emailAvailable) {
+    // Check email availability (normalized: MySQL compares case-insensitively)
+    const email = normalizeEmail(data.email)
+    const emailOwner = await employeeRepository.findEmailOwner(email)
+    if (emailOwner) {
       return NextResponse.json(
-        { error: 'Email address is already in use' },
+        { error: emailConflictMessage(emailOwner) },
         { status: 400 }
       )
     }
@@ -130,7 +132,7 @@ export async function POST(request: NextRequest) {
     const employee = await employeeRepository.createEmployeeWithUser(
       {
         name: data.name,
-        email: data.email,
+        email,
         phone_no: data.phone_no,
         address: data.address,
         address_2: data.address_2,
@@ -157,7 +159,7 @@ export async function POST(request: NextRequest) {
     if (data.createUser && userPassword) {
       try {
         await sendWelcomeEmail({
-          to: data.email,
+          to: email,
           name: data.name,
           password: userPassword
         })
@@ -174,10 +176,18 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
   } catch (error) {
     logger.error('Error creating employee:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      )
+    }
+
+    // Lost the race against another writer on users_email_unique.
+    if (isDuplicateEmailError(error)) {
+      return NextResponse.json(
+        { error: 'Email address is already in use.' },
         { status: 400 }
       )
     }

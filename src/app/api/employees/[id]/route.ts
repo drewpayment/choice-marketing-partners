@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
-import { EmployeeRepository } from '@/lib/repositories/EmployeeRepository'
+import { EmployeeRepository, isDuplicateEmailError } from '@/lib/repositories/EmployeeRepository'
 import { z } from 'zod'
 import { logger } from '@/lib/utils/logger'
 import { getEmployeeContext } from '@/lib/auth/payroll-access'
+import { emailConflictMessage, isParkTooLongError, normalizeEmail } from '@/lib/utils/email'
 
 const employeeRepository = new EmployeeRepository()
 
 const updateEmployeeSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
-  email: z.string().email('Valid email is required').optional(),
+  email: z.string().trim().email('Valid email is required').optional(),
   phone_no: z.string().optional(),
   address: z.string().min(1, 'Address is required').optional(),
   address_2: z.string().optional(),
@@ -104,26 +105,50 @@ export async function PUT(
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
     }
 
-    // Check email availability if email is being changed
-    if (data.email && data.email !== existingEmployee.email) {
-      const emailAvailable = await employeeRepository.isEmailAvailable(data.email, employeeId)
-      if (!emailAvailable) {
+    // Check email availability if email is being changed.
+    // MySQL compares these columns case-insensitively, so compare normalized values.
+    const normalizedEmail = data.email !== undefined ? normalizeEmail(data.email) : undefined
+    if (normalizedEmail && normalizedEmail !== normalizeEmail(existingEmployee.email)) {
+      // A deleted employee's login email is parked, so the two records cannot be
+      // kept in sync. Say so plainly instead of silently drifting them apart.
+      if (existingEmployee.deleted_at) {
         return NextResponse.json(
-          { error: 'Email address is already in use' },
+          { error: 'Restore this employee before changing their email address.' },
+          { status: 400 }
+        )
+      }
+
+      const owner = await employeeRepository.findEmailOwner(normalizedEmail, employeeId)
+      if (owner) {
+        return NextResponse.json(
+          { error: emailConflictMessage(owner) },
           { status: 400 }
         )
       }
     }
 
-    const updatedEmployee = await employeeRepository.updateEmployee(employeeId, data, userContext)
+    const updatedEmployee = await employeeRepository.updateEmployee(
+      employeeId,
+      normalizedEmail !== undefined ? { ...data, email: normalizedEmail } : data,
+      userContext
+    )
 
     return NextResponse.json({ employee: updatedEmployee })
   } catch (error) {
     logger.error('Error updating employee:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      )
+    }
+
+    // Lost the race against another writer: the users_email_unique index rolled
+    // the whole update back — report the same conflict the pre-check reports.
+    if (isDuplicateEmailError(error)) {
+      return NextResponse.json(
+        { error: 'Email address is already in use.' },
         { status: 400 }
       )
     }
@@ -179,6 +204,13 @@ export async function DELETE(
     return NextResponse.json({ message: 'Employee deleted successfully' })
   } catch (error) {
     logger.error('Error deleting employee:', error)
+
+    // The login email cannot be parked without overflowing the column — an
+    // admin-fixable situation, not a server fault.
+    if (isParkTooLongError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
     return NextResponse.json(
       { error: 'Failed to delete employee' },
       { status: 500 }

@@ -147,7 +147,16 @@ Route protection handled by `middleware.ts`:
 **CRITICAL**: Preserve existing MySQL schema from Laravel migration - do NOT make structural database changes.
 
 Key patterns:
-- **Employee-User linking**: Via `employee_user` junction table
+- **Employee-User linking (DUAL — both conventions are live in prod data)**:
+  1. the `employee_user` junction table (~105 rows), and
+  2. the legacy Laravel convention `users.id = employees.id` (~1149 rows) — this is
+     how NextAuth resolves the employee at sign-in (`src/lib/auth/config.ts`).
+
+  Over 500 active employees have **only** the legacy link, so any query that consults
+  just the junction table misses ~93% of logins. Resolve the relation as the **union**
+  of both (`EmployeeRepository.isLinkedLoginAccount`), never one alone. Note `users.id`
+  is a plain non-unique int (`uid` is the PK), so an employee can resolve to several
+  user rows — handle a set, and guard `users.id > 0`.
 - **Role flags**: `is_admin`, `is_mgr` on `employees` table
 - **Soft deletes**: `deleted_at` timestamps, `is_active` flags
 - **Sales tracking**: `sales_id1`, `sales_id2`, `sales_id3` for payroll calculations
