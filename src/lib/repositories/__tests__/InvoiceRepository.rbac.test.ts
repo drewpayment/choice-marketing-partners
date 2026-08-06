@@ -81,6 +81,24 @@ const managerCtx: UserContext = {
   managedEmployeeIds: [10, 11],
 }
 const employeeCtx: UserContext = { employeeId: 3, isAdmin: false, isManager: false }
+// Manager who has been granted the manager flag but has zero direct reports.
+const managerNoReportsCtx: UserContext = {
+  employeeId: 4,
+  isAdmin: false,
+  isManager: true,
+  managedEmployeeIds: [],
+}
+// Same, but the caller never populated managedEmployeeIds at all.
+const managerUndefinedReportsCtx: UserContext = {
+  employeeId: 5,
+  isAdmin: false,
+  isManager: true,
+}
+
+// Helpers over the shared chainable mock
+const tablesQueried = () => mockChain.selectFrom.mock.calls.map((call) => call[0])
+const idInFilters = () =>
+  mockChain.where.mock.calls.filter((call) => call[0] === 'id' && call[1] === 'in')
 
 describe('InvoiceRepository RBAC', () => {
   // Test both repository files
@@ -109,6 +127,46 @@ describe('InvoiceRepository RBAC', () => {
 
       it('does not throw for admin', async () => {
         await expect(repo.getInvoicePageResources(adminCtx)).resolves.toBeDefined()
+      })
+
+      it('filters agents to the direct reports of a manager with reports', async () => {
+        await repo.getInvoicePageResources(managerCtx)
+
+        expect(tablesQueried()).toContain('employees')
+        expect(idInFilters()).toEqual([['id', 'in', [10, 11]]])
+      })
+
+      it('applies no employee filter for admin', async () => {
+        await repo.getInvoicePageResources(adminCtx)
+
+        expect(tablesQueried()).toContain('employees')
+        expect(idInFilters()).toHaveLength(0)
+      })
+
+      it('fails closed with an empty agent list for a manager with zero reports', async () => {
+        const result = await repo.getInvoicePageResources(managerNoReportsCtx)
+
+        expect(result.agents).toEqual([])
+        // The unfiltered employees query must never run
+        expect(tablesQueried()).not.toContain('employees')
+        expect(idInFilters()).toHaveLength(0)
+      })
+
+      it('fails closed when managedEmployeeIds is undefined', async () => {
+        const result = await repo.getInvoicePageResources(managerUndefinedReportsCtx)
+
+        expect(result.agents).toEqual([])
+        expect(tablesQueried()).not.toContain('employees')
+        expect(idInFilters()).toHaveLength(0)
+      })
+
+      it('still returns vendors and issue dates when the agent list is empty', async () => {
+        const result = await repo.getInvoicePageResources(managerNoReportsCtx)
+
+        expect(result.agents).toEqual([])
+        expect(tablesQueried()).toContain('vendors')
+        expect(Array.isArray(result.vendors)).toBe(true)
+        expect(Array.isArray(result.issueDates)).toBe(true)
       })
     })
 

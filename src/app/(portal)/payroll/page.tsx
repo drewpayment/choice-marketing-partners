@@ -1,5 +1,5 @@
 import { requireAuth } from '@/lib/auth/server-auth'
-import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
+import { PayrollRepository, parsePayrollScope } from '@/lib/repositories/PayrollRepository'
 import { getEmployeeContext, getPayrollAccessSummary } from '@/lib/auth/payroll-access'
 import PayrollList from '@/components/payroll/PayrollList'
 import PayrollFilters from '@/components/payroll/PayrollFilters'
@@ -13,6 +13,7 @@ interface PageProps {
     startDate?: string
     endDate?: string
     status?: 'paid' | 'unpaid' | 'all'
+    scope?: string
     page?: string
     limit?: string
   }>
@@ -30,7 +31,11 @@ export default async function PayrollPage({ searchParams }: PageProps) {
     session.user.isAdmin,
     session.user.isManager
   )
-  // Build filters from search params
+  // Only offer the "My team" scope to viewers who actually have direct reports.
+  const hasReports = (userContext.managedEmployeeIds?.length ?? 0) > 0
+
+  // Build filters from search params. `scope` is validated against the literal
+  // union before it reaches the repository — never forward a raw query string.
   const filters = {
     employeeId: resolvedSearchParams.employeeId ? parseInt(resolvedSearchParams.employeeId) : undefined,
     vendorId: resolvedSearchParams.vendorId ? parseInt(resolvedSearchParams.vendorId) : undefined,
@@ -38,6 +43,7 @@ export default async function PayrollPage({ searchParams }: PageProps) {
     startDate: resolvedSearchParams.startDate,
     endDate: resolvedSearchParams.endDate,
     status: resolvedSearchParams.status || 'all',
+    scope: parsePayrollScope(resolvedSearchParams.scope),
     page: resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1,
     limit: resolvedSearchParams.limit ? parseInt(resolvedSearchParams.limit) : 20
   }
@@ -59,11 +65,14 @@ export default async function PayrollPage({ searchParams }: PageProps) {
           </h1>
           <p className="mt-2 max-w-4xl text-sm text-muted-foreground">
             View and manage payroll information for agents and vendors.
-            {!session.user.isAdmin && (
-              <span className="block mt-1">
-                Access limited to your {session.user.isManager ? 'managed employees and' : ''} data.
-              </span>
-            )}
+            {/* All three access cases, stated accurately. */}
+            <span className="block mt-1">
+              {session.user.isAdmin
+                ? 'Full access to every agent and vendor across the organization.'
+                : session.user.isManager && hasReports
+                  ? 'Access limited to your own pay and the employees you manage.'
+                  : 'Access limited to your own pay data.'}
+            </span>
           </p>
         </div>
       </div>
@@ -129,6 +138,7 @@ export default async function PayrollPage({ searchParams }: PageProps) {
           <PayrollFilters
             initialFilters={filters}
             userContext={{ isAdmin: session.user.isAdmin, isManager: session.user.isManager }}
+            hasReports={hasReports}
           />
         </Suspense>
       </div>

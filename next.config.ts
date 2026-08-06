@@ -66,11 +66,13 @@ const nextConfig: NextConfig = {
         destination: '/auth/signin',
         permanent: true,
       },
-      {
-        source: '/manager',
-        destination: '/manager/dashboard',
-        permanent: false,
-      },
+      // NOTE: there was a '/manager' -> '/manager/dashboard' redirect here.
+      // Config redirects run in the routing layer before any page code, so it
+      // preempted the auth guards in src/app/manager/page.tsx and made them
+      // dead code. /manager now goes through that page, which checks the
+      // session and forwards managers/admins to /dashboard (unauthenticated ->
+      // /auth/signin, unauthorized -> /forbidden). /manager/dashboard is
+      // unaffected and still reachable directly.
     ]
   },
 };

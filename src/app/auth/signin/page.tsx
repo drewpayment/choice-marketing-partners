@@ -32,12 +32,14 @@ export default function SignIn() {
       if (result?.error) {
         setError('Email or password is incorrect')
       } else {
-        // Get the session to check user role and redirect appropriately
+        // Get the session to check user role and redirect appropriately.
+        // Managers land on /dashboard alongside reps: that is where their own
+        // pay lives, plus the way into their team's. (/manager is an orphaned
+        // stub that now just redirects there.) Admins keep their own landing;
+        // an admin who is also a manager still takes the admin branch first.
         const session = await getSession()
         if (session?.user.isAdmin) {
           router.push('/admin')
-        } else if (session?.user.isManager) {
-          router.push('/manager')
         } else {
           router.push('/dashboard')
         }

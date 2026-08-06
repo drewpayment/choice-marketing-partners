@@ -36,10 +36,10 @@ setup('authenticate as admin', async ({ page }) => {
   await page.fill('[name="email"]', testUser.email);
   await page.fill('[name="password"]', testUser.password);
   await page.click('button[type="submit"]');
-  
-  // Wait for successful login redirect
-  await page.waitForURL('/dashboard');
-  
+
+  // Admins keep their own role-specific landing
+  await page.waitForURL('/admin');
+
   // Save authentication state
   await page.context().storageState({ path: adminAuthFile });
 });
