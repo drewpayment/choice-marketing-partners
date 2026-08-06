@@ -1,6 +1,6 @@
 import { PayrollRepository } from '@/lib/repositories/PayrollRepository'
 import { db } from '@/lib/database/client'
-import type { UserContext } from '@/lib/auth/types'
+import { accessibleEmployeeIds, type UserContext } from '@/lib/auth/types'
 
 /**
  * Role-aware data access helpers for payroll functionality
@@ -106,8 +106,11 @@ export async function getAccessibleAgents(
 
   // Apply role-based filtering
   if (!userContext.isAdmin) {
-    if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-      query = query.where('id', 'in', userContext.managedEmployeeIds)
+    // Managers see themselves AND their subordinates
+    const accessibleIds = accessibleEmployeeIds(userContext)
+
+    if (userContext.isManager && accessibleIds.length) {
+      query = query.where('id', 'in', accessibleIds)
     } else if (userContext.employeeId) {
       query = query.where('id', '=', userContext.employeeId)
     } else {

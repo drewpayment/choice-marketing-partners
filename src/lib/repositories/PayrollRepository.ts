@@ -4,13 +4,49 @@ import { AdvanceRepository } from '@/lib/repositories/AdvanceRepository'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
-import type { UserContext } from '@/lib/auth/types'
+import { accessibleEmployeeIds, type UserContext } from '@/lib/auth/types'
 import {
   getEmployeeVisibilityCutoff,
   DEFAULT_RELEASE_HOUR,
   DEFAULT_RELEASE_MINUTE,
 } from '@/lib/utils/payroll-visibility'
 
+
+/**
+ * Optional narrowing of a payroll list to one side of an elevated user's access:
+ * `mine` = only their own statements, `team` = only the people they manage.
+ *
+ * SECURITY: a scope may only ever REMOVE rows from what the role filter already
+ * allows. It is intersected with the role-resolved id set, never substituted for
+ * it. See `resolveEmployeeScope`.
+ */
+export type PayrollScope = 'mine' | 'team'
+
+const PAYROLL_SCOPES: readonly PayrollScope[] = ['mine', 'team']
+
+/**
+ * Validate an untrusted value (e.g. a `searchParams` string) against the
+ * `PayrollScope` union. Anything else — including garbage, arrays and empty
+ * strings — resolves to `undefined`, i.e. "no narrowing", which is the safe
+ * default. Never pass an unvalidated string into `PayrollFilters.scope`.
+ */
+export function parsePayrollScope(value: unknown): PayrollScope | undefined {
+  return typeof value === 'string' && (PAYROLL_SCOPES as readonly string[]).includes(value)
+    ? (value as PayrollScope)
+    : undefined
+}
+
+/**
+ * How the employees.id predicate should be applied for a given role + scope.
+ * `unfiltered` = no predicate (admin, no scope). `empty` = the caller must
+ * short-circuit to an empty result rather than emit an unbounded query or an
+ * `IN ()` list, which is invalid MySQL.
+ */
+type EmployeeScopeResolution =
+  | { kind: 'unfiltered' }
+  | { kind: 'empty' }
+  | { kind: 'equals'; id: number }
+  | { kind: 'in'; ids: number[] }
 
 export interface PayrollFilters {
   employeeId?: number
@@ -20,6 +56,7 @@ export interface PayrollFilters {
   startDate?: string
   endDate?: string
   status?: 'paid' | 'unpaid' | 'all'
+  scope?: PayrollScope
   page?: number
   limit?: number
 }
@@ -168,7 +205,70 @@ export interface PaystubDeletionResult {
  * Repository for payroll-related data operations
  */
 export class PayrollRepository {
-  
+
+  /**
+   * Resolve the employees.id predicate for a list query from the user's role
+   * and an optional `scope` narrowing.
+   *
+   * The role filter is resolved to its id set FIRST, then `scope` is applied as
+   * an intersection against that set. This is what makes it impossible for any
+   * `scope` value to widen access:
+   *
+   *   - no scope        → today's behaviour, unchanged (admin unfiltered,
+   *                       manager `IN (self + reports)`, employee `= self`)
+   *   - scope 'mine'    → base ∩ [employeeId]        (no employeeId ⇒ empty)
+   *   - scope 'team'    → base ∩ managedEmployeeIds  (no reports  ⇒ empty)
+   *
+   * A non-manager passing `scope: 'team'` intersects their `[self]` base with
+   * an empty managed list and gets `empty`, never their peers' rows. Admins are
+   * narrowed too: their base is unbounded, so the intersection is the scope set
+   * itself.
+   */
+  private resolveEmployeeScope(
+    scope: PayrollScope | undefined,
+    userContext: {
+      isAdmin: boolean
+      isManager: boolean
+      employeeId?: number
+      managedEmployeeIds?: number[]
+    }
+  ): EmployeeScopeResolution {
+    // The id set the caller asked to narrow to. `null` = no narrowing requested.
+    // Anything outside the union is treated as no narrowing (safe default).
+    const scopeIds: number[] | null =
+      scope === 'mine'
+        ? (userContext.employeeId ? [userContext.employeeId] : [])
+        : scope === 'team'
+          ? [...new Set(userContext.managedEmployeeIds ?? [])]
+          : null
+
+    // Admins have an unbounded base set, so base ∩ scope === scope.
+    if (userContext.isAdmin) {
+      if (scopeIds === null) return { kind: 'unfiltered' }
+      return scopeIds.length ? { kind: 'in', ids: scopeIds } : { kind: 'empty' }
+    }
+
+    // Managers see themselves AND their subordinates.
+    const accessibleIds = accessibleEmployeeIds(userContext)
+
+    if (userContext.isManager && accessibleIds.length) {
+      if (scopeIds === null) return { kind: 'in', ids: accessibleIds }
+      const narrowed = scopeIds.filter(id => accessibleIds.includes(id))
+      return narrowed.length ? { kind: 'in', ids: narrowed } : { kind: 'empty' }
+    }
+
+    if (userContext.employeeId) {
+      // Base is exactly [self]; the intersection is either [self] or nothing.
+      if (scopeIds === null || scopeIds.includes(userContext.employeeId)) {
+        return { kind: 'equals', id: userContext.employeeId }
+      }
+      return { kind: 'empty' }
+    }
+
+    // No access at all.
+    return { kind: 'empty' }
+  }
+
   /**
    * Get payroll summary data with role-based filtering and pagination
    */
@@ -214,31 +314,35 @@ export class PayrollRepository {
         'paystubs.issue_date'
       ])
 
-    // Apply role-based filtering
-    if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        query = query.where('employees.id', 'in', userContext.managedEmployeeIds)
-      } else if (userContext.employeeId) {
-        query = query.where('employees.id', '=', userContext.employeeId)
-      } else {
-        // No access - return empty results
-        return {
-          data: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false
-          }
+    // Apply role-based filtering, narrowed by `scope` where requested.
+    // `scope` intersects the role-resolved id set — it can only remove rows.
+    const employeeScope = this.resolveEmployeeScope(filters.scope, userContext)
+
+    if (employeeScope.kind === 'empty') {
+      // No access, or the scope intersects the accessible set to nothing.
+      // Short-circuit rather than emitting an unbounded query or `IN ()`.
+      return {
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
         }
       }
+    }
 
-      // Hide unreleased (future-dated) paystubs from non-admins
-      if (issueDateCutoff) {
-        query = query.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
-      }
+    if (employeeScope.kind === 'in') {
+      query = query.where('employees.id', 'in', employeeScope.ids)
+    } else if (employeeScope.kind === 'equals') {
+      query = query.where('employees.id', '=', employeeScope.id)
+    }
+
+    // Hide unreleased (future-dated) paystubs from non-admins
+    if (!userContext.isAdmin && issueDateCutoff) {
+      query = query.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
     }
 
     // Apply additional filters
@@ -271,18 +375,17 @@ export class PayrollRepository {
       .leftJoin('employees', 'paystubs.agent_id', 'employees.id')
       .leftJoin('vendors', 'paystubs.vendor_id', 'vendors.id')
 
-    // Apply the same role-based filtering to count query
-    if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        countQuery = countQuery.where('employees.id', 'in', userContext.managedEmployeeIds)
-      } else if (userContext.employeeId) {
-        countQuery = countQuery.where('employees.id', '=', userContext.employeeId)
-      }
+    // Apply the same role-based filtering (and the same scope narrowing) to the
+    // count query, so pagination never advertises rows the data query hides.
+    if (employeeScope.kind === 'in') {
+      countQuery = countQuery.where('employees.id', 'in', employeeScope.ids)
+    } else if (employeeScope.kind === 'equals') {
+      countQuery = countQuery.where('employees.id', '=', employeeScope.id)
+    }
 
-      // Hide unreleased (future-dated) paystubs from non-admins
-      if (issueDateCutoff) {
-        countQuery = countQuery.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
-      }
+    // Hide unreleased (future-dated) paystubs from non-admins
+    if (!userContext.isAdmin && issueDateCutoff) {
+      countQuery = countQuery.where(db.fn('DATE', ['paystubs.issue_date']), '<=', issueDateCutoff)
     }
 
     // Apply the same additional filters to count query
@@ -658,7 +761,11 @@ export class PayrollRepository {
   }
 
   /**
-   * Get available issue dates for role-based access
+   * Get available issue dates for role-based access.
+   *
+   * NOTE: `PayrollFilters.scope` is deliberately NOT applied here. The issue
+   * dates populate the filter dropdown, which should keep offering every date
+   * the user can reach regardless of which scope tab is active.
    */
   async getAvailableIssueDates(
     userContext: {
@@ -676,8 +783,11 @@ export class PayrollRepository {
 
     // Apply role-based filtering
     if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        query = query.where('employees.id', 'in', userContext.managedEmployeeIds)
+      // Managers see themselves AND their subordinates
+      const accessibleIds = accessibleEmployeeIds(userContext)
+
+      if (userContext.isManager && accessibleIds.length) {
+        query = query.where('employees.id', 'in', accessibleIds)
       } else if (userContext.employeeId) {
         query = query.where('employees.id', '=', userContext.employeeId)
       } else {

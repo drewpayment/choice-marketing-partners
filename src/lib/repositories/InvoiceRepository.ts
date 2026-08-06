@@ -177,20 +177,29 @@ export class InvoiceRepository {
       throw new Error('Insufficient permissions')
     }
 
-    // Get active employees
-    let agentQuery = db
-      .selectFrom('employees')
-      .select(['id', 'name', 'sales_id1'])
-      .where('is_active', '=', 1)
-      .where('hidden_payroll', '=', 0)
+    // Get active employees.
+    // Fail closed: a non-admin manager's agent list is exactly their direct
+    // reports. With zero direct reports the list must be empty — never fall
+    // through to an unfiltered query over every active employee. The query is
+    // skipped entirely in that case (an `IN ()` predicate is invalid MySQL).
+    const managedEmployeeIds = userContext.managedEmployeeIds ?? []
+    let agents: Array<{ id: number; name: string; sales_id1: string }> = []
 
-    if (!userContext.isAdmin && userContext.isManager && userContext.managedEmployeeIds?.length) {
-      agentQuery = agentQuery.where('id', 'in', userContext.managedEmployeeIds)
+    if (userContext.isAdmin || managedEmployeeIds.length > 0) {
+      let agentQuery = db
+        .selectFrom('employees')
+        .select(['id', 'name', 'sales_id1'])
+        .where('is_active', '=', 1)
+        .where('hidden_payroll', '=', 0)
+
+      if (!userContext.isAdmin) {
+        agentQuery = agentQuery.where('id', 'in', managedEmployeeIds)
+      }
+
+      agents = await agentQuery
+        .orderBy('name', 'asc')
+        .execute()
     }
-
-    const agents = await agentQuery
-      .orderBy('name', 'asc')
-      .execute()
 
     // Get active vendors
     const vendors = await db

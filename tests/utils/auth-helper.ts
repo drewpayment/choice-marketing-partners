@@ -33,8 +33,10 @@ export async function loginAsManager(page: Page) {
   // Click login button
   await page.click('button[type="submit"]');
   
-  // Wait for redirect to manager dashboard
-  await page.waitForURL('/manager/dashboard');
+  // Managers land on the shared /dashboard, where their own pay and the route
+  // into their team's pay live. (/manager is an orphaned stub that redirects
+  // here; only admins get a role-specific landing.)
+  await page.waitForURL('/dashboard');
 }
 
 export async function loginAsEmployee(page: Page) {

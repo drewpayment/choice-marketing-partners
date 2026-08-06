@@ -4,9 +4,8 @@ import { PayrollRepository, type PayrollSummary } from '@/lib/repositories/Payro
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Wallet, FolderOpen, FileText, Shield, CheckCircle, XCircle, ChevronRight } from 'lucide-react'
-import LatestStatementCard from '@/components/dashboard/LatestStatementCard'
-import RecentStatementsList from '@/components/dashboard/RecentStatementsList'
+import { Wallet, FolderOpen, FileText, Shield, CheckCircle, XCircle, ChevronRight, Users } from 'lucide-react'
+import PersonalPaySection from '@/components/dashboard/PersonalPaySection'
 
 // Build the statement-detail href, returning the rep to the dashboard afterwards.
 const buildStatementHref = (statement: PayrollSummary) =>
@@ -35,9 +34,6 @@ export default async function PortalDashboard() {
       userContext
     )
 
-    const latest = data[0]
-    const recent = data.slice(1, 7)
-
     return (
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
@@ -46,51 +42,7 @@ export default async function PortalDashboard() {
           </h1>
         </div>
 
-        {latest ? (
-          <>
-            <LatestStatementCard statement={latest} href={buildStatementHref(latest)} isPaid={latest.isPaid} />
-
-            {recent.length > 0 && (
-              <section>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Recent statements</h2>
-                  <Link
-                    href="/payroll"
-                    className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                  >
-                    View all
-                  </Link>
-                </div>
-                <RecentStatementsList statements={recent} buildHref={buildStatementHref} />
-              </section>
-            )}
-          </>
-        ) : (
-          /* Empty state mirrors PayrollList's copy for reps with no statements. */
-          <div className="rounded-xl border border-border bg-card shadow-sm">
-            <div className="px-4 py-12 text-center">
-              <svg
-                className="mx-auto h-12 w-12 text-muted-foreground"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 48 48"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-foreground">No statements yet</h3>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                Your first statement will appear here once payroll is published. Questions? Contact
-                your manager.
-              </p>
-            </div>
-          </div>
-        )}
+        <PersonalPaySection statements={data} buildHref={buildStatementHref} showEmptyState />
 
         {/* Quick link to Documents */}
         <Link
@@ -141,8 +93,23 @@ export default async function PortalDashboard() {
   }
 
   // ---------------------------------------------------------------------------
-  // Admin / Manager home: account overview + quick actions (unchanged).
+  // Admin / Manager home: own pay first, then the team, then admin tooling.
   // ---------------------------------------------------------------------------
+  const elevatedContext = await getEmployeeContext(
+    session.user.employeeId,
+    session.user.isAdmin,
+    session.user.isManager
+  )
+  const hasReports = (elevatedContext.managedEmployeeIds?.length ?? 0) > 0
+
+  // Their OWN statements only. `scope: 'mine'` narrows the role filter to self —
+  // it cannot widen it, and the unreleased-statement cutoff still applies.
+  const elevatedPayrollRepository = new PayrollRepository()
+  const { data: ownStatements } = await elevatedPayrollRepository.getPayrollSummary(
+    { page: 1, limit: 7, scope: 'mine' },
+    elevatedContext
+  )
+
   return (
     <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
       <div className="space-y-6 px-4 py-6 sm:px-0">
@@ -153,43 +120,39 @@ export default async function PortalDashboard() {
           </h1>
         </div>
 
-        {/* Account Info */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-lg font-medium text-foreground">{session.user.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Employee ID</p>
-                <p className="text-lg font-medium text-foreground">{session.user.employeeId || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Role</p>
-                <p className="text-lg font-medium text-foreground">
-                  {session.user.isAdmin ? 'Administrator' : 'Manager'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <div className="mt-1">
-                  {session.user.isActive ? (
-                    <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary">
-                      <CheckCircle className="mr-1 h-3 w-3" />
-                      Active
-                    </Badge>
-                  ) : (
-                    <Badge variant="destructive">
-                      <XCircle className="mr-1 h-3 w-3" />
-                      Inactive
-                    </Badge>
-                  )}
+        {/* Own pay + the way into the team view. Constrained to a readable
+            column so the hero card doesn't stretch across a 7xl page. */}
+        {(ownStatements.length > 0 || hasReports) && (
+          <div className="max-w-2xl space-y-6">
+            <PersonalPaySection
+              statements={ownStatements}
+              buildHref={buildStatementHref}
+              title="Your pay"
+              viewAllHref="/payroll?scope=mine"
+            />
+
+            {hasReports && (
+              <Link
+                href="/payroll?scope=team"
+                className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="flex min-h-14 items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md active:bg-muted">
+                  <div className="rounded-lg bg-primary/10 p-2.5">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-foreground">Your team&apos;s pay</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      Statements for the {elevatedContext.managedEmployeeIds?.length} employee
+                      {elevatedContext.managedEmployeeIds?.length === 1 ? '' : 's'} you manage
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div>
@@ -262,6 +225,44 @@ export default async function PortalDashboard() {
             )}
           </div>
         </div>
+
+        {/* Account Info, demoted below pay and quick actions */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-lg font-medium text-foreground">{session.user.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Employee ID</p>
+                <p className="text-lg font-medium text-foreground">{session.user.employeeId || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Role</p>
+                <p className="text-lg font-medium text-foreground">
+                  {session.user.isAdmin ? 'Administrator' : 'Manager'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <div className="mt-1">
+                  {session.user.isActive ? (
+                    <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary">
+                      <CheckCircle className="mr-1 h-3 w-3" />
+                      Active
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive">
+                      <XCircle className="mr-1 h-3 w-3" />
+                      Inactive
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

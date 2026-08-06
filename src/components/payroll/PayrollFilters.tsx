@@ -18,16 +18,39 @@ interface PayrollFiltersProps {
     startDate?: string
     endDate?: string
     status?: string
+    scope?: string
   }
   userContext?: {
     isAdmin: boolean
     isManager: boolean
   }
+  /**
+   * Whether the viewer has direct reports. Resolved server-side from
+   * `managedEmployeeIds` — without reports "My team" is a dead option, so that
+   * one choice is dropped from the toggle.
+   */
+  hasReports?: boolean
 }
 
-export default function PayrollFilters({ initialFilters, userContext }: PayrollFiltersProps) {
+export default function PayrollFilters({ initialFilters, userContext, hasReports }: PayrollFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Derived from the URL rather than local state so it stays correct after
+  // back/forward navigation and any other filter push.
+  const scopeParam = searchParams.get('scope')
+  const activeScope = scopeParam === 'mine' || scopeParam === 'team' ? scopeParam : 'all'
+
+  // Shown to every elevated viewer, not just those with reports: the dashboard
+  // links admins and report-less managers to ?scope=mine, and without the
+  // toggle that would be a silent, unescapable filter. "My team" is the only
+  // option that needs reports to be meaningful.
+  const isElevated = Boolean(userContext?.isAdmin || userContext?.isManager)
+  const scopeOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'mine', label: 'My pay' },
+    ...(hasReports ? [{ value: 'team', label: 'My team' }] : []),
+  ]
 
   const [filters, setFilters] = useState(initialFilters)
   const [quickFilter, setQuickFilter] = useState<string>('all')
@@ -138,6 +161,22 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
     router.push(`/payroll?${params.toString()}`)
   }
 
+  const handleScopeChange = (scope: string) => {
+    const params = new URLSearchParams(searchParams)
+
+    if (scope === 'mine' || scope === 'team') {
+      params.set('scope', scope)
+    } else {
+      params.delete('scope')
+    }
+
+    // The row count changes with the scope, so an old page number can land the
+    // viewer past the end of the narrowed list.
+    params.delete('page')
+
+    router.push(`/payroll?${params.toString()}`)
+  }
+
   const clearFilters = () => {
     setFilters({})
     router.push('/payroll')
@@ -192,7 +231,10 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
       filters.startDate,
       filters.endDate,
     ].filter(Boolean).length +
-    (filters.status && filters.status !== 'all' ? 1 : 0)
+    (filters.status && filters.status !== 'all' ? 1 : 0) +
+    // Counted whenever the toggle is rendered, so an active scope is never
+    // invisible to a viewer who has the control to clear it.
+    (isElevated && activeScope !== 'all' ? 1 : 0)
 
   if (loading) {
     return (
@@ -215,7 +257,44 @@ export default function PayrollFilters({ initialFilters, userContext }: PayrollF
         <h3 className="text-lg leading-6 font-medium text-foreground mb-4">
           Filter Payroll Data
         </h3>
-        
+
+        {/* Own-vs-team scope toggle (elevated viewers only) */}
+        {isElevated && (
+          <div className="mb-4">
+            {/* Not a <label>: it names a radio-style group, not a form control. */}
+            <span
+              id="payroll-scope-label"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
+              Show
+            </span>
+            <div
+              role="group"
+              aria-labelledby="payroll-scope-label"
+              className="inline-flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1"
+            >
+              {scopeOptions.map((option) => {
+                const isActive = activeScope === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => handleScopeChange(option.value)}
+                    className={`min-h-11 rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background ${
+                      isActive
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Employee-only Quick Filters */}
         {!userContext?.isAdmin && !userContext?.isManager ? (
           <div className="space-y-4">

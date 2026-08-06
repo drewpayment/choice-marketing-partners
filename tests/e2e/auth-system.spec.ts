@@ -15,17 +15,18 @@ test.describe('Authentication System', () => {
     await expect(page.locator('h1')).toContainText('Admin Dashboard');
   });
 
-  test('should login as manager and access manager dashboard', async ({ page }) => {
+  test('should login as manager and land on the shared dashboard', async ({ page }) => {
     const auth = new AuthHelper(page);
-    
+
     // Test manager login
     await auth.loginAsManager();
-    
-    // Verify we're on manager dashboard
-    await expect(page).toHaveURL('/manager/dashboard');
-    
-    // Check for manager-specific content
-    await expect(page.locator('h1')).toContainText('Manager Dashboard');
+
+    // Managers land on /dashboard alongside reps — that is where their own pay
+    // section and the link into their team's pay live.
+    await expect(page).toHaveURL('/dashboard');
+
+    // Check for the dashboard's welcome heading (seeded manager: 'Test Manager')
+    await expect(page.locator('h1')).toContainText('Welcome, Test Manager!');
   });
 
   test('should login as employee and access regular dashboard', async ({ page }) => {
@@ -38,6 +39,6 @@ test.describe('Authentication System', () => {
     await expect(page).toHaveURL('/dashboard');
     
     // Check for dashboard content
-    await expect(page.locator('h1')).toContainText('Welcome, Employee User!');
+    await expect(page.locator('h1')).toContainText('Welcome, Test Employee!');
   });
 });

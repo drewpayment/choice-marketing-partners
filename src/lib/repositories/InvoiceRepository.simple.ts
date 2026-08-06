@@ -641,20 +641,35 @@ export class InvoiceRepository {
     logger.log('📊 Getting invoice page resources')
 
     try {
-      // Get active agents with all sales IDs for filtering
-      let agentQuery = db
-        .selectFrom('employees')
-        .select(['id', 'name', 'sales_id1', 'sales_id2', 'sales_id3'])
-        .where('is_active', '=', 1)
-        .where('deleted_at', 'is', null)
+      // Get active agents with all sales IDs for filtering.
+      // Fail closed: a non-admin manager's agent list is exactly their direct
+      // reports. With zero direct reports the list must be empty — never fall
+      // through to an unfiltered query over every active employee. The query is
+      // skipped entirely in that case (an `IN ()` predicate is invalid MySQL).
+      const managedEmployeeIds = userContext.managedEmployeeIds ?? []
+      let agents: Array<{
+        id: number
+        name: string
+        sales_id1: string
+        sales_id2: string
+        sales_id3: string
+      }> = []
 
-      if (!userContext.isAdmin && userContext.isManager && userContext.managedEmployeeIds?.length) {
-        agentQuery = agentQuery.where('id', 'in', userContext.managedEmployeeIds)
+      if (userContext.isAdmin || managedEmployeeIds.length > 0) {
+        let agentQuery = db
+          .selectFrom('employees')
+          .select(['id', 'name', 'sales_id1', 'sales_id2', 'sales_id3'])
+          .where('is_active', '=', 1)
+          .where('deleted_at', 'is', null)
+
+        if (!userContext.isAdmin) {
+          agentQuery = agentQuery.where('id', 'in', managedEmployeeIds)
+        }
+
+        agents = await agentQuery
+          .orderBy('name')
+          .execute()
       }
-
-      const agents = await agentQuery
-        .orderBy('name')
-        .execute()
 
       // Get active vendors
       const vendors = await db

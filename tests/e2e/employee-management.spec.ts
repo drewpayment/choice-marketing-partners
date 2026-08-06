@@ -72,7 +72,7 @@ test.describe('Employee Management - Core Functions', () => {
       await page.waitForTimeout(1000) // Wait for search to process
       
       // Should show search results containing "Admin"
-      const employeeCards = page.locator('text=Admin User').first()
+      const employeeCards = page.locator('text=Test Admin').first()
       await expect(employeeCards).toBeVisible()
     })
 
@@ -82,9 +82,9 @@ test.describe('Employee Management - Core Functions', () => {
       await page.waitForLoadState('networkidle')
       
       // Should show employee information - use .first() to avoid strict mode
-      await expect(page.locator('text=Admin User').first()).toBeVisible()
-      await expect(page.locator('text=Employee User').first()).toBeVisible()
-      await expect(page.locator('text=Manager User').first()).toBeVisible()
+      await expect(page.locator('text=Test Admin').first()).toBeVisible()
+      await expect(page.locator('text=Test Employee').first()).toBeVisible()
+      await expect(page.locator('text=Test Manager').first()).toBeVisible()
       
       // Should have action buttons - getByRole is more reliable
       const viewButton = page.getByRole('button', { name: 'View Details' }).first()
@@ -166,7 +166,7 @@ test.describe('Employee Management - Core Functions', () => {
       await page.waitForLoadState('networkidle')
       
       // Click on employee name link using getByRole
-      const employeeLink = page.getByRole('link', { name: 'Admin User' })
+      const employeeLink = page.getByRole('link', { name: 'Test Admin' })
       
       await employeeLink.click()
       await page.waitForLoadState('networkidle')
@@ -196,7 +196,7 @@ test.describe('Employee Management - Core Functions', () => {
       expect(isOnDetailPage || isOnEmployeesPage).toBeTruthy()
       
       if (isOnDetailPage) {
-        const hasEmployeeInfo = await page.locator('text=Admin User').first().isVisible()
+        const hasEmployeeInfo = await page.locator('text=Test Admin').first().isVisible()
         expect(hasEmployeeInfo).toBeTruthy()
       }
     })
@@ -319,7 +319,7 @@ test.describe('Employee Management - Core Functions', () => {
     test('Edit employee page should render without errors for valid employee', async ({ page }) => {
       await loginAsAdmin(page)
 
-      // Navigate to edit page for employee ID 1 (Admin User)
+      // Navigate to edit page for employee ID 1 (Test Admin)
       const response = await page.goto('/admin/employees/1/edit')
 
       // Page should return 200, not 500 (regression: async params must be awaited in Next.js 15)
@@ -329,7 +329,7 @@ test.describe('Employee Management - Core Functions', () => {
       await expect(page.locator('h1')).toContainText('Edit Employee')
 
       // The employee name should be rendered (proves params.id resolved correctly, not NaN)
-      await expect(page.locator('text=Admin User').first()).toBeVisible()
+      await expect(page.locator('text=Test Admin').first()).toBeVisible()
     })
 
     test('Employee detail page should render without errors for valid employee', async ({ page }) => {
@@ -341,7 +341,7 @@ test.describe('Employee Management - Core Functions', () => {
       expect(response?.status()).toBe(200)
 
       // Should show employee name, not an error
-      await expect(page.locator('text=Admin User').first()).toBeVisible()
+      await expect(page.locator('text=Test Admin').first()).toBeVisible()
 
       // Edit link should point to the correct employee
       const editLink = page.getByRole('link', { name: 'Edit Employee' })
@@ -416,7 +416,7 @@ test.describe('Employee Management - Core Functions', () => {
       await expect(page.locator('h1')).toBeVisible()
       
       // Employee cards should be responsive - use .first() to avoid strict mode
-      const hasEmployeeCards = await page.locator('text=Admin User').first().isVisible()
+      const hasEmployeeCards = await page.locator('text=Test Admin').first().isVisible()
       const hasResponsiveLayout = await page.locator('.grid').first().isVisible()
       
       expect(hasEmployeeCards || hasResponsiveLayout).toBeTruthy()
