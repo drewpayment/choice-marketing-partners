@@ -134,9 +134,9 @@ export async function getAccessibleVendors(
   name: string
   is_active: number
 }>> {
-  // Get accessible agent IDs first
+  // paystubs.agent_id stores employees.id, not sales_id1
   const agents = await getAccessibleAgents(userContext)
-  const agentIds = agents.map(agent => parseInt(agent.sales_id1)).filter(id => !isNaN(id))
+  const agentIds = agents.map(agent => agent.id)
 
   if (agentIds.length === 0) {
     return []
@@ -180,20 +180,12 @@ export async function validatePayrollAccess(
     return false
   }
 
-  // Additional validation: check if the combination exists
-  const employee = await db
-    .selectFrom('employees')
-    .select('sales_id1')
-    .where('id', '=', employeeId)
-    .executeTakeFirst()
-
-  if (!employee?.sales_id1) return false
-
   // Check if paystub exists for this combination
+  // (paystubs.agent_id stores employees.id, not sales_id1)
   const paystub = await db
     .selectFrom('paystubs')
     .select('id')
-    .where('agent_id', '=', parseInt(employee.sales_id1))
+    .where('agent_id', '=', employeeId)
     .where('vendor_id', '=', vendorId)
     .where(db.fn('DATE', ['issue_date']), '=', issueDate)
     .executeTakeFirst()
@@ -216,8 +208,8 @@ export async function getPayrollAccessSummary(
   const vendors = await getAccessibleVendors(userContext)
   const issueDates = await getAccessibleIssueDates(userContext)
 
-  // Count total paystubs accessible to user
-  const agentIds = agents.map(agent => parseInt(agent.sales_id1)).filter(id => !isNaN(id))
+  // Count total paystubs accessible to user (paystubs.agent_id stores employees.id)
+  const agentIds = agents.map(agent => agent.id)
   
   let totalPaystubs = 0
   if (agentIds.length > 0) {
