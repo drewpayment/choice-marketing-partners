@@ -1,5 +1,5 @@
 import type { UserContext } from '@/lib/auth/types'
-import { buildUserContext } from '@/lib/auth/types'
+import { accessibleEmployeeIds, buildUserContext } from '@/lib/auth/types'
 
 describe('UserContext', () => {
   describe('buildUserContext', () => {
@@ -43,6 +43,36 @@ describe('UserContext', () => {
         isManager: false,
       })
       expect(ctx.employeeId).toBeUndefined()
+    })
+  })
+
+  describe('accessibleEmployeeIds', () => {
+    it('puts self first, followed by managed employees', () => {
+      expect(
+        accessibleEmployeeIds({ employeeId: 36, managedEmployeeIds: [1184] })
+      ).toEqual([36, 1184])
+    })
+
+    it('returns self only when the manager has no subordinates', () => {
+      expect(accessibleEmployeeIds({ employeeId: 36, managedEmployeeIds: [] })).toEqual([36])
+    })
+
+    it('returns self only when managedEmployeeIds is undefined', () => {
+      expect(accessibleEmployeeIds({ employeeId: 36 })).toEqual([36])
+    })
+
+    it('dedupes when managedEmployeeIds already contains self', () => {
+      expect(
+        accessibleEmployeeIds({ employeeId: 36, managedEmployeeIds: [36, 1184, 1184] })
+      ).toEqual([36, 1184])
+    })
+
+    it('returns an empty array when there is no employeeId and nothing managed', () => {
+      expect(accessibleEmployeeIds({})).toEqual([])
+    })
+
+    it('falls back to managed ids when employeeId is missing', () => {
+      expect(accessibleEmployeeIds({ managedEmployeeIds: [10, 11] })).toEqual([10, 11])
     })
   })
 })

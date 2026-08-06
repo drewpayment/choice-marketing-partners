@@ -4,7 +4,7 @@ import { AdvanceRepository } from '@/lib/repositories/AdvanceRepository'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
-import type { UserContext } from '@/lib/auth/types'
+import { accessibleEmployeeIds, type UserContext } from '@/lib/auth/types'
 import {
   getEmployeeVisibilityCutoff,
   DEFAULT_RELEASE_HOUR,
@@ -216,8 +216,11 @@ export class PayrollRepository {
 
     // Apply role-based filtering
     if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        query = query.where('employees.id', 'in', userContext.managedEmployeeIds)
+      // Managers see themselves AND their subordinates
+      const accessibleIds = accessibleEmployeeIds(userContext)
+
+      if (userContext.isManager && accessibleIds.length) {
+        query = query.where('employees.id', 'in', accessibleIds)
       } else if (userContext.employeeId) {
         query = query.where('employees.id', '=', userContext.employeeId)
       } else {
@@ -273,8 +276,11 @@ export class PayrollRepository {
 
     // Apply the same role-based filtering to count query
     if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        countQuery = countQuery.where('employees.id', 'in', userContext.managedEmployeeIds)
+      // Managers see themselves AND their subordinates
+      const accessibleIds = accessibleEmployeeIds(userContext)
+
+      if (userContext.isManager && accessibleIds.length) {
+        countQuery = countQuery.where('employees.id', 'in', accessibleIds)
       } else if (userContext.employeeId) {
         countQuery = countQuery.where('employees.id', '=', userContext.employeeId)
       }
@@ -676,8 +682,11 @@ export class PayrollRepository {
 
     // Apply role-based filtering
     if (!userContext.isAdmin) {
-      if (userContext.isManager && userContext.managedEmployeeIds?.length) {
-        query = query.where('employees.id', 'in', userContext.managedEmployeeIds)
+      // Managers see themselves AND their subordinates
+      const accessibleIds = accessibleEmployeeIds(userContext)
+
+      if (userContext.isManager && accessibleIds.length) {
+        query = query.where('employees.id', 'in', accessibleIds)
       } else if (userContext.employeeId) {
         query = query.where('employees.id', '=', userContext.employeeId)
       } else {
