@@ -190,9 +190,9 @@ test.describe('Admin Functions - Core Operations', () => {
       await page.waitForLoadState('networkidle')
       
       // Should show managers and employees
-      const hasManagers = await page.locator('text=Admin User').first().isVisible() ||
-                         await page.locator('text=Manager User').first().isVisible()
-      const hasEmployees = await page.locator('text=Employee User').first().isVisible()
+      const hasManagers = await page.locator('text=Test Admin').first().isVisible() ||
+                         await page.locator('text=Test Manager').first().isVisible()
+      const hasEmployees = await page.locator('text=Test Employee').first().isVisible()
       
       expect(hasManagers || hasEmployees).toBeTruthy()
     })

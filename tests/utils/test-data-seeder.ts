@@ -59,7 +59,7 @@ export class TestDataSeeder {
   static readonly TEST_EMPLOYEES: TestEmployee[] = [
     {
       id: 1,
-      name: 'Admin User',
+      name: 'Test Admin',
       email: 'admin@test.com',
       isActive: true,
       isAdmin: true,
@@ -68,7 +68,7 @@ export class TestDataSeeder {
     },
     {
       id: 2,
-      name: 'Manager User',
+      name: 'Test Manager',
       email: 'manager@test.com',
       isActive: true,
       isAdmin: false,
@@ -78,7 +78,7 @@ export class TestDataSeeder {
     },
     {
       id: 3,
-      name: 'Employee User',
+      name: 'Test Employee',
       email: 'employee@test.com',
       isActive: true,
       isAdmin: false,

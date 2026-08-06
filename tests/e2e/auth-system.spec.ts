@@ -25,8 +25,8 @@ test.describe('Authentication System', () => {
     // section and the link into their team's pay live.
     await expect(page).toHaveURL('/dashboard');
 
-    // Check for the dashboard's welcome heading (seeded manager: 'Manager User')
-    await expect(page.locator('h1')).toContainText('Welcome, Manager User!');
+    // Check for the dashboard's welcome heading (seeded manager: 'Test Manager')
+    await expect(page.locator('h1')).toContainText('Welcome, Test Manager!');
   });
 
   test('should login as employee and access regular dashboard', async ({ page }) => {
@@ -39,6 +39,6 @@ test.describe('Authentication System', () => {
     await expect(page).toHaveURL('/dashboard');
     
     // Check for dashboard content
-    await expect(page.locator('h1')).toContainText('Welcome, Employee User!');
+    await expect(page.locator('h1')).toContainText('Welcome, Test Employee!');
   });
 });
