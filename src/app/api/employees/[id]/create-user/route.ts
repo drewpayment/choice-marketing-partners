@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/services/email'
 import { logger } from '@/lib/utils/logger'
+import { normalizeEmail } from '@/lib/utils/email'
 
 // Generate secure random password
 function generatePassword(length: number = 10): string {
@@ -75,6 +76,13 @@ export async function POST(
       )
     }
 
+    // Canonical form of the employee's stored address. Used for BOTH the
+    // "does a login already exist?" probe below and the login row this route
+    // may go on to create — probing one string while writing another would,
+    // on a case-sensitive engine, miss an existing mixed-case login and then
+    // collide with `users_email_unique` on the insert.
+    const loginEmail = normalizeEmail(employee.email)
+
     // Check if a user row already exists (by id or email) without an employee_user link
     // This handles the case where users.id = employees.id but employee_user was never created
     const existingUser = await db
@@ -83,7 +91,7 @@ export async function POST(
       .where((eb) =>
         eb.or([
           eb('id', '=', employeeId),
-          eb('email', '=', employee.email),
+          eb('email', '=', loginEmail),
         ])
       )
       .executeTakeFirst()
@@ -129,7 +137,7 @@ export async function POST(
         .insertInto('users')
         .values({
           id: employeeId,
-          email: employee.email,
+          email: loginEmail,
           name: employee.name,
           password: hashedPassword,
           role: role,
@@ -162,7 +170,10 @@ export async function POST(
     // Send welcome email
     try {
       await sendWelcomeEmail({
-        to: employee.email,
+        // Same canonical address that was just stored as the login, so the
+        // credentials in the email match the row (and a padded stored value
+        // cannot produce an undeliverable recipient).
+        to: loginEmail,
         name: employee.name,
         password: password,
       })

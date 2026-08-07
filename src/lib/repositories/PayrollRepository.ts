@@ -4,6 +4,7 @@ import { AdvanceRepository } from '@/lib/repositories/AdvanceRepository'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/utils/logger'
+import { safeJsonParse } from '@/lib/utils/safe-json'
 import { accessibleEmployeeIds, type UserContext } from '@/lib/auth/types'
 import {
   getEmployeeVisibilityCutoff,
@@ -667,16 +668,13 @@ export class PayrollRepository {
 
     // Parse custom_fields JSON for each sale
     const salesWithCustomFields = sales.map(sale => {
-      let customFields: Record<string, string> | undefined
-      try {
-        if (sale.custom_fields) {
-          customFields = typeof sale.custom_fields === 'string'
-            ? JSON.parse(sale.custom_fields)
-            : sale.custom_fields as unknown as Record<string, string>
-        }
-      } catch (e) {
-        logger.warn('Failed to parse custom_fields for invoice', sale.invoice_id, e)
-      }
+      const customFields = sale.custom_fields
+        ? safeJsonParse<Record<string, string> | undefined>(
+            sale.custom_fields,
+            undefined,
+            `PayrollRepository.custom_fields (invoice ${sale.invoice_id})`
+          )
+        : undefined
       return { ...sale, custom_fields: customFields }
     })
 

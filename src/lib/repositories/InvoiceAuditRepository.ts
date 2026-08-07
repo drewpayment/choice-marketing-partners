@@ -519,15 +519,39 @@ export class InvoiceAuditRepository {
       )
     }
 
-    // Apply date filter if provided
+    // Apply date filter if provided.
+    //
+    // Half-open range on the raw column (col >= from AND col < to+1day)
+    // instead of DATE(col): index-friendly and Postgres-portable. Also fixes
+    // the previous calls, which passed a factory function as the `lhs` of the
+    // 3-arg `where(lhs, op, rhs)` overload instead of the intended 1-arg
+    // `where(callback)` form — Kysely's `ReferenceExpression` happens to
+    // accept a factory there today, but that's an accident of the type, not
+    // the documented API; passing a boolean-returning expression per column
+    // is what the API actually asks for.
+    //
+    // Unparseable input is rejected explicitly rather than bound as a JS
+    // `Invalid Date`. The driver serialises an Invalid Date to the SQL literal
+    // `NULL`, so `changed_at >= NULL` would silently match zero rows and the
+    // dashboard would report "no audit activity ever" instead of failing. The
+    // pre-fix code bound the string 'Invalid Date', which the engine rejected
+    // with a hard error (HTTP 500 via the route's catch); throwing here keeps
+    // that loud failure — the contract callers see today — while making the
+    // cause legible in the logs.
     if (dateFrom) {
-      const fromDate = dayjs(dateFrom, 'MM-DD-YYYY').format('YYYY-MM-DD')
-      baseQuery = baseQuery.where(({ eb }) => eb.fn('DATE', ['ia.changed_at']), '>=', fromDate)
+      const from = dayjs(dateFrom, 'MM-DD-YYYY')
+      if (!from.isValid()) {
+        throw new Error(`Invalid dateFrom filter: ${dateFrom}`)
+      }
+      baseQuery = baseQuery.where('ia.changed_at', '>=', from.startOf('day').toDate())
     }
 
     if (dateTo) {
-      const toDate = dayjs(dateTo, 'MM-DD-YYYY').format('YYYY-MM-DD')
-      baseQuery = baseQuery.where(({ eb }) => eb.fn('DATE', ['ia.changed_at']), '<=', toDate)
+      const to = dayjs(dateTo, 'MM-DD-YYYY')
+      if (!to.isValid()) {
+        throw new Error(`Invalid dateTo filter: ${dateTo}`)
+      }
+      baseQuery = baseQuery.where('ia.changed_at', '<', to.add(1, 'day').startOf('day').toDate())
     }
 
     // Get total changes
@@ -547,10 +571,11 @@ export class InvoiceAuditRepository {
       .select(({ fn }) => fn.count<number>('id').as('count'))
       .executeTakeFirst()
 
-    // Get recent changes (last 30 days)
-    const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD')
+    // Get recent changes (last 30 days) — same fix: raw-column comparison
+    // instead of a factory passed where an expression was expected.
+    const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
     const recentChanges = await baseQuery
-      .where(({ eb }) => eb.fn('DATE', ['changed_at']), '>=', thirtyDaysAgo)
+      .where('ia.changed_at', '>=', thirtyDaysAgo)
       .select(({ fn }) => fn.count<number>('id').as('count'))
       .executeTakeFirst()
 

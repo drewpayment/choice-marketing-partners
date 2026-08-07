@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { safeJsonParse } from '@/lib/utils/safe-json'
 
 export interface MarketingProduct {
   // product fields
@@ -77,13 +78,12 @@ export class ProductMarketingRepository {
     const mapped = rows.map((row) => ({
       ...row,
       feature_list: (() => {
-        if (typeof row.feature_list !== 'string') return []
-        try {
-          const parsed = JSON.parse(row.feature_list)
-          return Array.isArray(parsed) ? parsed : []
-        } catch {
-          return []
-        }
+        const parsed = safeJsonParse<unknown>(
+          row.feature_list,
+          [],
+          `ProductMarketingRepository.feature_list (product ${row.product_id})`
+        )
+        return Array.isArray(parsed) ? parsed : []
       })(),
       is_featured: !!row.is_featured,
     }))
