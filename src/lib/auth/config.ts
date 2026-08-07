@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/database/client'
 import { logger } from '@/lib/utils/logger'
+import { normalizeEmail } from '@/lib/utils/email'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,11 +19,15 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Find user by email
+          // Find user by email. The submitted address is normalised (trimmed +
+          // lowercased) before it reaches the query: MySQL's unicode_ci
+          // collation already ignores case, so this only newly tolerates
+          // whitespace-padded input today — but it is load-bearing on a
+          // case-sensitive engine.
           const user = await db
             .selectFrom('users')
             .select(['id', 'email', 'password', 'name'])
-            .where('email', '=', credentials.email)
+            .where('email', '=', normalizeEmail(credentials.email))
             .executeTakeFirst()
 
           if (!user) {

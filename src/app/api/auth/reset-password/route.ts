@@ -3,6 +3,7 @@ import { db } from '@/lib/database/client'
 import { validatePasswordResetToken } from '@/lib/auth/password-reset'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/lib/utils/logger'
+import { normalizeEmail } from '@/lib/utils/email'
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     const user = await db
       .selectFrom('users')
       .select(['id', 'email'])
-      .where('email', '=', payload.email)
+      .where('email', '=', normalizeEmail(payload.email))
       .where('id', '=', parseInt(payload.userId))
       .executeTakeFirst()
 

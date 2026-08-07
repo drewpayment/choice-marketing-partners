@@ -6,6 +6,7 @@ import { Resend } from 'resend'
 import PasswordResetEmail from '@/components/emails/PasswordResetEmail'
 import React from 'react'
 import { logger } from '@/lib/utils/logger'
+import { normalizeEmail } from '@/lib/utils/email'
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     const user = await db
       .selectFrom('users')
       .select(['id', 'email'])
-      .where('email', '=', email.toLowerCase())
+      .where('email', '=', normalizeEmail(email))
       .executeTakeFirst()
 
     // Always return success to prevent email enumeration

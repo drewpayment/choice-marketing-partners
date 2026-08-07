@@ -582,9 +582,14 @@ export class EmployeeRepository {
 
         // Idempotent: re-deleting must never double-prefix an already parked address.
         if (!isParkedEmail(user.email)) {
-          let parked = buildParkedEmail(id, user.email)
+          // Canonicalise once, here, so the value the collision guard probes is
+          // byte-for-byte the value the UPDATE below writes. Normalising only
+          // inside the guard would make it answer a question about a string
+          // that never reaches the table.
+          const base = normalizeEmail(user.email)
+          let parked = buildParkedEmail(id, base)
           if (await this.emailTakenByOtherUser(trx, parked, user.uid)) {
-            parked = buildParkedEmail(id, user.email, user.uid)
+            parked = buildParkedEmail(id, base, user.uid)
           }
           userUpdate.email = parked
         }
@@ -1182,7 +1187,7 @@ export class EmployeeRepository {
     const row = await executor
       .selectFrom('users')
       .select('uid')
-      .where('email', '=', email)
+      .where('email', '=', normalizeEmail(email))
       .where('uid', '!=', excludeUid)
       .executeTakeFirst()
 
