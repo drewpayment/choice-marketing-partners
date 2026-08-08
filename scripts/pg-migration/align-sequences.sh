@@ -20,20 +20,41 @@
 # Run AFTER post-import-fixups.sql (the sequences are narrowed to `AS integer`
 # there, so an absurd counter fails loudly here instead of at INSERT time).
 #
-#   MYSQL_CMD='mysql --host=... -N -B choice_marketing'   # source, read-only
-#   PSQL_CMD='psql "$TARGET_URL"'                          # connection ONLY
+# BOTH connections are REQUIRED — there is deliberately no default. This script
+# WRITES (setval), so a defaulted PSQL_CMD would silently mutate whichever
+# database the default happened to name (historically the verified local import
+# in `choice_marketing`) while leaving the database you actually loaded
+# unaligned. Supply the CONNECTION ONLY; the script appends psql's
+# output-format and ON_ERROR_STOP flags itself.
+#
+# Local run (copy-paste):
+#   MYSQL_CMD='docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing' \
+#   PSQL_CMD='docker exec -i choice-postgres-dev psql -U choice -d choice_marketing' \
 #   bash scripts/pg-migration/align-sequences.sh
+#
+# Cutover run:
+#   MYSQL_CMD='mysql --host=... -N -B choice_marketing'    # source, read-only
+#   PSQL_CMD='psql "$STAGING_URL"'                         # connection ONLY
+#
+# MYSQL_DB names the schema whose information_schema is read. It defaults to the
+# database the connection itself selected (`SELECT DATABASE()`), so it cannot
+# drift away from MYSQL_CMD; override it only if they genuinely differ.
 # ===========================================================================
 set -euo pipefail
 export LC_ALL=C
 
 TAB=$'\t'
-MYSQL_CMD=${MYSQL_CMD:-"docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing"}
-PSQL_CMD=${PSQL_CMD:-"docker exec -i choice-postgres-dev psql -U choice -d choice_marketing"}
-MYSQL_DB=${MYSQL_DB:-choice_marketing}
+: "${MYSQL_CMD:?MYSQL_CMD is required (source connection ONLY; see the header for a copy-paste local value)}"
+: "${PSQL_CMD:?PSQL_CMD is required (target connection ONLY; this script WRITES, so it must never default)}"
 
 my() { eval "$MYSQL_CMD" 2>/dev/null | grep -v '^mysql:.*Warning' || true; }
 pg() { eval "$PSQL_CMD -tAF'$TAB' -v ON_ERROR_STOP=1" 2>&1; }
+
+MYSQL_DB=${MYSQL_DB:-$(my <<< 'SELECT DATABASE();' | tr -d ' \r')}
+if [ -z "$MYSQL_DB" ] || [ "$MYSQL_DB" = "NULL" ]; then
+    echo "align-sequences: MYSQL_CMD selects no default database and MYSQL_DB is unset" >&2
+    exit 1
+fi
 
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT

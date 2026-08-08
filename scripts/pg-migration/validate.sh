@@ -13,7 +13,8 @@
 #      columns  (catches latin1 mojibake, truncation, double-encoding)
 #   E  payroll money reconciliation, plan §4 shape:
 #      per agent/vendor/issue_date COUNT+SUM for paystubs, invoices, overrides,
-#      expenses, advances
+#      expenses, advances - plus, for invoices, the count of rows whose varchar
+#      `amount` is NOT numeric (it doubles as a status field)
 #   F  schema shape, every line a hard assertion: 0 boolean cols, 0 json/jsonb
 #      cols, 0 enum types, DECIMAL precision/scale parity, and — with the
 #      expected counts read from the SOURCE, not hard-coded — signed-bigint
@@ -25,26 +26,37 @@
 #      READ-ONLY: the next value is read from the sequence relation, never by
 #      calling nextval() (nextval is not transactional and cannot be undone).
 #
-# The engines are driven through overridable command hooks so the same script
-# runs locally (docker exec) and at cutover (real clients over the network).
-# Supply the CONNECTION ONLY — the script appends psql's output-format and
-# ON_ERROR_STOP flags itself, because getting the field separator wrong
-# (e.g. '\t' inside single quotes, which is a literal backslash-t) makes every
-# multi-column check fail as if the data were wrong:
+# The engines are driven through command hooks so the same script runs locally
+# (docker exec) and at cutover (real clients over the network). BOTH are
+# REQUIRED — there is deliberately no default. A gate that defaults its
+# connections degrades into "compared two databases nobody asked about" and
+# still prints VALIDATION PASSED; that has happened. Supply the CONNECTION
+# ONLY — the script appends psql's output-format and ON_ERROR_STOP flags
+# itself, because getting the field separator wrong (e.g. '\t' inside single
+# quotes, which is a literal backslash-t) makes every multi-column check fail
+# as if the data were wrong.
 #
-#   MYSQL_CMD='mysql --host=... --user=... --password=... -N -B choice_marketing'
-#   PSQL_CMD='psql "$NEON_URL"'
+# Local run (copy-paste):
+#   MYSQL_CMD='docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing' \
+#   PSQL_CMD='docker exec -i choice-postgres-dev psql -U choice -d choice_marketing' \
 #   ./scripts/pg-migration/validate.sh
 #
-# Defaults target the local dev containers.
+# Cutover run:
+#   MYSQL_CMD='mysql --host=... --user=... --password=... -N -B choice_marketing'
+#   PSQL_CMD='psql "$NEON_URL"'
+#
+# MYSQL_DB names the schema whose information_schema drives checks A-D and F.
+# It defaults to the database the connection itself selected (`SELECT
+# DATABASE()`) so it cannot silently point at a different schema than
+# MYSQL_CMD; a schema with no base tables aborts rather than comparing two
+# empty result sets and reporting PASS.
 # ===========================================================================
 set -euo pipefail
 export LC_ALL=C          # deterministic sort/join ordering on both sides
 
 TAB=$'\t'
-MYSQL_CMD=${MYSQL_CMD:-"docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing"}
-PSQL_CMD=${PSQL_CMD:-"docker exec -i choice-postgres-dev psql -U choice -d choice_marketing"}
-MYSQL_DB=${MYSQL_DB:-choice_marketing}
+: "${MYSQL_CMD:?MYSQL_CMD is required (source connection ONLY; see the header for a copy-paste local value)}"
+: "${PSQL_CMD:?PSQL_CMD is required (target connection ONLY; see the header for a copy-paste local value)}"
 
 WORK=$(mktemp -d)
 FAILED=0
@@ -78,6 +90,24 @@ expect() { # $1=label $2=expected $3=actual
 }
 
 scalar_my() { my <<< "$1" | tr -d ' \r'; }
+
+# Resolve the source schema from the connection itself, then prove it is really
+# there. Checks A-D and F generate their SQL from information_schema, so a
+# MYSQL_DB that names a schema this connection cannot see yields an EMPTY
+# generator result on both sides — which diffs clean and reports PASS.
+MYSQL_DB=${MYSQL_DB:-$(scalar_my 'SELECT DATABASE();')}
+if [ -z "$MYSQL_DB" ] || [ "$MYSQL_DB" = "NULL" ]; then
+    echo "validate: MYSQL_CMD selects no default database and MYSQL_DB is unset" >&2
+    exit 1
+fi
+n_src_tables=$(scalar_my "SELECT COUNT(*) FROM information_schema.tables
+                           WHERE table_schema='${MYSQL_DB}' AND table_type='BASE TABLE';")
+if [ "${n_src_tables:-0}" -lt 1 ]; then
+    echo "validate: source schema '${MYSQL_DB}' reports ${n_src_tables:-0} base tables -" >&2
+    echo "          refusing to 'compare' two empty result sets and call it a PASS" >&2
+    exit 1
+fi
+echo "source schema ${MYSQL_DB}: ${n_src_tables} base tables"
 
 # Build one big UNION ALL query on the MySQL side from a generator query.
 # NOTE: the CONCAT()s below must stay on ONE line each — mysql --batch escapes a
@@ -179,9 +209,12 @@ report "string char + byte counts per table" "$WORK/d.my" "$WORK/d.pg"
 
 echo "== E. payroll money reconciliation (plan §4) =="
 # invoices.amount is a varchar that also stores status strings ("NA",
-# "Account Blocked", ...). Both sides sum only the rows that are fully numeric
-# and compare the non-numeric row count separately, rather than relying on
-# MySQL's silent string->number coercion.
+# "Account Blocked", ...) - 1 364 of 161 982 rows in the 2026-08 snapshot. Both
+# sides sum only the rows that are fully numeric (rather than relying on MySQL's
+# silent string->number coercion, which would quietly read "NA" as 0 on one side
+# only) AND carry the non-numeric row count as its own compared column, so a row
+# that changed from a status string to a number - or vice versa - fails here and
+# not merely in check D's aggregate byte totals.
 recon() { # $1=label $2=mysql-sql $3=pg-sql
     my <<< "$2" > "$WORK/e.my"
     pg <<< "$3" | sed 's/+00$//' > "$WORK/e.pg"
@@ -191,8 +224,8 @@ recon "paystubs  by agent/vendor/issue_date" \
   "SELECT agent_id, vendor_id, issue_date, COUNT(*), CAST(SUM(amount) AS DECIMAL(30,4)) FROM paystubs GROUP BY 1,2,3 ORDER BY 1,2,3;" \
   "SELECT agent_id, vendor_id, issue_date, COUNT(*), SUM(amount)::numeric(30,4) FROM paystubs GROUP BY 1,2,3 ORDER BY 1,2,3;"
 recon "invoices  by agent/vendor/issue_date" \
-  "SELECT agentid, vendor, issue_date, COUNT(*), CAST(SUM(CASE WHEN amount REGEXP '^-?[0-9]+([.][0-9]+)?\$' THEN CAST(amount AS DECIMAL(30,4)) ELSE 0 END) AS DECIMAL(30,4)) FROM invoices GROUP BY 1,2,3 ORDER BY 1,2,3;" \
-  "SELECT agentid, vendor, issue_date, COUNT(*), SUM(CASE WHEN amount ~ '^-?[0-9]+([.][0-9]+)?\$' THEN amount::numeric ELSE 0 END)::numeric(30,4) FROM invoices GROUP BY 1,2,3 ORDER BY 1,2,3;"
+  "SELECT agentid, vendor, issue_date, COUNT(*), CAST(SUM(CASE WHEN amount REGEXP '^-?[0-9]+([.][0-9]+)?\$' THEN CAST(amount AS DECIMAL(30,4)) ELSE 0 END) AS DECIMAL(30,4)), CAST(SUM(CASE WHEN amount REGEXP '^-?[0-9]+([.][0-9]+)?\$' THEN 0 ELSE 1 END) AS SIGNED) FROM invoices GROUP BY 1,2,3 ORDER BY 1,2,3;" \
+  "SELECT agentid, vendor, issue_date, COUNT(*), SUM(CASE WHEN amount ~ '^-?[0-9]+([.][0-9]+)?\$' THEN amount::numeric ELSE 0 END)::numeric(30,4), SUM(CASE WHEN amount ~ '^-?[0-9]+([.][0-9]+)?\$' THEN 0 ELSE 1 END)::bigint FROM invoices GROUP BY 1,2,3 ORDER BY 1,2,3;"
 recon "overrides by agent/vendor/issue_date" \
   "SELECT agentid, vendor_id, issue_date, COUNT(*), CAST(SUM(total) AS DECIMAL(30,4)), CAST(SUM(commission) AS DECIMAL(30,4)) FROM overrides GROUP BY 1,2,3 ORDER BY 1,2,3;" \
   "SELECT agentid, vendor_id, issue_date, COUNT(*), SUM(total)::numeric(30,4), SUM(commission)::numeric(30,4) FROM overrides GROUP BY 1,2,3 ORDER BY 1,2,3;"

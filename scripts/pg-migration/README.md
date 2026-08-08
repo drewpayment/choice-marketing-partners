@@ -11,6 +11,14 @@ result — run in that order:
 | `align-sequences.sh` | Advances each sequence to the source `AUTO_INCREMENT` counter (pgloader only resets to `max(id)`, so deleted ids would be re-issued). Forward-only and idempotent. |
 | `validate.sh` | Reconciles source vs target: row counts, numeric SUMs, date ranges, string byte-fidelity, the §4 payroll money diff, schema shape, sequences. Every check is an assertion; exits non-zero on any mismatch. |
 
+The last two take **both** connections as required environment variables
+(`MYSQL_CMD`, `PSQL_CMD`) and abort if either is missing or empty — they have no
+defaults on purpose. See "Why the scripts refuse to default".
+
+The runbook is `Local run` for a dev rebuild, and `Cutover run` §1→§4 for the
+real thing. **§3 ends with a green gate but the app is still on MySQL — §4 is
+what moves it.**
+
 The pipeline is a **full reload**, not an incremental sync. It takes ~2 seconds
 on the current ~300 k rows / 32 MB, so re-running from scratch is always the
 right answer when something looks wrong. The target is disposable by design.
@@ -27,11 +35,35 @@ which pgloader                 # /opt/homebrew/bin/pgloader
 `psql` is invoked through `docker exec` in the examples below because the dev
 machine has no local client. If you have one, use it directly.
 
-For the **cutover** you additionally need `psql`, `pg_dump` and `pg_restore` at
-**17.x** on the machine that talks to Neon (`brew install libpq`), because
-pgloader cannot connect to Neon at all — see "Cutover run". The container's own
-`pg_dump`/`pg_restore` (`docker exec choice-postgres-dev pg_dump …`) are 17.x and
-work for the dump half.
+For the **cutover** you additionally need `psql` and `pg_restore` on the machine
+that talks to Neon (`brew install libpq`), because pgloader cannot connect to
+Neon at all — see "Cutover run".
+
+Two things about that install that will bite you at 11pm (verified 2026-08):
+
+```bash
+brew install libpq
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"   # REQUIRED — libpq is keg-only,
+                                                  # nothing lands on PATH and the
+                                                  # bare `psql`/`pg_restore` calls
+                                                  # below fail "command not found"
+psql --version                                    # PostgreSQL 18.4 as of 2026-08
+```
+
+`brew install libpq` no longer gives you 17.x — it tracks the newest major (18.4
+today). That is fine for the **restore** half (a newer `pg_restore` reads a 17
+archive), but it means **`pg_dump` must be the container's 17.10 one**
+(`docker exec choice-postgres-dev pg_dump …`, as §3 below does) and never the
+host's: an 18.x `pg_dump` emits an archive whose SQL a 17.x Neon server can
+reject. Check the server first — `psql "$NEON_URL" -tAc 'select version()'` —
+and keep dump-side ≤ server major.
+
+You also need a **MySQL client** for `align-sequences.sh` / `validate.sh`, which
+read the source counters and reconcile against it. This machine has none on the
+host: either `brew install mysql-client` (also keg-only — same PATH export, under
+`/opt/homebrew/opt/mysql-client/bin`) or drive it through
+`docker exec -i <container> mysql …`, which is what the `MYSQL_CMD` values in
+"Local run" below do.
 
 ---
 
@@ -42,8 +74,15 @@ Source: `choice-mysql-dev` (127.0.0.1:3306, root/rootpassword, `choice_marketing
 Target: `choice-postgres-dev` (127.0.0.1:5433, choice/choice, `choice_marketing`,
 PostgreSQL 17) — disposable.
 
+`align-sequences.sh` and `validate.sh` take **both** connections as required
+environment variables — they have no defaults, deliberately (see "Why the
+scripts refuse to default" below). Export them once for the whole local run:
+
 ```bash
 cd /path/to/choice-marketing-partners
+
+export MYSQL_CMD='docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing'
+export PSQL_CMD='docker exec -i choice-postgres-dev psql -U choice -d choice_marketing'
 
 # 0. Preflight (see below) — takes 5 seconds, catches the two things that
 #    silently corrupt an otherwise-green import.
@@ -63,6 +102,7 @@ docker exec choice-postgres-dev psql -U choice -d choice_marketing \
   -v ON_ERROR_STOP=1 -f /tmp/fixups.sql
 
 # 4. Move each sequence up to the source AUTO_INCREMENT counter.
+#    (uses the exported MYSQL_CMD / PSQL_CMD above)
 bash scripts/pg-migration/align-sequences.sh
 
 # 5. Prove it. Must print "VALIDATION PASSED".
@@ -71,6 +111,27 @@ bash scripts/pg-migration/validate.sh
 
 Steps 3 and 4 are safe to re-run on their own (every step is a no-op once
 satisfied), so you can iterate on the fixups without re-importing.
+
+### Why the scripts refuse to default
+
+Neither `align-sequences.sh` nor `validate.sh` has a default `MYSQL_CMD` or
+`PSQL_CMD` any more. Both abort with
+`PSQL_CMD is required` if you forget one. They used to default to the local dev
+containers, and both failure modes are silent rather than loud:
+
+- `align-sequences.sh` **writes** (`setval`). A forgotten `PSQL_CMD` sent those
+  writes to `choice_marketing` — the verified local import that is your only
+  side-by-side reference — while leaving the database you actually loaded
+  unaligned.
+- `validate.sh` compared whatever the defaults named and printed
+  `VALIDATION PASSED` for a pair of databases nobody asked about.
+
+`MYSQL_DB` (the schema whose `information_schema` drives the generated checks)
+now defaults to whatever the connection itself selected — `SELECT DATABASE()` —
+so it cannot drift away from `MYSQL_CMD`. Override it only if prod's schema name
+genuinely differs from the one in the connection string. `validate.sh` also
+aborts if that schema reports **zero base tables**: the generated checks would
+otherwise produce empty result sets on both sides, diff clean, and report PASS.
 
 ### Preflight
 
@@ -87,7 +148,31 @@ docker exec choice-mysql-dev mysql -uroot -prootpassword -N -B \
 #     NOW() and UTC_TIMESTAMP() must be equal.
 
 # (b) The two latin1 tables must be checked for non-ASCII bytes. See
-#     "latin1 tables" below for why, and for the query.
+#     "latin1 tables" below for why. Do NOT hand-write the column list — it goes
+#     stale silently. Generate the check from information_schema and pipe it
+#     straight back in; every count must be 0. No hand editing: each generated
+#     line is a COMPLETE statement ending in ";", so there is no trailing
+#     "UNION ALL" to delete at 11pm.
+myq() { docker exec -i choice-mysql-dev mysql -uroot -prootpassword -N -B choice_marketing; }
+myq <<'SQL' | myq
+-- group_concat_max_len defaults to 1024 BYTES on MySQL 8 and MariaDB 10.6, and
+-- overflowing it TRUNCATES with a warning and exit 0 — it would silently emit a
+-- check covering fewer columns than intended. invoice_audit is already at 404
+-- bytes and grows in previous_/current_ column PAIRS, so this is a question of
+-- when, not whether. Raising the ceiling removes it entirely.
+SET SESSION group_concat_max_len = 1000000;
+SELECT CONCAT('SELECT ''', table_name, ''' t, COUNT(*) n FROM `', table_name, '` WHERE LENGTH(CONCAT_WS(''|'',',
+       GROUP_CONCAT(CONCAT('IFNULL(`',column_name,'`,'''')') ORDER BY ordinal_position SEPARATOR ','),
+       ')) <> CHAR_LENGTH(CONCAT_WS(''|'',',
+       GROUP_CONCAT(CONCAT('IFNULL(`',column_name,'`,'''')') ORDER BY ordinal_position SEPARATOR ','),
+       '));')
+  FROM information_schema.columns
+ WHERE table_schema='choice_marketing' AND table_name IN ('document_files','invoice_audit')
+   AND data_type IN ('varchar','text','mediumtext','longtext','char','tinytext')
+ GROUP BY table_name;
+SQL
+#     Expect exactly one line per latin1 table; every n must be 0. No output at
+#     all means the generator matched no columns — investigate, do not proceed.
 ```
 
 ---
@@ -135,9 +220,35 @@ prod MariaDB ──ssh tunnel──▶ pgloader ──▶ staging Postgres 17 �
 ```
 
 The staging Postgres can be the dev container; it just has to be PG 17 and
-empty. `pg_dump`/`pg_restore` must be **17.x** (client ≥ server): use the ones
-inside the container (`docker exec choice-postgres-dev pg_dump …`) or
-`brew install libpq`.
+empty. **Use a separate database inside it, not `choice_marketing`** — step 2
+opens with `DROP SCHEMA public CASCADE`, and `choice_marketing` holds the
+verified local import that is your only side-by-side reference if the cutover
+load looks wrong. Everything below therefore parameterises the staging database
+name in one place:
+
+```bash
+export STAGING_DB=choice_cutover     # export, not a bare assignment - see below
+docker exec choice-postgres-dev psql -U choice -d postgres \
+  -c "DROP DATABASE IF EXISTS ${STAGING_DB};" -c "CREATE DATABASE ${STAGING_DB} OWNER choice;"
+```
+
+**`export` it, and keep the same shell.** Every later block references
+`${STAGING_DB}` under `set -u`, with **no** `:-choice_cutover` fallback, so an
+unset variable stops the run immediately. That is on purpose. Earlier revisions
+re-defaulted it in each block, which meant a new terminal opened halfway through
+a multi-hour cutover silently reverted to `choice_cutover` — and because a
+previous rehearsal leaves a fully populated `choice_cutover` behind, §3's
+`pg_dump` would then **succeed** and ship the *previous* run's data to Neon,
+with `validate.sh` comparing it against a source it happens to match and staying
+green. If you do open a new shell, re-`export STAGING_DB` before anything else.
+
+**Drop the staging database when the run is over** (`docker exec
+choice-postgres-dev psql -U choice -d postgres -c "DROP DATABASE IF EXISTS
+choice_cutover;"`), so a stale copy can never be mistaken for a fresh one.
+
+`pg_dump` must be **≤ the Neon server major** (17.x): use the one inside the
+container (`docker exec choice-postgres-dev pg_dump …`). `pg_restore`/`psql` on
+the host may be newer — see Prerequisites.
 
 ### 1. Generate the cutover command file
 
@@ -152,8 +263,9 @@ somewhere unintended. This loop substitutes the URL literally:
 
 ```bash
 set -euo pipefail
+: "${STAGING_DB:?export STAGING_DB first - see 'Cutover run' above}"
 SOURCE_URL='mysql://USER:PASS@127.0.0.1:3307/choice_marketing'          # prod via ssh tunnel
-STAGING_URL='postgresql://choice:choice@127.0.0.1:5433/choice_marketing' # = the checked-in INTO
+STAGING_URL="postgresql://choice:choice@127.0.0.1:5433/${STAGING_DB}"   # NOT choice_marketing
 
 while IFS= read -r line; do
   if   [[ $line =~ ^[[:space:]]*FROM[[:space:]]+mysql:// ]];      then printf '     FROM      %s\n' "$SOURCE_URL"
@@ -179,16 +291,46 @@ fixup run against whatever was already in the target.
 
 ```bash
 set -euo pipefail
-PSQL_STAGING="docker exec -i choice-postgres-dev psql -U choice -d choice_marketing"
-MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice_marketing"
+: "${STAGING_DB:?export STAGING_DB first - see 'Cutover run' above}"
+# export these two: §3's acceptance gate needs MYSQL_PROD, and a bare assignment
+# would not survive into it.
+export PSQL_STAGING="docker exec -i choice-postgres-dev psql -U choice -d ${STAGING_DB}"
+export MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice_marketing"
+export CUTOVER_RUN_ID="cutover-$(date -u +%Y%m%dT%H%M%SZ)"    # freshness marker, checked in §3
 
 $PSQL_STAGING -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO choice;" \
   && pgloader /tmp/cutover-import.load \
   && docker cp scripts/pg-migration/post-import-fixups.sql choice-postgres-dev:/tmp/fixups.sql \
   && $PSQL_STAGING -v ON_ERROR_STOP=1 -f /tmp/fixups.sql \
-  && MYSQL_CMD="$MYSQL_PROD" bash scripts/pg-migration/align-sequences.sh \
-  && MYSQL_CMD="$MYSQL_PROD" bash scripts/pg-migration/validate.sh
+  && MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="$PSQL_STAGING" bash scripts/pg-migration/align-sequences.sh \
+  && MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="$PSQL_STAGING" bash scripts/pg-migration/validate.sh \
+  && $PSQL_STAGING -v ON_ERROR_STOP=1 \
+       -c "COMMENT ON SCHEMA public IS '${CUTOVER_RUN_ID}';"
 ```
+
+The closing `COMMENT ON SCHEMA public` is the **freshness marker** §3 checks
+before it dumps. It is written only if everything above it succeeded, and §2's
+opening `DROP SCHEMA public CASCADE` removes any previous one, so its presence
+means "this staging database was loaded and validated by *this* run". `pg_dump`
+carries the comment, so after the restore you can ask Neon which run produced
+the data that is live:
+
+```bash
+psql "$NEON_URL" -tAc "SELECT obj_description('public'::regnamespace, 'pg_namespace');"
+```
+
+**`PSQL_CMD` is not optional here** — and as of the 2026-08 revision the scripts
+enforce that themselves: both abort with `PSQL_CMD is required` /
+`MYSQL_CMD is required` rather than falling back to the dev containers. They used
+to default, and passing only `MYSQL_CMD` — as an earlier version of this recipe
+did — silently aligned (i.e. **wrote** `setval` to) and validated the *previous*
+local import instead of the cutover staging database, printing
+`VALIDATION PASSED` for a target you never loaded.
+
+You do **not** need to set `MYSQL_DB`: it is derived from `SELECT DATABASE()` on
+the `MYSQL_CMD` connection. Set it only if prod's schema name differs from the
+database named in the connection string, and note `validate.sh` aborts if the
+resolved schema reports zero base tables.
 
 `validate.sh` takes the **connection only** in `PSQL_CMD`/`MYSQL_CMD` — it adds
 psql's `-tAF<tab> -v ON_ERROR_STOP=1` itself. (Passing `-tAF'\t'` by hand is a
@@ -199,23 +341,176 @@ the data were wrong.)
 
 ```bash
 set -euo pipefail
-export NEON_URL="$DATABASE_URL_UNPOOLED"     # DIRECT endpoint, not -pooler
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+: "${STAGING_DB:?export STAGING_DB first - see 'Cutover run' above}"
+: "${CUTOVER_RUN_ID:?CUTOVER_RUN_ID is unset - it is set in §2; do not carry on in a new shell}"
 
-docker exec choice-postgres-dev pg_dump -U choice -d choice_marketing \
+# The DIRECT (non-pooler) endpoint. The exact variable name depends on how the
+# env was pulled: `vercel env pull` on this project writes NEON_DATABASE_URL_UNPOOLED
+# (there is also NEON_POSTGRES_URL_NON_POOLING); a hand-written .env may use
+# DATABASE_URL_UNPOOLED. Resolve it explicitly and REFUSE TO PROCEED if it is
+# empty — an empty "$NEON_URL" makes psql fall back to the local default
+# connection, and the next line is DROP SCHEMA public CASCADE.
+export NEON_URL="${NEON_DATABASE_URL_UNPOOLED:-${DATABASE_URL_UNPOOLED:-}}"
+[ -n "$NEON_URL" ] || { echo "NEON_URL is empty - refusing to run DDL"; exit 1; }
+case "$NEON_URL" in *-pooler*) echo "that is the POOLED endpoint - use the direct one"; exit 1;; esac
+psql "$NEON_URL" -tAc 'select current_database(), version()'   # eyeball it before the DROP
+
+# Refuse to ship a staging database this run did not load. A previous rehearsal
+# leaves a fully populated choice_cutover behind, and pg_dump would happily
+# succeed against it.
+stamp=$(docker exec -i choice-postgres-dev psql -U choice -d "${STAGING_DB}" \
+          -tAc "SELECT coalesce(obj_description('public'::regnamespace,'pg_namespace'),'')")
+[ "$stamp" = "$CUTOVER_RUN_ID" ] || {
+  echo "staging ${STAGING_DB} is stamped [${stamp}], expected [${CUTOVER_RUN_ID}] - re-run §2"; exit 1; }
+
+docker exec choice-postgres-dev pg_dump -U choice -d "${STAGING_DB}" \
         --format=custom --no-owner --no-acl -f /tmp/cutover.dump \
   && docker cp choice-postgres-dev:/tmp/cutover.dump /tmp/cutover.dump \
   && psql "$NEON_URL" -v ON_ERROR_STOP=1 \
         -c 'DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;' \
-  && pg_restore --no-owner --no-acl --exit-on-error -d "$NEON_URL" /tmp/cutover.dump
+  && pg_restore --no-owner --no-acl --exit-on-error --single-transaction \
+        -d "$NEON_URL" /tmp/cutover.dump \
+  && psql "$NEON_URL" -v ON_ERROR_STOP=1 -c 'ANALYZE;'
 ```
 
+**`--single-transaction` is what keeps a failed restore from leaving a
+half-populated production database.** The restore is ~30 s of network round
+trips; without it, a mid-flight failure (dropped Wi-Fi, a Neon compute
+suspend/resume, an unexpected object conflict) leaves some tables loaded, some
+empty, no FKs, and no automatic rollback — and because the chain is `&&`-joined,
+the trailing `ANALYZE` is skipped too, so even a hand-completed restore ships
+with no planner statistics. With it, Neon either has the whole database or the
+empty schema you created one line earlier. (It composes with `--exit-on-error`;
+it is incompatible with parallel `-j`, which this restore does not use.)
+
+**If any step of that chain fails anyway, re-run the whole block from the
+`DROP SCHEMA IF EXISTS public CASCADE` line.** The restore is idempotent only
+via a full schema reset — never re-run `pg_restore` on top of a partial one. It
+costs ~30 s, which is inside any sane cutover window. If the failure was in
+`pg_dump` or `docker cp`, go back to §2 instead: the archive is the artefact, so
+regenerate it rather than reusing a truncated file.
+
+The trailing `ANALYZE` is not optional. `pg_restore` from a 17.x archive carries
+no planner statistics, so straight after the restore 54 of the 69 relations have
+never been analysed and the first real traffic plans every join off default
+estimates. It costs ~1 s; autovacuum would otherwise get there minutes later,
+which is exactly the window where everyone is watching.
+
 Then run the acceptance gate **against Neon itself** — this is the run that
-matters, the staging one is just an early warning:
+matters, the staging one is just an early warning. It is a **self-contained
+block on purpose**: it re-resolves and re-guards both connections instead of
+inheriting them, because the two variables it needs are the two that go missing.
+`validate.sh` reads `${MYSQL_CMD:-…}`-style inputs no longer, but an empty
+`MYSQL_CMD` exported from a dead shell used to substitute the *local dev
+container* and pass, and `PSQL_CMD="psql \"$NEON_URL\""` with an unset
+`NEON_URL` is the non-empty string `psql ""`, which quietly honours `PGHOST` /
+`PGDATABASE` and connects to something local:
 
 ```bash
+set -euo pipefail
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+# same resolution + guards as the block above - do not assume they are still set
+export NEON_URL="${NEON_DATABASE_URL_UNPOOLED:-${DATABASE_URL_UNPOOLED:-}}"
+[ -n "$NEON_URL" ] || { echo "NEON_URL is empty - refusing to validate"; exit 1; }
+case "$NEON_URL" in *-pooler*) echo "that is the POOLED endpoint - use the direct one"; exit 1;; esac
+
+# prod source, spelled out again rather than inherited
+MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice_marketing"
+[ -n "$MYSQL_PROD" ] || { echo "MYSQL_PROD is empty - refusing to validate"; exit 1; }
+
 MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="psql \"$NEON_URL\"" \
   bash scripts/pg-migration/validate.sh
 ```
+
+Read the first line of its output — `source schema <name>: <n> base tables` —
+and confirm the name and count are prod's. That line exists because a gate
+pointed at the wrong source is the one failure this gate cannot otherwise
+detect: it compares two databases that agree with each other and prints
+`VALIDATION PASSED`. This was reproduced: with `MYSQL_PROD` undefined, the old
+one-line gate exited 0 having compared **Neon against the local dev snapshot**.
+
+### 4. Flip the app to Neon
+
+**`VALIDATION PASSED` in §3 does not mean the cutover is done.** At that point
+Neon holds a correct copy of the data and **100 % of application traffic is
+still on MySQL**: `src/lib/database/client.ts` reads one variable,
+`process.env.DATABASE_URL`, and until you change it that variable still names
+the prod MariaDB. This is the step that actually moves the app.
+
+Use the **POOLED** endpoint here — `NEON_DATABASE_URL` (the hostname containing
+`-pooler`), *not* the direct/unpooled one §3 restored through. The direct
+endpoint's compute has `max_connections = 112` (measured); serverless functions
+open connections per instance and will exhaust it. The direct endpoint is for
+admin work only: `pg_dump`, `pg_restore`, `psql` by hand.
+
+```bash
+# 1. Set it for each environment that should move. `vercel env add` reads the
+#    value from stdin, so the URL never lands in shell history.
+printf '%s' "$NEON_DATABASE_URL" | vercel env add DATABASE_URL production
+printf '%s' "$NEON_DATABASE_URL" | vercel env add DATABASE_URL preview
+#    (remove the old value first if one exists: `vercel env rm DATABASE_URL production`)
+
+# 2. Redeploy. Environment variables are baked in at build/boot - an existing
+#    deployment keeps talking to MySQL until it is replaced.
+vercel --prod
+
+# 3. Confirm the endpoint you just configured is the right server holding the
+#    right data. Note `inet_server_addr()` is useless here — through the pooler
+#    it reports PgBouncer's own loopback (`::1/128`), not the compute. Use the
+#    engine banner, the database name, and the run stamp §2 wrote:
+psql "$NEON_DATABASE_URL" -tA -F'|' -c \
+  "SELECT version(), current_database(), obj_description('public'::regnamespace,'pg_namespace');"
+#    -> PostgreSQL 17.x ... | neondb | cutover-<the CUTOVER_RUN_ID from §2 of THIS run>
+```
+
+Then verify from the **running app**, not from your laptop — that is the only
+thing that proves `DATABASE_URL` actually changed for the deployed code:
+
+- sign in (auth is the first thing to touch the database) and load a payroll
+  page that reads real rows;
+- check the deployment's runtime logs for MySQL connection errors — an old
+  deployment still holding the MariaDB URL fails here, and nowhere else;
+- confirm a **write** lands on Neon (create and delete a throwaway record, then
+  count it through `psql "$NEON_DATABASE_URL"`). A read-only check cannot
+  distinguish "app is on Neon" from "app is on a MySQL replica that looks the
+  same".
+
+Order matters, and it is the order in "Cutover-specific notes" below: freeze
+writes on MySQL → §1–§3 → flip `DATABASE_URL` → redeploy. Never reload after the
+flip. Keep the MariaDB running and untouched until you are ready to give up the
+rollback — reverting is putting the old `DATABASE_URL` back and redeploying,
+which is only true while nothing has written to Neon that MySQL does not have.
+
+### Measured timings (2026-08 rehearsal: local snapshot → staging → Neon)
+
+Full dress rehearsal of this section, 60 tables / 303 769 rows / 31.6 MB, Neon in
+`us-east-1` from a laptop on residential broadband:
+
+| Stage | Wall clock (three runs) |
+|---|---|
+| `DROP SCHEMA` + `pgloader` into staging | 1.6 s / 1.4 s / 1.4 s |
+| `post-import-fixups.sql` | 0.8 s / 0.8 s / 0.8 s |
+| `align-sequences.sh` | 0.1 s / 0.1 s / 0.2 s |
+| `validate.sh` vs staging | 1.9 s / 1.8 s / 2.0 s |
+| `pg_dump -Fc` + `docker cp` (5.0 MB archive) | 0.6 s / 0.6 s / 0.6 s |
+| `psql` schema reset on Neon | 0.3 s / 0.4 s / 0.7 s |
+| **`pg_restore` → Neon** | **32.1 s / 28.9 s / 30.7 s** |
+| `ANALYZE` on Neon | 0.9 s / 0.8 s / 1.1 s |
+| `validate.sh` vs Neon | 8.8 s / 9.1 s / 9.8 s |
+| **total data path** | **~47 s / ~44 s / ~48 s** |
+
+Run 3 is the current recipe, i.e. `pg_restore --single-transaction`. Wrapping
+the restore in one transaction costs nothing measurable (30.7 s, inside the
+spread of the two unwrapped runs) — it is not a trade-off, take it.
+
+The network hop is ~70 % of the whole thing and it is *all* round-trip latency,
+not bandwidth — the archive is 5 MB. Budget the cutover window off the ~31 s
+restore, and expect it to grow roughly with object count (168 indexes + 58 PKs +
+28 FKs + 26 CHECKs + 16 triggers, all measured on Neon after the restore), not
+with data size. Resulting Neon database size: **56 MB** logical / 58 466 304
+bytes (Neon free tier allows 0.5 GB, so ~11 %).
 
 ### Cutover-specific notes
 
@@ -224,11 +519,22 @@ MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="psql \"$NEON_URL\"" \
   drewpayment@206.81.0.201`) rather than exposing 3306.
 - **Neon's DIRECT (non-pooled) endpoint** for the restore, not the `-pooler` one:
   `pg_restore` issues DDL and session-level `SET`s that PgBouncer in transaction
-  mode breaks. The app keeps using the pooled endpoint afterwards.
+  mode breaks. The app keeps using the pooled endpoint afterwards — and that is
+  a standing constraint on application code, not just a cutover detail. Neon's
+  pooler is **PgBouncer in transaction mode**: measured on this project, 25
+  concurrent clients were multiplexed onto 11 backends and 15 of them had their
+  backend PID change between two statements of the same session. So nothing
+  session-scoped may be relied on outside an explicit transaction — no session
+  advisory locks, no `SET` of a GUC expected to persist, no server-side
+  `PREPARE`/`EXECUTE`, no temp tables, no `LISTEN`/`NOTIFY`. A single-client
+  probe of every one of those passes cleanly, so casual testing will not reveal
+  a violation; it only breaks under concurrency, in production. The app is clean
+  today (no advisory locks, `SET`, temp tables or `LISTEN` anywhere; all writes
+  go through Kysely `db.transaction()`, which is safe) — keep it that way.
 - **`WITH include drop` will drop and recreate every table in the target.** That
   is what makes the pipeline repeatable — and it is also why the cutover order is
-  *freeze writes on MySQL → reload → validate → flip `DATABASE_URL`*, never
-  reload-after-flip.
+  *freeze writes on MySQL → reload → validate → flip `DATABASE_URL` and redeploy
+  (§4)*, never reload-after-flip.
 - **Re-run the preflight against prod.** MariaDB 10.6 vs the dev MySQL 8 container
   is the one place where the source schema could have drifted; the fixup script
   raises rather than guesses if its hard-coded column lists no longer match. Note
@@ -255,8 +561,13 @@ before cutover leaves audit rows, emailed links and blob paths pointing at
 behind them (it never moves a sequence backwards):
 
 ```bash
-MYSQL_CMD="$MYSQL_PROD" bash scripts/pg-migration/align-sequences.sh
+MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="$PSQL_STAGING" \
+  bash scripts/pg-migration/align-sequences.sh
 ```
+
+**Both** variables, always. This script `setval`s — it is the one script in the
+pipeline that writes — and it has no default connection precisely so that a
+forgotten `PSQL_CMD` aborts instead of mutating whatever the default named.
 
 `validate.sh` check G reports any remaining gap as a `NOTE`; a sequence behind
 `max(id)` is a hard `FAIL`.
@@ -561,7 +872,7 @@ Run against the 2026-08 local snapshot, everything below passed.
 | B numeric min/max/**SUM**/nulls | all 225 int/tinyint/decimal columns | identical |
 | C date min/max/nulls | all 141 date/datetime/timestamp columns | identical except the 1 intended zero-date→NULL (`vendors.created_at`) |
 | D string char-count + **byte**-count | all 49 tables with string columns | identical (no mojibake, no truncation) |
-| E payroll money, plan §4 shape | paystubs 14 083 groups, invoices 13 827, overrides 4 782, expenses 6 689, advances 2 | identical to the cent |
+| E payroll money, plan §4 shape | paystubs 14 083 groups, invoices 13 827, overrides 4 782, expenses 6 689, advances 2 | identical to the cent; for `invoices` the per-group count of **non-numeric** `amount` values (1 364 of 161 982 rows overall) is compared as its own column, not left to check D |
 | E `lower(email)` collisions | `users` | empty on both, as required |
 | F DECIMAL precision/scale | all 25 columns | identical, e.g. `paystubs.amount numeric(19,4)` |
 | F schema shape | 0 boolean, 0 json/jsonb, 0 enum types, both ci-unique indexes present, and — compared against counts read from the **source**, not hard-coded — 5 signed bigints, 16 `updated_at` triggers, 5 CHECK constraints | as designed |
@@ -584,6 +895,9 @@ The gate is only worth what it catches. To re-prove it after changing
 `validate.sh`, break the target on purpose and confirm a non-zero exit:
 
 ```bash
+export MYSQL_CMD='docker exec -i choice-mysql-dev mysql --default-character-set=utf8mb4 -uroot -prootpassword -N -B choice_marketing'
+export PSQL_CMD='docker exec -i choice-postgres-dev psql -U choice -d choice_marketing'
+
 docker exec choice-postgres-dev psql -U choice -d choice_marketing -c "
   ALTER TABLE employees ADD COLUMN zz_fault_bool boolean;
   DROP TRIGGER trg_set_updated_at ON subscribers;
@@ -593,13 +907,25 @@ bash scripts/pg-migration/validate.sh; echo "exit=$?"     # must be non-zero
 ```
 
 Then re-run the fixups (they restore the trigger and the constraint), drop the
-fault column, and re-run `align-sequences.sh` to put `paystubs_id_seq` back.
+fault column, and re-run `align-sequences.sh` (with both variables set) to put
+`paystubs_id_seq` back.
+
+Two more faults worth injecting, because they are the ones that used to pass:
+
+```bash
+env -u MYSQL_CMD PSQL_CMD="$PSQL_CMD" bash scripts/pg-migration/validate.sh
+# must abort with "MYSQL_CMD is required", NOT compare the dev containers
+
+MYSQL_CMD="$MYSQL_CMD" MYSQL_DB=nonexistent_schema PSQL_CMD="$PSQL_CMD" \
+  bash scripts/pg-migration/validate.sh
+# must abort with "reports 0 base tables", NOT diff two empty result sets to PASS
+```
 
 `invoices.amount` is a `varchar(255)` that also stores status strings (`"NA"`,
 `"Account Blocked"`, …) — 1 364 of 161 982 rows. Check E sums only the fully
-numeric rows on **both** sides and compares the non-numeric row count separately,
-rather than relying on MySQL's silent string→number coercion. Numeric total:
-`4,835,317.88` on both.
+numeric rows on **both** sides and carries the per-group non-numeric row count as
+an extra compared column, rather than relying on MySQL's silent string→number
+coercion. Numeric total: `4,835,317.88` on both.
 
 ---
 
@@ -638,3 +964,29 @@ pointing pgloader at Neon — see "Cutover run".
 table has an AUTO_INCREMENT column that did not come across as a
 `DEFAULT nextval(...)`. Do not skip it: an id column without a sequence takes
 NULL/duplicate values on the first app insert.
+
+**`PSQL_CMD is required` / `MYSQL_CMD is required`.** Working as intended — the
+scripts no longer default to the dev containers. Set both (see "Local run" for
+copy-paste values, or §2/§3 for the cutover ones). Note `${VAR:-default}`
+substitutes on **empty** as well as unset, which is why the old defaults turned
+a variable exported empty by a dead shell into a silent run against the wrong
+database rather than an error.
+
+**`source schema 'x' reports 0 base tables`.** `MYSQL_DB` names a schema this
+connection cannot see. It now defaults to `SELECT DATABASE()` on the `MYSQL_CMD`
+connection, so this only appears if you set it by hand — unset it, or fix it. The
+check exists because checks A–D and F build their SQL from `information_schema`:
+an unseen schema yields empty result sets on both sides, which diff clean and
+report `VALIDATION PASSED`.
+
+**Staging is stamped `[...]`, expected `[cutover-…]`.** §3 refuses to `pg_dump` a
+staging database this run did not load and validate. Either you are in a new
+shell that lost `CUTOVER_RUN_ID`, or the staging database is left over from an
+earlier rehearsal. Re-run §2; do not work around it by dropping the check — a
+populated stale `choice_cutover` dumps and restores perfectly happily, and the
+gate that follows compares it against a source it happens to match.
+
+**`pg_restore` to Neon failed partway.** Re-run §3 from the
+`DROP SCHEMA IF EXISTS public CASCADE` line, not from `pg_restore`. With
+`--single-transaction` there is nothing to clean up, but a re-run on top of an
+existing schema still conflicts. ~30 s.
