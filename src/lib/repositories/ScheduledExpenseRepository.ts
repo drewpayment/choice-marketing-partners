@@ -346,9 +346,12 @@ export class ScheduledExpenseRepository {
         created_at: new Date(),
         updated_at: new Date(),
       })
-      .executeTakeFirst()
+      // Postgres never populates InsertResult.insertId — the generated key has to
+      // come back through RETURNING. `scheduled_expenses`' PK is `id`.
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    const id = Number(result.insertId)
+    const id = result.id
     logger.log('✅ Created scheduled expense template', id)
     const created = await this.getTemplateById(id, userContext)
     if (!created) throw new Error('Failed to load created template')
@@ -452,7 +455,10 @@ export class ScheduledExpenseRepository {
     if (opts.vendorId) query = query.where('vendor_id', '=', opts.vendorId)
     if (opts.activeOnly) query = query.where('is_active', '=', 1)
 
-    const rows = await query.orderBy('created_at', 'desc').execute()
+    // `created_at` is nullable. MySQL sorts NULLs last on DESC; Postgres sorts them
+    // first. Pin `nulls last` so a template with no created_at keeps sorting to the
+    // bottom of the agent's list instead of jumping to the top.
+    const rows = await query.orderBy('created_at', (ob) => ob.desc().nullsLast()).execute()
     return rows.map((r) => this.mapRow(r))
   }
 

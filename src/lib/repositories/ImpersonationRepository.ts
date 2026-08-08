@@ -64,9 +64,10 @@ export class ImpersonationRepository {
         ip_address: input.ipAddress ?? null,
         user_agent: input.userAgent ?? null,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async stopImpersonation(

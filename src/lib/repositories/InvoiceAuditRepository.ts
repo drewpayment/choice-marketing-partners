@@ -207,12 +207,16 @@ export class InvoiceAuditRepository {
       ip_address: ipAddress || null
     }
 
+    // Postgres never populates InsertResult.insertId — return the PK instead.
+    // invoice_audit.id is bigint, so it comes back as a string; Number(...) it
+    // like every other id-returning site in this migration.
     const result = await db
       .insertInto('invoice_audit')
       .values(auditData)
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   /**
@@ -296,21 +300,21 @@ export class InvoiceAuditRepository {
 
     if (filters.customerName) {
       const nameSearch = `%${filters.customerName}%`
-      query = query.where(({ or, eb }) => 
+      query = query.where(({ or, eb }) =>
         or([
-          eb('ia.previous_first_name', 'like', nameSearch),
-          eb('ia.previous_last_name', 'like', nameSearch),
-          eb('ia.current_first_name', 'like', nameSearch),
-          eb('ia.current_last_name', 'like', nameSearch)
+          eb('ia.previous_first_name', 'ilike', nameSearch),
+          eb('ia.previous_last_name', 'ilike', nameSearch),
+          eb('ia.current_first_name', 'ilike', nameSearch),
+          eb('ia.current_last_name', 'ilike', nameSearch)
         ])
       )
     }
 
     if (filters.city) {
-      query = query.where(({ or, eb }) => 
+      query = query.where(({ or, eb }) =>
         or([
-          eb('ia.previous_city', 'like', `%${filters.city}%`),
-          eb('ia.current_city', 'like', `%${filters.city}%`)
+          eb('ia.previous_city', 'ilike', `%${filters.city}%`),
+          eb('ia.current_city', 'ilike', `%${filters.city}%`)
         ])
       )
     }
@@ -395,10 +399,11 @@ export class InvoiceAuditRepository {
       query = query.where('ia.action_type', '=', filters.actionType)
     }
 
-    // Get total count for pagination
+    // Get total count for pagination. Postgres returns count(...) as a
+    // string (int8) regardless of the <number> type hint — coerce it.
     const countQuery = query.clearSelect().select(({ fn }) => fn.count<number>('ia.id').as('count'))
     const countResult = await countQuery.executeTakeFirst()
-    const totalCount = countResult?.count || 0
+    const totalCount = Number(countResult?.count || 0)
 
     // Execute main query with pagination
     const results = await query
@@ -466,6 +471,12 @@ export class InvoiceAuditRepository {
 
       return {
         ...record,
+        // invoice_audit.id is bigint — Postgres returns it as a string.
+        id: Number(record.id),
+        // The former MySQL ENUM lost its string-literal union under Postgres
+        // (column is now plain text); the CHECK constraint still guarantees
+        // the value is one of the two, so the cast is safe.
+        action_type: record.action_type as 'UPDATE' | 'DELETE',
         previous_amount: record.previous_amount ? parseFloat(record.previous_amount) : null,
         current_amount: record.current_amount ? parseFloat(record.current_amount) : null,
         changed_by_name: record.changed_by_name || undefined,
@@ -598,18 +609,20 @@ export class InvoiceAuditRepository {
       .execute()
 
     return {
-      totalChanges: totalChanges?.count || 0,
-      statusChanges: statusChanges?.count || 0,
-      amountChanges: amountChanges?.count || 0,
-      recentChanges: recentChanges?.count || 0,
-      topChangedStatuses: topChangedStatuses.map(s => ({ 
-        status: s.status || 'Unknown', 
-        count: s.count 
+      // Postgres returns count(...) as a string (int8) regardless of the
+      // <number> type hint — coerce every count at the point of use.
+      totalChanges: Number(totalChanges?.count || 0),
+      statusChanges: Number(statusChanges?.count || 0),
+      amountChanges: Number(amountChanges?.count || 0),
+      recentChanges: Number(recentChanges?.count || 0),
+      topChangedStatuses: topChangedStatuses.map(s => ({
+        status: s.status || 'Unknown',
+        count: Number(s.count)
       })),
       topChangingUsers: topChangingUsers.map(u => ({
         userId: u.userId,
         userName: u.userName || 'Unknown User',
-        changeCount: u.changeCount
+        changeCount: Number(u.changeCount)
       }))
     }
   }
@@ -627,7 +640,8 @@ export class InvoiceAuditRepository {
       .where('invoice_id', '=', invoiceId)
       .executeTakeFirst()
 
-    return (result?.count || 0) > 0
+    // Postgres returns count(...) as a string (int8) — coerce before comparing.
+    return Number(result?.count || 0) > 0
   }
 
   /**

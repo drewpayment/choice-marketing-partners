@@ -11,11 +11,11 @@
  * (col >= from AND col < to+1day): sargable and Postgres-portable.
  *
  * Following the pattern in EmployeeRepository.email-sql.test.ts: drive a real
- * Kysely instance wired to a compile-only (Dummy) driver so the emitted MySQL
- * — and the exact bound parameters — are asserted verbatim. A hand-rolled
- * chainable `where` mock (as used in InvoiceAuditRepository.rbac.test.ts)
- * can't see *inside* the predicate being built, so it can't catch this class
- * of bug.
+ * Kysely instance wired to a compile-only (Dummy) driver so the emitted
+ * Postgres SQL — and the exact bound parameters — are asserted verbatim. A
+ * hand-rolled chainable `where` mock (as used in
+ * InvoiceAuditRepository.rbac.test.ts) can't see *inside* the predicate being
+ * built, so it can't catch this class of bug.
  */
 /* eslint-disable no-var */
 var capturedQueries: { sql: string; parameters: readonly unknown[] }[]
@@ -24,9 +24,9 @@ var capturedQueries: { sql: string; parameters: readonly unknown[] }[]
 jest.mock('@/lib/database/client', () => {
   const {
     Kysely,
-    MysqlAdapter,
-    MysqlIntrospector,
-    MysqlQueryCompiler,
+    PostgresAdapter,
+    PostgresIntrospector,
+    PostgresQueryCompiler,
     DummyDriver,
   } = jest.requireActual('kysely')
 
@@ -35,10 +35,10 @@ jest.mock('@/lib/database/client', () => {
   return {
     db: new Kysely({
       dialect: {
-        createAdapter: () => new MysqlAdapter(),
+        createAdapter: () => new PostgresAdapter(),
         createDriver: () => new DummyDriver(),
-        createIntrospector: (kysely: never) => new MysqlIntrospector(kysely),
-        createQueryCompiler: () => new MysqlQueryCompiler(),
+        createIntrospector: (kysely: never) => new PostgresIntrospector(kysely),
+        createQueryCompiler: () => new PostgresQueryCompiler(),
       },
       log: (event: { level: string; query: { sql: string; parameters: readonly unknown[] } }) => {
         if (event.level === 'query') {
@@ -68,7 +68,7 @@ describe('InvoiceAuditRepository.getAuditSummary — date filter SQL', () => {
 
     // Call order inside getAuditSummary: totalChanges is the first query run.
     const totalsQuery = capturedQueries[0]
-    expect(totalsQuery.sql).toContain('where `ia`.`changed_at` >= ? and `ia`.`changed_at` < ?')
+    expect(totalsQuery.sql).toContain('where "ia"."changed_at" >= $1 and "ia"."changed_at" < $2')
 
     // Must not regress to the index-hostile DATE() wrapping.
     expect(totalsQuery.sql).not.toContain('DATE(')
@@ -96,7 +96,7 @@ describe('InvoiceAuditRepository.getAuditSummary — date filter SQL', () => {
 
     expect(capturedQueries.length).toBeGreaterThanOrEqual(6)
     for (const q of capturedQueries) {
-      expect(q.sql).toContain('`ia`.`changed_at` >= ?')
+      expect(q.sql).toContain('"ia"."changed_at" >= $1')
       expect(q.sql).not.toContain('DATE(')
     }
   })
@@ -107,7 +107,7 @@ describe('InvoiceAuditRepository.getAuditSummary — date filter SQL', () => {
     // Call order: totalChanges(0), statusChanges(1), amountChanges(2),
     // recentChanges(3), topChangedStatuses(4), topChangingUsers(5).
     const recentChangesQuery = capturedQueries[3]
-    expect(recentChangesQuery.sql).toContain('`ia`.`changed_at` >= ?')
+    expect(recentChangesQuery.sql).toContain('"ia"."changed_at" >= $1')
     expect(recentChangesQuery.sql).not.toContain('DATE(')
     expect(recentChangesQuery.parameters[0]).toBeInstanceOf(Date)
   })

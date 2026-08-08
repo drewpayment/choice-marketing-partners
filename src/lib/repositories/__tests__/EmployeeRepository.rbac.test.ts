@@ -123,9 +123,12 @@ describe('EmployeeRepository RBAC', () => {
     })
 
     it('does not throw for admin', async () => {
+      // Postgres never populates InsertResult.insertId — the repository reads
+      // the PK back via `.returning('id')`.
       const mockQuery = {
         values: jest.fn().mockReturnThis(),
-        executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ insertId: BigInt(1) }),
+        returning: jest.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ id: 1 }),
       }
       ;(db.insertInto as jest.Mock).mockReturnValue(mockQuery)
 

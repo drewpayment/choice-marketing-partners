@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import type { NotNull } from 'kysely'
 import type { UserContext } from '@/lib/auth/types'
 
 export interface SubscriptionDetail {
@@ -62,6 +63,16 @@ export interface CreatePaymentData {
 }
 
 export class BillingRepository {
+  /**
+   * `stripe_subscription_id`/`stripe_invoice_id` are nullable in the *imported*
+   * schema, but `createSubscription`/`createPaymentRecord` (the only insert
+   * paths) always require a value, and post-import-fixups.sql §6c makes both
+   * columns `NOT NULL` so the invariant is enforced by the database rather than
+   * asserted by the compiler alone. Narrowed to `NotNull` below rather than
+   * widening the public return type and rippling `| null` into every Stripe SDK
+   * call site that consumes it. (Once kysely-codegen is re-run against a
+   * fixed-up database these narrowings become redundant and can be deleted.)
+   */
   async getSubscriptionsBySubscriber(
     subscriberId: number,
     userContext: UserContext
@@ -91,6 +102,7 @@ export class BillingRepository {
         'prices.amount_cents as price_amount_cents',
         'prices.interval as price_interval',
       ])
+      .$narrowType<{ stripe_subscription_id: NotNull }>()
       .orderBy('subscriber_subscriptions.created_at', 'desc')
       .execute()
   }
@@ -119,6 +131,7 @@ export class BillingRepository {
         'prices.amount_cents as price_amount_cents',
         'prices.interval as price_interval',
       ])
+      .$narrowType<{ stripe_subscription_id: NotNull }>()
       .executeTakeFirst()
 
     return result ?? null
@@ -136,9 +149,10 @@ export class BillingRepository {
         current_period_start: data.current_period_start ?? null,
         current_period_end: data.current_period_end ?? null,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async updateSubscription(
@@ -178,6 +192,7 @@ export class BillingRepository {
       .selectFrom('payment_history')
       .where('subscriber_id', '=', subscriberId)
       .selectAll()
+      .$narrowType<{ stripe_invoice_id: NotNull }>()
       .orderBy('created_at', 'desc')
       .execute()
   }
@@ -196,9 +211,10 @@ export class BillingRepository {
         invoice_pdf_url: data.invoice_pdf_url ?? null,
         paid_at: data.paid_at ?? null,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async getPaymentByInvoiceId(invoiceId: string): Promise<PaymentHistoryItem | null> {
@@ -206,6 +222,7 @@ export class BillingRepository {
       .selectFrom('payment_history')
       .where('stripe_invoice_id', '=', invoiceId)
       .selectAll()
+      .$narrowType<{ stripe_invoice_id: NotNull }>()
       .executeTakeFirst()
 
     return result ?? null

@@ -19,7 +19,8 @@ const nextConfig: NextConfig = {
   },
   
   // External packages for server components
-  serverExternalPackages: ['mysql2', 'kysely'],
+  // 'mysql2' stays until the legacy scripts under scripts/ are ported off it.
+  serverExternalPackages: ['pg', 'mysql2', 'kysely'],
 
   // Production security and performance headers
   async headers() {

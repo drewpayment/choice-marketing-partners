@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import type { NotNull } from 'kysely'
 import { safeJsonParse } from '@/lib/utils/safe-json'
 
 export interface MarketingProduct {
@@ -72,6 +73,22 @@ export class ProductMarketingRepository {
         'pm.icon_name',
         'pm.badge_text',
       ])
+      // `products.type`, `prices.interval`, and `product_marketing.category` are
+      // `text` columns under Postgres (former MySQL ENUMs that lost their
+      // string-literal union in codegen — see docs/postgres-migration-plan.md
+      // §2.2). Their value domains are enforced by `chk_products_type_enum`,
+      // `chk_prices_interval_enum` and `chk_product_marketing_category_enum`
+      // (post-import-fixups.sql §6b), so this narrowing only tells the compiler
+      // what the database already guarantees. `stripe_price_id` is nullable in
+      // the *imported* schema, but `ProductRepository.createPrice` (the only
+      // insert path) always requires a value and post-import-fixups.sql §6c
+      // makes the column `NOT NULL`.
+      .$narrowType<{
+        product_type: MarketingProduct['product_type']
+        interval: MarketingProduct['interval']
+        category: MarketingProduct['category']
+        stripe_price_id: NotNull
+      }>()
       .orderBy('pm.display_order', 'asc')
       .execute()
 
@@ -131,19 +148,22 @@ export class ProductMarketingRepository {
       badge_text: data.badge_text ?? null,
     }
 
-    // MySQL upsert via INSERT ... ON DUPLICATE KEY UPDATE
+    // Upsert via INSERT ... ON CONFLICT (product_id) DO UPDATE. `product_id` is
+    // the real unique constraint (uq_product_marketing) — one marketing row per product.
     await db
       .insertInto('product_marketing')
       .values(values)
-      .onDuplicateKeyUpdate({
-        category: values.category,
-        tagline: values.tagline,
-        feature_list: values.feature_list,
-        display_order: values.display_order,
-        is_featured: values.is_featured,
-        icon_name: values.icon_name,
-        badge_text: values.badge_text,
-      })
+      .onConflict((oc) =>
+        oc.columns(['product_id']).doUpdateSet({
+          category: values.category,
+          tagline: values.tagline,
+          feature_list: values.feature_list,
+          display_order: values.display_order,
+          is_featured: values.is_featured,
+          icon_name: values.icon_name,
+          badge_text: values.badge_text,
+        })
+      )
       .execute()
   }
 

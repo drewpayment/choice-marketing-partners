@@ -401,4 +401,22 @@ describe('parsePayrollScope (page-level searchParams validation)', () => {
       expect(call).toEqual(['employees.id', 'in', [SELF, SUBORDINATE, SECOND_SUBORDINATE]])
     }
   })
+
+  it('pins NULL employee names first, preserving the MySQL sort order', async () => {
+    // `employees` is LEFT JOINed, so employeeName is NULL for an orphaned paystub.
+    // MySQL puts NULLs first on ASC; Postgres puts them last. Without the explicit
+    // modifier those rows would silently move to a different page.
+    await runSummary(adminCtx)
+
+    const nameOrder = mockChain.orderBy.mock.calls.find(
+      (call: unknown[]) => call[0] === 'employees.name'
+    )
+    expect(nameOrder).toBeDefined()
+    expect(typeof nameOrder![1]).toBe('function')
+
+    const builder = { asc: jest.fn().mockReturnThis(), nullsFirst: jest.fn().mockReturnThis() }
+    ;(nameOrder![1] as (b: typeof builder) => unknown)(builder)
+    expect(builder.asc).toHaveBeenCalled()
+    expect(builder.nullsFirst).toHaveBeenCalled()
+  })
 })

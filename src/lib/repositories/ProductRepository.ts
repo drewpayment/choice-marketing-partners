@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import type { NotNull } from 'kysely'
 
 export interface ProductWithPrices {
   id: number
@@ -45,6 +46,52 @@ export interface UpdateProductData {
 }
 
 export class ProductRepository {
+  /**
+   * `products.type` and `prices.interval` are `text` columns under Postgres
+   * (they were MySQL ENUMs pre-migration and lost their string-literal union
+   * in codegen — see docs/postgres-migration-plan.md §2.2). The value domain is
+   * enforced by the DB: `chk_products_type_enum` and `chk_prices_interval_enum`
+   * (post-import-fixups.sql §6b), which restore exactly the source ENUM value
+   * sets. `$narrowType` below only tells the compiler what the constraint
+   * already guarantees.
+   *
+   * `stripe_price_id`/`stripe_product_id` are nullable in the *imported*
+   * schema, but `createProduct`/`createPrice` (the only insert paths) always
+   * require a value, and post-import-fixups.sql §6c makes both columns
+   * `NOT NULL`. Narrowed to `NotNull` here rather than widening the public
+   * return type and rippling `| null` into every Stripe SDK call site.
+   * (Once kysely-codegen is re-run against a fixed-up database these `NotNull`
+   * narrowings become redundant and can be deleted.)
+   */
+  private async getPricesForProduct(
+    productId: number,
+    activeOnly: boolean
+  ): Promise<ProductWithPrices['prices']> {
+    let query = db
+      .selectFrom('prices')
+      .where('product_id', '=', productId)
+
+    if (activeOnly) {
+      query = query.where('is_active', '=', 1)
+    }
+
+    return query
+      .select([
+        'id',
+        'stripe_price_id',
+        'amount_cents',
+        'currency',
+        'interval',
+        'interval_count',
+        'is_active',
+      ])
+      .$narrowType<{
+        stripe_price_id: NotNull
+        interval: ProductWithPrices['prices'][number]['interval']
+      }>()
+      .execute()
+  }
+
   async getAllProducts(
     currentUser: { isAdmin: boolean }
   ): Promise<ProductWithPrices[]> {
@@ -56,24 +103,13 @@ export class ProductRepository {
       .selectFrom('products')
       .selectAll()
       .orderBy('created_at', 'desc')
+      .$narrowType<{ type: ProductWithPrices['type']; stripe_product_id: NotNull }>()
       .execute()
 
     const productsWithPrices: ProductWithPrices[] = []
 
     for (const product of products) {
-      const prices = await db
-        .selectFrom('prices')
-        .where('product_id', '=', product.id)
-        .select([
-          'id',
-          'stripe_price_id',
-          'amount_cents',
-          'currency',
-          'interval',
-          'interval_count',
-          'is_active',
-        ])
-        .execute()
+      const prices = await this.getPricesForProduct(product.id, false)
 
       productsWithPrices.push({
         ...product,
@@ -90,25 +126,13 @@ export class ProductRepository {
       .where('is_active', '=', 1)
       .selectAll()
       .orderBy('name', 'asc')
+      .$narrowType<{ type: ProductWithPrices['type']; stripe_product_id: NotNull }>()
       .execute()
 
     const productsWithPrices: ProductWithPrices[] = []
 
     for (const product of products) {
-      const prices = await db
-        .selectFrom('prices')
-        .where('product_id', '=', product.id)
-        .where('is_active', '=', 1)
-        .select([
-          'id',
-          'stripe_price_id',
-          'amount_cents',
-          'currency',
-          'interval',
-          'interval_count',
-          'is_active',
-        ])
-        .execute()
+      const prices = await this.getPricesForProduct(product.id, true)
 
       productsWithPrices.push({
         ...product,
@@ -131,25 +155,14 @@ export class ProductRepository {
       .selectFrom('products')
       .where('id', '=', id)
       .selectAll()
+      .$narrowType<{ type: ProductWithPrices['type']; stripe_product_id: NotNull }>()
       .executeTakeFirst()
 
     if (!product) {
       return null
     }
 
-    const prices = await db
-      .selectFrom('prices')
-      .where('product_id', '=', product.id)
-      .select([
-        'id',
-        'stripe_price_id',
-        'amount_cents',
-        'currency',
-        'interval',
-        'interval_count',
-        'is_active',
-      ])
-      .execute()
+    const prices = await this.getPricesForProduct(product.id, false)
 
     return {
       ...product,
@@ -162,25 +175,14 @@ export class ProductRepository {
       .selectFrom('products')
       .where('stripe_product_id', '=', stripeProductId)
       .selectAll()
+      .$narrowType<{ type: ProductWithPrices['type']; stripe_product_id: NotNull }>()
       .executeTakeFirst()
 
     if (!product) {
       return null
     }
 
-    const prices = await db
-      .selectFrom('prices')
-      .where('product_id', '=', product.id)
-      .select([
-        'id',
-        'stripe_price_id',
-        'amount_cents',
-        'currency',
-        'interval',
-        'interval_count',
-        'is_active',
-      ])
-      .execute()
+    const prices = await this.getPricesForProduct(product.id, false)
 
     return {
       ...product,
@@ -198,9 +200,10 @@ export class ProductRepository {
         type: data.type ?? 'recurring',
         is_active: data.is_active ? 1 : 0,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async updateProduct(
@@ -241,9 +244,10 @@ export class ProductRepository {
         interval_count: data.interval_count ?? 1,
         is_active: data.is_active ? 1 : 0,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async getPriceByStripeId(stripePriceId: string) {

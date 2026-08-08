@@ -43,14 +43,21 @@ const adminCtx: UserContext = { employeeId: 1, isAdmin: true, isManager: false }
 const audit = { changedBy: 1 }
 
 // A fully-populated advance row the `existing` lookup + getAdvanceById can return.
+//
+// The three DATE columns use `new Date(y, m, d)` (LOCAL midnight) rather than
+// `new Date('YYYY-MM-DD')` (UTC midnight) because that is what the drivers actually
+// hand back for a `date` column — mysql2 and node-postgres both build the Date from
+// the calendar parts in the process timezone. Using the UTC form made these
+// assertions silently fail on any runner west of UTC, where dayjs().format()
+// rendered the previous day.
 const existingAdvance = {
   advance_id: 1,
   agentid: 10,
   vendor_id: 5,
   amount: '100',
-  advance_date: new Date('2026-01-05'),
-  issue_date: new Date('2026-01-09'),
-  wkending: new Date('2026-01-04'),
+  advance_date: new Date(2026, 0, 5),
+  issue_date: new Date(2026, 0, 9),
+  wkending: new Date(2026, 0, 4),
   method: 'cash',
   notes: '',
   created_by: 1,

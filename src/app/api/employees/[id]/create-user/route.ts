@@ -132,7 +132,8 @@ export async function POST(
 
     // Create user and link to employee in a transaction
     const result = await db.transaction().execute(async (trx) => {
-      // Create user
+      // Create user. Postgres never populates InsertResult.insertId — return
+      // the PK instead.
       const userInsertResult = await trx
         .insertInto('users')
         .values({
@@ -144,9 +145,10 @@ export async function POST(
           created_at: new Date(),
           updated_at: new Date(),
         })
+        .returning('uid')
         .executeTakeFirstOrThrow()
 
-      const userId = Number(userInsertResult.insertId)
+      const userId = userInsertResult.uid
 
       // Link employee to user
       await trx

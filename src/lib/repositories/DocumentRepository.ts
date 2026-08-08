@@ -93,7 +93,7 @@ export class DocumentRepository {
         createdAt: doc.created_at || new Date(),
         updatedAt: doc.updated_at || new Date(),
         tags: await this.getDocumentTags(Number(doc.id)),
-        fileSize: doc.file_size || 0,
+        fileSize: Number(doc.file_size) || 0,
       }))
     );
 
@@ -115,9 +115,9 @@ export class DocumentRepository {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       query = query.where((eb: any) =>
         eb.or([
-          eb('name', 'like', `%${filters.search}%`),
-          eb('description', 'like', `%${filters.search}%`),
-          eb('uploaded_by', 'like', `%${filters.search}%`),
+          eb('name', 'ilike', `%${filters.search}%`),
+          eb('description', 'ilike', `%${filters.search}%`),
+          eb('uploaded_by', 'ilike', `%${filters.search}%`),
         ])
       );
     }
@@ -166,7 +166,7 @@ export class DocumentRepository {
       createdAt: doc.created_at || new Date(),
       updatedAt: doc.updated_at || new Date(),
       tags: await this.getDocumentTags(Number(doc.id)),
-      fileSize: doc.file_size || 0,
+      fileSize: Number(doc.file_size) || 0,
     };
   }
 
@@ -186,7 +186,8 @@ export class DocumentRepository {
     if (!userContext.isAdmin) {
       throw new Error('Admin access required')
     }
-    // Insert the record and get the inserted ID (MySQL compatible)
+    // Insert the record and get the inserted PK. Postgres never populates
+    // InsertResult.insertId, so read the id back via `.returning('id')`.
     const insertResult = await db
       .insertInto('document_files')
       .values({
@@ -204,13 +205,14 @@ export class DocumentRepository {
         created_at: new Date(),
         updated_at: new Date(),
       })
+      .returning('id')
       .executeTakeFirstOrThrow();
 
     // Retrieve the inserted record using the ID
     const insertedRecord = await db
       .selectFrom('document_files')
       .selectAll()
-      .where('id', '=', Number(insertResult.insertId))
+      .where('id', '=', insertResult.id)
       .executeTakeFirstOrThrow();
 
     return {
@@ -223,7 +225,8 @@ export class DocumentRepository {
       createdAt: insertedRecord.created_at || new Date(),
       updatedAt: insertedRecord.updated_at || new Date(),
       tags: [],
-      fileSize: insertedRecord.file_size || 0,
+      // file_size is a genuine bigint column — Postgres returns it as a string.
+      fileSize: Number(insertedRecord.file_size) || 0,
     };
   }
 

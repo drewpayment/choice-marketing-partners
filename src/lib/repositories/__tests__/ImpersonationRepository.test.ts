@@ -1,7 +1,14 @@
 import { ImpersonationRepository } from '../ImpersonationRepository'
 
 const mockExecuteTakeFirst = jest.fn()
+const mockExecuteTakeFirstOrThrow = jest.fn()
 const mockExecute = jest.fn()
+// Hoisted so the insert tests can assert *which* column was requested from
+// RETURNING and *what* was bound — the resolved `{ id: 42 }` is the same
+// whatever the repository asked for.
+const mockInsertInto = jest.fn()
+const mockValues = jest.fn()
+const mockReturning = jest.fn()
 
 jest.mock('@/lib/database/client', () => ({
   db: {
@@ -11,11 +18,16 @@ jest.mock('@/lib/database/client', () => ({
       orderBy: jest.fn().mockReturnThis(),
       executeTakeFirst: mockExecuteTakeFirst,
     })),
-    insertInto: jest.fn(() => ({
-      values: jest.fn().mockReturnThis(),
-      executeTakeFirst: mockExecuteTakeFirst,
-      execute: mockExecute,
-    })),
+    insertInto: (...args: unknown[]) => {
+      mockInsertInto(...args)
+      return {
+        values: mockValues,
+        returning: mockReturning,
+        executeTakeFirst: mockExecuteTakeFirst,
+        executeTakeFirstOrThrow: mockExecuteTakeFirstOrThrow,
+        execute: mockExecute,
+      }
+    },
     updateTable: jest.fn(() => ({
       set: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -30,18 +42,36 @@ describe('ImpersonationRepository', () => {
   beforeEach(() => {
     repo = new ImpersonationRepository()
     jest.clearAllMocks()
+    mockValues.mockReturnThis()
+    mockReturning.mockReturnThis()
   })
 
   it('startImpersonation returns the inserted id', async () => {
-    mockExecuteTakeFirst.mockResolvedValueOnce({ insertId: 42 })
+    mockExecuteTakeFirstOrThrow.mockResolvedValueOnce({ id: 42 })
+    const expiresAt = new Date(Date.now() + 60_000)
 
     const id = await repo.startImpersonation({
       actorUserId: 'a-1',
       targetUserId: 't-1',
-      expiresAt: new Date(Date.now() + 60_000),
+      expiresAt,
     })
 
     expect(id).toBe(42)
+    // `user_impersonation_log`'s PK is `id`, but `users` in this schema has
+    // BOTH `id` and `uid` (with `uid` as the PK), so `.returning('uid')` is a
+    // realistic slip here. The mock resolves `{ id: 42 }` no matter what was
+    // requested, so the column name has to be asserted directly.
+    expect(mockInsertInto).toHaveBeenCalledWith('user_impersonation_log')
+    expect(mockReturning).toHaveBeenCalledWith('id')
+    expect(mockValues).toHaveBeenCalledWith({
+      actor_user_id: 'a-1',
+      target_user_id: 't-1',
+      actor_employee_id: null,
+      target_employee_id: null,
+      expires_at: expiresAt,
+      ip_address: null,
+      user_agent: null,
+    })
   })
 
   it('getActiveImpersonation returns null when no open row exists', async () => {

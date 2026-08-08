@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import type { NotNull } from 'kysely'
 
 export interface SubscriberSummary {
   id: number
@@ -68,6 +69,21 @@ export interface SubscriberPage {
 }
 
 export class SubscriberRepository {
+  /**
+   * `subscribers.status` is a `text` column under Postgres (former MySQL ENUM
+   * that lost its string-literal union in codegen — see
+   * docs/postgres-migration-plan.md §2.2). The value domain is enforced by
+   * `chk_subscribers_status_enum` (post-import-fixups.sql §6b), which restores
+   * the source ENUM's four values — important because `updateSubscriber` below
+   * spreads its input straight into `.set()`, so the constraint is what stops a
+   * caller that bypasses Zod from writing e.g. `'Active'` and making the row
+   * vanish from every `status`-filtered read.
+   *
+   * `stripe_customer_id` is nullable in the *imported* schema, but
+   * `createSubscriber` (the only insert path) always requires a value, and
+   * post-import-fixups.sql §6c makes the column `NOT NULL`. Both `$narrowType`
+   * calls below only tell the compiler what the database already guarantees.
+   */
   async getAllSubscribers(
     filters: SubscriberFilters = {},
     currentUser: { isAdmin: boolean }
@@ -86,10 +102,10 @@ export class SubscriberRepository {
     if (search) {
       query = query.where((eb) =>
         eb.or([
-          eb('subscribers.business_name', 'like', `%${search}%`),
-          eb('subscribers.email', 'like', `%${search}%`),
-          eb('subscribers.contact_name', 'like', `%${search}%`),
-          eb('subscribers.phone', 'like', `%${search}%`),
+          eb('subscribers.business_name', 'ilike', `%${search}%`),
+          eb('subscribers.email', 'ilike', `%${search}%`),
+          eb('subscribers.contact_name', 'ilike', `%${search}%`),
+          eb('subscribers.phone', 'ilike', `%${search}%`),
         ])
       )
     }
@@ -111,6 +127,7 @@ export class SubscriberRepository {
           'created_at',
           'updated_at',
         ])
+        .$narrowType<{ status: SubscriberSummary['status']; stripe_customer_id: NotNull }>()
         .orderBy('created_at', 'desc')
         .limit(limit)
         .offset(offset)
@@ -145,6 +162,7 @@ export class SubscriberRepository {
       .where('id', '=', id)
       .where('deleted_at', 'is', null)
       .selectAll()
+      .$narrowType<{ status: SubscriberSummary['status']; stripe_customer_id: NotNull }>()
       .executeTakeFirst()
 
     if (!subscriber) {
@@ -182,6 +200,7 @@ export class SubscriberRepository {
         'created_at',
         'updated_at',
       ])
+      .$narrowType<{ status: SubscriberSummary['status']; stripe_customer_id: NotNull }>()
       .executeTakeFirst()
 
     return result ?? null
@@ -203,9 +222,10 @@ export class SubscriberRepository {
         status: data.status ?? 'active',
         notes: data.notes ?? null,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return Number(result.id)
   }
 
   async updateSubscriber(

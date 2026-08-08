@@ -1,4 +1,16 @@
 import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
+
+// jsdom does not provide TextEncoder/TextDecoder, but Node does. The `pg`
+// driver reaches for them at *import* time (pg/lib/crypto/utils.js -> sasl.js
+// -> client.js), which `src/lib/database/client.ts` pulls in — so without this
+// polyfill any test file that imports a repository without mocking the db
+// client dies with `ReferenceError: TextEncoder is not defined` at import,
+// long before it runs an assertion. Polyfilling here (rather than per test
+// file) keeps repository suites able to fail loudly on real DB access instead
+// of hiding behind a `jest.mock('@/lib/database/client')` stub.
+if (typeof global.TextEncoder === 'undefined') global.TextEncoder = TextEncoder
+if (typeof global.TextDecoder === 'undefined') global.TextDecoder = TextDecoder
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({

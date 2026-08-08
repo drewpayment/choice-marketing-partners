@@ -74,10 +74,10 @@ export class JobApplicationRepository {
         resume_url: input.resume_url ?? null,
         resume_filename: input.resume_filename ?? null,
       })
-      .executeTakeFirst()
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    const insertId = Number(result.insertId ?? 0)
-    return { id: insertId }
+    return { id: Number(result.id) }
   }
 
   async listAll(

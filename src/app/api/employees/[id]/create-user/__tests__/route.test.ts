@@ -9,7 +9,7 @@ function chainable(resolvedValue?: any) {
   const chain: any = {}
   const methods = [
     'select', 'selectFrom', 'insertInto', 'updateTable',
-    'where', 'values', 'set', 'or',
+    'where', 'values', 'set', 'or', 'returning',
   ]
   methods.forEach((m) => {
     chain[m] = jest.fn(() => chain)
@@ -207,9 +207,10 @@ describe('POST /api/employees/[id]/create-user', () => {
     queryChains['select:employee_user'] = chainable(undefined)
     queryChains['select:users'] = chainable(undefined) // no existing user
 
-    // Transaction mock
+    // Transaction mock. Postgres never populates InsertResult.insertId — the
+    // route now reads the PK back via `.returning('uid')`.
     const trxInsertUsersChain = chainable()
-    trxInsertUsersChain.executeTakeFirstOrThrow.mockResolvedValue({ insertId: BigInt(99) })
+    trxInsertUsersChain.executeTakeFirstOrThrow.mockResolvedValue({ uid: 99 })
     const trxInsertLinkChain = chainable()
     const trxSelectChain = chainable(createdUser)
 
@@ -253,7 +254,7 @@ describe('POST /api/employees/[id]/create-user', () => {
     queryChains['select:users'] = chainable(undefined)
 
     const trxInsertUsersChain = chainable()
-    trxInsertUsersChain.executeTakeFirstOrThrow.mockResolvedValue({ insertId: BigInt(99) })
+    trxInsertUsersChain.executeTakeFirstOrThrow.mockResolvedValue({ uid: 99 })
 
     const trx = {
       insertInto: jest.fn(() => trxInsertUsersChain),

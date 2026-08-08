@@ -1,6 +1,12 @@
 import { JobApplicationRepository } from '../JobApplicationRepository'
 import type { UserContext } from '@/lib/auth/types'
 
+// These tests never reach the DB (every case throws on the admin guard before
+// any query runs). The real `db` client is imported for real on purpose: the
+// `TextEncoder` polyfill `pg` needs at import time lives in jest.setup.js, and
+// stubbing the module here would make a future test that *does* reach the DB
+// silently pass against `undefined` instead of failing loudly.
+
 describe('JobApplicationRepository', () => {
   const repo = new JobApplicationRepository()
 

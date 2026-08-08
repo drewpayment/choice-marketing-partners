@@ -27,9 +27,9 @@ const CREATED_USER_ROW = { id: 91, email: 'mixed.case@example.com', role: 'subsc
 jest.mock('@/lib/database/client', () => {
   const {
     Kysely,
-    MysqlAdapter,
-    MysqlIntrospector,
-    MysqlQueryCompiler,
+    PostgresAdapter,
+    PostgresIntrospector,
+    PostgresQueryCompiler,
   } = jest.requireActual('kysely')
 
   capturedQueries = []
@@ -43,16 +43,19 @@ jest.mock('@/lib/database/client', () => {
 
       // `employee_user` must come back empty or the route 409s before the
       // users probe we are here to observe.
-      if (compiled.sql.includes('from `employee_user`')) return { rows: [] }
-      if (compiled.sql.includes('from `employees`')) return { rows: [EMPLOYEE_ROW] }
-      if (compiled.sql.includes('from `users`')) {
+      if (compiled.sql.includes('from "employee_user"')) return { rows: [] }
+      if (compiled.sql.includes('from "employees"')) return { rows: [EMPLOYEE_ROW] }
+      if (compiled.sql.includes('from "users"')) {
         // The read-back of the row the INSERT branch just created is keyed by
-        // `uid`; the existing-login probe is the `id = ? or email = ?` one.
-        if (compiled.sql.includes('`uid` = ?')) return { rows: [CREATED_USER_ROW] }
+        // `uid`; the existing-login probe is the `id = $1 or email = $2` one.
+        if (compiled.sql.includes('"uid" = $')) return { rows: [CREATED_USER_ROW] }
         return { rows: probeRows }
       }
-      if (compiled.sql.includes('insert into `users`')) {
-        return { rows: [], insertId: BigInt(91), numAffectedRows: BigInt(1) }
+      if (compiled.sql.includes('insert into "users"')) {
+        // Postgres never populates InsertResult.insertId — the route reads
+        // the PK back via `.returning('uid')`, so the row here is what
+        // satisfies that `returning` clause.
+        return { rows: [{ uid: 91 }], numAffectedRows: BigInt(1) }
       }
       return { rows: [] }
     },
@@ -74,10 +77,10 @@ jest.mock('@/lib/database/client', () => {
   return {
     db: new Kysely({
       dialect: {
-        createAdapter: () => new MysqlAdapter(),
+        createAdapter: () => new PostgresAdapter(),
         createDriver: () => driver,
-        createIntrospector: (kysely: never) => new MysqlIntrospector(kysely),
-        createQueryCompiler: () => new MysqlQueryCompiler(),
+        createIntrospector: (kysely: never) => new PostgresIntrospector(kysely),
+        createQueryCompiler: () => new PostgresQueryCompiler(),
       },
     }),
   }
@@ -107,14 +110,14 @@ function makeRequest(employeeId: string) {
 
 /** The probe that ORs the legacy id convention with the email match. */
 function usersProbe() {
-  const probe = capturedQueries.find((q) => q.sql.includes('from `users`'))
+  const probe = capturedQueries.find((q) => q.sql.includes('from "users"'))
   if (!probe) throw new Error('the users probe never ran')
   return probe
 }
 
 /** The INSERT that creates the login when the probe finds nothing. */
 function usersInsert() {
-  const insert = capturedQueries.find((q) => q.sql.includes('insert into `users`'))
+  const insert = capturedQueries.find((q) => q.sql.includes('insert into "users"'))
   if (!insert) throw new Error('the users insert never ran')
   return insert
 }
@@ -132,7 +135,7 @@ describe('POST /api/employees/[id]/create-user — email normalisation', () => {
     expect(res.status).toBe(200)
 
     const probe = usersProbe()
-    expect(probe.sql).toContain('`email` = ?')
+    expect(probe.sql).toContain('"email" = $')
     expect(probe.parameters).toContain('mixed.case@example.com')
     // The un-normalised stored value must not be what was bound.
     expect(probe.parameters).not.toContain(EMPLOYEE_ROW.email)
@@ -144,7 +147,7 @@ describe('POST /api/employees/[id]/create-user — email normalisation', () => {
     const probe = usersProbe()
     // ~93% of production logins are linked by `users`.id = `employees`.id, so
     // dropping this arm would create duplicate login rows.
-    expect(probe.sql).toMatch(/`id` = \? or `email` = \?/)
+    expect(probe.sql).toMatch(/"id" = \$\d+ or "email" = \$\d+/)
     expect(probe.parameters).toContain('42')
   })
 

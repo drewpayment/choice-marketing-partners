@@ -86,7 +86,22 @@ Scale: 22 repository files / ~9,400 LOC, 192 `.execute(` sites, 53 tables in `ty
 - **Phase 2 — provision + port (~1 week).** `vercel integration add neon` (region `aws-us-east-1`). pgloader import with the cast rules above. Code: dialect swap, regenerate types, 26 `insertId` rewrites, 3 `onConflict` conversions, 25 `ilike` flips, `lower(name)` vendor index, `updated_at` trigger-or-audit, fresh pg migration baseline + runner.
 - **Phase 3 — verify (~3–4 days).** Full unit + Playwright suites against a Neon branch; auth smoke for all three seeded roles incl. mixed-case email sign-in; the payroll reconciliation diff (§4); `sales_id` scope checks per role.
 - **Phase 4 — cutover (an evening).** Freeze writes (low traffic), final pgloader run (full reload is minutes at this size), flip `DATABASE_URL` in Vercel env, monitor. Droplet becomes read-only fallback for 30 days, then decommission.
-- **Post-migration cleanup (unscheduled):** smallint→boolean flag conversion, `citext`/lower() email index, fn('DATE')→range predicates, count-as-string typing.
+- **Post-migration cleanup (unscheduled):** smallint→boolean flag conversion, `citext`/lower() email index, fn('DATE')→range predicates, count-as-string typing, **accent-insensitive text search** (below).
+
+### Accepted regression: accent-insensitive search (Phase 2)
+
+`'like'` → `'ilike'` restores case-insensitivity but **not** accent-insensitivity.
+34 source tables are `utf8mb3_unicode_ci` and 10 are `utf8mb4_0900_ai_ci` — the
+`ai` means accent-**in**sensitive, so `LIKE '%Jose Alvarez%'` matches a stored
+`José Álvarez` on MySQL today and `ilike` does not on Postgres (verified on both
+engines, 2026-08-07). The visible surface is admin free-text search — notably
+`SubscriberRepository.getAllSubscribers` (`business_name`, `email`,
+`contact_name`, `phone`) — where an accented record simply returns zero results
+with no indication it exists. **Accepted as a known regression for cutover**
+(search is a convenience path, not an authorization or money path). The fix,
+when scheduled: `CREATE EXTENSION unaccent` plus `unaccent(col) ilike
+unaccent(term)` with a matching functional index, or a generated normalized
+search column.
 
 ## 4. Cutover proof gate — payroll reconciliation
 

@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { sumNumericText } from '@/lib/database/numeric-text'
 import dayjs from 'dayjs'
 import { logger } from '@/lib/utils/logger'
 import type { UserContext } from '@/lib/auth/types'
@@ -115,8 +116,16 @@ export class AdvanceRepository {
     }
 
     const advanceId = await db.transaction().execute(async (trx) => {
-      const result = await trx.insertInto('advances').values(values).executeTakeFirst()
-      const newId = Number(result.insertId)
+      // Postgres never populates InsertResult.insertId — the generated key has to
+      // come back through RETURNING. `advances`' PK is `advance_id`. Throwing on a
+      // missing row is deliberate: `newId` becomes the advance_audit FK below and
+      // seeds the resync, so a silent NaN would corrupt the audit trail.
+      const result = await trx
+        .insertInto('advances')
+        .values(values)
+        .returning('advance_id')
+        .executeTakeFirstOrThrow()
+      const newId = result.advance_id
 
       await this.writeAudit(trx, newId, 'CREATE', null, {
         amount: values.amount,
@@ -457,7 +466,11 @@ export class AdvanceRepository {
     const [salesRow, overridesRow, expensesRow, advancesRow] = await Promise.all([
       trx
         .selectFrom('invoices')
-        .select(trx.fn.sum('amount').as('total'))
+        // `invoices.amount` is varchar — Postgres has no sum(varchar), so this
+        // statement failed at parse time (taking the whole advance-write
+        // transaction with it). See `sumNumericText` for why a plain ::numeric
+        // cast is not the fix.
+        .select(sumNumericText('amount').as('total'))
         .where('agentid', '=', agentId)
         .where('vendor', '=', vendorId.toString())
         .where(trx.fn('DATE', ['issue_date']), '=', issue)

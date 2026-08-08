@@ -53,7 +53,9 @@ describe('DocumentRepository RBAC', () => {
     it('should not throw for admin', async () => {
       // We don't need the DB mock to succeed, just verify no RBAC error
       const { db } = require('@/lib/database/client')
-      const mockInsertResult = { insertId: BigInt(1) }
+      // Postgres never populates InsertResult.insertId — the repository reads
+      // the PK back via `.returning('id')`.
+      const mockInsertResult = { id: 1 }
       const mockInsertedRecord = {
         id: 1, name: 'test.pdf', description: 'A test document',
         download_url: 'https://blob.example.com/test.pdf', blob_url: 'https://blob.example.com/test.pdf',
@@ -62,7 +64,9 @@ describe('DocumentRepository RBAC', () => {
       }
       db.insertInto.mockReturnValue({
         values: jest.fn().mockReturnValue({
-          executeTakeFirstOrThrow: jest.fn().mockResolvedValue(mockInsertResult),
+          returning: jest.fn().mockReturnValue({
+            executeTakeFirstOrThrow: jest.fn().mockResolvedValue(mockInsertResult),
+          }),
         }),
       })
       db.selectFrom.mockReturnValue({

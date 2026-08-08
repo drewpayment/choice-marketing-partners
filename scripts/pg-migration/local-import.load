@@ -1,0 +1,121 @@
+/*
+ * local-import.load — pgloader command file
+ * MariaDB/MySQL  ->  PostgreSQL, for the Choice Marketing Partners payroll app.
+ *
+ * Run:   pgloader scripts/pg-migration/local-import.load
+ * Then:  psql "$PG_URL" -v ON_ERROR_STOP=1 -f scripts/pg-migration/post-import-fixups.sql
+ *
+ * This file is the ONLY place the connection strings live. At cutover the same
+ * pipeline runs unchanged with the two URLs below swapped to prod MariaDB and
+ * Neon — see README.md ("Cutover run").
+ *
+ * ---------------------------------------------------------------------------
+ * WHY EACH CAST RULE EXISTS  (decisions from docs/postgres-migration-plan.md §2)
+ * ---------------------------------------------------------------------------
+ * User CAST rules are evaluated BEFORE pgloader's built-in MySQL defaults and
+ * the first match wins, so each rule below overrides a default we cannot live
+ * with.
+ *
+ * tinyint -> smallint   pgloader's DEFAULT maps `tinyint(1)` to boolean. That
+ *                       would break ~90 app sites: flags are read with strict
+ *                       `=== 1`, written as `? 1 : 0`, and filtered with
+ *                       `.where(flag,'=',1)`. Boolean-typed columns would make
+ *                       every one of those silently false. `drop typemod`
+ *                       removes the meaningless `(1)`/`(4)` display widths.
+ *                       CRITICAL: no tinyint(1) may become boolean.
+ *
+ * json -> text          The app hand-parses JSON strings (PayrollRepository,
+ *                       ProductMarketingRepository, InvoiceRepository). `jsonb`
+ *                       would make node-postgres auto-parse to objects and
+ *                       `JSON.parse(object)` throws.
+ *
+ * datetime -> timestamp MySQL DATETIME is a naive wall-clock value with no zone.
+ *                       pgloader's default target is `timestamptz`, which would
+ *                       silently attach the session zone. Map to `timestamp`
+ *                       (without time zone) to preserve DATETIME semantics.
+ *
+ * timestamp             Left on pgloader's default target (`timestamptz`), which
+ *                       is correct: MySQL TIMESTAMP *is* zone-aware (stored UTC).
+ *                       We only add the zero-date transform, because the default
+ *                       zero-date rules only fire when the column DEFAULT is the
+ *                       zero literal — `vendors.created_at` is `DEFAULT NULL`
+ *                       yet holds one '0000-00-00 00:00:00' row.
+ *
+ * date                  Same zero-date guard, defensively.
+ *
+ * ENUM columns are deliberately NOT cast here. pgloader creates one PG enum type
+ * per column; post-import-fixups.sql converts every one of them to plain `text`
+ * and drops the types (see that file for why: string-union TS types survive
+ * verbatim, and `ALTER TYPE ... ADD VALUE` cannot run in a transaction).
+ *
+ * UNSIGNED integers are also NOT handled here. pgloader widens `int unsigned` to
+ * `bigint`, and kysely-codegen types PG `int8` as `string` — that would poison
+ * 56 columns' TypeScript types. post-import-fixups.sql range-checks and
+ * downcasts them back to `integer`.
+ *
+ * The 2 FULLTEXT indexes (document_files.idx_search, invoice_audit
+ * .idx_customer_search) are intentionally not ported — no MATCH...AGAINST
+ * exists anywhere in the app. post-import-fixups.sql drops any btree stand-in
+ * pgloader may have emitted for them.
+ */
+
+LOAD DATABASE
+     FROM      mysql://root:rootpassword@127.0.0.1:3306/choice_marketing
+     INTO      postgresql://choice:choice@127.0.0.1:5433/choice_marketing
+
+ WITH include drop,
+      create tables,
+      create indexes,
+      reset sequences,
+      foreign keys,
+      workers = 4,
+      concurrency = 1,
+      batch rows = 10000,
+      prefetch rows = 10000
+
+  -- Pin the PG side to UTC so MySQL TIMESTAMP values (stored UTC, rendered in
+  -- the MySQL session zone) land in timestamptz as the same instant regardless
+  -- of where the import runs from.
+  --
+  -- The MySQL side CANNOT be pinned here: pgloader 3.6's `SET MySQL PARAMETERS`
+  -- emits the value unquoted, so `time_zone = '+00:00'` becomes the syntax
+  -- error `SET time_zone = +00:00`, and there is no quoting escape hatch in the
+  -- grammar. Instead the runbook's preflight asserts the *source* server is
+  -- already on UTC (both the dev container and the prod MariaDB container are).
+  -- See README.md "Preflight".
+  SET timezone TO 'UTC',
+      maintenance_work_mem TO '256MB',
+      work_mem TO '48MB'
+
+  SET MySQL PARAMETERS
+      net_read_timeout  = '600',
+      net_write_timeout = '600'
+
+  CAST
+      -- Flags stay numeric. NEVER boolean.
+      type tinyint  to smallint drop typemod,
+
+      -- Hand-parsed JSON strings.
+      type json     to text     drop typemod,
+
+      -- Naive wall-clock DATETIME -> timestamp WITHOUT time zone.
+      -- (pgloader 3.6's grammar has no `and not null` guard; the schema has no
+      --  zero-literal DEFAULTs at all -- verified against information_schema --
+      --  so one unguarded rule per type is both sufficient and safer.)
+      type datetime when default "0000-00-00 00:00:00"
+                    to timestamp drop default
+                    using zero-dates-to-null,
+      type datetime to timestamp using zero-dates-to-null,
+
+      -- Zone-aware TIMESTAMP keeps the default timestamptz target.
+      type timestamp when default "0000-00-00 00:00:00"
+                     to timestamptz drop default
+                     using zero-dates-to-null,
+      type timestamp to timestamptz using zero-dates-to-null,
+
+      type date     to date using zero-dates-to-null
+
+  -- pgloader names the target schema after the MySQL database; the app (Kysely /
+  -- kysely-codegen) expects unqualified names on the default search_path.
+  ALTER SCHEMA 'choice_marketing' RENAME TO 'public'
+;
