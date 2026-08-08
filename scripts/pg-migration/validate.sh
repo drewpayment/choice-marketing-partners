@@ -20,7 +20,11 @@
 #      expected counts read from the SOURCE, not hard-coded — signed-bigint
 #      count, updated_at trigger count, CHECK-constraint count (source CHECKs
 #      plus one value-domain CHECK per ex-ENUM column, §6b), the 5 Stripe-id
-#      NOT NULLs (§6c), plus both case-insensitive unique indexes
+#      NOT NULLs (§6c), plus both case-insensitive unique indexes; and — also
+#      derived from the source — that every ON UPDATE CURRENT_TIMESTAMP column
+#      is still NOT NULL with a DEFAULT on the target, and that nothing except
+#      trg_set_updated_at fires BEFORE UPDATE (pgloader emits its own
+#      unconditional on_update_current_timestamp trigger, which fires first)
 #   G  sequence sanity: next value > max(id) for every auto-increment column,
 #      and a notice where it is behind the source AUTO_INCREMENT counter.
 #      READ-ONLY: the next value is read from the sequence relation, never by
@@ -75,7 +79,14 @@ report() { # $1=label $2=mysql-file $3=pg-file
         printf '  PASS  %-58s (%s rows compared)\n' "$1" "$(wc -l < "$2" | tr -d ' ')"
     else
         printf '  FAIL  %-58s\n' "$1"
-        diff "$2" "$3" | head -30
+        # `|| true` is load-bearing. `diff` exits 1 when the files differ and
+        # `set -o pipefail` propagates that through `head`, so under `set -e`
+        # the FIRST failing check killed the whole run: FAILED never accumulated,
+        # every later check (E, F, G) never executed, and the operator saw one
+        # diff plus "aborted early" instead of the full damage report. The gate
+        # still exits non-zero on any FAIL - that is the trailing `exit $FAILED`,
+        # not this pipeline's status.
+        diff "$2" "$3" | head -30 || true
         FAILED=1
     fi
 }
@@ -240,11 +251,20 @@ recon "users lower(email) collision groups" \
   "SELECT lower(email), COUNT(*) FROM users GROUP BY 1 HAVING COUNT(*)>1 ORDER BY 1;"
 
 echo "== F. schema shape =="
-my > "$WORK/f.my" <<SQL
+# Both sides go through the shell's `sort` under LC_ALL=C, exactly as checks
+# A-D do, rather than trusting each engine's own ORDER BY. The two engines do
+# NOT agree on collation: MySQL's utf8 _ci collations sort a leading underscore
+# AFTER the alphanumerics, glibc/ICU in Postgres sorts it before. With prod's
+# four `_bak_2926_*` tables in the picture that produced a 10-line diff in which
+# every row was present on both sides - a pure ordering artefact reported as a
+# schema mismatch. (The dev snapshot has no underscore-prefixed table, so this
+# check agreed by luck.) This comparison is about the SET of tuples; imposing
+# one sort order on both sides is what makes it mean that.
+my <<SQL | sort > "$WORK/f.my"
 SELECT table_name, column_name, CONCAT('numeric(',numeric_precision,',',numeric_scale,')'), is_nullable
 FROM information_schema.columns WHERE table_schema='${MYSQL_DB}' AND data_type='decimal' ORDER BY 1,2;
 SQL
-pg <<'SQL' > "$WORK/f.pg"
+pg <<'SQL' | sort > "$WORK/f.pg"
 SELECT table_name, column_name, 'numeric('||numeric_precision||','||numeric_scale||')', is_nullable
 FROM information_schema.columns WHERE table_schema='public' AND data_type='numeric' ORDER BY 1,2;
 SQL
@@ -280,6 +300,14 @@ UNION ALL SELECT 'bigint_columns',
 UNION ALL SELECT 'updated_at_triggers',
   count(*)::text FROM pg_trigger tg JOIN pg_class c ON c.oid=tg.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace
   WHERE n.nspname='public' AND NOT tg.tgisinternal AND tg.tgname='trg_set_updated_at'
+UNION ALL SELECT 'other_before_update_triggers',
+  count(*)::text FROM pg_trigger tg JOIN pg_class c ON c.oid=tg.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='public' AND NOT tg.tgisinternal
+    AND (tg.tgtype & 2) <> 0 AND (tg.tgtype & 16) <> 0
+    AND tg.tgname <> 'trg_set_updated_at'
+UNION ALL SELECT 'pgloader_on_update_functions',
+  count(*)::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+  WHERE n.nspname='public' AND p.proname LIKE 'on\_update\_current\_timestamp%'
 UNION ALL SELECT 'check_constraints',
   count(*)::text FROM pg_constraint con JOIN pg_class c ON c.oid=con.conrelid
   JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND con.contype='c'
@@ -307,11 +335,51 @@ expect "json/jsonb columns (0 - app hand-parses JSON strings)" 0            "$(f
 expect "enum types (0 - converted to text)"                    0            "$(fval enum_types)"
 expect "bigint columns (= source signed BIGINT count)"         "$exp_bigint" "$(fval bigint_columns)"
 expect "trg_set_updated_at triggers (= source ON UPDATE count)" "$exp_trg"   "$(fval updated_at_triggers)"
+# pgloader emits its OWN `on_update_current_timestamp` BEFORE UPDATE trigger per
+# ON UPDATE table. It sorts before trg_set_updated_at, fires first, and
+# overwrites the column unconditionally - which makes our explicit-assignment-
+# wins semantics dead code while the count above still reads 14. Counting ours
+# was never enough; nothing else may fire BEFORE UPDATE.
+expect "other BEFORE UPDATE triggers (0 - ours must be alone)" 0 "$(fval other_before_update_triggers)"
+expect "leftover pgloader on_update_current_timestamp fns (0)" 0 "$(fval pgloader_on_update_functions)"
 expect "CHECK constraints (= source CHECK count + 1/ex-ENUM column)" "$exp_chk_total" "$(fval check_constraints)"
 expect "ex-ENUM value-domain CHECKs (= source ENUM column count)" "$exp_enum_chk" "$(fval enum_check_constraints)"
 expect "Stripe id columns NOT NULL"                            "$exp_stripe_nn" "$(fval stripe_id_not_null)"
 expect "uk_vendors_name_lower present"                         true            "$(fval uk_vendors_name_lower)"
 expect "uk_users_email_lower present"                          true            "$(fval uk_users_email_lower)"
+
+# Column shape of the source's ON UPDATE CURRENT_TIMESTAMP columns, derived from
+# the SOURCE (`extra LIKE '%on update%'`) rather than named here, so the whole
+# failure class is gate-visible: pgloader routes those columns through its own
+# built-in ON UPDATE path instead of the CAST rules and emits them NULLABLE with
+# NO DEFAULT. The source stamps the row on INSERT when the column is omitted;
+# an unfixed target writes NULL into a column the app's types call `Date`.
+# post-import-fixups §4a restores both.
+my <<SQL | sort > "$WORK/f3.my"
+SELECT table_name, column_name, is_nullable, IF(column_default IS NULL,'f','t')
+  FROM information_schema.columns
+ WHERE table_schema='${MYSQL_DB}' AND extra LIKE '%on update%' ORDER BY 1,2;
+SQL
+n_ouct=$(wc -l < "$WORK/f3.my" | tr -d ' ')
+if [ "$n_ouct" -lt 1 ]; then
+    # Not a pass. An empty generator result would otherwise diff clean against an
+    # empty target result - the same trap the zero-base-tables guard exists for.
+    printf '  FAIL  %-58s\n' "ON UPDATE column shape (source returned 0 columns)"
+    echo "        prod 2026-08 has 14; investigate before proceeding"
+    FAILED=1
+else
+    ouct_vals=$(cut -f1,2 "$WORK/f3.my" \
+      | awk -F'\t' 'NR>1{printf ","} {printf "(%c%s%c,%c%s%c)", 39,$1,39, 39,$2,39}')
+    pg <<SQL | sort > "$WORK/f3.pg"
+SELECT c.table_name, c.column_name, c.is_nullable,
+       CASE WHEN c.column_default IS NULL THEN 'f' ELSE 't' END
+  FROM information_schema.columns c
+  JOIN (VALUES ${ouct_vals}) AS v(t, cn)
+    ON v.t = c.table_name AND v.cn = c.column_name
+ WHERE c.table_schema='public' ORDER BY 1,2;
+SQL
+    report "ON UPDATE cols: NOT NULL + DEFAULT preserved ($n_ouct)" "$WORK/f3.my" "$WORK/f3.pg"
+fi
 
 echo "== G. sequence sanity: next value > max(id), vs source AUTO_INCREMENT =="
 # READ-ONLY. The old version called nextval() and then setval() to put it back;

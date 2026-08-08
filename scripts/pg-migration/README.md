@@ -7,7 +7,7 @@ result — run in that order:
 | File | What it does |
 |---|---|
 | `local-import.load` | pgloader command file. Full schema + data reload, with the cast rules the app requires. Holds the only copy of the connection strings. |
-| `post-import-fixups.sql` | Idempotent psql script. Everything pgloader cannot express: ENUM→text, unsigned downcast, ci-unique indexes, `updated_at` triggers, restored CHECK constraints, dropping un-ported FULLTEXT stand-ins. Ends in assertions. |
+| `post-import-fixups.sql` | Idempotent psql script. Everything pgloader cannot express, plus everything it expresses **wrongly**: ENUM→text, unsigned downcast, ci-unique indexes, `updated_at` triggers, undoing pgloader's own `ON UPDATE` handling (§4a), restored CHECK constraints, dropping un-ported FULLTEXT stand-ins. Ends in assertions. |
 | `align-sequences.sh` | Advances each sequence to the source `AUTO_INCREMENT` counter (pgloader only resets to `max(id)`, so deleted ids would be re-issued). Forward-only and idempotent. |
 | `validate.sh` | Reconciles source vs target: row counts, numeric SUMs, date ranges, string byte-fidelity, the §4 payroll money diff, schema shape, sequences. Every check is an assertion; exits non-zero on any mismatch. |
 
@@ -147,9 +147,13 @@ docker exec choice-mysql-dev mysql -uroot -prootpassword -N -B \
   -e "SELECT @@global.time_zone, @@session.time_zone, NOW(), UTC_TIMESTAMP();"
 #     NOW() and UTC_TIMESTAMP() must be equal.
 
-# (b) The two latin1 tables must be checked for non-ASCII bytes. See
-#     "latin1 tables" below for why. Do NOT hand-write the column list — it goes
-#     stale silently. Generate the check from information_schema and pipe it
+# (b) Every latin1 table must be checked for non-ASCII bytes. See
+#     "latin1 tables" below for why. Do NOT hand-write the column list OR the
+#     table list — both go stale silently: the dev snapshot has 2 latin1 tables,
+#     prod has 10 (job_applications, job_postings, payroll_audit,
+#     user_impersonation_log and the four _bak_2926_* as well), so select them
+#     by `table_collation`, not by name. Generate the check from
+#     information_schema and pipe it
 #     straight back in; every count must be 0. No hand editing: each generated
 #     line is a COMPLETE statement ending in ";", so there is no trailing
 #     "UNION ALL" to delete at 11pm.
@@ -166,10 +170,13 @@ SELECT CONCAT('SELECT ''', table_name, ''' t, COUNT(*) n FROM `', table_name, '`
        ')) <> CHAR_LENGTH(CONCAT_WS(''|'',',
        GROUP_CONCAT(CONCAT('IFNULL(`',column_name,'`,'''')') ORDER BY ordinal_position SEPARATOR ','),
        '));')
-  FROM information_schema.columns
- WHERE table_schema='choice_marketing' AND table_name IN ('document_files','invoice_audit')
-   AND data_type IN ('varchar','text','mediumtext','longtext','char','tinytext')
- GROUP BY table_name;
+  FROM information_schema.columns c
+  JOIN information_schema.tables t
+    ON t.table_schema=c.table_schema AND t.table_name=c.table_name
+   AND t.table_type='BASE TABLE'
+ WHERE c.table_schema=DATABASE() AND t.table_collation LIKE 'latin1%'
+   AND c.data_type IN ('varchar','text','mediumtext','longtext','char','tinytext')
+ GROUP BY c.table_name;
 SQL
 #     Expect exactly one line per latin1 table; every n must be 0. No output at
 #     all means the generator matched no columns — investigate, do not proceed.
@@ -252,31 +259,55 @@ the host may be newer — see Prerequisites.
 
 ### 1. Generate the cutover command file
 
-Only the `FROM` line changes — `INTO` stays pointed at the staging Postgres.
+**THREE lines change, not two.** `FROM` and `INTO` are the obvious pair, but the
+load file ends with
+
+```
+  ALTER SCHEMA 'choice_marketing' RENAME TO 'public'
+```
+
+and pgloader names the target schema after the **source database**. Prod's
+schema is `choice`, not `choice_marketing`, so on a prod-source run that line
+renames a schema that does not exist. pgloader fails the whole load with
+`Schema "choice_marketing" does not exist`; had it not, every table would have
+been left in a `choice` schema that is not on the app's `search_path` and the
+fixups' §0 guard (`public.employees` missing) would have caught it one step
+later. Either way the run stops — but only if you remember the third line.
+
 Generating the file keeps prod credentials out of git.
 
 **Do not use `sed` for this.** An unescaped `&` in a sed replacement expands to
 the whole match, and both Neon URLs and generated passwords routinely contain
 `&`; the old recipe spliced the two URLs into each other and produced a file
 that either failed to parse or, with a different password, silently connected
-somewhere unintended. This loop substitutes the URL literally:
+somewhere unintended. This loop substitutes each line literally:
 
 ```bash
 set -euo pipefail
 : "${STAGING_DB:?export STAGING_DB first - see 'Cutover run' above}"
-SOURCE_URL='mysql://USER:PASS@127.0.0.1:3307/choice_marketing'          # prod via ssh tunnel
+SOURCE_SCHEMA='choice'                                                  # prod's database name
+SOURCE_URL="mysql://USER:PASS@127.0.0.1:3307/${SOURCE_SCHEMA}"          # prod via ssh tunnel
 STAGING_URL="postgresql://choice:choice@127.0.0.1:5433/${STAGING_DB}"   # NOT choice_marketing
 
 while IFS= read -r line; do
   if   [[ $line =~ ^[[:space:]]*FROM[[:space:]]+mysql:// ]];      then printf '     FROM      %s\n' "$SOURCE_URL"
   elif [[ $line =~ ^[[:space:]]*INTO[[:space:]]+postgresql:// ]]; then printf '     INTO      %s\n' "$STAGING_URL"
+  elif [[ $line =~ ^[[:space:]]*ALTER[[:space:]]+SCHEMA[[:space:]]+\' ]]; then
+       printf "  ALTER SCHEMA '%s' RENAME TO 'public'\n" "$SOURCE_SCHEMA"
   else printf '%s\n' "$line"
   fi
 done < scripts/pg-migration/local-import.load > /tmp/cutover-import.load
 
-diff scripts/pg-migration/local-import.load /tmp/cutover-import.load  # must show ONLY those lines
+diff scripts/pg-migration/local-import.load /tmp/cutover-import.load  # must show ONLY those 3 lines
 pgloader --dry-run /tmp/cutover-import.load        # parses + tests both connections
 ```
+
+Take the password from the `DATABASE_URL` line of `.env.production` (parse it,
+do not retype it) and keep it out of the terminal: build `SOURCE_URL` by
+expanding a variable, never by echoing the URL. The 2026-08 prod password is
+alphanumeric, so it needs no percent-encoding — re-check that before assuming
+it, because pgloader's URL grammar will not accept a raw `@`, `:` or `/` in the
+password field.
 
 Verified with a password containing `&`, `|` and `$`: the loop reproduces it
 byte for byte and touches nothing but the two lines. The old `sed` recipe, on the
@@ -295,7 +326,10 @@ set -euo pipefail
 # export these two: §3's acceptance gate needs MYSQL_PROD, and a bare assignment
 # would not survive into it.
 export PSQL_STAGING="docker exec -i choice-postgres-dev psql -U choice -d ${STAGING_DB}"
-export MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice_marketing"
+#   ^ note the database is `choice` - prod's schema name, NOT choice_marketing.
+#     validate.sh derives MYSQL_DB from SELECT DATABASE() on this connection, so
+#     naming the dev schema here aborts the gate rather than comparing anything.
+export MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice"
 export CUTOVER_RUN_ID="cutover-$(date -u +%Y%m%dT%H%M%SZ)"    # freshness marker, checked in §3
 
 $PSQL_STAGING -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO choice;" \
@@ -416,8 +450,8 @@ export NEON_URL="${NEON_DATABASE_URL_UNPOOLED:-${DATABASE_URL_UNPOOLED:-}}"
 [ -n "$NEON_URL" ] || { echo "NEON_URL is empty - refusing to validate"; exit 1; }
 case "$NEON_URL" in *-pooler*) echo "that is the POOLED endpoint - use the direct one"; exit 1;; esac
 
-# prod source, spelled out again rather than inherited
-MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice_marketing"
+# prod source, spelled out again rather than inherited (schema is `choice`)
+MYSQL_PROD="mysql --host=127.0.0.1 --port=3307 --user=USER --password=PASS --default-character-set=utf8mb4 -N -B choice"
 [ -n "$MYSQL_PROD" ] || { echo "MYSQL_PROD is empty - refusing to validate"; exit 1; }
 
 MYSQL_CMD="$MYSQL_PROD" PSQL_CMD="psql \"$NEON_URL\"" \
@@ -572,6 +606,16 @@ forgotten `PSQL_CMD` aborts instead of mutating whatever the default named.
 `validate.sh` check G reports any remaining gap as a `NOTE`; a sequence behind
 `max(id)` is a hard `FAIL`.
 
+**Known cosmetic, deliberately not fixed:** for a table that is empty in the
+source *and* has no `AUTO_INCREMENT` counter to align to, pgloader's
+`reset sequences` leaves the sequence at `last_value = 1, is_called = true`, so
+the first row the app ever inserts gets id **2**, not 1. Eight tables on prod
+2026-08 (`jobs`, `links`, `oauth_clients`,
+`oauth_personal_access_clients`, `personal_access_tokens`, `product_marketing`,
+`tagging_tag_groups`, `testimonial_types`). Nothing depends on id 1 existing,
+`align-sequences.sh` is forward-only by design, and rewinding a sequence is the
+one thing this pipeline must never do — so it stays.
+
 ---
 
 ## The schema decisions, and why
@@ -613,7 +657,7 @@ column is already nullable. **If a future source has a zero-date in a NOT NULL
 column the import will fail loudly**, which is correct: that needs a decision,
 not a default.
 
-### ENUM (21 columns) → plain `text` — `post-import-fixups.sql` §1
+### ENUM (20 columns) → plain `text` — `post-import-fixups.sql` §1
 
 pgloader creates one Postgres enum type per column. Both are dropped:
 
@@ -628,7 +672,7 @@ comes back as `CHECK` constraints in §6b (below) — plan §2.2 is "ENUM → te
 `CHECK`", and the `text` half without the `CHECK` half leaves the app's string
 unions asserting something nothing enforces.
 
-### `unsigned` integers (56 columns) → back to `integer` — `post-import-fixups.sql` §2
+### Integer columns widened by pgloader → back to `integer` — `post-import-fixups.sql` §2 / §2b
 
 pgloader widens `int unsigned` and `bigint unsigned` to `bigint`, because
 neither domain fits signed 32-bit. But kysely-codegen types Postgres `int8` as
@@ -648,6 +692,23 @@ the id was auto-assigned (id 297 after max 296).
 The 6 `bigint unsigned` columns are `company_options.id`, `jobs.id`,
 `manager_employees.id`, `personal_access_tokens.id`, `personal_access_tokens
 .tokenable_id`, `user_notifications.id`.
+
+**MariaDB display widths widen far more than the unsigned columns — §2b.**
+Measured against prod 2026-08, and invisible in the dev snapshot because MySQL
+8.0.19 removed integer display widths:
+
+| Source (MariaDB) | Source (MySQL 8) | pgloader target | Count |
+|---|---|---|---|
+| `int(11)` signed | `int` | **`bigint`** (vs `integer` on MySQL 8) | 95 |
+| `bigint(20) unsigned`, not auto-increment | `bigint unsigned` | **`numeric`** (vs `bigint`) | 1 (`personal_access_tokens.tokenable_id`) |
+
+Both are the same failure as the unsigned case and worse in scope: 95 more
+columns typed `string` by kysely-codegen. §2 now accepts `numeric` as well as
+`bigint`, and **§2b** sweeps every remaining `bigint` column that is not one of
+the 5 genuinely-signed source `BIGINT`s, range-asserting each before the cast.
+§2b is expressed as a sweep rather than a 95-name list because the invariant is
+"no bigint columns except those 5" — which is exactly what `validate.sh` check F
+compares against the source's own signed-`BIGINT` count.
 
 **Five columns stay `bigint`** — they are genuinely signed `BIGINT` in MySQL:
 `document_files.file_size`, `invoice_audit.id`, `oauth_access_tokens.user_id`,
@@ -689,7 +750,7 @@ imported names are **not stable across runs** (`idx_19142_uk_vendors_name` and
 by shape (unique, non-primary, single plain column on `name`), not by name, and
 §7 asserts it is really gone.
 
-### `updated_at` maintenance (16 triggers) — `post-import-fixups.sql` §4
+### `updated_at` maintenance (14 triggers) — `post-import-fixups.sql` §4 / §4a
 
 MySQL's `ON UPDATE CURRENT_TIMESTAMP` has no Postgres equivalent, and the app
 does not consistently write `updated_at` itself. Without triggers these columns
@@ -705,21 +766,102 @@ chosen at trigger-creation time without an extension.
 UPDATE did not assign the column itself. An explicit `SET updated_at = …` wins,
 exactly as under `ON UPDATE CURRENT_TIMESTAMP`.
 
-The 16 pairs (`extra LIKE '%on update%'` in the source `information_schema`):
+The 14 pairs (`extra LIKE '%on update%'` in the source `information_schema`):
 
 ```
-advances.updated_at                       prices.updated_at
-daily_pay_enrollments.updated_at          product_marketing.updated_at
-daily_pay_settings.updated_at             products.updated_at
+advances.updated_at                       products.updated_at
 document_files.updated_at                 scheduled_expense_applications.updated_at
 feature_flags.updated_at                  scheduled_expenses.updated_at
 job_applications.updated_at               subscriber_subscriptions.updated_at
 job_postings.updated_at                   subscribers.updated_at
 password_resets.created_at                vendor_field_definitions.updated_at
+prices.updated_at
+product_marketing.updated_at
 ```
 
+14, not 16: the dev snapshot also carries `daily_pay_enrollments.updated_at` and
+`daily_pay_settings.updated_at`, and neither table exists on prod.
+
 The script raises if any of those tables/columns is missing (list gone stale)
-and asserts exactly 16 triggers exist at the end.
+and asserts exactly 14 triggers exist at the end.
+
+#### §4a — what pgloader does with `ON UPDATE` on its own, and why all of it is wrong
+
+Counting our 14 triggers was never sufficient, and §4 alone was not enough to
+make the target behave like the source. pgloader routes **every column carrying
+the `on update current_timestamp()` extra** through its own built-in ON UPDATE
+path *instead of* the user `CAST` rules in `local-import.load`. Measured against
+prod 2026-08 — the 2×2 is clean, the columns differ in nothing but the extra:
+
+| Source type | `ON UPDATE`? | What pgloader emitted |
+|---|---|---|
+| `datetime` | no | `timestamp` NOT NULL DEFAULT CURRENT_TIMESTAMP |
+| `datetime` | **yes** | `timestamptz`, **NULLable, no default** |
+| `timestamp` | no | `timestamptz` NOT NULL DEFAULT CURRENT_TIMESTAMP |
+| `timestamp` | **yes** | `timestamptz`, **NULLable, no default** |
+
+(Row 1 is `job_applications.submitted_at` / `job_postings.created_at`; row 2 is
+`job_applications.updated_at` / `job_postings.updated_at`; row 3 is
+`advances.created_at`, `subscribers.created_at`, …; row 4 is the other 12 of the
+14.) Three consequences, all fixed in **§4a**, all now gate-visible:
+
+1. **Lost `NOT NULL` + `DEFAULT` on all 14.** In the source every one is
+   `NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()`, so MySQL
+   stamps the row on INSERT when the column is omitted — which is what every
+   insert path in the app relies on (no repository writes `updated_at` on
+   insert). An unfixed target writes **NULL** into a column the generated types
+   call `Date`. §4a re-applies `SET DEFAULT now()` and, after counting NULLs and
+   naming the offender if there are any, `SET NOT NULL`.
+2. **The 2 `datetime` columns landed `timestamp WITH time zone`** (row 2 above) —
+   the only 2 violations of the `datetime` → `timestamp` decision in the whole
+   import, and inconsistent with their own sibling columns in the same tables.
+   §4a converts them with `AT TIME ZONE 'UTC'`, which is value-preserving because
+   the import runs under `SET timezone TO 'UTC'` and the source server is UTC
+   (Preflight). Verified against prod after the conversion: same count, same
+   `min`, same `max`, zero NULLs on both sides — and `validate.sh` check C
+   re-proves it for all 143 date-ish columns on every run.
+3. **pgloader emitted its own trigger per table**: `on_update_current_timestamp`
+   → `on_update_current_timestamp_<table>()`, whose entire body is the
+   unconditional `NEW.<col> = now(); RETURN NEW;`. PostgreSQL fires triggers of
+   the same kind in **name order**, and `on_update_current_timestamp` sorts
+   before `trg_set_updated_at` — so ours ran *second*, on a NEW row whose column
+   had already been overwritten. That made §4's explicit-assignment test
+   (`NEW.col IS DISTINCT FROM OLD.col`) true for every UPDATE and the
+   MySQL-matching "explicit assignment wins" semantics **dead code**: an explicit
+   `SET updated_at = <value>` was silently discarded, and §7 still passed because
+   it only counted *our* 14. §4a drops all 14 triggers (matched by name pattern,
+   so a 15th ON UPDATE column added to the source later is still caught) plus the
+   14 functions, once nothing references them.
+
+§7 now additionally asserts: zero other BEFORE UPDATE triggers on those 14
+tables, zero leftover `on_update_current_timestamp%` functions, all 14 columns
+`NOT NULL` with a non-null default, and both ex-`datetime` columns
+`timestamp without time zone`. `validate.sh` check F asserts the same shape from
+the **source** side (`extra LIKE '%on update%'`), so the whole class is caught by
+the gate and not only by the fixups.
+
+Proven after the fix with three rolled-back probes (repeat them after any change
+to §4/§4a — a rehearsal that skips them cannot tell working semantics from dead
+code):
+
+```sql
+BEGIN;
+-- 1. INSERT omitting the column must get now(), not NULL
+INSERT INTO advances (agentid, vendor_id, amount, advance_date, issue_date, wkending, created_by)
+VALUES (1,1,12.34,DATE '2026-08-08',DATE '2026-08-08',DATE '2026-08-08',1)
+RETURNING updated_at;                                    -- 2026-08-08 05:44:21.066709+00
+-- 2. explicit assignment must WIN
+UPDATE advances SET notes='p', updated_at=TIMESTAMPTZ '2001-01-01 00:00:00+00'
+ WHERE advance_id=(SELECT min(advance_id) FROM advances) RETURNING updated_at;   -- 2001-01-01
+-- 3. an UPDATE that does not assign it must refresh it
+UPDATE advances SET notes='p' WHERE advance_id=(SELECT min(advance_id) FROM advances)
+RETURNING updated_at;                                    -- now()
+ROLLBACK;
+```
+
+Run 2 and 3 against `job_postings` too: it is one of the re-typed naive columns,
+and it is the case where `set_updated_at()` writes a `timestamp without time
+zone` through `jsonb_populate_record`. Both pass.
 
 ### FULLTEXT indexes: intentionally NOT ported — `post-import-fixups.sql` §5
 
@@ -743,10 +885,26 @@ Both stand-ins are matched by their **key-column list**, not by name — pgloade
 MariaDB run and leave both indexes on prod while the script still printed
 `ALL ASSERTIONS PASSED`. §7 asserts neither shape survives.
 
-### CHECK constraints (5) — `post-import-fixups.sql` §6
+### CHECK constraints (12) — `post-import-fixups.sql` §6
 
 pgloader carries columns, indexes, primary keys and foreign keys. It does **not**
-carry CHECK constraints: the source has 5, an unfixed target has 0.
+carry CHECK constraints: the source has **12**, an unfixed target has 0.
+
+**12 is prod's number; the dev snapshot reports 5.** This is the MariaDB
+difference the cutover notes warn about, and it is not cosmetic:
+
+- Dev is **MySQL 8**, where `JSON` is a native column type carrying no CHECK. Its
+  `payroll_audit.*_data` columns are `data_type='json'` — 0 CHECKs.
+- Prod is **MariaDB 10.6**, where `JSON` is `LONGTEXT` + an auto-generated
+  `json_valid()` CHECK **named after the column** (`document_files.tags`, not
+  `document_files_chk_1`). Prod's six `payroll_audit.*_data` columns contribute
+  6, and the prod-only `_bak_2926_invoices.custom_fields` a 7th.
+
+`validate.sh` check F reads its expected CHECK total from the **source**
+(`information_schema.table_constraints`, so 12 on prod) and adds one per ex-ENUM
+column. Restoring only the dev-era 5 leaves the target 7 short and fails the
+gate — so §6 restores all 12. That is also the faithful outcome: under MariaDB
+those columns really are constrained today.
 
 | Source | Restored as | Note |
 |---|---|---|
@@ -763,7 +921,7 @@ one aborts the whole fixup transaction — loudly, which is what we want. Zero
 violations in the 2026-08 snapshot (0 invalid JSON in 298 non-null
 `invoices.custom_fields`, 0 non-positive advances).
 
-### Ex-ENUM value domains (21 columns) — `post-import-fixups.sql` §6b
+### Ex-ENUM value domains (20 columns) — `post-import-fixups.sql` §6b
 
 §1 turns every MySQL ENUM into plain `text`, which drops the only thing that made
 the app's string-union types true. §6b restores the domain as a
@@ -783,11 +941,13 @@ applies to `products.type`, `prices.interval`, `product_marketing.category`, the
 six `job_postings` enums, `job_applications.status`, `users.role`,
 `feature_flag_overrides.context_type` and the audit `action_type` columns.
 
-The 21 triples are exactly the source ENUM definitions. Regenerate with:
+The 20 triples are exactly the source ENUM definitions (21 against the dev
+snapshot, which has a `daily_punch_records` table prod does not). Regenerate
+with:
 
 ```sql
 SELECT table_name, column_name, column_type FROM information_schema.columns
-WHERE table_schema='choice_marketing' AND data_type='enum' ORDER BY 1,2;
+WHERE table_schema = DATABASE() AND data_type='enum' ORDER BY 1,2;
 ```
 
 NULL satisfies a CHECK by definition, matching a nullable MySQL ENUM
@@ -799,8 +959,8 @@ rejected at the write instead of read back as a value the app never matches.
 
 Adding a constraint validates the existing rows, so an out-of-domain value aborts
 the whole fixup transaction. Zero violations in the 2026-08 snapshot: all 29
-distinct live values across the 21 columns are in-domain. §6b asserts it
-accounted for exactly 21.
+distinct live values across the 20 columns are in-domain. §6b asserts it
+accounted for exactly 20.
 
 ### Stripe identifier columns → `NOT NULL` — `post-import-fixups.sql` §6c
 
@@ -828,8 +988,10 @@ is re-run against a fixed-up database, the 9 `NotNull` narrowings in
 
 ### latin1 tables
 
-`document_files` and `invoice_audit` are `latin1_swedish_ci`; the other 58 are
-`utf8mb3`/`utf8mb4`. pgloader reads through the MySQL client protocol with a
+`document_files` and `invoice_audit` are `latin1_swedish_ci` in the dev
+snapshot; **on prod 10 of the 59 tables are** (those two plus
+`job_applications`, `job_postings`, `payroll_audit`, `user_impersonation_log`
+and the four `_bak_2926_*`). The rest are `utf8mb3`/`utf8mb4`. pgloader reads through the MySQL client protocol with a
 UTF-8 connection charset, so the **server** transcodes latin1 → UTF-8 and no
 mojibake is introduced.
 
@@ -875,8 +1037,9 @@ Run against the 2026-08 local snapshot, everything below passed.
 | E payroll money, plan §4 shape | paystubs 14 083 groups, invoices 13 827, overrides 4 782, expenses 6 689, advances 2 | identical to the cent; for `invoices` the per-group count of **non-numeric** `amount` values (1 364 of 161 982 rows overall) is compared as its own column, not left to check D |
 | E `lower(email)` collisions | `users` | empty on both, as required |
 | F DECIMAL precision/scale | all 25 columns | identical, e.g. `paystubs.amount numeric(19,4)` |
-| F schema shape | 0 boolean, 0 json/jsonb, 0 enum types, both ci-unique indexes present, and — compared against counts read from the **source**, not hard-coded — 5 signed bigints, 16 `updated_at` triggers, 5 CHECK constraints | as designed |
-| G sequences | every auto-increment column (51 — the source's 51 `AUTO_INCREMENT` columns, one for one) | next value > `max(id)` everywhere; equal to the source `AUTO_INCREMENT` after `align-sequences.sh`. Two of them (`jobs`, `tagging_tag_groups`) report a NULL counter in the source because they are empty, so there is nothing to align. |
+| F schema shape | 0 boolean, 0 json/jsonb, 0 enum types, both ci-unique indexes present, and — compared against counts read from the **source**, not hard-coded — signed-bigint count, `updated_at` trigger count, CHECK-constraint count (source CHECKs + 1 per ex-ENUM column), 5 Stripe-id NOT NULLs. Against prod 2026-08: 5 / 14 / 32 / 20. | as designed |
+| F `ON UPDATE` column shape | the source's `extra LIKE '%on update%'` columns (14 on prod), compared `table, column, is_nullable, has-default` against the target | identical — i.e. all 14 still `NOT NULL` with a `DEFAULT` after §4a. Plus **0** other BEFORE UPDATE triggers on those tables and **0** leftover `on_update_current_timestamp%` functions: counting our own 14 triggers cannot detect pgloader's, which fire first and defeat them (see §4a) |
+| G sequences | every auto-increment column (46 on prod — the source's 46 `AUTO_INCREMENT` columns, one for one; the dev snapshot has 51) | next value > `max(id)` everywhere; equal to the source `AUTO_INCREMENT` after `align-sequences.sh`. Tables that are empty on prod report a NULL counter in the source, so there is nothing to align. |
 
 Every line above is an assertion. Check F used to *print* its schema-shape
 numbers without comparing them and check G's `DO` block could raise without psql
@@ -884,6 +1047,16 @@ returning non-zero — a target with `boolean` flag columns, missing triggers an
 rewound `paystubs` sequence still printed `VALIDATION PASSED`. Both are now
 compared and both feed the exit code; re-proven by fault injection (see
 "Fault-injection self-test").
+
+**All checks now run even after one fails.** `report()` piped `diff` into `head`,
+and under `set -euo pipefail` `diff`'s exit 1 killed the script at the **first**
+`FAIL` — so the operator got one diff and `aborted early` instead of the full
+damage report, `FAILED` never accumulated, and checks E, F and G never ran at
+all. The pipeline now ends in `|| true`; the non-zero exit comes from the
+trailing `exit $FAILED`, which is where it always belonged. Verified: with two
+faults injected (an extra table, and a dropped `DEFAULT` on
+`advances.updated_at`) the run FAILs at check A, keeps going, FAILs again at
+check F's `ON UPDATE` comparison, still executes check G, and exits 1.
 
 Check G is **read-only**: it derives the next value from the sequence relation
 (`last_value`/`is_called`) instead of calling `nextval()`, so it cannot leave
