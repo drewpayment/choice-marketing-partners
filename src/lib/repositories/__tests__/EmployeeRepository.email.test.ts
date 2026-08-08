@@ -104,10 +104,13 @@ jest.mock('@/lib/database/client', () => {
   const dbMock: any = {
     selectFrom: jest.fn((table: string) => makeSelectChain(table)),
     updateTable: jest.fn((table: string) => makeUpdateChain(table)),
+    // Postgres never populates InsertResult.insertId — the repository reads
+    // the PK back via `.returning(...)`.
     insertInto: jest.fn(() => ({
       values: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockReturnThis(),
       execute: jest.fn().mockResolvedValue([]),
-      executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ insertId: BigInt(1) }),
+      executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ id: 1, uid: 1 }),
     })),
     fn: { count: jest.fn().mockReturnValue({ as: jest.fn() }) },
     case: jest.fn(),

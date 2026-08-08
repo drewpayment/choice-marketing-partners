@@ -19,8 +19,10 @@ jest.mock('@/lib/database/client', () => {
     updateTable: jest.fn().mockReturnThis(),
     set: jest.fn().mockReturnThis(),
     deleteFrom: jest.fn().mockReturnThis(),
+    returning: jest.fn().mockReturnThis(),
     execute: jest.fn().mockResolvedValue([]),
     executeTakeFirst: jest.fn().mockResolvedValue(null),
+    executeTakeFirstOrThrow: jest.fn().mockResolvedValue({}),
     fn: Object.assign(jest.fn().mockReturnValue('DATE_EXPR'), {
       sum: jest.fn().mockReturnValue({ as: jest.fn() }),
       count: jest.fn().mockReturnValue({ as: jest.fn() }),
@@ -65,7 +67,43 @@ describe('AdvanceRepository', () => {
     jest.clearAllMocks()
     mockChain.execute.mockResolvedValue([])
     mockChain.executeTakeFirst.mockResolvedValue(null)
+    mockChain.executeTakeFirstOrThrow.mockResolvedValue({})
     repo = new AdvanceRepository()
+  })
+
+  describe('createAdvance generated key', () => {
+    // Postgres never populates InsertResult.insertId — the new advance_id must come
+    // back through RETURNING, because it is immediately used as the advance_audit FK
+    // and to re-read the created row. Under the old insertId read this was NaN.
+    it('reads advance_id via RETURNING and threads it into the audit row', async () => {
+      mockChain.executeTakeFirstOrThrow.mockResolvedValue({ advance_id: 4242 })
+      mockChain.executeTakeFirst.mockResolvedValue({
+        advance_id: 4242,
+        agentid: 10,
+        vendor_id: 5,
+        amount: '100.00',
+        advance_date: new Date(2026, 0, 5),
+        issue_date: new Date(2026, 0, 9),
+        wkending: new Date(2026, 0, 4),
+        method: 'other',
+        notes: '',
+        created_by: 1,
+        created_at: null,
+        updated_at: null,
+      })
+
+      const created = await repo.createAdvance(baseCreate, adminCtx, audit)
+
+      expect(mockChain.returning).toHaveBeenCalledWith('advance_id')
+      expect(created.advance_id).toBe(4242)
+
+      const auditValues = mockChain.values.mock.calls
+        .map((c: unknown[]) => c[0] as Record<string, unknown>)
+        .find((v: Record<string, unknown>) => v && 'action_type' in v)
+      expect(auditValues).toBeDefined()
+      expect(auditValues!.advance_id).toBe(4242)
+      expect(Number.isNaN(auditValues!.advance_id as number)).toBe(false)
+    })
   })
 
   describe('createAdvance amount sign', () => {

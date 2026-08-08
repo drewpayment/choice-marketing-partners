@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
       .where('users.deleted_at', 'is', null)
       .where((eb) =>
         eb.or([
-          eb('users.name', 'like', `%${data.q}%`),
-          eb('users.email', 'like', `%${data.q}%`),
+          eb('users.name', 'ilike', `%${data.q}%`),
+          eb('users.email', 'ilike', `%${data.q}%`),
         ])
       )
       .orderBy('users.name', 'asc')

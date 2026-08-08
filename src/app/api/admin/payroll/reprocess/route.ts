@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/database/client';
+import { sumNumericText } from '@/lib/database/numeric-text';
 import { logger } from '@/lib/utils/logger'
 
 interface ReprocessJob {
@@ -171,7 +172,9 @@ async function simulateReprocessing(jobId: string, totalRecords: number) {
           // Recalculate payroll amounts based on current invoice data
           const invoiceTotal = await db
             .selectFrom('invoices')
-            .select(db.fn.sum('amount').as('total'))
+            // `invoices.amount` is varchar — Postgres has no sum(varchar). See
+            // `sumNumericText` for why a plain ::numeric cast throws on this data.
+            .select(sumNumericText('amount').as('total'))
             .where('agentid', '=', record.agent_id)
             .where('wkending', '=', record.pay_date)
             .executeTakeFirst();

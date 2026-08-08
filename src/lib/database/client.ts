@@ -1,66 +1,74 @@
-import { Kysely, MysqlDialect } from 'kysely'
-import { createPool } from 'mysql2'
+import { Kysely, PostgresDialect } from 'kysely'
+import { Pool, type PoolConfig } from 'pg'
 import type { DB } from './types'
 import { logger } from '@/lib/utils/logger'
 
-// Parse database URL or use individual environment variables
-function getDatabaseConfig() {
-  const databaseUrl = process.env.DATABASE_URL
-  
-  if (databaseUrl) {
-    // Parse DATABASE_URL format: mysql://user:password@host:port/database?ssl=params
-    const url = new URL(databaseUrl)
-    
-    // Extract SSL configuration from URL search params
-    const sslParam = url.searchParams.get('ssl')
-    let sslConfig = null
-    
-    if (sslParam) {
-      try {
-        // Handle JSON SSL configuration
-        sslConfig = JSON.parse(sslParam)
-      } catch {
-        // Handle simple boolean SSL configuration
-        sslConfig = sslParam === 'true' ? { rejectUnauthorized: false } : null
-      }
-    }
-    
-    return {
-      host: url.hostname,
-      port: parseInt(url.port) || 3306,
-      user: url.username,
-      password: url.password,
-      database: url.pathname.slice(1), // Remove leading slash
-      ssl: sslConfig
-    }
+const connectionString = process.env.DATABASE_URL
+
+/**
+ * TLS default for connection strings that say nothing about SSL.
+ *
+ * `pg` parses `sslmode=` / `ssl=` out of the connection string itself, and those
+ * URL-supplied values take precedence over anything passed here (see
+ * pg/lib/connection-parameters.js — the parsed URL is merged *over* the explicit
+ * config). So this function is only consulted when the URL is silent:
+ *
+ *   - loopback / *.local dev URLs  -> plain TCP, so the local docker Postgres
+ *     (`postgres://choice:choice@127.0.0.1:5433/...`) keeps working with no TLS.
+ *   - anything else                -> verified TLS, so a managed URL that
+ *     forgot its `sslmode` fails closed rather than sending payroll data in the
+ *     clear.
+ *
+ * Neon's connection strings ship `?sslmode=require`, which `pg` already turns
+ * into a verified TLS connection, so this branch is not what protects prod — it
+ * is the backstop.
+ */
+function defaultSslConfig(url: string | undefined): PoolConfig['ssl'] {
+  if (!url) return false
+
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    // Malformed URL: let `pg` produce the real error, don't mask it here.
+    return false
   }
-  
-  // Fallback to individual environment variables
-  return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    user: process.env.DB_USER || 'choice_user',
-    password: process.env.DB_PASSWORD || 'choice_password',
-    database: process.env.DB_NAME || 'choice_marketing',
-  }
+
+  const host = parsed.hostname.toLowerCase()
+  const isLocal =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '::1' ||
+    host === '[::1]' ||
+    host.endsWith('.localhost') ||
+    host.endsWith('.local')
+
+  return isLocal ? false : { rejectUnauthorized: true }
 }
 
-// Create connection pool optimized for serverless environment
-const dbConfig = getDatabaseConfig()
+/**
+ * Connection pool.
+ *
+ * `max: 1` is kept from the MySQL setup for serverless parity: each Vercel
+ * function instance holds at most one backend connection. Real pooling is
+ * Neon's job — the `-pooler` endpoint fronts the database with PgBouncer, so
+ * fanning out here would only multiply idle backends.
+ */
+const pool = new Pool({
+  connectionString,
+  ssl: defaultSslConfig(connectionString),
+  max: 1,
+})
 
-const pool = createPool({
-  ...dbConfig,
-  // Connection pool settings optimized for serverless
-  connectionLimit: 1,
-  // MySQL data type handling
-  supportBigNumbers: true,
-  bigNumberStrings: true,
-  dateStrings: false,
+// Never let a background pool error take down the process; a broken connection
+// is evicted and the next query gets a fresh one.
+pool.on('error', (error) => {
+  logger.error('❌ Postgres pool error:', error)
 })
 
 // Create Kysely instance with proper typing
 export const db = new Kysely<DB>({
-  dialect: new MysqlDialect({
+  dialect: new PostgresDialect({
     pool
   }),
   // Add query logging in development
@@ -102,7 +110,7 @@ export async function healthCheck() {
     const start = Date.now()
     await db.selectFrom('users').select('id').limit(1).execute()
     const duration = Date.now() - start
-    
+
     return {
       status: 'healthy',
       database: 'connected',

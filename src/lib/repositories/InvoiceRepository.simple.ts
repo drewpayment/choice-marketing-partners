@@ -16,6 +16,9 @@ interface SimpleSale {
   status: string
   amount: number
   is_active?: number
+  // Vendor-defined extra columns. Persisted as a JSON string in `invoices.custom_fields`
+  // (a `text` column in Postgres, guarded by an `IS JSON` check constraint).
+  custom_fields?: Record<string, string> | null
 }
 
 interface SimpleOverride {
@@ -195,12 +198,17 @@ export class InvoiceRepository {
               _previousData: existingInvoice || null
             })
           } else {
+            // Postgres never populates InsertResult.insertId — the generated key has
+            // to come back through RETURNING. `invoices`' PK is `invoice_id`, and it
+            // is the FK the audit trail is written against below, so a missing row
+            // must abort the transaction rather than record NaN.
             const result = await trx
               .insertInto('invoices')
               .values({ ...saleData, created_at: new Date() })
-              .executeTakeFirst()
-            const newId = Number(result.insertId)
-            salesResults.push({ 
+              .returning('invoice_id')
+              .executeTakeFirstOrThrow()
+            const newId = result.invoice_id
+            salesResults.push({
               ...saleData, 
               invoice_id: newId,
               _previousData: null // New record, no previous data
@@ -232,11 +240,13 @@ export class InvoiceRepository {
               .execute()
             overrideResults.push({ ...overrideData, ovrid: override.overrideId })
           } else {
+            // Postgres never populates InsertResult.insertId — `overrides`' PK is `ovrid`.
             const result = await trx
               .insertInto('overrides')
               .values({ ...overrideData, created_at: new Date() })
-              .executeTakeFirst()
-            const newId = Number(result.insertId)
+              .returning('ovrid')
+              .executeTakeFirstOrThrow()
+            const newId = result.ovrid
             overrideResults.push({ ...overrideData, ovrid: newId })
           }
         }
@@ -273,11 +283,16 @@ export class InvoiceRepository {
             expid = expense.expenseId
             expenseResults.push({ ...expenseData, expid, _previousData: existingExpense || null })
           } else {
+            // Postgres never populates InsertResult.insertId — `expenses`' PK is `expid`.
+            // This value is written straight back out as the `expense_id` FK on
+            // `scheduled_expense_applications` (and as the expense_audit FK), so it
+            // must be the real key or the transaction must roll back.
             const result = await trx
               .insertInto('expenses')
               .values({ ...expenseData, created_at: new Date() })
-              .executeTakeFirst()
-            expid = Number(result.insertId)
+              .returning('expid')
+              .executeTakeFirstOrThrow()
+            expid = result.expid
             expenseResults.push({ ...expenseData, expid, _previousData: null })
           }
 
@@ -301,13 +316,19 @@ export class InvoiceRepository {
                 created_at: now,
                 updated_at: now,
               })
-              .onDuplicateKeyUpdate({
-                expense_id: expid,
-                amount: expense.amount.toString(),
-                wkending: dayjs(request.weekending, 'YYYY-MM-DD').toDate(),
-                applied_by: request.auditMetadata?.userId ?? request.agentId,
-                updated_at: now,
-              })
+              // Postgres has no ON DUPLICATE KEY UPDATE — ON CONFLICT must name the
+              // exact conflict target. The only unique index on this table is
+              // `uq_sched_expense_app_template_issue (scheduled_expense_id, issue_date)`,
+              // which is precisely the idempotency key this upsert relies on.
+              .onConflict((oc) =>
+                oc.columns(['scheduled_expense_id', 'issue_date']).doUpdateSet({
+                  expense_id: expid,
+                  amount: expense.amount.toString(),
+                  wkending: dayjs(request.weekending, 'YYYY-MM-DD').toDate(),
+                  applied_by: request.auditMetadata?.userId ?? request.agentId,
+                  updated_at: now,
+                })
+              )
               .execute()
           }
         }

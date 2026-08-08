@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { sql } from 'kysely'
 
 export interface FlagContext {
   userId: string
@@ -38,12 +39,27 @@ function userBucket(userId: string): number {
 }
 
 export class FeatureFlagRepository {
-  /** Evaluate a single flag for a given context. */
+  /**
+   * Evaluate a single flag for a given context.
+   *
+   * `feature_flags.name` was matched case-insensitively under MySQL
+   * (`utf8mb4_0900_ai_ci`) and is case-SENSITIVE under Postgres. Unlike the
+   * Stripe ids elsewhere in this codebase, this key is human-entered:
+   * `createFlag` stores whatever the admin UI submits, with no normalisation
+   * and no format constraint. A flag created as `NewPayrollUI` but evaluated as
+   * `newpayrollui` matched under MySQL and would silently miss here — returning
+   * `false` with no error and no log, while the admin list shows the flag as
+   * enabled. Compare on `lower()` on both sides to keep today's behaviour.
+   * (4 rows in the snapshot; the seq scan is free. The source unique index on
+   * `name` is deliberately left case-sensitive — see
+   * scripts/pg-migration/README.md §3 — so the lookup is the layer that has to
+   * stay CI.)
+   */
   async evaluateFlag(flagName: string, context: FlagContext): Promise<boolean> {
     const flag = await db
       .selectFrom('feature_flags')
       .selectAll()
-      .where('name', '=', flagName)
+      .where(sql`lower(name)`, '=', flagName.toLowerCase())
       .executeTakeFirst()
 
     if (!flag) return false
@@ -145,8 +161,9 @@ export class FeatureFlagRepository {
         rollout_percentage: data.rollout_percentage ?? 0,
         environment: data.environment ?? 'production',
       })
-      .executeTakeFirst()
-    return Number(result.insertId)
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    return Number(result.id)
   }
 
   async updateFlag(id: number, data: {
@@ -191,7 +208,11 @@ export class FeatureFlagRepository {
         context_value: data.context_value,
         is_enabled: data.is_enabled ? 1 : 0,
       })
-      .onDuplicateKeyUpdate({ is_enabled: data.is_enabled ? 1 : 0 })
+      .onConflict((oc) =>
+        oc
+          .columns(['flag_id', 'context_type', 'context_value'])
+          .doUpdateSet({ is_enabled: data.is_enabled ? 1 : 0 })
+      )
       .execute()
   }
 

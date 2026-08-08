@@ -34,6 +34,7 @@ describe('SubscriberRepository', () => {
         orderBy: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         offset: jest.fn().mockReturnThis(),
+        $narrowType: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue([
           { id: 1, business_name: 'Test Co', status: 'active' },
         ]),
@@ -54,6 +55,7 @@ describe('SubscriberRepository', () => {
       const mockSubscriberQuery = {
         where: jest.fn().mockReturnThis(),
         selectAll: jest.fn().mockReturnThis(),
+        $narrowType: jest.fn().mockReturnThis(),
         executeTakeFirst: jest.fn().mockResolvedValue({
           id: 1,
           business_name: 'Test Co',
@@ -85,20 +87,40 @@ describe('SubscriberRepository', () => {
   })
 
   describe('createSubscriber', () => {
-    it('creates a subscriber', async () => {
+    it('creates a subscriber, returning the real PK column and the bound values', async () => {
       const mockQuery = {
         values: jest.fn().mockReturnThis(),
-        executeTakeFirst: jest.fn().mockResolvedValue({ insertId: 42n }),
+        returning: jest.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ id: 42 }),
       }
 
       ;(db.insertInto as jest.Mock).mockReturnValue(mockQuery)
 
       const id = await repo.createSubscriber({
         stripe_customer_id: 'cus_test123',
+        email: 'owner@test.co',
         business_name: 'Test Co',
       })
 
       expect(id).toBe(42)
+      // The mock resolves `{ id: 42 }` regardless of the requested column, so
+      // pin the column name and the bound payload explicitly — otherwise a
+      // renamed PK or a dropped insert column stays invisible until runtime.
+      expect(db.insertInto).toHaveBeenCalledWith('subscribers')
+      expect(mockQuery.returning).toHaveBeenCalledWith('id')
+      expect(mockQuery.values).toHaveBeenCalledWith({
+        stripe_customer_id: 'cus_test123',
+        email: 'owner@test.co',
+        contact_name: null,
+        business_name: 'Test Co',
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        postal_code: null,
+        status: 'active',
+        notes: null,
+      })
     })
   })
 

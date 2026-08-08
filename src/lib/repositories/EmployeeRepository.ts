@@ -156,12 +156,12 @@ export class EmployeeRepository {
     if (search) {
       query = query.where((eb) =>
         eb.or([
-          eb('employees.name', 'like', `%${search}%`),
-          eb('employees.email', 'like', `%${search}%`),
-          eb('employees.phone_no', 'like', `%${search}%`),
-          eb('employees.sales_id1', 'like', `%${search}%`),
-          eb('employees.sales_id2', 'like', `%${search}%`),
-          eb('employees.sales_id3', 'like', `%${search}%`)
+          eb('employees.name', 'ilike', `%${search}%`),
+          eb('employees.email', 'ilike', `%${search}%`),
+          eb('employees.phone_no', 'ilike', `%${search}%`),
+          eb('employees.sales_id1', 'ilike', `%${search}%`),
+          eb('employees.sales_id2', 'ilike', `%${search}%`),
+          eb('employees.sales_id3', 'ilike', `%${search}%`)
         ])
       )
     }
@@ -421,9 +421,10 @@ export class EmployeeRepository {
         created_at: new Date(),
         updated_at: new Date()
       })
+      .returning('id')
       .executeTakeFirstOrThrow()
 
-    const employeeId = Number(result.insertId)
+    const employeeId = result.id
     const createdEmployee = await this.getEmployeeById(employeeId)
     if (!createdEmployee) {
       throw new Error('Failed to retrieve created employee')
@@ -667,6 +668,7 @@ export class EmployeeRepository {
     // Create user record
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     
+    // Postgres never populates InsertResult.insertId — return the PK instead.
     const userResult = await db
       .insertInto('users')
       .values({
@@ -678,9 +680,10 @@ export class EmployeeRepository {
         created_at: new Date(),
         updated_at: new Date()
       })
+      .returning('uid')
       .executeTakeFirstOrThrow()
 
-    const userId = Number(userResult.insertId)
+    const userId = userResult.uid
 
     // Link employee to user
     await db
@@ -745,14 +748,16 @@ export class EmployeeRepository {
           created_at: new Date(),
           updated_at: new Date()
         })
+        .returning('id')
         .executeTakeFirstOrThrow()
 
-      const employeeId = Number(employeeResult.insertId)
+      const employeeId = employeeResult.id
 
       // Create user account if requested
       if (userData) {
         const hashedPassword = await bcrypt.hash(userData.password, 12)
-        
+
+        // Postgres never populates InsertResult.insertId — return the PK instead.
         const userResult = await trx
           .insertInto('users')
           .values({
@@ -764,9 +769,10 @@ export class EmployeeRepository {
             created_at: new Date(),
             updated_at: new Date()
           })
+          .returning('uid')
           .executeTakeFirstOrThrow()
 
-        const userId = Number(userResult.insertId)
+        const userId = userResult.uid
 
         // Link employee to user
         await trx
@@ -874,9 +880,9 @@ export class EmployeeRepository {
       ])
       .where((eb) =>
         eb.or([
-          eb('employees.name', 'like', `%${query}%`),
-          eb('employees.email', 'like', `%${query}%`),
-          eb('employees.sales_id1', 'like', `%${query}%`)
+          eb('employees.name', 'ilike', `%${query}%`),
+          eb('employees.email', 'ilike', `%${query}%`),
+          eb('employees.sales_id1', 'ilike', `%${query}%`)
         ])
       )
       .where('employees.is_active', '=', 1)
@@ -1196,12 +1202,18 @@ export class EmployeeRepository {
 }
 
 /**
- * True for a MySQL/MariaDB duplicate-key error (errno 1062). Used to turn the
- * race between the availability check and the write into the same 400 conflict
- * the pre-check produces.
+ * True for a duplicate-key error, on either driver this app has run against:
+ * MySQL/MariaDB (errno 1062 / code 'ER_DUP_ENTRY') or Postgres (`pg`'s
+ * unique_violation, code '23505'). Used to turn the race between the
+ * availability check and the write into the same 400 conflict the pre-check
+ * produces.
  */
 export function isDuplicateEmailError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
   const candidate = error as { code?: unknown; errno?: unknown }
-  return candidate.code === 'ER_DUP_ENTRY' || candidate.errno === 1062
+  return (
+    candidate.code === 'ER_DUP_ENTRY' ||
+    candidate.errno === 1062 ||
+    candidate.code === '23505'
+  )
 }

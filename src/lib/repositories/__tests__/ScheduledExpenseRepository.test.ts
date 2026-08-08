@@ -16,8 +16,10 @@ jest.mock('@/lib/database/client', () => {
     updateTable: jest.fn().mockReturnThis(),
     set: jest.fn().mockReturnThis(),
     deleteFrom: jest.fn().mockReturnThis(),
+    returning: jest.fn().mockReturnThis(),
     execute: jest.fn().mockResolvedValue([]),
     executeTakeFirst: jest.fn().mockResolvedValue(null),
+    executeTakeFirstOrThrow: jest.fn().mockResolvedValue({}),
     fn: Object.assign(jest.fn().mockReturnValue('DATE_EXPR'), {
       sum: jest.fn().mockReturnValue({ as: jest.fn() }),
     }),
@@ -291,7 +293,50 @@ describe('ScheduledExpenseRepository RBAC + validation', () => {
     jest.clearAllMocks()
     mockChain.execute.mockResolvedValue([])
     mockChain.executeTakeFirst.mockResolvedValue(null)
+    mockChain.executeTakeFirstOrThrow.mockResolvedValue({})
     repo = new ScheduledExpenseRepository()
+  })
+
+  it('reads the new template id via RETURNING (Postgres has no insertId)', async () => {
+    mockChain.executeTakeFirstOrThrow.mockResolvedValue({ id: 909 })
+    mockChain.executeTakeFirst.mockResolvedValue({
+      id: 909,
+      agentid: 3,
+      vendor_id: 1,
+      type: 'gas',
+      amount: '-10.00',
+      notes: '',
+      frequency: 'weekly',
+      monthly_week: null,
+      monthly_weekday: null,
+      start_date: new Date(2026, 0, 4),
+      end_date: null,
+      is_active: 1,
+      created_by: 1,
+    })
+
+    const created = await repo.createTemplate(
+      { agentid: 3, vendorId: 1, type: 'gas', amount: -10, frequency: 'weekly', startDate: '2026-01-04' },
+      adminCtx
+    )
+
+    expect(mockChain.returning).toHaveBeenCalledWith('id')
+    expect(created.id).toBe(909)
+    // The id is used to re-read the row; NaN would have silently returned nothing.
+    expect(mockChain.where).toHaveBeenCalledWith('id', '=', 909)
+  })
+
+  it('orders an agent’s templates newest-first with NULL created_at last', async () => {
+    // created_at is nullable: MySQL sorts NULLs last on DESC, Postgres sorts them
+    // first. The explicit modifier keeps today's ordering.
+    await repo.getTemplatesByAgent(3, adminCtx)
+
+    const orderCall = mockChain.orderBy.mock.calls.find((c: unknown[]) => c[0] === 'created_at')
+    expect(orderCall).toBeDefined()
+    const builder = { desc: jest.fn().mockReturnThis(), nullsLast: jest.fn().mockReturnThis() }
+    orderCall[1](builder)
+    expect(builder.desc).toHaveBeenCalled()
+    expect(builder.nullsLast).toHaveBeenCalled()
   })
 
   it('rejects create for employee role', async () => {

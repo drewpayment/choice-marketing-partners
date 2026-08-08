@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { sumNumericText } from '@/lib/database/numeric-text'
 import dayjs from 'dayjs'
 import { AdvanceRepository } from '@/lib/repositories/AdvanceRepository'
 import { VendorFieldRepository } from '@/lib/repositories/VendorFieldRepository'
@@ -433,7 +434,22 @@ export class PayrollRepository {
     // Get paginated results
     const results = await query
       .orderBy('paystubs.issue_date', 'desc')
-      .orderBy('employees.name', 'asc')
+      // `employees` is LEFT JOINed, so employeeName is NULL for orphaned paystubs.
+      // MySQL sorts NULLs first on ASC, Postgres sorts them last — pin `nulls first`
+      // so orphan rows keep landing at the top of the page they land on today
+      // (they are also the rows the loop below skips, so page composition is stable).
+      .orderBy('employees.name', (ob) => ob.asc().nullsFirst())
+      // Deterministic tiebreakers. The grouping key is
+      // (agent_id, vendor_id, issue_date), so (issue_date, employees.name) alone
+      // leaves exact ties whenever one agent has statements from several vendors
+      // on the same issue date — 1,004 such (agent_id, issue_date) groups exist in
+      // the snapshot. Tie order is plan-dependent, and Postgres' hash-aggregate +
+      // sort plan is not MySQL's filesort, so without these keys LIMIT/OFFSET
+      // paging could show a row twice and drop another between page fetches.
+      // (agent_id, vendor_id) completes the group key, making the total order
+      // unique.
+      .orderBy('paystubs.vendor_id', 'asc')
+      .orderBy('paystubs.agent_id', 'asc')
       .limit(limit)
       .offset(offset)
       .execute()
@@ -1032,7 +1048,15 @@ export class PayrollRepository {
         .values({
           agent_id: agentId,
           vendor_id: vendorId,
-          issue_date: new Date(issueDate),
+          // `new Date('YYYY-MM-DD')` parses as UTC midnight, but node-postgres
+          // serialises a Date using the process's LOCAL calendar fields — so on
+          // any host west of UTC the audit row was stamped one day EARLY (proven:
+          // deleting the 2099-01-09 statement under TZ=America/Detroit wrote
+          // issue_date 2099-01-08). This row is the only forensic record of an
+          // irreversible payroll deletion, so a restore keyed on issue_date has to
+          // find it. dayjs parses a date-only string at LOCAL midnight, matching
+          // every other date write in this group.
+          issue_date: dayjs(issueDate, 'YYYY-MM-DD').toDate(),
           deleted_by: deletedBy,
           deletion_reason: reason.trim(),
           deleted_at: new Date(),
@@ -1054,9 +1078,14 @@ export class PayrollRepository {
           expenses_data: JSON.stringify(expenses),
           advances_data: JSON.stringify(advances),
         })
-        .executeTakeFirst()
+        // Postgres never populates InsertResult.insertId — the generated key has to
+        // come back through RETURNING. `payroll_audit`'s PK is `id`. This audit row is
+        // the ONLY record of a destructive payroll deletion, so a missing id must abort
+        // the transaction (rolling the deletes back) rather than surface as NaN.
+        .returning('id')
+        .executeTakeFirstOrThrow()
 
-      const auditId = Number(auditResult.insertId)
+      const auditId = auditResult.id
 
       // 4. Delete all related records
       const invoiceResult = await trx
@@ -1114,12 +1143,15 @@ export class PayrollRepository {
         success: true,
         auditId,
         deleted: {
-          paystubs: Number(paystubResult[0]?.numAffectedRows ?? 0n),
-          invoices: Number(invoiceResult[0]?.numAffectedRows ?? 0n),
-          overrides: Number(overrideResult[0]?.numAffectedRows ?? 0n),
-          expenses: Number(expenseResult[0]?.numAffectedRows ?? 0n),
+          // Kysely's DeleteResult exposes `numDeletedRows` (bigint) — there is no
+          // `numAffectedRows` on it, so the old reads were always `undefined` and
+          // every reported count was 0. `?? 0` (not `0n`) keeps the ES2017 target happy.
+          paystubs: Number(paystubResult[0]?.numDeletedRows ?? 0),
+          invoices: Number(invoiceResult[0]?.numDeletedRows ?? 0),
+          overrides: Number(overrideResult[0]?.numDeletedRows ?? 0),
+          expenses: Number(expenseResult[0]?.numDeletedRows ?? 0),
           advances: advances.length,
-          payroll: Number(payrollResult[0]?.numAffectedRows ?? 0n),
+          payroll: Number(payrollResult[0]?.numDeletedRows ?? 0),
         },
       }
     })
@@ -1131,7 +1163,9 @@ export class PayrollRepository {
   private async getSalesTotal(agentId: string, vendorId: number, issueDate: string): Promise<number> {
     const result = await db
       .selectFrom('invoices')
-      .select(db.fn.sum('amount').as('total'))
+      // `invoices.amount` is varchar — Postgres has no sum(varchar). See
+      // `sumNumericText` for why a plain ::numeric cast throws on this data.
+      .select(sumNumericText('amount').as('total'))
       .where('agentid', '=', parseInt(agentId))
       .where('vendor', '=', vendorId.toString())
       .where(db.fn('DATE', ['issue_date']), '=', issueDate)
@@ -1160,7 +1194,9 @@ export class PayrollRepository {
         'agentid',
         'vendor',
         'issue_date',
-        db.fn.sum('amount').as('total')
+        // `invoices.amount` is varchar — Postgres has no sum(varchar). See
+        // `sumNumericText` for why a plain ::numeric cast throws on this data.
+        sumNumericText('amount').as('total')
       ])
       .where('agentid', 'in', agentIds)
       .where('vendor', 'in', vendorIds.map(v => v.toString()))

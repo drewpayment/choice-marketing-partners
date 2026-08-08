@@ -96,7 +96,10 @@ export class VendorFieldRepository {
       vendor_id: row.vendor_id,
       field_key: row.field_key,
       field_label: row.field_label,
-      source: row.source,
+      // The former MySQL ENUM lost its string-literal union under Postgres
+      // (column is now plain text); no CHECK constraint enforces the value,
+      // but every writer in this file only ever writes 'builtin' | 'custom'.
+      source: row.source as 'builtin' | 'custom',
       display_order: row.display_order,
       is_active: row.is_active === 1,
       created_at: row.created_at,
@@ -124,7 +127,7 @@ export class VendorFieldRepository {
       vendor_id: row.vendor_id,
       field_key: row.field_key,
       field_label: row.field_label,
-      source: row.source,
+      source: row.source as 'builtin' | 'custom',
       display_order: row.display_order,
       is_active: row.is_active === 1,
       created_at: row.created_at,
@@ -192,6 +195,7 @@ export class VendorFieldRepository {
     }
     const now = dayjs().toDate()
 
+    // Postgres never populates InsertResult.insertId — return the PK instead.
     const result = await db
       .insertInto('vendor_field_definitions')
       .values({
@@ -204,10 +208,10 @@ export class VendorFieldRepository {
         created_at: now,
         updated_at: now,
       })
+      .returning('id')
       .executeTakeFirstOrThrow()
 
-    const id = Number(result.insertId)
-    return this.getFieldById(id, userContext) as Promise<VendorFieldDefinition>
+    return this.getFieldById(result.id, userContext) as Promise<VendorFieldDefinition>
   }
 
   /**
@@ -230,7 +234,7 @@ export class VendorFieldRepository {
       vendor_id: row.vendor_id,
       field_key: row.field_key,
       field_label: row.field_label,
-      source: row.source,
+      source: row.source as 'builtin' | 'custom',
       display_order: row.display_order,
       is_active: row.is_active === 1,
       created_at: row.created_at,

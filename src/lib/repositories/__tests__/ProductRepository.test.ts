@@ -30,6 +30,7 @@ describe('ProductRepository', () => {
       const mockProductsQuery = {
         selectAll: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
+        $narrowType: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue([
           { id: 1, name: 'Test Product', stripe_product_id: 'prod_123' },
         ]),
@@ -38,6 +39,7 @@ describe('ProductRepository', () => {
       const mockPricesQuery = {
         where: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
+        $narrowType: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue([
           { id: 1, amount_cents: 4999, interval: 'month' },
         ]),
@@ -55,10 +57,11 @@ describe('ProductRepository', () => {
   })
 
   describe('createProduct', () => {
-    it('creates a product', async () => {
+    it('creates a product, returning the real PK column and the bound values', async () => {
       const mockQuery = {
         values: jest.fn().mockReturnThis(),
-        executeTakeFirst: jest.fn().mockResolvedValue({ insertId: 42n }),
+        returning: jest.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ id: 42 }),
       }
 
       ;(db.insertInto as jest.Mock).mockReturnValue(mockQuery)
@@ -69,6 +72,53 @@ describe('ProductRepository', () => {
       })
 
       expect(id).toBe(42)
+      // Postgres replaces `insertId` with RETURNING, and the returned column
+      // name has to be the one that actually exists on this table. The mock
+      // resolves `{ id: 42 }` no matter what was requested, so without this
+      // assertion `.returning('uid')` would still pass here and only blow up at
+      // runtime with `column "uid" does not exist` (users.id/users.uid are both
+      // live in this schema, so that slip is realistic).
+      expect(db.insertInto).toHaveBeenCalledWith('products')
+      expect(mockQuery.returning).toHaveBeenCalledWith('id')
+      expect(mockQuery.values).toHaveBeenCalledWith({
+        stripe_product_id: 'prod_test123',
+        name: 'Test Product',
+        description: null,
+        type: 'recurring',
+        is_active: 0,
+      })
+    })
+  })
+
+  describe('createPrice', () => {
+    it('creates a price, returning the real PK column and the bound values', async () => {
+      const mockQuery = {
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockReturnThis(),
+        executeTakeFirstOrThrow: jest.fn().mockResolvedValue({ id: 7 }),
+      }
+
+      ;(db.insertInto as jest.Mock).mockReturnValue(mockQuery)
+
+      const id = await repo.createPrice({
+        product_id: 1,
+        stripe_price_id: 'price_test123',
+        amount_cents: 4999,
+        is_active: true,
+      })
+
+      expect(id).toBe(7)
+      expect(db.insertInto).toHaveBeenCalledWith('prices')
+      expect(mockQuery.returning).toHaveBeenCalledWith('id')
+      expect(mockQuery.values).toHaveBeenCalledWith({
+        product_id: 1,
+        stripe_price_id: 'price_test123',
+        amount_cents: 4999,
+        currency: 'usd',
+        interval: 'month',
+        interval_count: 1,
+        is_active: 1,
+      })
     })
   })
 

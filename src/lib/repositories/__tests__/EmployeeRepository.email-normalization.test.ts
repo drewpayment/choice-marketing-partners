@@ -19,9 +19,9 @@ var guardRows: Record<string, unknown>[]
 jest.mock('@/lib/database/client', () => {
   const {
     Kysely,
-    MysqlAdapter,
-    MysqlIntrospector,
-    MysqlQueryCompiler,
+    PostgresAdapter,
+    PostgresIntrospector,
+    PostgresQueryCompiler,
   } = jest.requireActual('kysely')
 
   capturedQueries = []
@@ -32,8 +32,8 @@ jest.mock('@/lib/database/client', () => {
     async executeQuery(compiled: { sql: string; parameters: readonly unknown[] }) {
       capturedQueries.push({ sql: compiled.sql, parameters: compiled.parameters })
 
-      if (compiled.sql.includes('from `users`')) {
-        return { rows: compiled.sql.includes('`uid` != ?') ? guardRows : linkedUserRows }
+      if (compiled.sql.includes('from "users"')) {
+        return { rows: compiled.sql.includes('"uid" != $') ? guardRows : linkedUserRows }
       }
       return { rows: [], numAffectedRows: BigInt(1) }
     },
@@ -43,7 +43,7 @@ jest.mock('@/lib/database/client', () => {
   return {
     db: new Kysely({
       dialect: {
-        createAdapter: () => new MysqlAdapter(),
+        createAdapter: () => new PostgresAdapter(),
         createDriver: () => ({
           async init() {},
           async acquireConnection() {
@@ -55,8 +55,8 @@ jest.mock('@/lib/database/client', () => {
           async releaseConnection() {},
           async destroy() {},
         }),
-        createIntrospector: (kysely: never) => new MysqlIntrospector(kysely),
-        createQueryCompiler: () => new MysqlQueryCompiler(),
+        createIntrospector: (kysely: never) => new PostgresIntrospector(kysely),
+        createQueryCompiler: () => new PostgresQueryCompiler(),
       },
     }),
   }
@@ -95,8 +95,8 @@ describe('EmployeeRepository — email lookups are normalised', () => {
       await call('deleted-42.Mixed.Case@Example.COM')
 
       const probe = capturedQueries[0]
-      expect(probe.sql).toContain('from `users`')
-      expect(probe.sql).toContain('`email` = ?')
+      expect(probe.sql).toContain('from "users"')
+      expect(probe.sql).toContain('"email" = $')
       expect(probe.parameters[0]).toBe('deleted-42.mixed.case@example.com')
     })
 
@@ -105,15 +105,15 @@ describe('EmployeeRepository — email lookups are normalised', () => {
 
       // Normalising the address must not disturb the uid exclusion — without it
       // an account would collide with its own parked value.
-      expect(capturedQueries[0].sql).toContain('`uid` != ?')
+      expect(capturedQueries[0].sql).toContain('"uid" != $')
       expect(capturedQueries[0].parameters[1]).toBe(1250)
     })
   })
 
   describe('softDeleteEmployee — the probed value is the written value', () => {
-    /** The collision guard: the only `users` read carrying `uid != ?`. */
+    /** The collision guard: the only `users` read carrying `"uid" != $n`. */
     function guardQuery() {
-      const guard = capturedQueries.find((q) => q.sql.includes('`uid` != ?'))
+      const guard = capturedQueries.find((q) => q.sql.includes('"uid" != $'))
       if (!guard) throw new Error('the collision guard never ran')
       return guard
     }
@@ -121,7 +121,7 @@ describe('EmployeeRepository — email lookups are normalised', () => {
     /** The UPDATE that parks the login email. */
     function userUpdate() {
       const update = capturedQueries.find(
-        (q) => q.sql.includes('update `users`') && q.sql.includes('`email` = ?')
+        (q) => q.sql.includes('update "users"') && q.sql.includes('"email" = $')
       )
       if (!update) throw new Error('the users email update never ran')
       return update
@@ -171,9 +171,9 @@ describe('EmployeeRepository — email lookups are normalised', () => {
 
       await repo.softDeleteEmployee(42, ADMIN)
 
-      expect(capturedQueries.some((q) => q.sql.includes('`uid` != ?'))).toBe(false)
-      const update = capturedQueries.find((q) => q.sql.includes('update `users`'))
-      expect(update?.sql).not.toContain('`email` = ?')
+      expect(capturedQueries.some((q) => q.sql.includes('"uid" != $'))).toBe(false)
+      const update = capturedQueries.find((q) => q.sql.includes('update "users"'))
+      expect(update?.sql).not.toContain('"email" = $')
     })
   })
 
@@ -182,9 +182,9 @@ describe('EmployeeRepository — email lookups are normalised', () => {
       await repo.findEmailOwner('  Mixed.Case@Example.COM ')
 
       const [employeeQuery, userQuery] = capturedQueries
-      expect(employeeQuery.sql).toContain('from `employees`')
+      expect(employeeQuery.sql).toContain('from "employees"')
       expect(employeeQuery.parameters[0]).toBe('mixed.case@example.com')
-      expect(userQuery.sql).toContain('from `users`')
+      expect(userQuery.sql).toContain('from "users"')
       expect(userQuery.parameters[0]).toBe('mixed.case@example.com')
     })
   })

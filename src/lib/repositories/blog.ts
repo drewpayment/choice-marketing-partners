@@ -1,4 +1,5 @@
 import { db } from '@/lib/database/client'
+import { sql } from 'kysely'
 
 export interface BlogPostData {
   id: number
@@ -57,7 +58,9 @@ export class BlogRepository {
         'users.email as author_email'
       ])
       .where('posts.active', '=', 1)
-      .orderBy('posts.created_at', 'desc')
+      // `posts.created_at` is nullable; MySQL DESC puts NULLs last, Postgres DESC
+      // puts them first by default — pin `nulls last` to preserve today's ordering.
+      .orderBy('posts.created_at', (ob) => ob.desc().nullsLast())
       .limit(perPage)
       .offset(offset)
       .execute()
@@ -106,7 +109,15 @@ export class BlogRepository {
         'users.name as author_name',
         'users.email as author_email'
       ])
-      .where('posts.slug', '=', slug)
+      // `posts.slug` was matched case- AND accent-insensitively under MySQL
+      // (`utf8mb3_unicode_ci`); Postgres `=` on text is exact. Slugs stored
+      // today are all canonical lowercase, but the *requested* URL is not
+      // controlled by us — an emailed or indexed `/blog/September-Bonus`
+      // resolved before the migration and would 404 after it. Compare on
+      // `lower()` on both sides to keep those links alive.
+      // The table is small (tens of rows) so the seq scan this forces is free;
+      // if `posts` ever grows, add `CREATE INDEX ON posts (lower(slug))`.
+      .where(sql`lower(posts.slug)`, '=', slug.toLowerCase())
       .where('posts.active', '=', 1)
       .execute()
 
@@ -164,7 +175,9 @@ export class BlogRepository {
       ])
       .where('posts.active', '=', 1)
       .where('posts.author_id', '=', authorId)
-      .orderBy('posts.created_at', 'desc')
+      // `posts.created_at` is nullable; MySQL DESC puts NULLs last, Postgres DESC
+      // puts them first by default — pin `nulls last` to preserve today's ordering.
+      .orderBy('posts.created_at', (ob) => ob.desc().nullsLast())
       .limit(perPage)
       .offset(offset)
       .execute()

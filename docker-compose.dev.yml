@@ -16,5 +16,27 @@ services:
       - ./database/backup:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
 
+  # Postgres migration target (docs/postgres-migration-plan.md). Runs alongside
+  # mysql during the port; mysql stays as read-only reference data until cutover.
+  postgres:
+    image: postgres:17-alpine
+    container_name: choice-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: choice
+      POSTGRES_PASSWORD: choice
+      POSTGRES_DB: choice_marketing
+    ports:
+      # 5433 on the host so it never collides with a local Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U choice -d choice_marketing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mysql_data:
+  postgres_data:

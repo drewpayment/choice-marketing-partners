@@ -5,58 +5,170 @@
 
 import type { ColumnType } from "kysely";
 
-export type Decimal = ColumnType<string, number | string>;
-
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
+
+export type Numeric = ColumnType<string, number | string, number | string>;
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+export interface AdvanceAudit {
+  action_type: string;
+  advance_id: number;
+  change_reason: string | null;
+  changed_at: Generated<Timestamp>;
+  changed_by: number;
+  current_advance_date: Timestamp | null;
+  current_agentid: number | null;
+  current_amount: Numeric | null;
+  current_issue_date: Timestamp | null;
+  current_method: string | null;
+  current_notes: string | null;
+  current_vendor_id: number | null;
+  current_wkending: Timestamp | null;
+  id: Generated<number>;
+  ip_address: string | null;
+  previous_advance_date: Timestamp | null;
+  previous_agentid: number | null;
+  previous_amount: Numeric | null;
+  previous_issue_date: Timestamp | null;
+  previous_method: string | null;
+  previous_notes: string | null;
+  previous_vendor_id: number | null;
+  previous_wkending: Timestamp | null;
+}
+
+export interface Advances {
+  advance_date: Timestamp;
+  advance_id: Generated<number>;
+  agentid: number;
+  amount: Numeric;
+  created_at: Generated<Timestamp | null>;
+  created_by: number;
+  issue_date: Timestamp;
+  method: Generated<string>;
+  notes: Generated<string>;
+  updated_at: Generated<Timestamp | null>;
+  vendor_id: number;
+  wkending: Timestamp;
+}
+
 export interface Comments {
   active: number;
   body: string;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   from_user: Generated<number>;
   id: Generated<number>;
   on_post: Generated<number>;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface CompanyOptions {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   has_paystub_notifications: number;
   id: Generated<number>;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
+}
+
+export interface DailyPayEnrollments {
+  created_at: Generated<Timestamp>;
+  created_by: number | null;
+  daily_rate: Numeric;
+  employee_id: number;
+  id: Generated<number>;
+  is_active: Generated<number>;
+  updated_at: Generated<Timestamp>;
+  vendor_id: number;
+}
+
+export interface DailyPayRecords {
+  amount: Numeric;
+  created_at: Generated<Timestamp>;
+  created_by: number | null;
+  description: Generated<string>;
+  employee_id: number;
+  id: Generated<number>;
+  punch_id: number;
+  reversed_at: Timestamp | null;
+  reversed_by: number | null;
+  vendor_id: number;
+  wkending: Timestamp;
+  work_date: Timestamp;
+}
+
+export interface DailyPaySettings {
+  cutoff_day_of_week: Generated<number>;
+  cutoff_time_local: Generated<string>;
+  cutoff_timezone: Generated<string>;
+  id: Generated<number>;
+  is_auto_cutoff_enabled: Generated<number>;
+  updated_at: Generated<Timestamp>;
+  updated_by: number | null;
+}
+
+export interface DailyPunchRecords {
+  accuracy_meters: number | null;
+  created_at: Generated<Timestamp>;
+  decided_at: Timestamp | null;
+  decided_by: number | null;
+  decline_reason: string | null;
+  employee_id: number;
+  id: Generated<number>;
+  ip_address: string | null;
+  latitude: Numeric | null;
+  longitude: Numeric | null;
+  punched_at: Timestamp;
+  status: Generated<string>;
+  user_agent: string | null;
+  vendor_id: number;
+  work_date: Timestamp;
+}
+
+export interface DocumentFiles {
+  blob_pathname: string;
+  blob_url: string;
+  created_at: Generated<Timestamp>;
+  description: string | null;
+  download_url: string | null;
+  file_size: Int8;
+  id: Generated<number>;
+  metadata: string | null;
+  mime_type: string;
+  name: string;
+  original_filename: string;
+  status: Generated<string | null>;
+  storage_type: Generated<string | null>;
+  tags: string | null;
+  updated_at: Generated<Timestamp>;
+  upload_ip: string | null;
+  uploaded_by: string;
 }
 
 export interface Documents {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   description: string;
   file_path: string;
   id: Generated<number>;
   mime_type: string;
   name: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
   uploaded_by: string;
 }
 
-export interface DocumentFiles {
+export interface EmailDeliveryEvents {
+  bounce_type: string | null;
+  created_at: Generated<Timestamp | null>;
+  email: string;
+  event_type: string;
   id: Generated<number>;
-  name: string;
-  description: string | null;
-  original_filename: string;
-  storage_type: "vercel_blob";
-  blob_url: string;
-  blob_pathname: string;
-  download_url: string | null;
-  mime_type: string;
-  file_size: number;
-  uploaded_by: string;
-  upload_ip: string | null;
-  tags: string | null; // JSON
-  metadata: string | null; // JSON
-  status: "uploading" | "active" | "archived" | "deleted";
-  created_at: Date | null;
-  updated_at: Date | null;
+  occurred_at: Timestamp | null;
+  payload: string | null;
+  resend_email_id: string | null;
+  subject: string | null;
+  svix_id: string;
 }
 
 export interface EmployeeInvoice {
@@ -74,8 +186,8 @@ export interface Employees {
   address_2: string | null;
   city: string | null;
   country: string | null;
-  created_at: Date | null;
-  deleted_at: Date | null;
+  created_at: Timestamp | null;
+  deleted_at: Timestamp | null;
   email: string;
   has_been_fixed: Generated<number>;
   hidden_payroll: Generated<number>;
@@ -91,7 +203,7 @@ export interface Employees {
   sales_id2: Generated<string>;
   sales_id3: Generated<string>;
   state: string | null;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface EmployeeUser {
@@ -99,146 +211,92 @@ export interface EmployeeUser {
   user_id: number;
 }
 
-export interface Advances {
-  advance_id: Generated<number>;
-  agentid: number;
-  vendor_id: number;
-  amount: Decimal;
-  advance_date: Date;
-  issue_date: Date;
-  wkending: Date;
-  method: Generated<string>;
-  notes: Generated<string>;
-  created_by: number;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface AdvanceAudit {
-  id: Generated<number>;
-  advance_id: number;
-  action_type: "CREATE" | "UPDATE" | "DELETE";
-  changed_by: number;
-  changed_at: Generated<Date>;
-  previous_amount: Decimal | null;
-  previous_advance_date: Date | null;
-  previous_issue_date: Date | null;
-  previous_wkending: Date | null;
-  previous_method: string | null;
-  previous_notes: string | null;
-  previous_agentid: number | null;
-  previous_vendor_id: number | null;
-  current_amount: Decimal | null;
-  current_advance_date: Date | null;
-  current_issue_date: Date | null;
-  current_wkending: Date | null;
-  current_method: string | null;
-  current_notes: string | null;
-  current_agentid: number | null;
-  current_vendor_id: number | null;
-  change_reason: string | null;
-  ip_address: string | null;
-}
-
-export interface ScheduledExpenses {
-  id: Generated<number>;
-  agentid: number;
-  vendor_id: number;
-  type: string;
-  amount: Decimal;
-  notes: Generated<string>;
-  frequency: string;
-  monthly_week: number | null; // 1=first … 4=fourth, 5=last (monthly_weekday freq only)
-  monthly_weekday: number | null; // 0=Sunday … 6=Saturday (monthly_weekday freq only)
-  start_date: Date;
-  end_date: Date | null;
-  is_active: Generated<number>;
-  created_by: number;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface ScheduledExpenseApplications {
-  id: Generated<number>;
-  scheduled_expense_id: number;
-  expense_id: number | null; // expid of the materialized `expenses` row
-  agentid: number;
-  vendor_id: number;
-  issue_date: Date;
-  wkending: Date;
-  amount: Decimal;
-  applied_by: number; // employees.id of the admin who saved the statement
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
 export interface ExpenseAudit {
-  id: Generated<number>;
-  expense_id: number;
-  action_type: "CREATE" | "UPDATE" | "DELETE";
-  changed_by: number;
-  changed_at: Generated<Date>;
-  previous_type: string | null;
-  previous_amount: Decimal | null;
-  previous_notes: string | null;
-  previous_agentid: number | null;
-  previous_vendor_id: number | null;
-  previous_issue_date: Date | null;
-  previous_wkending: Date | null;
-  current_type: string | null;
-  current_amount: Decimal | null;
-  current_notes: string | null;
-  current_agentid: number | null;
-  current_vendor_id: number | null;
-  current_issue_date: Date | null;
-  current_wkending: Date | null;
+  action_type: string;
   change_reason: string | null;
+  changed_at: Generated<Timestamp>;
+  changed_by: number;
+  current_agentid: number | null;
+  current_amount: Numeric | null;
+  current_issue_date: Timestamp | null;
+  current_notes: string | null;
+  current_type: string | null;
+  current_vendor_id: number | null;
+  current_wkending: Timestamp | null;
+  expense_id: number;
+  id: Generated<number>;
   ip_address: string | null;
+  previous_agentid: number | null;
+  previous_amount: Numeric | null;
+  previous_issue_date: Timestamp | null;
+  previous_notes: string | null;
+  previous_type: string | null;
+  previous_vendor_id: number | null;
+  previous_wkending: Timestamp | null;
 }
 
 export interface Expenses {
   agentid: number;
-  amount: Generated<Decimal>;
-  created_at: Date | null;
+  amount: Generated<Numeric>;
+  created_at: Timestamp | null;
   expid: Generated<number>;
-  issue_date: Date;
+  issue_date: Timestamp;
   notes: string;
   type: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
   vendor_id: Generated<number>;
-  wkending: Date;
+  wkending: Timestamp;
+}
+
+export interface FeatureFlagOverrides {
+  context_type: string;
+  context_value: string;
+  flag_id: number;
+  id: Generated<number>;
+  is_enabled: Generated<number>;
+}
+
+export interface FeatureFlags {
+  created_at: Generated<Timestamp>;
+  description: string | null;
+  environment: Generated<string>;
+  id: Generated<number>;
+  is_enabled: Generated<number>;
+  name: string;
+  rollout_percentage: Generated<number>;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface InvoiceAudit {
-  id: Generated<number>;
-  invoice_id: number;
-  action_type: "UPDATE" | "DELETE";
-  changed_by: number;
-  changed_at: Generated<Date>;
-  previous_vendor: string | null;
-  previous_sale_date: Date | null;
-  previous_first_name: string | null;
-  previous_last_name: string | null;
-  previous_address: string | null;
-  previous_city: string | null;
-  previous_status: string | null;
-  previous_amount: Generated<string> | null;
-  previous_agentid: number | null;
-  previous_issue_date: Date | null;
-  previous_wkending: Date | null;
-  current_vendor: string | null;
-  current_sale_date: Date | null;
-  current_first_name: string | null;
-  current_last_name: string | null;
-  current_address: string | null;
-  current_city: string | null;
-  current_status: string | null;
-  current_amount: Generated<string> | null;
-  current_agentid: number | null;
-  current_issue_date: Date | null;
-  current_wkending: Date | null;
+  action_type: string;
   change_reason: string | null;
+  changed_at: Generated<Timestamp>;
+  changed_by: number;
+  current_address: string | null;
+  current_agentid: number | null;
+  current_amount: Numeric | null;
+  current_city: string | null;
+  current_first_name: string | null;
+  current_issue_date: Timestamp | null;
+  current_last_name: string | null;
+  current_sale_date: Timestamp | null;
+  current_status: string | null;
+  current_vendor: string | null;
+  current_wkending: Timestamp | null;
+  id: Generated<Int8>;
+  invoice_id: number;
   ip_address: string | null;
+  previous_address: string | null;
+  previous_agentid: number | null;
+  previous_amount: Numeric | null;
+  previous_city: string | null;
+  previous_first_name: string | null;
+  previous_issue_date: Timestamp | null;
+  previous_last_name: string | null;
+  previous_sale_date: Timestamp | null;
+  previous_status: string | null;
+  previous_vendor: string | null;
+  previous_wkending: Timestamp | null;
 }
 
 export interface Invoices {
@@ -246,17 +304,17 @@ export interface Invoices {
   agentid: number;
   amount: Generated<string>;
   city: string;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   custom_fields: string | null;
   first_name: string;
   invoice_id: Generated<number>;
-  issue_date: Date;
+  issue_date: Timestamp;
   last_name: string;
-  sale_date: Date;
+  sale_date: Timestamp;
   status: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
   vendor: string;
-  wkending: Date;
+  wkending: Timestamp;
 }
 
 export interface JobApplications {
@@ -269,36 +327,36 @@ export interface JobApplications {
   notes: string | null;
   resume_filename: string | null;
   resume_url: string | null;
-  status: Generated<"contacted" | "hired" | "new" | "rejected" | "reviewing">;
-  submitted_at: Generated<Date>;
-  updated_at: Generated<Date>;
+  status: Generated<string>;
+  submitted_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface JobPostings {
   apply_url: string | null;
   benefits: string | null;
-  created_at: Generated<Date>;
+  created_at: Generated<Timestamp>;
   created_by: number;
-  deleted_at: Date | null;
-  department: "admin" | "engineering" | "marketing" | "operations" | "other" | "sales";
+  deleted_at: Timestamp | null;
+  department: string;
   description: string;
-  employment_type: "contract" | "full-time" | "part-time" | "seasonal";
+  employment_type: string;
   id: Generated<number>;
   location_city: string | null;
   location_state: string | null;
-  posted_at: Date | null;
+  posted_at: Timestamp | null;
   qualifications: string;
   responsibilities: string;
-  salary_max: Decimal | null;
-  salary_min: Decimal | null;
-  salary_show_as: Generated<"exact" | "hidden" | "range" | "starting-at" | "up-to">;
-  salary_type: "annual" | "hourly" | null;
+  salary_max: Numeric | null;
+  salary_min: Numeric | null;
+  salary_show_as: Generated<string>;
+  salary_type: string | null;
   slug: string;
-  status: Generated<"active" | "closed" | "draft" | "filled">;
+  status: Generated<string>;
   summary: string | null;
   title: string;
-  updated_at: Generated<Date>;
-  work_setting: "hybrid" | "in-person" | "remote";
+  updated_at: Generated<Timestamp>;
+  work_setting: string;
 }
 
 export interface Jobs {
@@ -312,18 +370,18 @@ export interface Jobs {
 }
 
 export interface Links {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
   name: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface ManagerEmployees {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   employee_id: number;
   id: Generated<number>;
   manager_id: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface Migrations {
@@ -333,27 +391,27 @@ export interface Migrations {
 
 export interface OauthAccessTokens {
   client_id: number;
-  created_at: Date | null;
-  expires_at: Date | null;
+  created_at: Timestamp | null;
+  expires_at: Timestamp | null;
   id: string;
   name: string | null;
   revoked: number;
   scopes: string | null;
-  updated_at: Date | null;
-  user_id: number | null;
+  updated_at: Timestamp | null;
+  user_id: Int8 | null;
 }
 
 export interface OauthAuthCodes {
   client_id: number;
-  expires_at: Date | null;
+  expires_at: Timestamp | null;
   id: string;
   revoked: number;
   scopes: string | null;
-  user_id: number;
+  user_id: Int8;
 }
 
 export interface OauthClients {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
   name: string;
   password_client: number;
@@ -361,135 +419,256 @@ export interface OauthClients {
   redirect: string;
   revoked: number;
   secret: string | null;
-  updated_at: Date | null;
-  user_id: number | null;
+  updated_at: Timestamp | null;
+  user_id: Int8 | null;
 }
 
 export interface OauthPersonalAccessClients {
   client_id: number;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface OauthRefreshTokens {
   access_token_id: string;
-  expires_at: Date | null;
+  expires_at: Timestamp | null;
   id: string;
   revoked: number;
 }
 
 export interface Overrides {
   agentid: number;
-  commission: Generated<Decimal>;
-  created_at: Date | null;
-  issue_date: Date;
+  commission: Generated<Numeric>;
+  created_at: Timestamp | null;
+  issue_date: Timestamp;
   name: string;
   ovrid: Generated<number>;
   sales: number;
-  total: Generated<Decimal>;
-  updated_at: Date | null;
+  total: Generated<Numeric>;
+  updated_at: Timestamp | null;
   vendor_id: Generated<number>;
-  wkending: Date;
+  wkending: Timestamp;
 }
 
 export interface PasswordResets {
-  created_at: Generated<Date>;
+  created_at: Generated<Timestamp>;
   email: string;
   token: string;
+}
+
+export interface PaymentHistory {
+  amount_cents: number;
+  created_at: Generated<Timestamp>;
+  currency: Generated<string>;
+  description: string | null;
+  id: Generated<number>;
+  invoice_pdf_url: string | null;
+  paid_at: Timestamp | null;
+  status: string;
+  stripe_invoice_id: string | null;
+  stripe_payment_intent_id: string | null;
+  subscriber_id: number;
 }
 
 export interface Payroll {
   agent_id: number;
   agent_name: string;
-  amount: Generated<Decimal>;
-  created_at: Date | null;
+  amount: Generated<Numeric>;
+  created_at: Timestamp | null;
   id: Generated<number>;
   is_paid: number;
-  pay_date: Date;
-  updated_at: Date | null;
+  pay_date: Timestamp;
+  updated_at: Timestamp | null;
   vendor_id: Generated<number>;
 }
 
+export interface PayrollAudit {
+  advances_data: string | null;
+  advances_total: Generated<Numeric>;
+  agent_id: number;
+  deleted_advances_count: Generated<number>;
+  deleted_at: Generated<Timestamp>;
+  deleted_by: number;
+  deleted_expenses_count: Generated<number>;
+  deleted_invoices_count: Generated<number>;
+  deleted_overrides_count: Generated<number>;
+  deleted_paystubs_count: Generated<number>;
+  deletion_reason: string;
+  expenses_data: string;
+  expenses_total: Generated<Numeric>;
+  id: Generated<number>;
+  invoices_data: string;
+  invoices_total: Generated<Numeric>;
+  ip_address: string | null;
+  issue_date: Timestamp;
+  overrides_data: string;
+  overrides_total: Generated<Numeric>;
+  payroll_data: string;
+  paystub_data: string;
+  paystub_total: Generated<Numeric>;
+  vendor_id: number;
+}
+
 export interface PayrollRestriction {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   hour: number;
   id: Generated<number>;
   minute: number;
   modified_by: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface Paystubs {
   agent_id: number;
   agent_name: string;
-  amount: Generated<Decimal>;
-  created_at: Date | null;
+  amount: Generated<Numeric>;
+  created_at: Timestamp | null;
   id: Generated<number>;
-  issue_date: Date;
+  issue_date: Timestamp;
   modified_by: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
   vendor_id: number;
   vendor_name: string;
-  weekend_date: Date;
-}
-
-export interface PayrollAudit {
-  id: Generated<number>;
-  agent_id: number;
-  vendor_id: number;
-  issue_date: Date;
-  deleted_by: number;
-  deletion_reason: string;
-  deleted_at: Generated<Date>;
-  ip_address: string | null;
-  deleted_paystubs_count: number;
-  deleted_invoices_count: number;
-  deleted_overrides_count: number;
-  deleted_expenses_count: number;
-  deleted_advances_count: Generated<number>;
-  paystub_total: Decimal;
-  invoices_total: Decimal;
-  overrides_total: Decimal;
-  expenses_total: Decimal;
-  advances_total: Generated<Decimal>;
-  paystub_data: string;
-  payroll_data: string;
-  invoices_data: string;
-  overrides_data: string;
-  expenses_data: string;
-  advances_data: string | null;
+  weekend_date: Timestamp;
 }
 
 export interface Permissions {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   emp_id: number;
   id: Generated<number>;
   is_active: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface PersonalAccessTokens {
   abilities: string | null;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
-  last_used_at: Date | null;
+  last_used_at: Timestamp | null;
   name: string;
   token: string;
   tokenable_id: number;
   tokenable_type: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface Posts {
   active: number;
   author_id: Generated<number>;
   body: string;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
   slug: string;
   title: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
+}
+
+export interface Prices {
+  amount_cents: number;
+  created_at: Generated<Timestamp>;
+  currency: Generated<string>;
+  id: Generated<number>;
+  interval: Generated<string>;
+  interval_count: Generated<number>;
+  is_active: Generated<number>;
+  product_id: number;
+  stripe_price_id: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface ProductMarketing {
+  badge_text: string | null;
+  category: Generated<string>;
+  created_at: Generated<Timestamp>;
+  display_order: Generated<number>;
+  feature_list: string | null;
+  icon_name: string | null;
+  id: Generated<number>;
+  is_featured: Generated<number>;
+  product_id: number;
+  tagline: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Products {
+  created_at: Generated<Timestamp>;
+  description: string | null;
+  id: Generated<number>;
+  is_active: Generated<number>;
+  name: string;
+  stripe_product_id: string | null;
+  type: Generated<string>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface ScheduledExpenseApplications {
+  agentid: number;
+  amount: Numeric;
+  applied_by: number;
+  created_at: Generated<Timestamp | null>;
+  expense_id: number | null;
+  id: Generated<number>;
+  issue_date: Timestamp;
+  scheduled_expense_id: number;
+  updated_at: Generated<Timestamp | null>;
+  vendor_id: number;
+  wkending: Timestamp;
+}
+
+export interface ScheduledExpenses {
+  agentid: number;
+  amount: Numeric;
+  created_at: Generated<Timestamp | null>;
+  created_by: number;
+  end_date: Timestamp | null;
+  frequency: string;
+  id: Generated<number>;
+  is_active: Generated<number>;
+  monthly_week: number | null;
+  monthly_weekday: number | null;
+  notes: Generated<string>;
+  start_date: Timestamp;
+  type: string;
+  updated_at: Generated<Timestamp | null>;
+  vendor_id: number;
+}
+
+export interface Subscribers {
+  address: string | null;
+  business_name: string | null;
+  city: string | null;
+  contact_name: string | null;
+  created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
+  email: string;
+  id: Generated<number>;
+  notes: string | null;
+  phone: string | null;
+  postal_code: string | null;
+  state: string | null;
+  status: Generated<string>;
+  stripe_customer_id: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface SubscriberSubscriptions {
+  cancel_at_period_end: Generated<number>;
+  created_at: Generated<Timestamp>;
+  current_period_end: Timestamp | null;
+  current_period_start: Timestamp | null;
+  id: Generated<number>;
+  price_id: number;
+  product_id: number;
+  status: Generated<string>;
+  stripe_subscription_id: string | null;
+  subscriber_id: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface SubscriberUser {
+  subscriber_id: number;
+  user_id: number;
 }
 
 export interface TaggingTagged {
@@ -517,166 +696,80 @@ export interface TaggingTags {
 
 export interface Testimonials {
   content: string;
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
   location: string;
   testimonial_type: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface TestimonialTypes {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   id: Generated<number>;
   name: string;
   type: number;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
+}
+
+export interface UserImpersonationLog {
+  actor_employee_id: number | null;
+  actor_user_id: string;
+  blocked_method: string | null;
+  blocked_path: string | null;
+  end_reason: string | null;
+  ended_at: Timestamp | null;
+  expires_at: Timestamp | null;
+  id: Generated<number>;
+  ip_address: string | null;
+  started_at: Generated<Timestamp>;
+  target_employee_id: number | null;
+  target_user_id: string;
+  user_agent: string | null;
 }
 
 export interface UserNotifications {
-  created_at: Date | null;
+  created_at: Timestamp | null;
   employee_id: number;
   has_paystub_notifier: Generated<number>;
   id: Generated<number>;
   notifier_destination: string | null;
   paystub_notifier_type: number | null;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
   user_id: number;
 }
 
 export interface Users {
-  created_at: Date | null;
-  deleted_at: Date | null;
+  created_at: Timestamp | null;
+  deleted_at: Timestamp | null;
   email: string;
+  email_verified_at: Timestamp | null;
   id: number;
   name: string;
   password: string;
   remember_token: string | null;
-  role: Generated<"admin" | "author" | "subscriber">;
+  role: Generated<string>;
   uid: Generated<number>;
-  updated_at: Date | null;
-}
-
-export interface PaymentHistory {
-  id: Generated<number>;
-  subscriber_id: number;
-  stripe_invoice_id: string;
-  stripe_payment_intent_id: string | null;
-  amount_cents: number;
-  currency: Generated<string>;
-  status: string;
-  description: string | null;
-  invoice_pdf_url: string | null;
-  paid_at: Date | null;
-  created_at: Generated<Date | null>;
-}
-
-export interface Prices {
-  id: Generated<number>;
-  product_id: number;
-  stripe_price_id: string;
-  amount_cents: number;
-  currency: Generated<string>;
-  interval: Generated<"month" | "quarter" | "year" | "one_time">;
-  interval_count: Generated<number>;
-  is_active: Generated<number>;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface Products {
-  id: Generated<number>;
-  stripe_product_id: string;
-  name: string;
-  description: string | null;
-  type: Generated<"recurring" | "one_time" | "custom">;
-  is_active: Generated<number>;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface Subscribers {
-  id: Generated<number>;
-  stripe_customer_id: string;
-  business_name: string | null;
-  phone: string | null;
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  status: Generated<"active" | "past_due" | "canceled" | "paused">;
-  notes: string | null;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-  deleted_at: Date | null;
-}
-
-export interface SubscriberSubscriptions {
-  id: Generated<number>;
-  subscriber_id: number;
-  stripe_subscription_id: string;
-  product_id: number;
-  price_id: number;
-  status: Generated<string>;
-  current_period_start: Date | null;
-  current_period_end: Date | null;
-  cancel_at_period_end: Generated<number>;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface SubscriberUser {
-  subscriber_id: number;
-  user_id: number;
-}
-
-export interface Vendors {
-  created_at: Date | null;
-  id: Generated<number>;
-  is_active: number;
-  name: string;
-  updated_at: Date | null;
+  updated_at: Timestamp | null;
 }
 
 export interface VendorFieldDefinitions {
-  id: Generated<number>;
-  vendor_id: number;
+  created_at: Generated<Timestamp>;
+  display_order: Generated<number>;
   field_key: string;
   field_label: string;
-  source: "builtin" | "custom";
-  display_order: number;
+  id: Generated<number>;
+  is_active: Generated<number>;
+  source: Generated<string>;
+  updated_at: Generated<Timestamp>;
+  vendor_id: number;
+}
+
+export interface Vendors {
+  created_at: Timestamp | null;
+  id: Generated<number>;
   is_active: number;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface ProductMarketing {
-  id: Generated<number>;
-  product_id: number;
-  category: "tier" | "addon";
-  tagline: string | null;
-  feature_list: string | null; // stored as JSON string in MySQL
-  display_order: Generated<number>;
-  is_featured: Generated<number>; // TINYINT 0 or 1
-  icon_name: string | null;
-  badge_text: string | null;
-  created_at: Generated<Date | null>;
-  updated_at: Generated<Date | null>;
-}
-
-export interface UserImpersonationLog {
-  id: Generated<number>;
-  actor_user_id: string;
-  target_user_id: string;
-  actor_employee_id: number | null;
-  target_employee_id: number | null;
-  started_at: Generated<Date>;
-  ended_at: Date | null;
-  end_reason: "manual" | "expired" | "rejected_mutation" | "superseded" | null;
-  expires_at: Date | null;
-  ip_address: string | null;
-  user_agent: string | null;
-  blocked_method: string | null;
-  blocked_path: string | null;
+  name: string;
+  updated_at: Timestamp | null;
 }
 
 export interface DB {
@@ -684,14 +777,21 @@ export interface DB {
   advances: Advances;
   comments: Comments;
   company_options: CompanyOptions;
+  daily_pay_enrollments: DailyPayEnrollments;
+  daily_pay_records: DailyPayRecords;
+  daily_pay_settings: DailyPaySettings;
+  daily_punch_records: DailyPunchRecords;
   document_files: DocumentFiles;
   documents: Documents;
+  email_delivery_events: EmailDeliveryEvents;
   employee_invoice: EmployeeInvoice;
   employee_permission: EmployeePermission;
   employee_user: EmployeeUser;
   employees: Employees;
   expense_audit: ExpenseAudit;
   expenses: Expenses;
+  feature_flag_overrides: FeatureFlagOverrides;
+  feature_flags: FeatureFlags;
   invoice_audit: InvoiceAudit;
   invoices: Invoices;
   job_applications: JobApplications;
@@ -707,27 +807,27 @@ export interface DB {
   oauth_refresh_tokens: OauthRefreshTokens;
   overrides: Overrides;
   password_resets: PasswordResets;
+  payment_history: PaymentHistory;
   payroll: Payroll;
   payroll_audit: PayrollAudit;
   payroll_restriction: PayrollRestriction;
   paystubs: Paystubs;
-  scheduled_expenses: ScheduledExpenses;
-  scheduled_expense_applications: ScheduledExpenseApplications;
   permissions: Permissions;
   personal_access_tokens: PersonalAccessTokens;
   posts: Posts;
+  prices: Prices;
+  product_marketing: ProductMarketing;
+  products: Products;
+  scheduled_expense_applications: ScheduledExpenseApplications;
+  scheduled_expenses: ScheduledExpenses;
+  subscriber_subscriptions: SubscriberSubscriptions;
+  subscriber_user: SubscriberUser;
+  subscribers: Subscribers;
   tagging_tag_groups: TaggingTagGroups;
   tagging_tagged: TaggingTagged;
   tagging_tags: TaggingTags;
   testimonial_types: TestimonialTypes;
   testimonials: Testimonials;
-  payment_history: PaymentHistory;
-  prices: Prices;
-  product_marketing: ProductMarketing;
-  products: Products;
-  subscribers: Subscribers;
-  subscriber_subscriptions: SubscriberSubscriptions;
-  subscriber_user: SubscriberUser;
   user_impersonation_log: UserImpersonationLog;
   user_notifications: UserNotifications;
   users: Users;

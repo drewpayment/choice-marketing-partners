@@ -55,7 +55,7 @@ export class VendorRepository {
 
     // Apply search filter
     if (filters.search) {
-      query = query.where('name', 'like', `%${filters.search}%`)
+      query = query.where('name', 'ilike', `%${filters.search}%`)
     }
 
     const vendors = await query.execute()
@@ -122,6 +122,7 @@ export class VendorRepository {
     }
     const now = dayjs().toDate();
     
+    // Postgres never populates InsertResult.insertId — return the PK instead.
     const result = await db
       .insertInto('vendors')
       .values({
@@ -130,9 +131,10 @@ export class VendorRepository {
         created_at: now,
         updated_at: now,
       })
+      .returning('id')
       .executeTakeFirstOrThrow()
 
-    const vendorId = Number(result.insertId)
+    const vendorId = result.id
     const vendor = await this.getVendorById(vendorId, userContext)
 
     if (!vendor) {

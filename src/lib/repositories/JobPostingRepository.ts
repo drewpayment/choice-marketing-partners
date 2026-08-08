@@ -1,5 +1,23 @@
 import { db } from '@/lib/database/client'
+import { sql } from 'kysely'
 import type { UserContext } from '@/lib/auth/types'
+
+/**
+ * `job_postings.slug` was matched case- AND accent-insensitively under MySQL
+ * (`utf8mb4_0900_ai_ci`); Postgres `=` on text is exact. Stored slugs are all
+ * canonical lowercase, but the *requested* URL is not ours to control — an
+ * already-shared or indexed `/careers/Sales-Rep` resolved before the migration
+ * and would 404 after it. Compare on `lower()` on both sides.
+ *
+ * The table holds a handful of rows, so the seq scan this forces is free; if it
+ * ever grows, add `CREATE INDEX ON job_postings (lower(slug))`.
+ *
+ * Note the source unique index on `slug` is left case-SENSITIVE under Postgres
+ * on purpose (see scripts/pg-migration/README.md §3), so two slugs differing
+ * only by case are now representable. `slugExists` below is CI precisely so the
+ * app keeps rejecting that pair the way MySQL's CI unique index used to.
+ */
+const LOWER_SLUG = sql`lower(job_postings.slug)`
 
 export type JobDepartment =
   | 'sales'
@@ -123,7 +141,9 @@ export class JobPostingRepository {
       .selectAll()
       .where('status', '=', 'active')
       .where('deleted_at', 'is', null)
-      .orderBy('posted_at', 'desc')
+      // `posted_at` is nullable; MySQL DESC puts NULLs last, Postgres DESC puts
+      // them first by default — pin `nulls last` to preserve today's ordering.
+      .orderBy('posted_at', (ob) => ob.desc().nullsLast())
       .orderBy('id', 'desc')
 
     if (opts.department) {
@@ -141,7 +161,7 @@ export class JobPostingRepository {
     const row = await db
       .selectFrom('job_postings')
       .selectAll()
-      .where('slug', '=', slug)
+      .where(LOWER_SLUG, '=', slug.toLowerCase())
       .where('deleted_at', 'is', null)
       .executeTakeFirst()
 
@@ -153,7 +173,7 @@ export class JobPostingRepository {
     const row = await db
       .selectFrom('job_postings')
       .selectAll()
-      .where('slug', '=', slug)
+      .where(LOWER_SLUG, '=', slug.toLowerCase())
       .where('status', '=', 'active')
       .where('deleted_at', 'is', null)
       .executeTakeFirst()
@@ -306,7 +326,7 @@ export class JobPostingRepository {
     let query = db
       .selectFrom('job_postings')
       .select('id')
-      .where('slug', '=', slug)
+      .where(LOWER_SLUG, '=', slug.toLowerCase())
 
     if (excludeId !== undefined) {
       query = query.where('id', '!=', excludeId)

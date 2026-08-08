@@ -470,16 +470,17 @@ export class InvoiceRepository {
         } else {
           logger.log('➕ Creating new invoice')
           
-          // Simple insert without transaction
+          // Postgres never populates InsertResult.insertId — return the PK instead.
           const result = await db
             .insertInto('invoices')
             .values({
               ...saleData,
               created_at: now
             })
-            .executeTakeFirst()
+            .returning('invoice_id')
+            .executeTakeFirstOrThrow()
 
-          const newInvoiceId = Number(result.insertId)
+          const newInvoiceId = result.invoice_id
           logger.log('✅ Created new invoice:', newInvoiceId)
 
           savedSales.push({

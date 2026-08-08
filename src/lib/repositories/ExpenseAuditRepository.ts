@@ -35,7 +35,7 @@ export class ExpenseAuditRepository {
     changeReason?: string,
     ipAddress?: string
   ): Promise<number> {
-    const result = await db
+    const inserted = await db
       .insertInto('expense_audit')
       .values({
         expense_id: expenseId,
@@ -62,9 +62,12 @@ export class ExpenseAuditRepository {
         change_reason: changeReason ?? null,
         ip_address: ipAddress ?? null,
       })
-      .executeTakeFirst()
+      // Postgres never populates InsertResult.insertId — the generated key has to
+      // come back through RETURNING. `expense_audit`'s PK is `id`.
+      .returning('id')
+      .executeTakeFirstOrThrow()
 
-    return Number(result.insertId)
+    return inserted.id
   }
 }
 
