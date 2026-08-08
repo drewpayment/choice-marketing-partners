@@ -42,12 +42,25 @@ const MIGRATIONS_DIR = join(import.meta.dir, '..', 'src', 'lib', 'database', 'mi
  */
 const ADVISORY_LOCK_KEY = 727270015
 
+/**
+ * How long to wait for that lock before giving up. Overridable so the rehearsal
+ * can prove the timeout path without waiting ten minutes.
+ */
+const LOCK_WAIT = process.env.MIGRATION_LOCK_TIMEOUT || '10min'
+
 /** Header that opts a file out of the runner's transaction. Must be line 1. */
 const NO_TRANSACTION_HEADER = '-- runner: no-transaction'
 
-/** Transaction control is the runner's job; a file doing it corrupts state. */
+/**
+ * Transaction control is the runner's job; a file doing it corrupts state.
+ *
+ * ABORT is a Postgres synonym for ROLLBACK and PREPARE TRANSACTION hands the
+ * transaction to two-phase commit — both are as damaging as the obvious ones.
+ * PREPARE TRANSACTION is matched with its second word so ordinary prepared
+ * statements (`PREPARE foo AS SELECT ...`) stay allowed.
+ */
 const TRANSACTION_CONTROL =
-  /^(BEGIN|COMMIT|ROLLBACK|END|SAVEPOINT|START\s+TRANSACTION|RELEASE\s+SAVEPOINT)\b/i
+  /^(BEGIN|COMMIT|ROLLBACK|ABORT|END|SAVEPOINT|START\s+TRANSACTION|RELEASE\s+SAVEPOINT|PREPARE\s+TRANSACTION)\b/i
 
 /**
  * TLS default for connection strings that say nothing about SSL. Mirrors
@@ -124,9 +137,25 @@ function blankNonCode(sql: string): string {
     // 'string literal' and "quoted identifier" (doubled quote escapes)
     if (ch === "'" || ch === '"') {
       const quote = ch
+
+      // With standard_conforming_strings on, a backslash in a plain '...' is a
+      // literal backslash — but E'...' honors \' as an escaped quote. Getting
+      // this wrong ends the literal early, phantom-opens a new one at the next
+      // quote, and blanks the rest of the file, hiding real transaction control.
+      const escapesHonored =
+        quote === "'" &&
+        i > 0 &&
+        (sql[i - 1] === 'E' || sql[i - 1] === 'e') &&
+        !(i > 1 && /[A-Za-z0-9_]/.test(sql[i - 2]))
+
       out += ' '
       i++
       while (i < n) {
+        if (escapesHonored && sql[i] === '\\' && i + 1 < n) {
+          out += blank(sql[i]) + blank(sql[i + 1])
+          i += 2
+          continue
+        }
         if (sql[i] === quote && sql[i + 1] === quote) {
           out += '  '
           i += 2
@@ -349,10 +378,26 @@ async function runMigrations() {
     connected = true
     console.log('Connected successfully.')
 
-    // Serialize runners before anything reads the ledger. Blocks rather than
-    // fails, so a queued run applies cleanly once the first finishes.
-    console.log('Acquiring migration advisory lock...')
-    await client.query('SELECT pg_advisory_lock($1)', [ADVISORY_LOCK_KEY])
+    // Serialize runners before anything reads the ledger. A queued run waits
+    // and then applies cleanly once the first finishes — but the wait is
+    // bounded, so a stale holder cannot hang the job forever.
+    console.log('Waiting for another migration run to finish...')
+    await client.query("SELECT set_config('lock_timeout', $1, false)", [LOCK_WAIT])
+    try {
+      await client.query('SELECT pg_advisory_lock($1)', [ADVISORY_LOCK_KEY])
+    } catch (error) {
+      if ((error as { code?: string }).code === '55P03') {
+        console.error(
+          `Refusing to run: could not acquire the migration advisory lock within ${LOCK_WAIT}. ` +
+            'Another migration run is still holding it, or a previous run left a session open. ' +
+            'Check for a running migrate job before retrying.'
+        )
+        process.exit(1)
+      }
+      throw error
+    }
+    await client.query('RESET lock_timeout')
+    console.log('Advisory lock acquired.')
 
     // A ledger that is missing or empty means either a genuinely fresh database
     // or a URL pointing somewhere unintended. Require an explicit opt-in.
@@ -476,7 +521,10 @@ async function runMigrations() {
 
     console.log(`\nAll ${pending.length} migration(s) applied in batch ${nextBatch}.`)
   } catch (error) {
-    console.error('\nMigration failed:', error instanceof Error ? error.message : error)
+    // Through reportPgError so DETAIL/HINT survive — a unique-index violation
+    // here carries the offending key only in its detail line.
+    console.error('\nMigration failed:')
+    reportPgError(error)
     process.exit(1)
   } finally {
     if (connected) {

@@ -57,11 +57,12 @@ file exactly**:
 Such a file:
 
 - runs **without** `BEGIN`/`COMMIT`, as a single `query()` call,
-- must contain **exactly one statement**. A multi-statement simple query is
-  itself an implicit transaction block, so Postgres rejects `CONCURRENTLY` there
+- must be a **single statement** if it needs to escape the transaction block at
+  all. A multi-statement simple query is itself an implicit transaction block, so
+  Postgres rejects `CREATE INDEX CONCURRENTLY` in a multi-statement file
   regardless — one concurrent index means one file.
 - is **not atomic with its ledger row**. The ledger row is written afterwards, so
-  a crash in between can leave the statement applied and unrecorded. Keep these
+  a crash in between can leave the statement applied and unrecorded. Keep such
   files idempotent (`CREATE INDEX CONCURRENTLY IF NOT EXISTS`) so a re-run is
   safe.
 - gets `lock_timeout = 10s` but **no** `statement_timeout` — a concurrent index
