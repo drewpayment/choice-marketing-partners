@@ -4,6 +4,7 @@ import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from 'next-themes'
 import { ReactNode } from 'react'
 import { Toaster } from '@/components/ui/sonner'
+import { PostHogIdentify } from '@/components/analytics/PostHogIdentify'
 
 interface ProvidersProps {
   children: ReactNode
@@ -12,6 +13,7 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
+      <PostHogIdentify />
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
