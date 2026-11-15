@@ -59,9 +59,40 @@ const nextConfig: NextConfig = {
     ]
   },
 
+  // PostHog reverse proxy: the browser SDK posts to same-origin /ingest
+  // (src/instrumentation-client.ts) and Vercel forwards it to PostHog US.
+  async rewrites() {
+    return [
+      {
+        source: '/ingest/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/ingest/array/:path*',
+        destination: 'https://us-assets.i.posthog.com/array/:path*',
+      },
+      {
+        source: '/ingest/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
+      },
+    ]
+  },
+  // Required by the PostHog proxy: its API paths use trailing slashes, and
+  // Next's default redirect would strip them and break ingestion. This turns
+  // the redirect off app-wide, so redirects() below restores it for every
+  // path except /ingest.
+  skipTrailingSlashRedirect: true,
+
   // Redirect optimization
   async redirects() {
     return [
+      // Next's built-in trailing-slash redirect (/foo/ -> /foo, 308), minus
+      // the PostHog proxy and .well-known. See skipTrailingSlashRedirect.
+      {
+        source: '/:path((?!ingest(?:/|$)|\\.well-known(?:/|$)).+)/',
+        destination: '/:path',
+        permanent: true,
+      },
       {
         source: '/login',
         destination: '/auth/signin',
